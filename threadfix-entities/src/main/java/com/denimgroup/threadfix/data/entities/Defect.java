@@ -26,7 +26,6 @@ package com.denimgroup.threadfix.data.entities;
 import com.denimgroup.threadfix.views.AllViews;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -37,7 +36,9 @@ import java.util.Set;
 import static com.denimgroup.threadfix.CollectionUtils.set;
 
 @Entity
-@Table(name = "Defect")
+@Table(name = "Defect", indexes = {
+        @Index(columnList = "status")
+})
 public class Defect extends AuditableEntity {
 
     private static final long serialVersionUID = -3912326857875561633L;
@@ -60,6 +61,7 @@ public class Defect extends AuditableEntity {
     private List<Event> events;
 
     @Size(max = STATUS_LENGTH, message = "{errors.maxlength} " + STATUS_LENGTH + ".")
+
     private String status;
 
     @Size(max = URL_LENGTH, message = "{errors.maxlength} " + URL_LENGTH + ".")
@@ -84,7 +86,6 @@ public class Defect extends AuditableEntity {
 
     @Column(length = 255, nullable = false)
     @JsonView({AllViews.TableRow.class, AllViews.VulnSearch.class, AllViews.VulnerabilityDetail.class})
-    @Index(name="status")
     public String getStatus() {
         return status;
     }

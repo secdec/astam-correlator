@@ -24,7 +24,6 @@
 package com.denimgroup.threadfix.data.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 
@@ -32,7 +31,24 @@ import javax.persistence.*;
  * Created by mcollins on 5/13/15.
  */
 @Entity
-@Table(name = "StatisticsCounter")
+@Table(name = "StatisticsCounter", indexes = {
+        @Index(name = "currentChannelSeverityId",
+                columnList = "channelSeverityId"),
+        @Index(name = "currentChannelVulnerabilityId",
+                columnList = "channelVulnerabilityId"),
+        @Index(name = "currentGenericSeverityId",
+                columnList = "currentGenericSeverityId"),
+        @Index(name = "findingId",
+                columnList = "finding"),
+        @Index(name = "genericVulnerabilityId",
+                columnList = "genericVulnerabilityId"),
+        @Index(name = "scanId",
+                columnList = "scanId"),
+        @Index(name = "scanRepeatFindingMapId",
+                columnList = "scanRepeatFindingMapId"),
+        @Index(name = "vulnerabilityId",
+                columnList = "vulnerabilityId")
+})
 public class StatisticsCounter extends BaseEntity {
 
     Integer scanId,
@@ -50,7 +66,6 @@ public class StatisticsCounter extends BaseEntity {
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "findingId")
-    @Index(name="findingId")
     public Finding getFinding() {
         return finding;
     }
@@ -62,7 +77,6 @@ public class StatisticsCounter extends BaseEntity {
     @ManyToOne
     @JsonIgnore
     @JoinColumn(name = "scanRepeatFindingMapId")
-    @Index(name="scanRepeatFindingMapId")
     public ScanRepeatFindingMap getScanRepeatFindingMap() {
         return scanRepeatFindingMap;
     }
@@ -72,7 +86,6 @@ public class StatisticsCounter extends BaseEntity {
     }
 
     @Column
-    @Index(name="scanId")
     public Integer getScanId() {
         return scanId;
     }
@@ -82,7 +95,6 @@ public class StatisticsCounter extends BaseEntity {
     }
 
     @Column
-    @Index(name="vulnerabilityId")
     public Integer getVulnerabilityId() {
         return vulnerabilityId;
     }
@@ -92,7 +104,6 @@ public class StatisticsCounter extends BaseEntity {
     }
 
     @Column
-    @Index(name="originalGenericSeverityId")
     public Integer getOriginalGenericSeverityId() {
         return originalGenericSeverityId;
     }
@@ -102,7 +113,6 @@ public class StatisticsCounter extends BaseEntity {
     }
 
     @Column
-    @Index(name="currentGenericSeverityId")
     public Integer getCurrentGenericSeverityId() {
         return currentGenericSeverityId;
     }
@@ -112,7 +122,6 @@ public class StatisticsCounter extends BaseEntity {
     }
 
     @Column
-    @Index(name="currentChannelSeverityId")
     public Integer getChannelSeverityId() {
         return channelSeverityId;
     }
@@ -122,7 +131,6 @@ public class StatisticsCounter extends BaseEntity {
     }
 
     @Column
-    @Index(name="currentChannelVulnerabilityId")
     public Integer getChannelVulnerabilityId() {
         return channelVulnerabilityId;
     }
@@ -132,7 +140,6 @@ public class StatisticsCounter extends BaseEntity {
     }
 
     @Column
-    @Index(name="genericVulnerabilityId")
     public Integer getGenericVulnerabilityId() {
         return genericVulnerabilityId;
     }

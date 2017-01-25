@@ -26,7 +26,7 @@
         <module>threadfix-offline</module>
         <module>threadfix-scanner-plugin/zaproxy</module>
         <module>threadfix-scanner-plugin/burp</module>
-        <module>threadfix-sonar-plugin</module>
+        <!--<module>threadfix-sonar-plugin</module>-->
         <module>threadfix-cli-endpoints</module>
         <module>threadfix-cli-importers</module>
         <module>threadfix-data-migration</module>
@@ -298,8 +298,9 @@
         <commons.logging.version>1.2</commons.logging.version>
         <commons.validator.version>1.4.1</commons.validator.version>
         <esapi.version>2.1.0-SNAPSHOT</esapi.version>
-        <hibernate.version>3.6.10.Final</hibernate.version>
-        <hibernate-validator.version>5.1.3.Final</hibernate-validator.version>
+        <hibernate.version>5.2.6.Final</hibernate.version>
+        <hibernate-validator.version>5.3.4.Final</hibernate-validator.version>
+        <fluent-hibernate-core.version>0.3.1</fluent-hibernate-core.version>
         <itext.version>5.5.8</itext.version>
         <javassist.version>3.19.0-GA</javassist.version>
         <jgit.version>3.6.2.201501210735-r</jgit.version>
@@ -308,7 +309,6 @@
         <jsp-api.version>2.3.1</jsp-api.version>
         <jta.version>1.1</jta.version>
         <log4j.version>1.2.17</log4j.version>
-        <persistence.version>1.0.2</persistence.version>
         <quartz.version>2.2.1</quartz.version>
         <javamail.version>1.4</javamail.version>
         <velocity.version>1.7</velocity.version>
@@ -317,9 +317,9 @@
         <servlet-api.version>3.1.0</servlet-api.version>
         <sitemesh.version>2.4.2</sitemesh.version>
         <slf4j.version>1.7.10</slf4j.version>
-        <spring.version>4.1.9.RELEASE</spring.version>
-        <spring-ldap.version>2.0.2.RELEASE</spring-ldap.version>
-        <springsecurity.version>3.2.9.RELEASE</springsecurity.version>
+        <spring.version>4.3.5.RELEASE</spring.version>
+        <spring-ldap.version>2.3.1.RELEASE</spring-ldap.version>
+        <springsecurity.version>4.2.1.RELEASE</springsecurity.version>
         <javax-el.version>2.2.4</javax-el.version>
         <spring-ws.version>2.2.4.RELEASE</spring-ws.version>
         <tfs-library.version>11.0.0</tfs-library.version>

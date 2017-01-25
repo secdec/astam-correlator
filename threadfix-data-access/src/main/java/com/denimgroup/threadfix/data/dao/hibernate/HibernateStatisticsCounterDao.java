@@ -28,8 +28,8 @@ import com.denimgroup.threadfix.data.dao.AbstractObjectDao;
 import com.denimgroup.threadfix.data.dao.StatisticsCounterDao;
 import com.denimgroup.threadfix.data.entities.Scan;
 import com.denimgroup.threadfix.data.entities.StatisticsCounter;
-import org.hibernate.Query;
 import org.hibernate.SessionFactory;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
