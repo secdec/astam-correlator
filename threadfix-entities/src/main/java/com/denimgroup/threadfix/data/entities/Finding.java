@@ -40,7 +40,7 @@ import static com.denimgroup.threadfix.data.entities.AuthenticationRequired.UNKN
 @Entity
 @Table(name = "Finding", indexes = {
 		@Index(name = "statsCounter", columnList = "hasStatisticsCounter"),
-		@Index(name = "firstFinding", columnList = "isFirstFindingForVuln")
+		@Index(name = "firstFinding", columnList = "firstFindingForVuln")
 })
 public class Finding extends AuditableEntity implements FindingLike {
 

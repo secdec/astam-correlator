@@ -39,7 +39,7 @@ import javax.persistence.*;
         @Index(name = "currentGenericSeverityId",
                 columnList = "currentGenericSeverityId"),
         @Index(name = "findingId",
-                columnList = "finding"),
+                columnList = "findingId"),
         @Index(name = "genericVulnerabilityId",
                 columnList = "genericVulnerabilityId"),
         @Index(name = "scanId",
