@@ -731,11 +731,7 @@
             <artifactId>protobuf-java</artifactId>
             <version>${protobuf.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.google.protobuf</groupId>
-            <artifactId>protoc</artifactId>
-            <version>${protobuf.version}</version>
-        </dependency>
+
 
         <!-- Protobuf build libraries -->
         <dependency>
