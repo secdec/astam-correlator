@@ -29,12 +29,18 @@
 
 		<security:custom-filter before="CONCURRENT_SESSION_FILTER" ref="sessionTimeoutFilter" />
 
-		<security:intercept-url pattern="/login*" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-		<security:intercept-url pattern="/styles/*" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-		<security:intercept-url pattern="/v/*/scripts/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-		<security:intercept-url pattern="/images/*" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-		<security:intercept-url pattern="/rest/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-		<security:intercept-url pattern="/**" access="ROLE_USER"/>
+		<security:intercept-url pattern="/login*"
+								access="permitAll"/>
+		<security:intercept-url pattern="/styles/*"
+								access="permitAll"/>
+		<security:intercept-url pattern="/v/*/scripts/**"
+								access="permitAll"/>
+		<security:intercept-url pattern="/images/*"
+								access="permitAll"/>
+		<security:intercept-url pattern="/rest/**"
+								access="permitAll"/>
+		<security:intercept-url pattern="/**"
+								access="hasRole('ROLE_USER')"/>
 		<security:form-login
 				login-page="/login.jsp"
 				default-target-url="/dashboard"

@@ -4,7 +4,7 @@
 <log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
 
     <appender name="CONSOLE" class="org.apache.log4j.ConsoleAppender">
-    	<param name="Threshold" value="FINE"/>
+    	<param name="Threshold" value="INFO"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern"
                 value="%p [%t] %c{1}.%M(%L) | %m%n"/>
@@ -15,7 +15,7 @@
     	<param name="file" value="${catalina.home}/logs/threadfix.log" />
     	<param name="datePattern" value="'.'yyyy-MM" /> 
     	<param name="append" value="true" />
-    	<param name="Threshold" value="FINE"/>
+    	<param name="Threshold" value="DEBUG"/>
     	<layout class="org.apache.log4j.PatternLayout"> 
     		<param name="ConversionPattern" value="%d [%t] %-5p %C{6} (%F:%L) - %m%n"/> 
     	</layout> 
@@ -23,23 +23,23 @@
 
     <!-- Suppress success logging from InteractiveAuthenticationSuccessEvent -->
     <logger name="org.springframework.security">
-        <level value="FINE"/>
+        <level value="ERROR"/>
     </logger>
 
    <logger name="org.apache">
-        <level value="FINE"/>
+        <level value="WARN"/>
     </logger>
 
 	<logger name="httpclient.wire.header">
-		<level value="FINE"/>
+		<level value="WARN"/>
 	</logger>
 	
 	<logger name="httpclient.wire.content">
-		<level value="FINE"/>
+		<level value="WARN"/>
 	</logger>
 
     <logger name="org.hibernate">
-        <level value="FINE"/>
+        <level value="WARN"/>
     </logger>
 
     <!--<logger name="log4j.logger.org.hibernate.SQL">-->
@@ -51,23 +51,23 @@
     <!--</logger>-->
 
     <logger name="org.springframework">
-        <level value="FINE"/>
+        <level value="WARN"/>
     </logger>
 	
     <logger name="org.springframework.orm">
-    	<level value="FINE"/>
+    	<level value="WARN"/>
     </logger>
 
     <logger name="org.tuckey.web.filters.urlrewrite">
-    	<level value="FINE"/>
+    	<level value="WARN"/>
     </logger>
     
     <logger name="com.denimgroup.threadfix">
-    	<level value="FINE"/>
+    	<level value="DEBUG"/>
     </logger>
 
     <root>
-        <level value="FINE"/>
+        <level value="DEBUG"/>
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </root>
