@@ -330,6 +330,7 @@
         <dependencycheck.version>1.3.6</dependencycheck.version>
         <svnkit.version>1.8.11</svnkit.version>
         <joda.version>2.8.2</joda.version>
+        <protobuf.version>3.1.0</protobuf.version>
 
         <!-- Testing dependency versions -->
         <easymock.version>3.0</easymock.version>
@@ -355,6 +356,14 @@
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
+
+        <!-- Protobuf Paths -->
+        <protobuf.input.directory>C:\denimgroup\clients\DHS\ASTAM\src\tta5\Common\InterComponentComms\Protobuf</protobuf.input.directory>
+        <protobuf.output.directory>${project.build.directory}/generated-sources/protobuf</protobuf.output.directory>
+
+        <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
+        <protobuf.version>3.1.0</protobuf.version>
+        <os-maven-plugin.version>1.5.0.Final</os-maven-plugin.version>
     </properties>
 
     <url>http://www.denimgroup.com/threadfix/</url>
