@@ -190,7 +190,7 @@
                         <id>exec-protoc</id>
                         <phase>generate-sources</phase>
                         <configuration>
-                            <target>
+                            <tasks>
                                 <property name="protoc.filename" value="protoc-${protobuf.version}-${os.detected.classifier}.exe"/>
                                 <property name="protoc.filepath" value="${project.build.directory}/${protoc.filename}"/>
                                 <chmod file="${protoc.filepath}" perm="ugo+rx"/>
@@ -201,14 +201,17 @@
                                     </fileset>
                                 </path>
                                 <pathconvert pathsep=" " property="protobuf.input.filepaths" refid="protobuf.input.filepaths.path"/>
+                                <echo message="Command Executed: ${protoc.filepath} -I ${protobuf.input.directory} --java_out ${protobuf.output.directory} --proto_path ${protobuf.input.directory} ${protobuf.source.filepaths}" />
                                 <exec executable="${protoc.filepath}" failonerror="true">
                                     <arg value="-I"/>
                                     <arg value="${protobuf.input.directory}"/>
                                     <arg value="--java_out"/>
                                     <arg value="${protobuf.output.directory}"/>
+                                    <arg value="--proto_path"/>
+                                    <arg value="${protobuf.source.directory}"/>
                                     <arg line="${protobuf.input.filepaths}"/>
                                 </exec>
-                            </target>
+                            </tasks>
                         </configuration>
                         <goals>
                             <goal>run</goal>
@@ -731,7 +734,6 @@
             <artifactId>protobuf-java</artifactId>
             <version>${protobuf.version}</version>
         </dependency>
-
 
         <!-- Protobuf build libraries -->
         <dependency>
