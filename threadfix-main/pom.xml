@@ -201,7 +201,7 @@
                                     </fileset>
                                 </path>
                                 <pathconvert pathsep=" " property="protobuf.input.filepaths" refid="protobuf.input.filepaths.path"/>
-                                <echo message="Command Executed: ${protoc.filepath} -I ${protobuf.input.directory} --java_out ${protobuf.output.directory} --proto_path ${protobuf.input.directory} ${protobuf.source.filepaths}" />
+                                <echo message="Command Executed: ${protoc.filepath} -I ${protobuf.input.directory} --java_out ${protobuf.output.directory} --proto_path ${protobuf.source.directory} ${protobuf.input.filepaths}" />
                                 <exec executable="${protoc.filepath}" failonerror="true">
                                     <arg value="-I"/>
                                     <arg value="${protobuf.input.directory}"/>
