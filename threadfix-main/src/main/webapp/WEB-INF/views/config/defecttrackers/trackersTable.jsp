@@ -12,7 +12,8 @@
 		    <th class="medium first">Name</th>
 			<th class="long">URL</th>
 			<th>Type</th>
-			<security:authorize ifAnyGranted="ROLE_CAN_MANAGE_DEFECT_TRACKERS">
+			<security:authorize
+					access="hasRole('ROLE_CAN_MANAGE_DEFECT_TRACKERS')">
 				<th class="centered">Edit / Delete</th>
 			</security:authorize>
 		</tr>
@@ -34,8 +35,9 @@
 			<td ng-non-bindable id="defectTrackerType${ status.count }">
 				<c:out value="${ defectTracker.defectTrackerType.name }"/>
 			</td>
-			<security:authorize ifAnyGranted="ROLE_CAN_MANAGE_DEFECT_TRACKERS">
-				<td class="centered">	
+			<security:authorize
+					access="hasRole('ROLE_CAN_MANAGE_DEFECT_TRACKERS')">
+				<td class="centered">
 					<a id="editDefectTracker${ status.count }Button" href="#editDefectTracker${ defectTracker.id }" role="button" class="btn" data-toggle="modal">Edit / Delete</a>
 					<%@ include file="/WEB-INF/views/config/defecttrackers/modals/editDTModal.jsp" %>
 				</td>

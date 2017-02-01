@@ -32,22 +32,24 @@
                     <th class="medium">Note</th>
                     <th class="centered">Edit / Delete</th>
                     <th class="short">Restricted</th>
-                    <security:authorize ifAllGranted="ROLE_ENTERPRISE,ROLE_CAN_MANAGE_USERS">
+                    <security:authorize access="hasRole('ROLE_ENTERPRISE') and
+                            hasRole('ROLE_CAN_MANAGE_USERS')">
                         <th class="short">User</th>
                     </security:authorize>
                 </tr>
             </thead>
             <tbody>
                 <tr ng-hide="keys.length || loading">
-                    <security:authorize ifAllGranted="ROLE_ENTERPRISE,ROLE_CAN_MANAGE_USERS">
+                    <security:authorize access="hasRole('ROLE_ENTERPRISE') and
+                            hasRole('ROLE_CAN_MANAGE_USERS')">
                         <td colspan="6" style="text-align:center;">No API Keys found.</td>
                     </security:authorize>
-                    <security:authorize ifNotGranted="ROLE_CAN_MANAGE_USERS">
-                        <security:authorize ifAllGranted="ROLE_ENTERPRISE">
-                            <td colspan="5" style="text-align:center;">No API Keys found.</td>
-                        </security:authorize>
+                    <security:authorize access="!hasRole(
+                            'ROLE_CAN_MANAGE_USERS') and
+                            hasRole('ROLE_ENTERPRISE')">
+                        <td colspan="5" style="text-align:center;">No API Keys found.</td>
                     </security:authorize>
-                    <security:authorize ifNotGranted="ROLE_ENTERPRISE">
+                    <security:authorize access="!hasRole('ROLE_ENTERPRISE')">
                         <td colspan="5" style="text-align:center;">No API Keys found.</td>
                     </security:authorize>
                 </tr>
@@ -59,7 +61,8 @@
                         <button class="btn" id="editKeyModal{{ key.note }}" ng-click="openEditModal(key)">Edit / Delete</button>
                     </td>
                     <td id="restricted{{ key.note }}" style="vertical-align: text-top;">{{ key.isRestrictedKey }}</td>
-                    <security:authorize ifAllGranted="ROLE_ENTERPRISE,ROLE_CAN_MANAGE_USERS">
+                    <security:authorize access="hasRole('ROLE_ENTERPRISE') and
+                            hasRole('ROLE_CAN_MANAGE_USERS')">
                         <td id="user{{ key.note }}" style="vertical-align: text-top;">{{ key.username }}</td>
                     </security:authorize>
                 </tr>

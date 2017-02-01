@@ -71,7 +71,7 @@ myAppModule.controller('UserModalController', function ($scope, $modalInstance, 
             success(function(data, status, headers, config) {
                 $modalInstance.close(false);
                 if (logout) {
-                    window.location.href = '/j_spring_security_logout'
+                    window.location.href = '/logout'
                 }
             }).
             error(function(data, status, headers, config) {

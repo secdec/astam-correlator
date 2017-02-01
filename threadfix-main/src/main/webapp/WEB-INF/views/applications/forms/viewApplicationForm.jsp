@@ -78,13 +78,15 @@
 					<spring:url value="/wafs/{wafId}" var="wafUrl">
 						<spring:param name="wafId" value="${ application.waf.id }"/>
 					</spring:url>
-					<security:authorize ifAllGranted="ROLE_CAN_MANAGE_WAFS">
+					<security:authorize
+							access="hasRole('ROLE_CAN_MANAGE_WAFS')">
 						<em><a id="wafText"
 							href="${ fn:escapeXml(wafUrl) }">
 							<c:out value="${ application.waf.name }"/>
 						</a></em>
 					</security:authorize>
-					<security:authorize ifNotGranted="ROLE_CAN_MANAGE_WAFS">
+					<security:authorize
+							access="!hasRole('ROLE_CAN_MANAGE_WAFS')">
 						<em>
 							<c:out value="${ application.waf.name }"/>
 						</em>

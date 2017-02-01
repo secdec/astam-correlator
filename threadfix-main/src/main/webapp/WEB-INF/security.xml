@@ -47,6 +47,10 @@
 				authentication-success-handler-ref="customLoginSuccessHandler"
 				always-use-default-target="true"/>
 		<security:logout success-handler-ref="customLogoutSuccessHandler"/>
+
+		<!-- We have our own anti-CSRF implementation, so we don't need to
+		     use Spring Security's -->
+		<security:csrf disabled="true"/>
 	</security:http>
 
 	<bean id="customAuthenticationProvider" class="com.denimgroup.threadfix.service.LdapAuthenticator">
@@ -54,6 +58,7 @@
 
 	<security:authentication-manager>
 
+		<!-- TODO: Replace this with an implementation of RoleHeirarchyAuthoritiesMapper.-->
 		<security:authentication-provider ref="customAuthenticationProvider"/>
 
 		<security:authentication-provider user-service-ref="customUserDetailService">
