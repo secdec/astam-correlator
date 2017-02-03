@@ -94,8 +94,8 @@
                                         </li>
                                     </security:authorize>
                                     <security:authorize access="hasRole(
-                                            'ROLE_CAN_MANAGE_GRC_TOOLS' and
-                                            hasRole('ROLE_ENTERPRISE'))">
+                                            'ROLE_CAN_MANAGE_GRC_TOOLS') and
+                                            hasRole('ROLE_ENTERPRISE')">
                                         <li class="normalLinks">
                                             <a id="grcToolsLink" href="<spring:url value="/configuration/grctools" htmlEscape="true"/>">GRC Tools</a>
                                         </li>
