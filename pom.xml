@@ -31,6 +31,7 @@
         <module>threadfix-cli-importers</module>
         <module>threadfix-data-migration</module>
         <module>threadfix-main</module>
+        <module>threadfix-astam</module>
     </modules>
 
     <licenses>
@@ -359,7 +360,7 @@
         <!-- Protobuf Paths -->
         <protobuf.input.directory>C:\denimgroup\clients\DHS\ASTAM\src\tta5\Common\InterComponentComms\Protobuf</protobuf.input.directory>
         <protobuf.output.directory>${project.build.directory}/generated-sources/protobuf</protobuf.output.directory>
-        <protobuf.source.directory>C:\protobuf\src</protobuf.source.directory>
+        <protobuf.source.directory>C:\protobuf\protobuf-3.1.0\src</protobuf.source.directory>
 
         <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
         <protobuf.version>3.1.0</protobuf.version>
