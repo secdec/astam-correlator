@@ -58,6 +58,7 @@ public class ToolsDownloadController {
     private final static String TF_ZAP = "threadfix-release-2.zap";
     private final static String TF_SONAR_JAR = "sonar-threadfix-plugin.jar";
     private final static String SSVL_CONVERTER_JAR = "ssvl-converter.jar";
+    private final static String PROTOBUF_JAR = "protobuf.jar";
 
 
     public ToolsDownloadController(){}
@@ -107,6 +108,10 @@ public class ToolsDownloadController {
         return doDownload(request, response, SSVL_CONVERTER_JAR);
     }
 
+    @RequestMapping(value="/protobuf")
+    public String doDownloadProtobuf(HttpServletRequest request, HttpServletResponse response) {
+        return doDownload(request, response, PROTOBUF_JAR);
+    }
 
     private String doDownload(HttpServletRequest request, HttpServletResponse response, String jarName) {
 
