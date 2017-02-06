@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.data.entities;
 
+import com.denimgroup.threadfix.data.entities.astam.AstamAuditableEntity;
 import com.denimgroup.threadfix.views.AllViews;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -40,7 +41,7 @@ import static com.denimgroup.threadfix.data.entities.AuthenticationRequired.UNKN
 
 @Entity
 @Table(name = "Finding")
-public class Finding extends AuditableEntity implements FindingLike {
+public class Finding extends AstamAuditableEntity implements FindingLike {
 
 	private static final long serialVersionUID = 5978786078427181952L;
 
