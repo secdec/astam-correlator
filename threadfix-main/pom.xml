@@ -224,11 +224,6 @@
             <version>${commons.codec.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.github.v-ladynev</groupId>
-            <artifactId>fluent-hibernate-core</artifactId>
-            <version>${fluent-hibernate-core.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.owasp.esapi</groupId>
             <artifactId>esapi</artifactId>
             <version>${esapi.version}</version>
