@@ -5,6 +5,6 @@ import java.io.File;
 /**
  * Created by jsemtner on 2/3/2017.
  */
-public interface FindingsService {
+public interface AstamFindingsService {
     File getFindings(int applicationId);
 }

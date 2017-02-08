@@ -15,7 +15,7 @@ import java.util.*;
 /**
  * Created by jsemtner on 2/7/2017.
  */
-public class FindingsMapper {
+public class AstamFindingsMapper {
     private List<Entities.CWE> cwes;
     private List<Entities.ExternalTool> externalTools;
 
@@ -25,7 +25,7 @@ public class FindingsMapper {
 
     private Map<String, Common.Severity> severityMap;
 
-    public FindingsMapper() {
+    public AstamFindingsMapper() {
         cwes = new ArrayList<Entities.CWE>();
         externalTools = new ArrayList<Entities.ExternalTool>();
 
