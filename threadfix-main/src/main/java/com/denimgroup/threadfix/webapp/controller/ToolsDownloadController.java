@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.webapp.controller;
 import com.denimgroup.threadfix.data.entities.ExceptionLog;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.service.ExceptionLogService;
+import com.denimgroup.threadfix.service.ExportService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -35,16 +36,16 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 @Controller
 @RequestMapping("/configuration/download")
 public class ToolsDownloadController {
-
     @Autowired
     private ExceptionLogService exceptionLogService;
+
+    @Autowired
+    private ExportService exportService;
 
 	private final SanitizedLogger log = new SanitizedLogger(ToolsDownloadController.class);
 
@@ -58,8 +59,6 @@ public class ToolsDownloadController {
     private final static String TF_ZAP = "threadfix-release-2.zap";
     private final static String TF_SONAR_JAR = "sonar-threadfix-plugin.jar";
     private final static String SSVL_CONVERTER_JAR = "ssvl-converter.jar";
-    private final static String PROTOBUF_JAR = "protobuf.jar";
-
 
     public ToolsDownloadController(){}
 	
@@ -110,11 +109,38 @@ public class ToolsDownloadController {
 
     @RequestMapping(value="/protobuf")
     public String doDownloadProtobuf(HttpServletRequest request, HttpServletResponse response) {
-        return doDownload(request, response, PROTOBUF_JAR);
+        return sendResponse(request, response, exportService.getFindings(1));
+    }
+
+    private String sendResponse(HttpServletRequest request, HttpServletResponse response, File file) {
+        try {
+            InputStream inputStream = new FileInputStream(file);
+            ServletOutputStream outputStream = response.getOutputStream();
+            String fileName = file.getName();
+            int contentLength = request.getServletContext().getResource(file.getPath()).openConnection()
+                    .getContentLength();
+
+            if (fileName.endsWith(".jar"))
+                response.setContentType("application/java-archive");
+            else
+                response.setContentType("application/octet-stream");
+
+            response.setContentLength(contentLength);
+            response.addHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+
+            IOUtils.copy(inputStream, outputStream);
+            inputStream.close();
+            outputStream.flush();
+            outputStream.close();
+        } catch (IOException ioe) {
+            exceptionLogService.storeExceptionLog(new ExceptionLog(ioe));
+            return index();
+        }
+
+        return null;
     }
 
     private String doDownload(HttpServletRequest request, HttpServletResponse response, String jarName) {
-
         String jarResource = JAR_DOWNLOAD_DIR + jarName;
 
         InputStream in = request.getServletContext().getResourceAsStream(jarResource);

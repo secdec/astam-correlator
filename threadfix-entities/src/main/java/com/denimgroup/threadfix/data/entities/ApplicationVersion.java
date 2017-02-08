@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.data.entities;
 
+import com.denimgroup.threadfix.data.entities.astam.AstamAuditableEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 
@@ -31,7 +32,7 @@ import java.util.Date;
 
 @Entity
 @Table(name = "ApplicationVersion")
-public class ApplicationVersion extends AuditableEntity implements Comparable<ApplicationVersion> {
+public class ApplicationVersion extends AstamAuditableEntity implements Comparable<ApplicationVersion> {
 	
 	private static final long serialVersionUID = 5185330378304148079L;
 

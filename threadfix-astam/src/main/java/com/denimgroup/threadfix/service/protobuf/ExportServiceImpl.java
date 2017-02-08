@@ -19,26 +19,19 @@ public class ExportServiceImpl implements ExportService {
         this.findingsService = findingsService;
     }
 
-    @Override
     public File getAllZipFile() {
         // Add each export to zip file
         return null;
     }
 
-    @Override
     public File getApplicationInformation(int applicationId) {
         return null;
     }
 
-    @Override
     public File getFindings(int applicationId) {
-        // Save findings to file
-        findingsService.getFindings(applicationId);
-
-        return null;
+        return findingsService.getFindings(applicationId);
     }
 
-    @Override
     public File getAttackSurface(int applicationId) {
         return null;
     }

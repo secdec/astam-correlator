@@ -109,7 +109,7 @@ public class Scan extends BaseEntity implements Iterable<Finding> {
             ScannerType.BRAKEMAN.getDisplayName(),
             ScannerType.CHECKMARX.getDisplayName());
     private static final List<String> MIXED_TYPES  = Arrays.asList(ScannerType.SENTINEL.getDisplayName());
-    private static final String       DYNAMIC      = "Dynamic", STATIC = "Static", MIXED = "Mixed";
+    public static final String DYNAMIC = "Dynamic", STATIC = "Static", MIXED = "Mixed";
 
     @Size(max = 255, message = "{errors.maxlength} 255.")
     private String filePathRoot;

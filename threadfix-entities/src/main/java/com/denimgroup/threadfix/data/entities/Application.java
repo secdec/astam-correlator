@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.data.entities;
 
+import com.denimgroup.threadfix.data.entities.astam.AstamAuditableEntity;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.enums.SourceCodeAccessLevel;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
