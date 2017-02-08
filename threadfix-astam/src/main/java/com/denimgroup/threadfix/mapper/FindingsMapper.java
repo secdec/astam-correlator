@@ -103,9 +103,9 @@ public class FindingsMapper {
 
             Findings.DastFinding dastFinding = Findings.DastFinding.newBuilder()
                     .setName(genericVulnerability.getName())
-                    .addCwe(genericVulnerability.getCweId())
+                    .addCweIds(genericVulnerability.getCweId())
                     .setDescription(finding.getLongDescription())
-                    .setReportingTool(externalTool)
+                    .setReportingExternalToolId(externalTool.getId())
                     .setToolDefinedSeverity(finding.getChannelSeverity().getName())
                     .addAttackVariants(getAttackVariant(finding))
                     .setId(createUUID(finding.getUuid())).build();
@@ -142,9 +142,9 @@ public class FindingsMapper {
 
             Findings.SastFinding sastFinding = Findings.SastFinding.newBuilder()
                     .setName(genericVulnerability.getName())
-                    .addCwe(cwe)
+                    .addCweIds(cwe.getWeaknessId())
                     .setDescription(finding.getLongDescription())
-                    .setReportingTool(externalTool)
+                    .setReportingExternalToolId(externalTool.getId())
                     .setToolDefinedSeverity(finding.getChannelSeverity().getName())
                     .addAllTrace(getTraceNodes(finding))
                     .setId(createUUID(finding.getId().toString())).build();
