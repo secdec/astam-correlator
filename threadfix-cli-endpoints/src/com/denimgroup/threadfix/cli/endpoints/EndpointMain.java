@@ -74,19 +74,19 @@ public class EndpointMain {
 
             arguments.remove(0);
 
-            for (String string : arguments) {
-                if (string.equals("-debug")) {
+            for (String arg : arguments) {
+                if (arg.equals("-debug")) {
                     logging = Logging.ON;
-                } else if (string.equals("-lint")) {
+                } else if (arg.equals("-lint")) {
                     printFormat = Endpoint.PrintFormat.LINT;
-                } else if (string.equals("-json")) {
+                } else if (arg.equals("-json")) {
                     printFormat = JSON;
-                } else if (string.contains(FRAMEWORK_COMMAND)) {
-                    String frameworkName = string.substring(string.indexOf(
-                            FRAMEWORK_COMMAND) + FRAMEWORK_COMMAND.length(), string.length());
+                } else if (arg.contains(FRAMEWORK_COMMAND)) {
+                    String frameworkName = arg.substring(arg.indexOf(
+                            FRAMEWORK_COMMAND) + FRAMEWORK_COMMAND.length(), arg.length());
                     framework = FrameworkType.getFrameworkType(frameworkName);
                 } else {
-                    System.out.println("Received unsupported option " + string + ", valid arguments are -lint and -debug");
+                    System.out.println("Received unsupported option " + arg + ", valid arguments are -lint and -debug");
                     return false;
                 }
             }
