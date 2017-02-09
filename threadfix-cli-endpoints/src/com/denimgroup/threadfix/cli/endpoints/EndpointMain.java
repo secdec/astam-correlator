@@ -43,7 +43,6 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.data.interfaces.Endpoint.PrintFormat.JSON;
 
 public class EndpointMain {
-    private static final String FRAMEWORK_COMMAND = "-framework=";
     enum Logging {
         ON, OFF
     }
@@ -81,9 +80,6 @@ public class EndpointMain {
                     printFormat = Endpoint.PrintFormat.LINT;
                 } else if (string.equals("-json")) {
                     printFormat = JSON;
-                } else if (string.contains(FRAMEWORK_COMMAND)) {
-                    framework = FrameworkType.getFrameworkType(string.substring(string.indexOf(FRAMEWORK_COMMAND) + FRAMEWORK_COMMAND.length(),
-                            string.length() - 1));
                 } else {
                     System.out.println("Received unsupported option " + string + ", valid arguments are -lint and -debug");
                     return false;
@@ -104,12 +100,9 @@ public class EndpointMain {
     }
 
     private static void listEndpoints(File rootFile) {
-
         List<Endpoint> endpoints = list();
 
-        EndpointDatabase database = (framework.equals(FrameworkType.DETECT)) ?
-                EndpointDatabaseFactory.getDatabase(rootFile) :
-                EndpointDatabaseFactory.getDatabase(rootFile, framework);
+        EndpointDatabase database = EndpointDatabaseFactory.getDatabase(rootFile);
 
         if (database != null) {
             endpoints = database.generateEndpoints();

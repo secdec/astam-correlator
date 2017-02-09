@@ -104,7 +104,7 @@ public class AstamFindingsMapper {
             Findings.DastFinding dastFinding = Findings.DastFinding.newBuilder()
                     .setName(genericVulnerability.getName())
                     .addCweIds(genericVulnerability.getCweId())
-                    .setDescription(finding.getLongDescription())
+                    // TODO: Fix .setDescription(finding.getLongDescription())
                     .setReportingExternalToolId(externalTool.getId())
                     .setToolDefinedSeverity(finding.getChannelSeverity().getName())
                     .addAttackVariants(getAttackVariant(finding))

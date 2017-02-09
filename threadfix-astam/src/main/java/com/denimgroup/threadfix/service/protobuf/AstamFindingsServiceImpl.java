@@ -29,7 +29,9 @@ public class AstamFindingsServiceImpl implements AstamFindingsService {
 
     public File getFindings(int applicationId) {
         List<Vulnerability> vulnerabilityList = vulnerabilityDao.retrieveAllByApplication(applicationId);
-        List<Scan> scanList = scanDao.retrieveByApplicationIdList(new ArrayList<Integer>(applicationId));
+        List<Integer> applicationIdList = new ArrayList<Integer>();
+        applicationIdList.add(applicationId);
+        List<Scan> scanList = scanDao.retrieveByApplicationIdList(applicationIdList);
 
         AstamFindingsMapper findings = new AstamFindingsMapper();
 

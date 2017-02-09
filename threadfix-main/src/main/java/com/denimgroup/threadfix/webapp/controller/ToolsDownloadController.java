@@ -26,7 +26,7 @@ package com.denimgroup.threadfix.webapp.controller;
 import com.denimgroup.threadfix.data.entities.ExceptionLog;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.service.ExceptionLogService;
-import com.denimgroup.threadfix.service.ExportService;
+import com.denimgroup.threadfix.service.AstamExportService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -45,7 +45,7 @@ public class ToolsDownloadController {
     private ExceptionLogService exceptionLogService;
 
     @Autowired
-    private ExportService exportService;
+    private AstamExportService astamExportService;
 
 	private final SanitizedLogger log = new SanitizedLogger(ToolsDownloadController.class);
 
@@ -109,7 +109,7 @@ public class ToolsDownloadController {
 
     @RequestMapping(value="/protobuf")
     public String doDownloadProtobuf(HttpServletRequest request, HttpServletResponse response) {
-        return sendResponse(request, response, exportService.getFindings(1));
+        return sendResponse(request, response, astamExportService.getFindings(1));
     }
 
     private String sendResponse(HttpServletRequest request, HttpServletResponse response, File file) {
