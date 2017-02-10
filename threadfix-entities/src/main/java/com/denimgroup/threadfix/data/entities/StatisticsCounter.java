@@ -47,7 +47,9 @@ import javax.persistence.*;
         @Index(name = "scanRepeatFindingMapId",
                 columnList = "scanRepeatFindingMapId"),
         @Index(name = "vulnerabilityId",
-                columnList = "vulnerabilityId")
+                columnList = "vulnerabilityId"),
+        @Index(name = "originalGenericSeverityId",
+                columnList = "originalGenericSeverityId")
 })
 public class StatisticsCounter extends BaseEntity {
 

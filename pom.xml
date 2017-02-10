@@ -302,6 +302,7 @@
         <hibernate.version>5.2.6.Final</hibernate.version>
         <hibernate-validator.version>5.3.4.Final</hibernate-validator.version>
         <fluent-hibernate-core.version>0.3.1</fluent-hibernate-core.version>
+        <jpa-version>1.0.0.Final</jpa-version>
         <itext.version>5.5.8</itext.version>
         <javassist.version>3.19.0-GA</javassist.version>
         <jgit.version>3.6.2.201501210735-r</jgit.version>
