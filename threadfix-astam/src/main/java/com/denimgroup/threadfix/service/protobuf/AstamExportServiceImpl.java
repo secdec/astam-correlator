@@ -6,6 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * Created by jsemtner on 2/3/2017.
@@ -28,8 +31,8 @@ public class AstamExportServiceImpl implements AstamExportService {
         return null;
     }
 
-    public File getFindings(int applicationId) {
-        return astamFindingsService.getFindings(applicationId);
+    public void writeFindingsToOutput(int applicationId, OutputStream outputStream) throws IOException {
+        astamFindingsService.writeFindingsToOutput(applicationId, outputStream);
     }
 
     public File getAttackSurface(int applicationId) {

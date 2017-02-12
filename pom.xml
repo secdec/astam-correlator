@@ -358,9 +358,10 @@
         <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
 
         <!-- Protobuf Paths -->
-        <protobuf.input.directory>C:\denimgroup\clients\DHS\ASTAM\src\tta5\Common\InterComponentComms\Protobuf</protobuf.input.directory>
+        <protobuf.src.directory>${project.build.directory}/lib/protobuf-java</protobuf.src.directory>
         <protobuf.output.directory>${project.build.directory}/generated-sources/protobuf</protobuf.output.directory>
-        <protobuf.source.directory>C:\protobuf\protobuf-3.1.0\src</protobuf.source.directory>
+
+        <protobuf.input.directory>C:\denimgroup\clients\DHS\ASTAM\src\tta5\Common\InterComponentComms\Protobuf</protobuf.input.directory>
 
         <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
         <protobuf.version>3.1.0</protobuf.version>

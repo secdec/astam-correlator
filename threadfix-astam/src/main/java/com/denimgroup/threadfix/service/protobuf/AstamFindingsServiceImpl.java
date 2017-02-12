@@ -4,12 +4,13 @@ import com.denimgroup.threadfix.data.dao.ScanDao;
 import com.denimgroup.threadfix.data.dao.VulnerabilityDao;
 import com.denimgroup.threadfix.data.entities.Scan;
 import com.denimgroup.threadfix.data.entities.Vulnerability;
-import com.denimgroup.threadfix.service.AstamFindingsService;
 import com.denimgroup.threadfix.mapper.AstamFindingsMapper;
+import com.denimgroup.threadfix.service.AstamFindingsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +28,7 @@ public class AstamFindingsServiceImpl implements AstamFindingsService {
         this.scanDao = scanDao;
     }
 
-    public File getFindings(int applicationId) {
+    public void writeFindingsToOutput(int applicationId, OutputStream outputStream) throws IOException {
         List<Vulnerability> vulnerabilityList = vulnerabilityDao.retrieveAllByApplication(applicationId);
         List<Integer> applicationIdList = new ArrayList<Integer>();
         applicationIdList.add(applicationId);
@@ -48,6 +49,6 @@ public class AstamFindingsServiceImpl implements AstamFindingsService {
 
         findings.addCorrelatedFindings(vulnerabilityList);
 
-        return findings.getFindingsFile();
+        findings.writeFindingsToOutput(outputStream);
     }
 }

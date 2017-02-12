@@ -1,6 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
     <parent>
         <groupId>com.denimgroup.threadfix</groupId>
         <artifactId>master-pom</artifactId>
@@ -32,6 +31,27 @@
             <artifactId>maven-dependency-plugin</artifactId>
             <version>2.9</version>
             <executions>
+                <!-- Unpack proto source files from protobuf jar -->
+                <execution>
+                    <id>unpack-protobuf</id>
+                    <phase>generate-sources</phase>
+                    <goals>
+                        <goal>unpack</goal>
+                    </goals>
+                    <configuration>
+                        <artifactItems>
+                            <artifactItem>
+                                <groupId>com.google.protobuf</groupId>
+                                <artifactId>protobuf-java</artifactId>
+                                <version>${protobuf.version}</version>
+                                <type>jar</type>
+                                <outputDirectory>${protobuf.src.directory}</outputDirectory>
+                            </artifactItem>
+                        </artifactItems>
+                        <includes>**/*.proto</includes>
+                        <outputDirectory>${protobuf.src.directory}</outputDirectory>
+                    </configuration>
+                </execution>
                 <!-- copy protoc binary into build directory -->
                 <execution>
                     <id>copy-protoc</id>
@@ -53,7 +73,6 @@
                         </artifactItems>
                     </configuration>
                 </execution>
-
             </executions>
             </plugin>
             <!-- add generated proto buffer classes into the package -->
@@ -96,14 +115,13 @@
                                     </fileset>
                                 </path>
                                 <pathconvert pathsep=" " property="protobuf.input.filepaths" refid="protobuf.input.filepaths.path"/>
-                                <echo message="Command Executed: ${protoc.filepath} -I ${protobuf.input.directory} --java_out ${protobuf.output.directory} --proto_path ${protobuf.source.directory} ${protobuf.input.filepaths}" />
                                 <exec executable="${protoc.filepath}" failonerror="true">
-                                    <arg value="-I"/>
+                                    <arg value="--proto_path"/>
                                     <arg value="${protobuf.input.directory}"/>
+                                    <arg value="--proto_path"/>
+                                    <arg value="${protobuf.src.directory}"/>
                                     <arg value="--java_out"/>
                                     <arg value="${protobuf.output.directory}"/>
-                                    <arg value="--proto_path"/>
-                                    <arg value="${protobuf.source.directory}"/>
                                     <arg line="${protobuf.input.filepaths}"/>
                                 </exec>
                             </tasks>
@@ -185,19 +203,16 @@
             <version>${apache.activemq.version}</version>
         </dependency>
 
-        <!-- ASTAM data model -->
+        <!-- Protobuf build dependencies -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
             <version>${protobuf.version}</version>
         </dependency>
-
-        <!-- Protobuf build libraries -->
         <dependency>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
             <version>${build-helper-maven-plugin.version}</version>
         </dependency>
     </dependencies>
-
 </project>

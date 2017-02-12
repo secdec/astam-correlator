@@ -5,12 +5,14 @@ import com.google.protobuf.Message;
 import com.secdec.astam.common.data.models.Common;
 import com.secdec.astam.common.data.models.Entities;
 import com.secdec.astam.common.data.models.Findings;
+import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by jsemtner on 2/7/2017.
@@ -42,7 +44,7 @@ public class AstamFindingsMapper {
     }
 
     private Common.UUID createUUID(String uuid) {
-        return Common.UUID.newBuilder().setValue(uuid.toString()).build();
+        return Common.UUID.newBuilder().setValue(uuid).build();
     }
 
     public Entities.CWE addCwe(GenericVulnerability genericVulnerability) {
@@ -70,27 +72,50 @@ public class AstamFindingsMapper {
     }
 
     private Common.HttpMethod getHttpMethod(String httpMethod) {
+        if (httpMethod == null)
+            return null;
+
         return Common.HttpMethod.valueOf(httpMethod);
     }
 
     private Findings.DastFinding.AttackVariant getAttackVariant(Finding finding) {
         SurfaceLocation surfaceLocation = finding.getSurfaceLocation();
         String attackRequest = finding.getAttackRequest();
+        String attackResponse = finding.getAttackResponse();
 
-        Findings.DastFinding.AttackVariant.WebAttackIteration webAttackIteration =
+        Findings.DastFinding.AttackVariant.WebAttackIteration.Builder webAttackIterationBuilder =
                 Findings.DastFinding.AttackVariant.WebAttackIteration.newBuilder()
-                        .setResourcePath(surfaceLocation.getPath())
-                        .setRequestMethod(getHttpMethod(surfaceLocation.getHttpMethod()))
-                        // TODO: Add .putUrlParameters(parseUrlParameters(attackRequest)
+                        .setResourcePath(surfaceLocation.getPath());
+                        // TODO: Add .putUrlParameters(parseUrlParameters(attackRequest) or add in data model and
+                        //       parse/save during scan import
                         // TODO: Add .putHeaders(parseHeaders(attackRequest)
                         // TODO: Add .setPostData(parseBody(attackRequest))
-                        .setAttackResponseString(finding.getAttackResponse()).build();
+
+        Common.HttpMethod httpMethod = getHttpMethod(surfaceLocation.getHttpMethod());
+        if (httpMethod != null) {
+            webAttackIterationBuilder.setRequestMethod(httpMethod);
+        }
+
+        if (attackResponse != null) {
+            webAttackIterationBuilder.setAttackResponseString(attackResponse);
+        }
 
         Findings.DastFinding.AttackVariant.AttackStep attackStep =
                 Findings.DastFinding.AttackVariant.AttackStep.newBuilder()
-                        .setWebAttackStep(webAttackIteration).build();
+                        .setWebAttackStep(webAttackIterationBuilder.build()).build();
 
         return Findings.DastFinding.AttackVariant.newBuilder().addAttackSteps(attackStep).build();
+    }
+
+    private GenericVulnerability getGenericVulnerability(Finding finding) {
+        GenericVulnerability genericVulnerability = null;
+
+        Vulnerability vulnerability = finding.getVulnerability();
+        if (vulnerability != null) {
+            genericVulnerability = vulnerability.getGenericVulnerability();
+        }
+
+        return genericVulnerability;
     }
 
     public void addDastFindings(Scan scan) {
@@ -99,18 +124,26 @@ public class AstamFindingsMapper {
 
         for (int i=0; i<findings.size(); i++) {
             Finding finding = findings.get(i);
-            GenericVulnerability genericVulnerability = finding.getVulnerability().getGenericVulnerability();
 
-            Findings.DastFinding dastFinding = Findings.DastFinding.newBuilder()
-                    .setName(genericVulnerability.getName())
-                    .addCweIds(genericVulnerability.getCweId())
-                    // TODO: Fix .setDescription(finding.getLongDescription())
+            Findings.DastFinding.Builder dastFindingBuilder = Findings.DastFinding.newBuilder()
                     .setReportingExternalToolId(externalTool.getId())
-                    .setToolDefinedSeverity(finding.getChannelSeverity().getName())
                     .addAttackVariants(getAttackVariant(finding))
-                    .setId(createUUID(finding.getUuid())).build();
+                    .setId(createUUID(finding.getId().toString()));
 
-            dastFindings.add(dastFinding);
+            ChannelSeverity channelSeverity = finding.getChannelSeverity();
+            String toolSeverityName = channelSeverity.getName();
+            if (toolSeverityName != null) {
+                dastFindingBuilder.setToolDefinedSeverity(toolSeverityName);
+            }
+
+            GenericVulnerability genericVulnerability = getGenericVulnerability(finding);
+            if (genericVulnerability != null) {
+                Entities.CWE cwe = addCwe(genericVulnerability);
+                dastFindingBuilder.setName(genericVulnerability.getName())
+                        .addCweIds(cwe.getWeaknessId());
+            }
+
+            dastFindings.add(dastFindingBuilder.build());
         }
     }
 
@@ -137,19 +170,26 @@ public class AstamFindingsMapper {
 
         for (int i=0; i<findings.size(); i++) {
             Finding finding = findings.get(i);
-            GenericVulnerability genericVulnerability = finding.getVulnerability().getGenericVulnerability();
-            Entities.CWE cwe = addCwe(genericVulnerability);
 
-            Findings.SastFinding sastFinding = Findings.SastFinding.newBuilder()
-                    .setName(genericVulnerability.getName())
-                    .addCweIds(cwe.getWeaknessId())
-                    .setDescription(finding.getLongDescription())
+            Findings.SastFinding.Builder sastFindingBuilder = Findings.SastFinding.newBuilder()
                     .setReportingExternalToolId(externalTool.getId())
                     .setToolDefinedSeverity(finding.getChannelSeverity().getName())
                     .addAllTrace(getTraceNodes(finding))
-                    .setId(createUUID(finding.getId().toString())).build();
+                    .setId(createUUID(finding.getId().toString()));
 
-            sastFindings.add(sastFinding);
+            GenericVulnerability genericVulnerability = getGenericVulnerability(finding);
+            if (genericVulnerability != null) {
+                Entities.CWE cwe = addCwe(genericVulnerability);
+                sastFindingBuilder.setName(genericVulnerability.getName())
+                        .addCweIds(cwe.getWeaknessId());
+            }
+
+            String description = finding.getLongDescription();
+            if (!StringUtils.isEmpty(description)) {
+                sastFindingBuilder.setDescription(description);
+            }
+
+            sastFindings.add(sastFindingBuilder.build());
         }
     }
 
@@ -158,7 +198,7 @@ public class AstamFindingsMapper {
 
         for (int i=0; i<findingList.size(); i++) {
             Finding finding = findingList.get(i);
-            uuids.add(createUUID(finding.getUuid()));
+            uuids.add(createUUID(finding.getId().toString()));
         }
 
         return uuids;
@@ -167,7 +207,6 @@ public class AstamFindingsMapper {
     public void addCorrelatedFindings(List<Vulnerability> vulnerabilityList) {
         for (int i=0; i<vulnerabilityList.size(); i++) {
             Vulnerability vulnerability = vulnerabilityList.get(i);
-            GenericVulnerability genericVulnerability = vulnerability.getGenericVulnerability();
             List<Finding> findings = vulnerability.getFindings();
             GenericSeverity severity = vulnerability.getGenericSeverity();
 
@@ -175,47 +214,37 @@ public class AstamFindingsMapper {
                 continue;
             }
 
-            Findings.CorrelatedFinding correlatedFinding = Findings.CorrelatedFinding.newBuilder()
-                    .setName(genericVulnerability.getName())
+            Findings.CorrelatedFinding.Builder correlatedFindingBuilder = Findings.CorrelatedFinding.newBuilder()
                     .addAllDastFindingIds(getUuidsForFindings(vulnerability.getDynamicFindings()))
                     .addAllSastFindingIds(getUuidsForFindings(vulnerability.getStaticFindings()))
-                    .setSeverity(severityMap.get(severity.getName()))
-                    .addApplicableCwes(genericVulnerability.getCweId()).build();
+                    .setSeverity(severityMap.get(severity.getName()));
 
-            correlatedFindings.add(correlatedFinding);
+            GenericVulnerability genericVulnerability = vulnerability.getGenericVulnerability();
+            if (genericVulnerability != null) {
+                correlatedFindingBuilder.setName(genericVulnerability.getName())
+                        .addApplicableCwes(genericVulnerability.getCweId());
+            }
+
+            correlatedFindings.add(correlatedFindingBuilder.build());
         }
     }
 
-    private static <T extends Message> void writeListToOutput(List<T> messageList, FileOutputStream output)
+    private static <T extends Message> void writeListToOutput(List<T> messageList, OutputStream output)
             throws IOException {
         for (int i=0; i<messageList.size(); i++) {
             messageList.get(i).writeTo(output);
         }
     }
 
-    public File getFindingsFile() {
-        try {
-            File findingsFile = new File("data/findings.ser");
-            findingsFile.createNewFile();
+    public void writeFindingsToOutput(OutputStream outputStream) throws IOException {
+        writeListToOutput(cwes, outputStream);
+        writeListToOutput(externalTools, outputStream);
+        writeListToOutput(dastFindings, outputStream);
+        writeListToOutput(sastFindings, outputStream);
+        writeListToOutput(correlatedFindings, outputStream);
 
-            FileOutputStream output = new FileOutputStream(findingsFile);
-            writeListToOutput(cwes, output);
-            writeListToOutput(externalTools, output);
-            writeListToOutput(dastFindings, output);
-            writeListToOutput(sastFindings, output);
-            writeListToOutput(correlatedFindings, output);
-            // TODO: add cweset, externaltoolset
-            // TODO: add rawfindings, correlationresult, correlationresultset
 
-            output.close();
-
-            return findingsFile;
-        } catch (FileNotFoundException ex) {
-            // TODO: Handle file not found exception
-        } catch (IOException ex) {
-            // TODO: Handle IO exception
-        }
-
-        return null;
+        // TODO: add cweset, externaltoolset
+        // TODO: add rawfindingsset, correlationresultset
     }
 }

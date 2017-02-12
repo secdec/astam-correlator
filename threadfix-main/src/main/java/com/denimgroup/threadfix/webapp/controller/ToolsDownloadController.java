@@ -59,6 +59,7 @@ public class ToolsDownloadController {
     private final static String TF_ZAP = "threadfix-release-2.zap";
     private final static String TF_SONAR_JAR = "sonar-threadfix-plugin.jar";
     private final static String SSVL_CONVERTER_JAR = "ssvl-converter.jar";
+    private final static String PROTOBUF_FILENAME = "findings.ser";
 
     public ToolsDownloadController(){}
 	
@@ -109,29 +110,15 @@ public class ToolsDownloadController {
 
     @RequestMapping(value="/protobuf")
     public String doDownloadProtobuf(HttpServletRequest request, HttpServletResponse response) {
-        return sendResponse(request, response, astamExportService.getFindings(1));
-    }
-
-    private String sendResponse(HttpServletRequest request, HttpServletResponse response, File file) {
         try {
-            InputStream inputStream = new FileInputStream(file);
-            ServletOutputStream outputStream = response.getOutputStream();
-            String fileName = file.getName();
-            int contentLength = request.getServletContext().getResource(file.getPath()).openConnection()
-                    .getContentLength();
+            ServletOutputStream servletOutputStream = response.getOutputStream();
+            response.setContentType("application/octet-stream");
+            response.addHeader("Content-Disposition", "attachment; filename=\"" + PROTOBUF_FILENAME + "\"");
 
-            if (fileName.endsWith(".jar"))
-                response.setContentType("application/java-archive");
-            else
-                response.setContentType("application/octet-stream");
+            astamExportService.writeFindingsToOutput(1, servletOutputStream);
 
-            response.setContentLength(contentLength);
-            response.addHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-
-            IOUtils.copy(inputStream, outputStream);
-            inputStream.close();
-            outputStream.flush();
-            outputStream.close();
+            servletOutputStream.flush();
+            servletOutputStream.close();
         } catch (IOException ioe) {
             exceptionLogService.storeExceptionLog(new ExceptionLog(ioe));
             return index();
@@ -170,6 +157,4 @@ public class ToolsDownloadController {
         }
         return null;
     }
-
-
 }
