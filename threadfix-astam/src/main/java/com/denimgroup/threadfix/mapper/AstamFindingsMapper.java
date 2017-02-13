@@ -1,7 +1,7 @@
 package com.denimgroup.threadfix.mapper;
 
 import com.denimgroup.threadfix.data.entities.*;
-import com.google.protobuf.Message;
+import com.denimgroup.threadfix.util.ProtobufMessageUtils;
 import com.secdec.astam.common.data.models.Common;
 import com.secdec.astam.common.data.models.Entities;
 import com.secdec.astam.common.data.models.Findings;
@@ -43,11 +43,7 @@ public class AstamFindingsMapper {
         severityMap.put(GenericSeverity.CRITICAL,Common.Severity.CRITICAL_SEVERITY);
     }
 
-    private Common.UUID createUUID(String uuid) {
-        return Common.UUID.newBuilder().setValue(uuid).build();
-    }
-
-    public Entities.CWE addCwe(GenericVulnerability genericVulnerability) {
+    private Entities.CWE addCwe(GenericVulnerability genericVulnerability) {
         Entities.CWE cwe = Entities.CWE.newBuilder()
                 .setWeaknessId(genericVulnerability.getCweId())
                 .setTitle(genericVulnerability.getName()).build();
@@ -59,9 +55,9 @@ public class AstamFindingsMapper {
         return cwe;
     }
 
-    public Entities.ExternalTool addExternalTool(ChannelType channelType) {
+    private Entities.ExternalTool addExternalTool(ChannelType channelType) {
         Entities.ExternalTool externalTool = Entities.ExternalTool.newBuilder()
-                .setId(createUUID(channelType.getId().toString()))
+                .setId(ProtobufMessageUtils.createUUID(channelType.getId().toString()))
                 .setName(channelType.getName()).build();
 
         if (!externalTools.contains(externalTool)) {
@@ -128,7 +124,7 @@ public class AstamFindingsMapper {
             Findings.DastFinding.Builder dastFindingBuilder = Findings.DastFinding.newBuilder()
                     .setReportingExternalToolId(externalTool.getId())
                     .addAttackVariants(getAttackVariant(finding))
-                    .setId(createUUID(finding.getId().toString()));
+                    .setId(ProtobufMessageUtils.createUUID(finding.getId().toString()));
 
             ChannelSeverity channelSeverity = finding.getChannelSeverity();
             String toolSeverityName = channelSeverity.getName();
@@ -175,7 +171,7 @@ public class AstamFindingsMapper {
                     .setReportingExternalToolId(externalTool.getId())
                     .setToolDefinedSeverity(finding.getChannelSeverity().getName())
                     .addAllTrace(getTraceNodes(finding))
-                    .setId(createUUID(finding.getId().toString()));
+                    .setId(ProtobufMessageUtils.createUUID(finding.getId().toString()));
 
             GenericVulnerability genericVulnerability = getGenericVulnerability(finding);
             if (genericVulnerability != null) {
@@ -198,7 +194,7 @@ public class AstamFindingsMapper {
 
         for (int i=0; i<findingList.size(); i++) {
             Finding finding = findingList.get(i);
-            uuids.add(createUUID(finding.getId().toString()));
+            uuids.add(ProtobufMessageUtils.createUUID(finding.getId().toString()));
         }
 
         return uuids;
@@ -229,20 +225,59 @@ public class AstamFindingsMapper {
         }
     }
 
-    private static <T extends Message> void writeListToOutput(List<T> messageList, OutputStream output)
-            throws IOException {
-        for (int i=0; i<messageList.size(); i++) {
-            messageList.get(i).writeTo(output);
+    private Findings.RawFindings createRawFindings() {
+        List<Common.UUID> dastFindingIds = new ArrayList<Common.UUID>();
+        for (int i=0; i<dastFindings.size(); i++) {
+            Findings.DastFinding dastFinding = dastFindings.get(i);
+            dastFindingIds.add(dastFinding.getId());
         }
+
+        List<Common.UUID> sastFindingIds = new ArrayList<Common.UUID>();
+        for (int i=0; i<sastFindings.size(); i++) {
+            Findings.SastFinding sastFinding = sastFindings.get(i);
+            sastFindingIds.add(sastFinding.getId());
+        }
+
+        List<Common.UUID> externalToolIds = new ArrayList<Common.UUID>();
+        for (int i=0; i<externalTools.size(); i++) {
+            Entities.ExternalTool externalTool = externalTools.get(i);
+            externalToolIds.add(externalTool.getId());
+        }
+
+        Findings.RawFindings rawFindings = Findings.RawFindings.newBuilder()
+                .addAllToolsRunIds(externalToolIds)
+                .addAllDastFindingIds(dastFindingIds)
+                .addAllSastFindingIds(sastFindingIds).build();
+
+        return rawFindings;
+    }
+
+    private Findings.CorrelationResult createCorrelationResult() {
+        List<Common.UUID> correlationResultIds = new ArrayList<Common.UUID>();
+        for (int i=0; i<correlatedFindings.size(); i++) {
+            Findings.CorrelatedFinding correlatedFinding = correlatedFindings.get(i);
+            correlationResultIds.add(correlatedFinding.getId());
+        }
+
+        Findings.CorrelationResult correlationResult = Findings.CorrelationResult.newBuilder()
+                .addAllCorrelatedFindingIds(correlationResultIds).build();
+
+        return correlationResult;
     }
 
     public void writeFindingsToOutput(OutputStream outputStream) throws IOException {
-        writeListToOutput(cwes, outputStream);
-        writeListToOutput(externalTools, outputStream);
-        writeListToOutput(dastFindings, outputStream);
-        writeListToOutput(sastFindings, outputStream);
-        writeListToOutput(correlatedFindings, outputStream);
+        ProtobufMessageUtils.writeListToOutput(cwes, outputStream);
+        ProtobufMessageUtils.writeListToOutput(externalTools, outputStream);
+        ProtobufMessageUtils.writeListToOutput(dastFindings, outputStream);
+        ProtobufMessageUtils.writeListToOutput(sastFindings, outputStream);
+        ProtobufMessageUtils.writeListToOutput(correlatedFindings, outputStream);
 
+        // TODO: add and track UUIDs for rawFindings and correlationResult
+        Findings.RawFindings rawFindings = createRawFindings();
+        rawFindings.writeTo(outputStream);
+
+        Findings.CorrelationResult correlationResult = createCorrelationResult();
+        correlationResult.writeTo(outputStream);
 
         // TODO: add cweset, externaltoolset
         // TODO: add rawfindingsset, correlationresultset

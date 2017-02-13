@@ -91,7 +91,7 @@
                     <td>ProtoBuf Export</td>
                     <td></td>
                     <td><a href="<spring:url value="/configuration/download/protobuf" htmlEscape="true"/>">
-                        Serialized Findings</a></td>
+                        Zip File</a></td>
                 </tr>
             </tbody>
         </table>

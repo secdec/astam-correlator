@@ -37,6 +37,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.util.zip.ZipOutputStream;
 
 @Controller
 @RequestMapping("/configuration/download")
@@ -59,7 +60,7 @@ public class ToolsDownloadController {
     private final static String TF_ZAP = "threadfix-release-2.zap";
     private final static String TF_SONAR_JAR = "sonar-threadfix-plugin.jar";
     private final static String SSVL_CONVERTER_JAR = "ssvl-converter.jar";
-    private final static String PROTOBUF_FILENAME = "findings.ser";
+    private final static String PROTOBUF_ZIP = "protobuf.zip";
 
     public ToolsDownloadController(){}
 	
@@ -112,10 +113,10 @@ public class ToolsDownloadController {
     public String doDownloadProtobuf(HttpServletRequest request, HttpServletResponse response) {
         try {
             ServletOutputStream servletOutputStream = response.getOutputStream();
-            response.setContentType("application/octet-stream");
-            response.addHeader("Content-Disposition", "attachment; filename=\"" + PROTOBUF_FILENAME + "\"");
+            response.setContentType("application/zip");
+            response.addHeader("Content-Disposition", "attachment; filename=\"" + PROTOBUF_ZIP + "\"");
 
-            astamExportService.writeFindingsToOutput(1, servletOutputStream);
+            astamExportService.writeAllToOutput(servletOutputStream);
 
             servletOutputStream.flush();
             servletOutputStream.close();
