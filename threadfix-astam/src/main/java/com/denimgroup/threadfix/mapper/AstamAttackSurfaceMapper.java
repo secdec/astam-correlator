@@ -10,15 +10,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AstamAttackSurfaceMapper {
+    private int applicationId;
     public List<Attacksurface.EntryPointWeb> webEntryPoints;
     public List<Attacksurface.EntryPointMobile> mobileEntryPoints;
 
-    public AstamAttackSurfaceMapper() {
+    public AstamAttackSurfaceMapper(int applicationId) {
+        this.applicationId = applicationId;
         this.webEntryPoints = new ArrayList<Attacksurface.EntryPointWeb>();
         this.mobileEntryPoints = new ArrayList<Attacksurface.EntryPointMobile>();
     }
 
     // TODO mobileEntryPoints when proto file is updated
+
+    public int getApplicationId() {
+        return applicationId;
+    }
 
     public void addWebEntryPoints(List<Finding> findings) {
         for (Finding finding : findings) {
@@ -107,13 +113,10 @@ public class AstamAttackSurfaceMapper {
     }
 
     public void writeAttackSurfaceToOutput(OutputStream outputStream) throws IOException {
-        ProtobufMessageUtils.writeListToOutput(webEntryPoints, outputStream);
-        ProtobufMessageUtils.writeListToOutput(mobileEntryPoints, outputStream);
+        Attacksurface.EntryPointWebSet entryPointWebSet = Attacksurface.EntryPointWebSet.newBuilder()
+                .addAllWebEntryPoints(webEntryPoints)
+                .build();
 
-        // TODO add and track UUIDs for rawDiscoveredAttackSurface
-        Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface = createRawDiscoveredAttackSurface();
-        rawDiscoveredAttackSurface.writeTo(outputStream);
-
-        // TODO add rawDiscoveredAttackSurfaceSet
+        entryPointWebSet.writeTo(outputStream);
     }
 }

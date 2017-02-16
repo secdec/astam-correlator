@@ -24,12 +24,9 @@ public class AstamAttackSurfaceServiceImpl implements AstamAttackSurfaceService 
     }
 
     @Override
-    public void writeAttackSurfaceToOutput(int applicationId, OutputStream outputStream) throws IOException {
-        List<Finding> findings = findingDao.retrieveFindingsWithHAMEndpointByAppId(applicationId);
-
-        // TODO: findingService.removeDuplicates(..);
-
-        AstamAttackSurfaceMapper mapper = new AstamAttackSurfaceMapper();
+    public void writeAttackSurfaceToOutput(AstamAttackSurfaceMapper mapper, OutputStream outputStream)
+            throws IOException {
+        List<Finding> findings = findingDao.retrieveFindingsWithHAMEndpointByAppId(mapper.getApplicationId());
 
         mapper.addWebEntryPoints(findings);
 
