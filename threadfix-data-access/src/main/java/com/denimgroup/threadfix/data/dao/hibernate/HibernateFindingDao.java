@@ -313,4 +313,14 @@ public class HibernateFindingDao
         return unmappedFindings;
     }
 
+	@Override
+	public List<Finding> retrieveFindingsWithHAMEndpointByAppId(Integer appId) {
+		Criteria criteria = sessionFactory.getCurrentSession().createCriteria(Finding.class)
+				.add(Restrictions.eq("foundHAMEndpoint", true))
+				.createAlias("scan", "scanAlias")
+				.createAlias("scanAlias.application", "applicationAlias")
+				.add(Restrictions.eq("applicationAlias.id", appId));
+		return criteria.list();
+	}
+
 }
