@@ -26,7 +26,7 @@ public class AstamExportServiceImpl implements AstamExportService {
     private final static String PROTOBUF_SAST_SET_FILENAME = "sastFindingSet";
     private final static String PROTOBUF_CORRELATED_SET_FILENAME = "correlatedFindingSet";
     private final static String PROTOBUF_TOOL_SET_FILENAME = "externalToolSet";
-    private final static String PROTOBUF_ATTACK_SURFACE_FILENAME = "rawDiscoveredAttackSurfaceSet";
+    private final static String PROTOBUF_ATTACK_SURFACE_FILENAME = "entryPointWebSet";
 
     private final ApplicationDao applicationDao;
     private final AstamApplicationService astamApplicationService;
