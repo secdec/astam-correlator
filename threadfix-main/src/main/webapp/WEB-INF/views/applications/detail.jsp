@@ -70,7 +70,7 @@
                 <jsp:include page="/app/organizations/${ application.organization.id }/applications/${ application.id }/history"/>
             </c:if>
             <%@ include file="/WEB-INF/views/applications/tabs/unmappedFindingsTab.jsp" %>
-            <security:authorize ifAnyGranted="ROLE_CAN_MANAGE_SCAN_AGENTS">
+            <security:authorize access="hasRole('ROLE_CAN_MANAGE_SCAN_AGENTS')">
                 <c:if test="${isEnterprise}">
                     <tab id="scanAgentTasksTab" ng-controller="ScanAgentTasksTabController" heading="{{ heading }}"
                          ng-click="setTab('Scan Agent Tasks')" active="tab.scanAgentTasks">
@@ -89,7 +89,7 @@
                     </tab>
                 </c:if>
             </security:authorize>
-            <security:authorize ifAnyGranted="ROLE_ENTERPRISE">
+            <security:authorize access="hasRole('ROLE_ENTERPRISE')">
                 <%@ include file="/WEB-INF/views/applications/tabs/policyTab.jsp" %>
             </security:authorize>
         </tabset>

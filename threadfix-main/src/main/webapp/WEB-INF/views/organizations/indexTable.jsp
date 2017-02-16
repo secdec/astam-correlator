@@ -1,6 +1,6 @@
 
 <div style="padding-bottom:10px">
-    <security:authorize ifAnyGranted="ROLE_CAN_MANAGE_TEAMS">
+    <security:authorize access="hasRole('ROLE_CAN_MANAGE_TEAMS')">
         <a id="addTeamModalButton" ng-click="openTeamModal()" class="btn">Add Team</a>
     </security:authorize>
     <a ng-show="teams" class="btn" id="expandAllButton" ng-click="expand()">Expand All</a>
@@ -8,7 +8,7 @@
 </div>
 
 <table ng-show="teams" class="table table-hover white-inner-table"
-        <security:authorize ifAnyGranted="ROLE_CAN_MANAGE_TEAMS">
+        <security:authorize access="hasRole('ROLE_CAN_MANAGE_TEAMS')">
             ng-init="canCreateTeams = true"
         </security:authorize>
         >

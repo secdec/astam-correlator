@@ -20,7 +20,8 @@
             <th>Path</th>
             <th style="min-width:90px;">Parameter</th>
             <th class="last"># Merged Results</th>
-            <security:authorize ifAnyGranted="ROLE_CAN_MANAGE_VULN_FILTERS">
+            <security:authorize
+                    access="hasRole('ROLE_CAN_MANAGE_VULN_FILTERS')">
                 <th>CWE</th>
             </security:authorize>
             <th style="width:80px"></th>
@@ -47,7 +48,8 @@
                 (<a target="_blank" id="cve{{ index }}" href="{{ finding.dependency.refLink }}">View</a>)
             </td>
             <td>{{ finding.numberMergedResults }}</td>
-            <security:authorize ifAnyGranted="ROLE_CAN_MANAGE_VULN_FILTERS">
+            <security:authorize
+                    access="hasRole('ROLE_CAN_MANAGE_VULN_FILTERS')">
                 <td>
                     <a class="pointer" ng-if="!finding.genericVulnerabilityName" id="createMapping{{ index }}" ng-click="createMapping(finding)">
                         Create Mapping

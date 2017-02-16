@@ -104,7 +104,7 @@
                     </multi-select>
                 </td>
             </tr>
-            <security:authorize ifAllGranted="ROLE_ENTERPRISE">
+            <security:authorize access="hasRole('ROLE_ENTERPRISE')">
                 <tr id="appACDiv" ng-show="config.isEnterprise">
                     <td>Policy</td>
                     <td>
@@ -112,7 +112,8 @@
                                 ng-click="switchTo('managePolicy')" id="managePolicyButton">
                             Manage Policies
                         </button>
-                        <security:authorize ifAllGranted="ROLE_CAN_MANAGE_POLICIES">
+                        <security:authorize
+                                access="hasRole('ROLE_CAN_MANAGE_POLICIES')">
                             <a ng-hide="config.policyExist" class="btn btn-primary"
                                     ng-click="goToPolicyPage()" id="goToPolicyButton">
                                 Create Policy
