@@ -1,14 +1,12 @@
 package com.denimgroup.threadfix.util;
 
 import com.denimgroup.threadfix.data.entities.AuditableEntity;
-import com.google.protobuf.Message;
 import com.google.protobuf.Timestamp;
 import com.secdec.astam.common.data.models.Common;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import javax.swing.text.MaskFormatter;
+import java.text.ParseException;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Created by jsemtner on 2/12/2017.
@@ -26,19 +24,24 @@ public class ProtobufMessageUtils {
         return Common.URL.newBuilder().setValue(strUrl).build();
     }
 
+    public static Common.UUID createUUIDFromInt(int id) {
+        String paddedInt = String.format("%032d", id);
+        try {
+            MaskFormatter formatter = new MaskFormatter("########-####-####-####-############");
+            formatter.setValueContainsLiteralCharacters(false);
+            String uuid = formatter.valueToString(paddedInt);
+            return Common.UUID.newBuilder().setValue(uuid).build();
+        } catch (ParseException ex) {
+            return null;
+        }
+    }
+
     public static Common.RecordData createRecordData(AuditableEntity auditableEntity) {
         Common.RecordData recordData = Common.RecordData.newBuilder()
                 .setCreatedTime(createTimestamp(auditableEntity.getCreatedDate()))
                 .setEditedTime(createTimestamp(auditableEntity.getModifiedDate()))
-                .setVersionId(createUUID(auditableEntity.getId().toString())).build();
+                .setVersionId(createUUIDFromInt(auditableEntity.getId())).build();
 
         return recordData;
-    }
-
-    public static <T extends Message> void writeListToOutput(List<T> messageList, OutputStream output)
-            throws IOException {
-        for (int i=0; i<messageList.size(); i++) {
-            messageList.get(i).writeTo(output);
-        }
     }
 }

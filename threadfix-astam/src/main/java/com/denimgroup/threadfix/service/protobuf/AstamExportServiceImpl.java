@@ -2,6 +2,7 @@ package com.denimgroup.threadfix.service.protobuf;
 
 import com.denimgroup.threadfix.data.dao.ApplicationDao;
 import com.denimgroup.threadfix.data.entities.Application;
+import com.denimgroup.threadfix.mapper.AstamFindingsMapper;
 import com.denimgroup.threadfix.service.AstamApplicationService;
 import com.denimgroup.threadfix.service.AstamExportService;
 import com.denimgroup.threadfix.service.AstamFindingsService;
@@ -20,6 +21,12 @@ import java.util.zip.ZipOutputStream;
 @Service
 public class AstamExportServiceImpl implements AstamExportService {
     private final static String PROTOBUF_APP_EXT = ".ser";
+    private final static String PROTOBUF_APP_REG_FILENAME = "applicationRegistration";
+    private final static String PROTOBUF_DAST_SET_FILENAME = "dastFindingSet";
+    private final static String PROTOBUF_SAST_SET_FILENAME = "sastFindingSet";
+    private final static String PROTOBUF_CORRELATED_SET_FILENAME = "correlatedFindingSet";
+    private final static String PROTOBUF_TOOL_SET_FILENAME = "externalToolSet";
+    private final static String PROTOBUF_ATTACK_SURFACE_FILENAME = "rawDiscoveredAttackSurfaceSet";
 
     private final ApplicationDao applicationDao;
     private final AstamApplicationService astamApplicationService;
@@ -39,25 +46,48 @@ public class AstamExportServiceImpl implements AstamExportService {
         ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
         for (int i=0; i<applicationList.size(); i++) {
             Application app = applicationList.get(i);
+            String path = app.getName() + "/";
             int appId = app.getId();
-            zipOutputStream.putNextEntry(new ZipEntry(appId + PROTOBUF_APP_EXT));
-            writeApplicationToOutput(appId, zipOutputStream);
-            writeFindingsToOutput(appId, zipOutputStream);
-            writeAttackSurfaceToOutput(app.getId(), zipOutputStream);
+            zipOutputStream.putNextEntry(new ZipEntry(path));
+
+            writeApplicationToOutput(appId, path, zipOutputStream);
+            writeFindingsToOutput(appId, path, zipOutputStream);
+            writeAttackSurfaceToOutput(app.getId(), path, zipOutputStream);
         }
 
         zipOutputStream.close();
     }
 
-    public void writeApplicationToOutput(int applicationId, OutputStream outputStream) throws IOException {
-        astamApplicationService.writeApplicationToOutput(applicationId, outputStream);
+    private void addZipFileEntry(String filePath, ZipOutputStream zipOutputStream) throws IOException {
+        zipOutputStream.putNextEntry(new ZipEntry(filePath + PROTOBUF_APP_EXT));
     }
 
-    public void writeFindingsToOutput(int applicationId, OutputStream outputStream) throws IOException {
-        astamFindingsService.writeFindingsToOutput(applicationId, outputStream);
+    private void writeApplicationToOutput(int applicationId, String path, ZipOutputStream zipOutputStream)
+            throws IOException {
+        addZipFileEntry(path + PROTOBUF_APP_REG_FILENAME, zipOutputStream);
+        astamApplicationService.writeApplicationToOutput(applicationId, zipOutputStream);
     }
 
-    public void writeAttackSurfaceToOutput(int applicationId, OutputStream outputStream) throws IOException {
+    private void writeFindingsToOutput(int applicationId, String path, ZipOutputStream zipOutputStream)
+            throws IOException {
+         AstamFindingsMapper astamMapper = new AstamFindingsMapper(applicationId);
+
+        addZipFileEntry(path + PROTOBUF_DAST_SET_FILENAME, zipOutputStream);
+        astamFindingsService.writeDastFindingsToOutput(astamMapper, zipOutputStream);
+
+        addZipFileEntry(path + PROTOBUF_SAST_SET_FILENAME, zipOutputStream);
+        astamFindingsService.writeSastFindingsToOutput(astamMapper, zipOutputStream);
+
+        addZipFileEntry(path + PROTOBUF_CORRELATED_SET_FILENAME, zipOutputStream);
+        astamFindingsService.writeCorrelatedFindingsToOutput(astamMapper, zipOutputStream);
+
+        addZipFileEntry(path + PROTOBUF_TOOL_SET_FILENAME, zipOutputStream);
+        astamFindingsService.writeExternalToolsToOutput(astamMapper, zipOutputStream);
+    }
+
+    private void writeAttackSurfaceToOutput(int applicationId, String path, ZipOutputStream zipOutputStream)
+            throws IOException {
+        addZipFileEntry(path + PROTOBUF_ATTACK_SURFACE_FILENAME, zipOutputStream);
         // astamAttackSurfaceService.writeAttackSurfaceToOutput(app.getId(), zipOutputStream);
     }
 }

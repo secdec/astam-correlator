@@ -28,27 +28,59 @@ public class AstamFindingsServiceImpl implements AstamFindingsService {
         this.scanDao = scanDao;
     }
 
-    public void writeFindingsToOutput(int applicationId, OutputStream outputStream) throws IOException {
-        List<Vulnerability> vulnerabilityList = vulnerabilityDao.retrieveAllByApplication(applicationId);
+    private List<Scan> getScansByApplicationId(int applicationId) {
         List<Integer> applicationIdList = new ArrayList<Integer>();
         applicationIdList.add(applicationId);
-        List<Scan> scanList = scanDao.retrieveByApplicationIdList(applicationIdList);
+        return scanDao.retrieveByApplicationIdList(applicationIdList);
+    }
 
-        AstamFindingsMapper findings = new AstamFindingsMapper();
+    @Override
+    public void writeDastFindingsToOutput(AstamFindingsMapper astamMapper, OutputStream outputStream)
+            throws IOException {
+        List<Scan> scanList = getScansByApplicationId(astamMapper.getApplicationId());
+
+        for (int i=0; i<scanList.size(); i++) {
+            Scan scan = scanList.get(i);
+            String scanType = scan.getScannerType();
+
+            if (scanType.equals(Scan.DYNAMIC)) {
+                astamMapper.addDastFindings(scan);
+            }
+        }
+
+        astamMapper.writeDastFindingsToOutput(outputStream);
+    }
+
+    @Override
+    public void writeSastFindingsToOutput(AstamFindingsMapper astamMapper, OutputStream outputStream)
+            throws IOException {
+        List<Scan> scanList = getScansByApplicationId(astamMapper.getApplicationId());
 
         for (int i=0; i<scanList.size(); i++) {
             Scan scan = scanList.get(i);
             String scanType = scan.getScannerType();
 
             if (scanType.equals(Scan.STATIC)) {
-                findings.addSastFindings(scan);
-            } else if (scanType.equals(Scan.DYNAMIC)) {
-                findings.addDastFindings(scan);
+                astamMapper.addSastFindings(scan);
             }
         }
 
-        findings.addCorrelatedFindings(vulnerabilityList);
+        astamMapper.writeSastFindingsToOutput(outputStream);
+    }
 
-        findings.writeFindingsToOutput(outputStream);
+    @Override
+    public void writeCorrelatedFindingsToOutput(AstamFindingsMapper astamMapper,
+                                                OutputStream outputStream) throws IOException {
+        List<Vulnerability> vulnerabilityList = vulnerabilityDao
+                .retrieveAllByApplication(astamMapper.getApplicationId());
+        astamMapper.addCorrelatedFindings(vulnerabilityList);
+
+        astamMapper.writeCorrelatedFindingsToOutput(outputStream);
+    }
+
+    @Override
+    public void writeExternalToolsToOutput(AstamFindingsMapper astamMapper, OutputStream outputStream)
+            throws IOException {
+        astamMapper.writeExternalToolsToOutput(outputStream);
     }
 }

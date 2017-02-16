@@ -8,7 +8,4 @@ import java.io.OutputStream;
  */
 public interface AstamExportService {
     void writeAllToOutput(OutputStream outputStream) throws IOException;
-    void writeApplicationToOutput(int applicationId, OutputStream outputStream) throws IOException;
-    void writeFindingsToOutput(int applicationId, OutputStream outputStream) throws IOException;
-    void writeAttackSurfaceToOutput(int applicationId, OutputStream outputStream) throws IOException;
 }

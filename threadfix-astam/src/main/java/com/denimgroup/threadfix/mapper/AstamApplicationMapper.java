@@ -42,7 +42,7 @@ public class AstamApplicationMapper {
         Appmgmt.ApplicationRegistration.VersionControlRepository repo = createVersionControlRepository(app);
 
         Appmgmt.ApplicationRegistration.Builder appBuilder = Appmgmt.ApplicationRegistration.newBuilder()
-                .setId(ProtobufMessageUtils.createUUID(app.getId().toString()))
+                .setId(ProtobufMessageUtils.createUUIDFromInt(app.getId()))
                 .setName(app.getName())
                 .setRecordData(ProtobufMessageUtils.createRecordData(app))
                 .setOrganization(organization.getName())
