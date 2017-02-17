@@ -302,7 +302,6 @@
         <esapi.version>2.1.0-SNAPSHOT</esapi.version>
         <hibernate.version>5.2.6.Final</hibernate.version>
         <hibernate-validator.version>5.3.4.Final</hibernate-validator.version>
-        <fluent-hibernate-core.version>0.3.1</fluent-hibernate-core.version>
         <jpa-version>1.0.0.Final</jpa-version>
         <itext.version>5.5.8</itext.version>
         <javassist.version>3.19.0-GA</javassist.version>
@@ -351,6 +350,8 @@
         <jacoco.version>0.7.0.201403182114</jacoco.version>
         <jsoup.version>1.8.2</jsoup.version>
         <gson.version>2.2.4</gson.version>
+        <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
+        <os-maven-plugin.version>1.5.0.Final</os-maven-plugin.version>
 
         <!-- Testing Properties -->
         <regression.category>com.denimgroup.threadfix.CommunityTests</regression.category>
@@ -364,9 +365,7 @@
 
         <protobuf.input.directory>C:\denimgroup\clients\DHS\ASTAM\src\tta5\Common\InterComponentComms\Protobuf</protobuf.input.directory>
 
-        <build-helper-maven-plugin.version>1.12</build-helper-maven-plugin.version>
         <protobuf.version>3.1.0</protobuf.version>
-        <os-maven-plugin.version>1.5.0.Final</os-maven-plugin.version>
     </properties>
 
     <url>http://www.denimgroup.com/threadfix/</url>
