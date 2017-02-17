@@ -160,7 +160,8 @@ public class SpringControllerMappings implements EndpointGenerator {
                 }
             }
             endpoint.expandParameters(mappings, globalDataBinderParser);
-            if (endpoint.getRequiredPermissions().contains("IS_AUTHENTICATED_ANONYMOUSLY")) {
+            if (endpoint.getRequiredPermissions()
+                    .contains("permitAll")) {
                 endpoint.setAuthenticationRequired(ANONYMOUS);
             } else if (!endpoint.getRequiredPermissions().isEmpty()) {
                 endpoint.setAuthenticationRequired(AUTHENTICATED);

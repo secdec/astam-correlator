@@ -26,7 +26,6 @@ package com.denimgroup.threadfix.data.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import org.hibernate.annotations.CollectionOfElements;
 import org.hibernate.validator.constraints.NotEmpty;
 
 import javax.persistence.*;
@@ -62,7 +61,6 @@ public class EmailList extends AuditableEntity {
         this.name = name;
     }
 
-    @CollectionOfElements // for sonar
     @ElementCollection
     @Column(name = "emailAddress", length = EMAIL_LENGTH)
     @CollectionTable(name = "EmailAddress", joinColumns = @JoinColumn(name = "EmailListId"))

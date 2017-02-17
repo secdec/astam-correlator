@@ -8,7 +8,7 @@
 
 <c:if test="${ not empty time }">
 	A system error occurred and has been logged to the database at <span ng-non-bindable><c:out value="${ time }"/></span>.
-	<security:authorize ifAnyGranted="ROLE_CAN_VIEW_ERROR_LOGS">
+	<security:authorize access="hasRole('ROLE_CAN_VIEW_ERROR_LOGS')">
 		<spring:url value="/configuration/logs/{logId}" var="logUrl">
 			<spring:param name="logId" value="${ logId }"/>	
 		</spring:url>

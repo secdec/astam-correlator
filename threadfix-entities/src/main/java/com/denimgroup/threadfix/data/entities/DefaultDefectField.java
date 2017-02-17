@@ -1,7 +1,6 @@
 package com.denimgroup.threadfix.data.entities;
 
 import com.fasterxml.jackson.annotation.JsonView;
-import org.hibernate.annotations.CollectionOfElements;
 
 import javax.persistence.*;
 import java.util.Map;
@@ -26,7 +25,6 @@ public class DefaultDefectField extends AuditableEntity {
 	//here we declare through the JPA API a table that will hold the key-value pairs of our Map,
 	//we do this because strings are basic types so we don't have to declare an entity
 	@JsonView(Object.class)
-	@CollectionOfElements // for sonar
 	@ElementCollection
 	@MapKeyColumn(name = "keyValue", length = 128)
 	@Column(name = "defaultValue", length = 128)
