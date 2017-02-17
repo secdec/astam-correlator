@@ -2,7 +2,6 @@ package com.denimgroup.threadfix.data.entities;
 
 import com.denimgroup.threadfix.views.AllViews;
 import com.fasterxml.jackson.annotation.JsonView;
-import org.hibernate.annotations.CollectionOfElements;
 
 import javax.persistence.*;
 import java.util.List;
@@ -18,7 +17,7 @@ public class ScheduledEmailReport extends ScheduledJob {
 	private List<String> emailAddresses;
 	private List<Organization> organizations;
 
-	@CollectionOfElements
+	@ElementCollection
 	@Column(name = "emailAddress", length = 128)
 	@CollectionTable(name = "ReportEmailAddress", joinColumns = @JoinColumn(name = "ScheduledEmailReportId"))
 	@JsonView(Object.class)

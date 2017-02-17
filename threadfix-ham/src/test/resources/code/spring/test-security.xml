@@ -22,12 +22,13 @@
 
     <!-- Configure Spring Security -->
     <security:http auto-config="true">
-        <security:intercept-url pattern="/login*" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-        <security:intercept-url pattern="/styles/*" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-        <security:intercept-url pattern="/v/*/scripts/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-        <security:intercept-url pattern="/images/*" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-        <security:intercept-url pattern="/rest/**" access="IS_AUTHENTICATED_ANONYMOUSLY"/>
-        <security:intercept-url pattern="/**" access="ROLE_USER"/>
+        <security:intercept-url pattern="/login*"/>
+        <security:intercept-url pattern="/styles/*"/>
+        <security:intercept-url pattern="/v/*/scripts/**"/>
+        <security:intercept-url pattern="/images/*"/>
+        <security:intercept-url pattern="/rest/**"/>
+        <security:intercept-url pattern="/**"
+                                access="hasRole('ROLE_USER')"/>
         <security:form-login
                 login-page="/login.jsp"
                 default-target-url="/dashboard"

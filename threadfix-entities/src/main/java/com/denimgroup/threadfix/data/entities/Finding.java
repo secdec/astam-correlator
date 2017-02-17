@@ -23,12 +23,10 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.data.entities;
 
-import com.denimgroup.threadfix.data.entities.astam.AstamAuditableEntity;
 import com.denimgroup.threadfix.views.AllViews;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.Index;
 
 import javax.annotation.Nullable;
 import javax.persistence.*;
@@ -40,8 +38,11 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.data.entities.AuthenticationRequired.UNKNOWN;
 
 @Entity
-@Table(name = "Finding")
-public class Finding extends AstamAuditableEntity implements FindingLike {
+@Table(name = "Finding", indexes = {
+		@Index(name = "statsCounter", columnList = "hasStatisticsCounter"),
+		@Index(name = "firstFinding", columnList = "firstFindingForVuln")
+})
+public class Finding extends AuditableEntity implements FindingLike {
 
 	private static final long serialVersionUID = 5978786078427181952L;
 
@@ -443,7 +444,6 @@ public class Finding extends AstamAuditableEntity implements FindingLike {
 		this.rawFinding = rawFinding;
 	}
 
-	@Index(name = "firstFinding")
 	@Column(nullable = false)
 	public boolean isFirstFindingForVuln() {
 		return isFirstFindingForVuln;
@@ -528,7 +528,6 @@ public class Finding extends AstamAuditableEntity implements FindingLike {
 	}
 
 	@Column
-	@Index(name = "statsCounter")
 	public Boolean getHasStatisticsCounter() {
 		return hasStatisticsCounter != null && hasStatisticsCounter;
 	}

@@ -48,6 +48,7 @@ package com.denimgroup.threadfix.webapp.filter;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.service.NonceService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.context.support.SpringBeanAutowiringSupport;
 
 import javax.servlet.*;
@@ -74,6 +75,7 @@ import static com.denimgroup.threadfix.CollectionUtils.set;
  * returned to the client
  * </ul>
  */
+@Component
 public class CsrfPreventionFilter extends SpringBeanAutowiringSupport implements Filter {
 
     private final SanitizedLogger log = new SanitizedLogger(CsrfPreventionFilter.class);

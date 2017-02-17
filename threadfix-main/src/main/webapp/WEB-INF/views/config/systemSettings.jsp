@@ -14,7 +14,7 @@
     <%@ include file="/WEB-INF/views/errorMessage.jspf"%>
 
     <tabset>
-        <security:authorize ifAnyGranted="ROLE_ENTERPRISE">
+        <security:authorize access="hasRole('ROLE_ENTERPRISE')">
             <tab id="loginTab" heading="Login Settings" ng-click="setTab('login')" active="tab.login">
                 <div ng-form="configForm" name="loginForm">
                     <div class="panel panel-default">
@@ -28,7 +28,8 @@
                         </div>
                         <div class="panel-body" ng-show="editDefaultPermissions">
                             <table class="dataTable">
-                                <security:authorize ifAnyGranted="ROLE_CAN_MANAGE_ROLES">
+                                <security:authorize
+                                        access="hasRole('ROLE_CAN_MANAGE_ROLES')">
                                     <tr>
                                         <td>
                                             Default role enabled for LDAP users
@@ -375,7 +376,7 @@
         <tab id="otherTab" heading="Other Settings" ng-click="setTab('other')" active="tab.other">
             <div ng-form="configForm" name="otherForm">
 
-                <security:authorize ifAnyGranted="ROLE_ENTERPRISE">
+                <security:authorize access="hasRole('ROLE_ENTERPRISE')">
 
                     <div class="panel panel-default">
                         <div id="proxySettingsPanel" class="panel-heading pointer" style="width:150px"

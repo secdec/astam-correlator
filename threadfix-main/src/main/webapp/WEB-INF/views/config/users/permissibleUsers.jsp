@@ -11,7 +11,8 @@
                 <th class="medium first">User</th>
 				<th class="short">Role</th>
 				<c:if test="${ canManageUsers }">
-					<security:authorize ifAllGranted="ROLE_CAN_MANAGE_USERS">
+					<security:authorize
+							access="hasRole('ROLE_CAN_MANAGE_USERS')">
 						<th class="short"></th>
 					</security:authorize>
 				</c:if>
@@ -53,7 +54,8 @@
 					</c:if>
 				</td>
 				<c:if test="${ canManageUsers }">
-					<security:authorize ifAllGranted="ROLE_CAN_MANAGE_USERS">
+					<security:authorize
+							access="hasRole('ROLE_CAN_MANAGE_USERS')">
 						<td id="name${ status.count }">
 							<spring:url value="/configuration/users" var="editPermissionsUrl"/>
 							<a id="editPermissions${ status.count }" style="font-size:12px;float:right;" href="${ fn:escapeXml(editPermissionsUrl) }">Manage Users</a>

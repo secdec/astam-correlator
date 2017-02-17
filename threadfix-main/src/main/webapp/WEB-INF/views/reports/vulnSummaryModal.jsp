@@ -42,7 +42,7 @@
     <div class="modal-footer">
         <span id="errorSpan" class="errors" style="float:left">{{ error }}</span>
         <button class="btn" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">Close</button>
-        <security:authorize ifAnyGranted="ROLE_CAN_GENERATE_REPORTS">
+        <security:authorize access="hasRole('ROLE_CAN_GENERATE_REPORTS')">
             <button id="submit"
                     class="btn btn-primary"
                     ng-hide="loading"
