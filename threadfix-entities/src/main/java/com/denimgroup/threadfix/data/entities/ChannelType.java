@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.data.entities;
 
+import com.denimgroup.threadfix.data.entities.astam.AstamBaseEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
 
@@ -35,7 +36,7 @@ import static com.denimgroup.threadfix.CollectionUtils.set;
 
 @Entity
 @Table(name = "ChannelType")
-public class ChannelType extends BaseEntity {
+public class ChannelType extends AstamBaseEntity {
 
 	private static final long serialVersionUID = 1665587716223810215L;
 	

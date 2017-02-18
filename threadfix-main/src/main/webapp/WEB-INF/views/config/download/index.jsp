@@ -87,6 +87,12 @@
                     <td><a href="<spring:url value="/configuration/download/ssvl-converter" htmlEscape="true"/>">
                         Jar File</a></td>
                 </tr>
+                <tr>
+                    <td>ProtoBuf Export</td>
+                    <td></td>
+                    <td><a href="<spring:url value="/configuration/download/protobuf" htmlEscape="true"/>">
+                        Zip File</a></td>
+                </tr>
             </tbody>
         </table>
     </div>

@@ -25,6 +25,7 @@ package com.denimgroup.threadfix.webapp.controller;
 
 import com.denimgroup.threadfix.data.entities.ExceptionLog;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import com.denimgroup.threadfix.service.AstamExportService;
 import com.denimgroup.threadfix.service.ExceptionLogService;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +43,11 @@ import java.io.InputStream;
 @Controller
 @RequestMapping("/configuration/download")
 public class ToolsDownloadController {
-
     @Autowired
     private ExceptionLogService exceptionLogService;
+
+    @Autowired
+    private AstamExportService astamExportService;
 
 	private final SanitizedLogger log = new SanitizedLogger(ToolsDownloadController.class);
 
@@ -58,7 +61,7 @@ public class ToolsDownloadController {
     private final static String TF_ZAP = "threadfix-release-2.zap";
     private final static String TF_SONAR_JAR = "sonar-threadfix-plugin.jar";
     private final static String SSVL_CONVERTER_JAR = "ssvl-converter.jar";
-
+    private final static String PROTOBUF_ZIP = "protobuf.zip";
 
     public ToolsDownloadController(){}
 	
@@ -107,9 +110,26 @@ public class ToolsDownloadController {
         return doDownload(request, response, SSVL_CONVERTER_JAR);
     }
 
+    @RequestMapping(value="/protobuf")
+    public String doDownloadProtobuf(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            ServletOutputStream servletOutputStream = response.getOutputStream();
+            response.setContentType("application/zip");
+            response.addHeader("Content-Disposition", "attachment; filename=\"" + PROTOBUF_ZIP + "\"");
+
+            astamExportService.writeAllToOutput(servletOutputStream);
+
+            servletOutputStream.flush();
+            servletOutputStream.close();
+        } catch (IOException ioe) {
+            exceptionLogService.storeExceptionLog(new ExceptionLog(ioe));
+            return index();
+        }
+
+        return null;
+    }
 
     private String doDownload(HttpServletRequest request, HttpServletResponse response, String jarName) {
-
         String jarResource = JAR_DOWNLOAD_DIR + jarName;
 
         InputStream in = request.getServletContext().getResourceAsStream(jarResource);
@@ -139,6 +159,4 @@ public class ToolsDownloadController {
         }
         return null;
     }
-
-
 }
