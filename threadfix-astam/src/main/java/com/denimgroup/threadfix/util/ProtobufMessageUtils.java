@@ -6,6 +6,9 @@ import com.secdec.astam.common.data.models.Common;
 
 import javax.swing.text.MaskFormatter;
 import java.text.ParseException;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.Date;
 
 /**
@@ -17,7 +20,9 @@ public class ProtobufMessageUtils {
     }
 
     public static Timestamp createTimestamp(Date date) {
-        return Timestamp.newBuilder().setSeconds(date.getTime()).build();
+        Instant instant = date.toInstant();
+        return Timestamp.newBuilder().setSeconds(instant.getEpochSecond())
+                .setNanos(instant.getNano()).build();
     }
 
     public static Common.URL createUrl(String strUrl) {
