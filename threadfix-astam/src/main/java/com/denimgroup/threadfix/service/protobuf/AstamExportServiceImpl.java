@@ -2,8 +2,10 @@ package com.denimgroup.threadfix.service.protobuf;
 
 import com.denimgroup.threadfix.data.dao.ApplicationDao;
 import com.denimgroup.threadfix.data.entities.Application;
+import com.denimgroup.threadfix.mapper.AstamAttackSurfaceMapper;
 import com.denimgroup.threadfix.mapper.AstamFindingsMapper;
 import com.denimgroup.threadfix.service.AstamApplicationService;
+import com.denimgroup.threadfix.service.AstamAttackSurfaceService;
 import com.denimgroup.threadfix.service.AstamExportService;
 import com.denimgroup.threadfix.service.AstamFindingsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +33,15 @@ public class AstamExportServiceImpl implements AstamExportService {
     private final ApplicationDao applicationDao;
     private final AstamApplicationService astamApplicationService;
     private final AstamFindingsService astamFindingsService;
+    private final AstamAttackSurfaceService astamAttackSurfaceService;
 
     @Autowired
     public AstamExportServiceImpl(ApplicationDao applicationDao, AstamApplicationService astamApplicationService,
-                                  AstamFindingsService astamFindingsService) {
+                                  AstamFindingsService astamFindingsService, AstamAttackSurfaceService astamAttackSurfaceService) {
         this.applicationDao = applicationDao;
         this.astamApplicationService = astamApplicationService;
         this.astamFindingsService = astamFindingsService;
+        this.astamAttackSurfaceService = astamAttackSurfaceService;
     }
 
     public void writeAllToOutput(OutputStream outputStream) throws IOException {
@@ -52,7 +56,7 @@ public class AstamExportServiceImpl implements AstamExportService {
 
             writeApplicationToOutput(appId, path, zipOutputStream);
             writeFindingsToOutput(appId, path, zipOutputStream);
-            writeAttackSurfaceToOutput(app.getId(), path, zipOutputStream);
+            writeAttackSurfaceToOutput(appId, path, zipOutputStream);
         }
 
         zipOutputStream.close();
@@ -87,7 +91,9 @@ public class AstamExportServiceImpl implements AstamExportService {
 
     private void writeAttackSurfaceToOutput(int applicationId, String path, ZipOutputStream zipOutputStream)
             throws IOException {
+        AstamAttackSurfaceMapper astamMapper = new AstamAttackSurfaceMapper(applicationId);
+
         addZipFileEntry(path + PROTOBUF_ATTACK_SURFACE_FILENAME, zipOutputStream);
-        // astamAttackSurfaceService.writeAttackSurfaceToOutput(app.getId(), zipOutputStream);
+        astamAttackSurfaceService.writeAttackSurfaceToOutput(astamMapper, zipOutputStream);
     }
 }
