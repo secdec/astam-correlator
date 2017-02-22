@@ -359,12 +359,6 @@
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
         <sonar.jacoco.reportPath>${project.basedir}/../target/jacoco.exec</sonar.jacoco.reportPath>
 
-        <!-- Protobuf Paths -->
-        <protobuf.src.directory>${project.build.directory}/lib/protobuf-java</protobuf.src.directory>
-        <protobuf.output.directory>${project.build.directory}/generated-sources/protobuf</protobuf.output.directory>
-
-        <protobuf.input.directory></protobuf.input.directory>
-
         <protobuf.version>3.1.0</protobuf.version>
     </properties>
 
