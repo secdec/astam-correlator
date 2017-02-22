@@ -156,8 +156,8 @@
                                       tofile="target/classes/downloads/threadfix-release-2-burp.jar" />
                                 <copy file="${project.build.directory}/../../threadfix-scanner-plugin/zaproxy/target/threadfix-release-2.zap"
                                       tofile="target/classes/downloads/threadfix-release-2.zap" />
-                                <copy file="${project.build.directory}/../../threadfix-sonar-plugin/target/sonar-threadfix-plugin-${project.version}.jar"
-                                      tofile="target/classes/downloads/sonar-threadfix-plugin.jar" />
+                                <!--<copy file="${project.build.directory}/../../threadfix-sonar-plugin/target/sonar-threadfix-plugin-${project.version}.jar"
+                                      tofile="target/classes/downloads/sonar-threadfix-plugin.jar" />-->
                                 <copy file="${project.build.directory}/../../ssvl-converter/target/ssvl-converter-1.0-SNAPSHOT-jar-with-dependencies.jar"
                                       tofile="target/classes/downloads/ssvl-converter.jar" />
                             </tasks>
@@ -639,14 +639,14 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.denimgroup.threadfix</groupId>
-            <artifactId>threadfix-astam</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
             <groupId>org.tmatesoft.svnkit</groupId>
             <artifactId>svnkit</artifactId>
             <version>${svnkit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.denimgroup.threadfix</groupId>
+            <artifactId>threadfix-astam</artifactId>
+            <version>${project.version}</version>
         </dependency>
 
         <!-- the core, which includes Streaming API, shared low-level abstractions (but NOT data-binding) -->
@@ -807,6 +807,7 @@
                 </plugins>
             </build>
         </profile>
+
         <!-- Enterprise profile turns on enterprise dependency -->
         <profile>
             <id>enterprise</id>

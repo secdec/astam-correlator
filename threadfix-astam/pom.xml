@@ -15,6 +15,7 @@
     </description>
 
     <properties>
+        <protobuf.version>3.1.0</protobuf.version>
         <astam-protobuf.version>1.0-SNAPSHOT</astam-protobuf.version>
     </properties>
 
