@@ -14,9 +14,10 @@
         application information, findings, and attack surface data in the Google Protobuf format.
     </description>
 
-    <prerequisites>
-        <maven>3</maven>
-    </prerequisites>
+    <properties>
+        <protobuf.version>3.1.0</protobuf.version>
+        <astam-protobuf.version>1.0-SNAPSHOT</astam-protobuf.version>
+    </properties>
 
     <build>
         <testSourceDirectory>src/test/java</testSourceDirectory>
@@ -30,120 +31,7 @@
                     <target>1.8</target>
                 </configuration>
             </plugin>
-            <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <version>2.9</version>
-            <executions>
-                <!-- Unpack proto source files from protobuf jar -->
-                <execution>
-                    <id>unpack-protobuf</id>
-                    <phase>generate-sources</phase>
-                    <goals>
-                        <goal>unpack</goal>
-                    </goals>
-                    <configuration>
-                        <artifactItems>
-                            <artifactItem>
-                                <groupId>com.google.protobuf</groupId>
-                                <artifactId>protobuf-java</artifactId>
-                                <version>${protobuf.version}</version>
-                                <type>jar</type>
-                                <outputDirectory>${protobuf.src.directory}</outputDirectory>
-                            </artifactItem>
-                        </artifactItems>
-                        <includes>**/*.proto</includes>
-                        <outputDirectory>${protobuf.src.directory}</outputDirectory>
-                    </configuration>
-                </execution>
-                <!-- copy protoc binary into build directory -->
-                <execution>
-                    <id>copy-protoc</id>
-                    <phase>generate-sources</phase>
-                    <goals>
-                        <goal>copy</goal>
-                    </goals>
-                    <configuration>
-                        <artifactItems>
-                            <artifactItem>
-                                <groupId>com.google.protobuf</groupId>
-                                <artifactId>protoc</artifactId>
-                                <version>${protobuf.version}</version>
-                                <classifier>${os.detected.classifier}</classifier>
-                                <type>exe</type>
-                                <overWrite>true</overWrite>
-                                <outputDirectory>${project.build.directory}</outputDirectory>
-                            </artifactItem>
-                        </artifactItems>
-                    </configuration>
-                </execution>
-            </executions>
-            </plugin>
-            <!-- add generated proto buffer classes into the package -->
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>add-classes</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${protobuf.output.directory}</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <!-- compile proto buffer files using copied protoc binary -->
-                    <execution>
-                        <id>exec-protoc</id>
-                        <phase>generate-sources</phase>
-                        <configuration>
-                            <tasks>
-                                <property name="protoc.filename" value="protoc-${protobuf.version}-${os.detected.classifier}.exe"/>
-                                <property name="protoc.filepath" value="${project.build.directory}/${protoc.filename}"/>
-                                <chmod file="${protoc.filepath}" perm="ugo+rx"/>
-                                <mkdir dir="${protobuf.output.directory}" />
-                                <path id="protobuf.input.filepaths.path">
-                                    <fileset dir="${protobuf.input.directory}">
-                                        <include name="**/*.proto"/>
-                                    </fileset>
-                                </path>
-                                <pathconvert pathsep=" " property="protobuf.input.filepaths" refid="protobuf.input.filepaths.path"/>
-                                <exec executable="${protoc.filepath}" failonerror="true">
-                                    <arg value="--proto_path"/>
-                                    <arg value="${protobuf.input.directory}"/>
-                                    <arg value="--proto_path"/>
-                                    <arg value="${protobuf.src.directory}"/>
-                                    <arg value="--java_out"/>
-                                    <arg value="${protobuf.output.directory}"/>
-                                    <arg line="${protobuf.input.filepaths}"/>
-                                </exec>
-                            </tasks>
-                        </configuration>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
-        <extensions>
-            <!-- provides os.detected.classifier (i.e. linux-x86_64, osx-x86_64) property -->
-            <extension>
-                <groupId>kr.motd.maven</groupId>
-                <artifactId>os-maven-plugin</artifactId>
-                <version>${os-maven-plugin.version}</version>
-            </extension>
-        </extensions>
     </build>
 
     <profiles>
@@ -166,6 +54,22 @@
             </dependencies>
         </profile>
     </profiles>
+
+    <repositories>
+        <repository>
+            <id>lib</id>
+            <name>lib</name>
+            <releases>
+                <enabled>true</enabled>
+                <checksumPolicy>ignore</checksumPolicy>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+                <checksumPolicy>ignore</checksumPolicy>
+            </snapshots>
+            <url>file://${project.basedir}/lib</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -193,8 +97,11 @@
             <artifactId>spring-context</artifactId>
             <version>${spring.version}</version>
         </dependency>
-
-        <!-- Protobuf build dependencies -->
+        <dependency>
+            <groupId>com.denimgroup</groupId>
+            <artifactId>astam-protobuf</artifactId>
+            <version>${astam-protobuf.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
