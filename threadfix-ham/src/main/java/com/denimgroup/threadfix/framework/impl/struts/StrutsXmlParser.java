@@ -48,7 +48,7 @@ public class StrutsXmlParser {
 
      Collection<File> configFiles;
 
-     public StrutsXmlParser(){}
+	public StrutsXmlParser(){}
 
 	public StrutsXmlParser(Collection<File> files) {
 	    this();
@@ -71,7 +71,6 @@ public class StrutsXmlParser {
 		}
 		return handler.strutsPackages;
 	}
-
 
 
 	private class XmlParser extends DefaultHandler {
@@ -127,7 +126,7 @@ public class StrutsXmlParser {
 			if(qName.equalsIgnoreCase("include")){
 			    bInclude = true;
 			    String path = attributes.getValue("file");
-			    log.info("Path = " + path );
+			    log.info("Found path to another config file: " + path );
 			    strutsPackages.addAll(parse(path));
             }
 
@@ -136,7 +135,6 @@ public class StrutsXmlParser {
 		public final void endElement(String uri, String localName,
 		                       String qName) throws SAXException {
 
-//			System.err.println("End Element :" + qName);
 			if (qName.equalsIgnoreCase("package")) {
 				bPackage = false;
 				strutsPackages.add( strutsPackage );
@@ -188,10 +186,6 @@ public class StrutsXmlParser {
 				}
 			}
 
-			if(bInclude){
-			    String path = new String(ch,start, length).trim();
-			    log.info("Found new config file:" + path);
-            }
 		}
 
 		private File getConfigFile(String fName, Collection<File> files){
@@ -205,16 +199,7 @@ public class StrutsXmlParser {
         }
 
         private  String extractFileName(String filePath){
-            int dotPos = filePath.lastIndexOf('.');
-            int slashPos = filePath.lastIndexOf('\\');
-            if (slashPos == -1)
-                slashPos = filePath.lastIndexOf('/');
-            if (dotPos > slashPos) {
-                return filePath.substring(slashPos > 0 ? slashPos + 1 : 0,
-                        filePath.length());
-            }
-
-            return filePath.substring(slashPos > 0 ? slashPos + 1 : 0, filePath.length());
+            return filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length());
         }
 
         private List<StrutsPackage> parse(String path){
