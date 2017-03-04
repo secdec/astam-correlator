@@ -33,9 +33,10 @@ import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-/**
+/*
  * Created by sgerick on 11/12/2014.
  */
+
 public class StrutsXmlParserTests {
 
 	@Test
@@ -130,9 +131,9 @@ public class StrutsXmlParserTests {
 				{"mediaFileImageChooser!*", "org.apache.roller.weblogger.ui.struts2.editor.MediaFileImageChooser", "{1}"}
 		};
 
-
+		StrutsXmlParser strutsXmlParser = new StrutsXmlParser();
 		List<StrutsPackage> strutsPackages
-				= StrutsXmlParser.parse( ResourceManager.getStrutsFile("struts.xml") );
+				= strutsXmlParser.parse( ResourceManager.getStrutsFile("struts.xml") );
 
 		assert strutsPackages != null;
 

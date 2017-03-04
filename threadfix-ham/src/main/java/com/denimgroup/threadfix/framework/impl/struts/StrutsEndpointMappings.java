@@ -91,7 +91,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             strutsActionExtension = "." + strutsActionExtension;
         }
 
-        strutsPackages = StrutsXmlParser.parse(strutsConfigFile);
+        StrutsXmlParser strutsXmlParser = new StrutsXmlParser(configFiles);
+        strutsPackages = strutsXmlParser.parse(strutsConfigFile);
 
         generateMaps();
 
@@ -101,11 +102,17 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         endpoints = list();
         for (StrutsPackage strutsPackage : strutsPackages) {
             String namespace = strutsPackage.getNamespace();
+
+            if(strutsPackage.getActions().isEmpty())
+            continue;
+
             for (StrutsAction strutsAction : strutsPackage.getActions()) {
                 StringBuilder sbUrl = new StringBuilder(namespace);
                 String actionName = strutsAction.getName();
 
+                if(!namespace.contentEquals("/"))
                 sbUrl.append("/");
+
                 sbUrl.append( actionName );
                 sbUrl.append( strutsActionExtension );
 
