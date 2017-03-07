@@ -124,7 +124,9 @@ class FindingProcessorFactory extends SpringBeanAutowiringSupport {
         FindingProcessorFactory factory = new FindingProcessorFactory();
 
         RepositoryService repositoryService = null;
-		if (factory.repositoryServiceFactory != null) {
+		if (factory.repositoryServiceFactory != null &&
+				application.getRepositoryUrl() != null &&
+				!application.getRepositoryUrl().trim().isEmpty()) {
 			repositoryService = factory.repositoryServiceFactory.getRepositoryService(application);
 		}
 
