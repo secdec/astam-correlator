@@ -50,8 +50,8 @@ public class AstamExportServiceImpl implements AstamExportService {
         ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
         for (int i=0; i<applicationList.size(); i++) {
             Application app = applicationList.get(i);
-            String path = app.getName() + "/";
             int appId = app.getId();
+            String path = app.getName() + '-' + appId + "/";
             zipOutputStream.putNextEntry(new ZipEntry(path));
 
             writeApplicationToOutput(appId, path, zipOutputStream);
