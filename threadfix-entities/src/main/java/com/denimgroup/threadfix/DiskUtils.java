@@ -54,6 +54,11 @@ public class DiskUtils {
 
         LOG.debug("getScratchFile << " + path);
 
+        File pathFile = new File(path);
+        if (pathFile.isAbsolute()) {
+            return pathFile;
+        }
+
         final File returnFile;
         String root = getRootPath();
 
