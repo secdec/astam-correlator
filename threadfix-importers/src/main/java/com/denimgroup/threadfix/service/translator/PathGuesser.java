@@ -51,6 +51,7 @@ public class PathGuesser {
 
         for (Finding finding : scan.getFindings()) {
             if (finding != null) {
+                finding.setScan(scan);
                 processor.process(finding);
             }
         }

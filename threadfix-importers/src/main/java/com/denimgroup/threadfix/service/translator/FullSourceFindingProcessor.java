@@ -23,8 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.service.translator;
 
-import com.denimgroup.threadfix.data.entities.Finding;
-import com.denimgroup.threadfix.data.entities.Scan;
+import com.denimgroup.threadfix.data.entities.*;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.ProjectConfig;
 import com.denimgroup.threadfix.framework.engine.ThreadFixInterface;
@@ -35,23 +34,35 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.engine.parameter.ParameterParser;
 import com.denimgroup.threadfix.framework.engine.parameter.ParameterParserFactory;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import com.denimgroup.threadfix.service.ApplicationVersionService;
+import com.denimgroup.threadfix.service.WebAttackSurfaceService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import static com.denimgroup.threadfix.data.entities.AuthenticationRequired.UNKNOWN;
 
+@Service
 class FullSourceFindingProcessor implements FindingProcessor {
 
     private static final SanitizedLogger LOG = new SanitizedLogger(FullSourceFindingProcessor.class);
 
     @Nullable
     private final EndpointDatabase database;
+
     @Nullable
     private final ParameterParser parameterParser;
 
     @Nonnull
     private final FindingProcessor noSourceProcessor;
+
+    @Autowired
+    private WebAttackSurfaceService webAttackSurfaceService;
+
+    @Autowired
+    private ApplicationVersionService applicationVersionService;
 
     private int numberMissed = 0, total = 0, foundParameter;
     private long startTime = 0L;
@@ -97,7 +108,9 @@ class FullSourceFindingProcessor implements FindingProcessor {
         if (endpoint != null) {
             finding.setCalculatedFilePath(endpoint.getFilePath());
             finding.setCalculatedUrlPath(endpoint.getUrlPath());
+
             finding.setFoundHAMEndpoint(true);
+            createWebAttackSurface(finding, endpoint);
 
             if (parameter != null) {
                 finding.setEntryPointLineNumber(endpoint.getLineNumberForParameter(parameter));
@@ -117,6 +130,27 @@ class FullSourceFindingProcessor implements FindingProcessor {
             // let's try without the parameter in order to degrade gracefully
             noSourceProcessor.process(finding);
         }
+    }
+
+    private void createWebAttackSurface(Finding finding, Endpoint endpoint) {
+        WebAttackSurface webAttackSurface = new WebAttackSurface();
+
+        SurfaceLocation surfaceLocation = new SurfaceLocation();
+        surfaceLocation.setUrl(finding.getSurfaceLocation().getUrl());
+        surfaceLocation.setHttpMethod(finding.getSurfaceLocation().getHttpMethod());
+        surfaceLocation.setParameter(finding.getSurfaceLocation().getParameter());
+        webAttackSurface.setSurfaceLocation(surfaceLocation);
+
+        DataFlowElement dataFlowElement = new DataFlowElement();
+        dataFlowElement.setLineNumber(endpoint.getStartingLineNumber());
+        dataFlowElement.setSourceFileName(endpoint.getFilePath());
+        dataFlowElement.setFinding(finding);
+        webAttackSurface.setDataFlowElement(dataFlowElement);
+
+        Application app = finding.getScan().getApplication();
+        webAttackSurface.setApplicationVersion(applicationVersionService.loadAppVersionByName(app.getName(), app.getId()));
+
+        webAttackSurfaceService.storeWebAttackSurface(webAttackSurface);
     }
 
     @Override
