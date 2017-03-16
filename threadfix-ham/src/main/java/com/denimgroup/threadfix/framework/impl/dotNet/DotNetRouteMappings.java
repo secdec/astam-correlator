@@ -33,6 +33,10 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
  */
 public class DotNetRouteMappings {
 
+    List<MapRoute> routes = list();
+
+    public DotNetRouteMappings() {}
+
     static class ConcreteRoute {
         ConcreteRoute(String controller, String action, String parameter) {
             assert action != null;
@@ -70,9 +74,7 @@ public class DotNetRouteMappings {
         return parameters.contains(routes.get(0).defaultRoute.parameter);
     }
 
-    List<MapRoute> routes = list();
 
-    public DotNetRouteMappings() {}
 
     public void addRoute(String name, String url, String controller, String action, String parameter) {
         ConcreteRoute defaultRoute = controller != null && action != null ?
