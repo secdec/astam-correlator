@@ -14,7 +14,7 @@ public class WebAttackSurface extends AstamAuditableEntity {
     private DataFlowElement dataFlowElement;
     private ApplicationVersion applicationVersion;
 
-    @OneToOne
+    @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "surfaceLocationId")
     public SurfaceLocation getSurfaceLocation() {
         return surfaceLocation;
@@ -24,7 +24,7 @@ public class WebAttackSurface extends AstamAuditableEntity {
         this.surfaceLocation = surfaceLocation;
     }
 
-    @OneToOne
+    @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "dataFlowElementId")
     public DataFlowElement getDataFlowElement() {
         return dataFlowElement;
@@ -34,7 +34,7 @@ public class WebAttackSurface extends AstamAuditableEntity {
         this.dataFlowElement = dataFlowElement;
     }
 
-    @ManyToOne
+    @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "applicationVersionId")
     public ApplicationVersion getApplicationVersion() {
         return applicationVersion;

@@ -30,6 +30,7 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.service.ScanResultFilterService;
 import com.denimgroup.threadfix.service.VulnerabilityService;
 import com.denimgroup.threadfix.service.VulnerabilityStatusService;
+import com.denimgroup.threadfix.service.WebAttackSurfaceService;
 import com.denimgroup.threadfix.service.translator.PathGuesser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -59,6 +60,8 @@ public class ScanMergerImpl implements ScanMerger {
     private ScanResultFilterService scanResultFilterService;
     @Autowired
     private DefaultConfigurationDao defaultConfigurationDao;
+    @Autowired
+    private WebAttackSurfaceService webAttackSurfaceService;
 
     @Override
     public void merge(Scan scan, ApplicationChannel applicationChannel) {
@@ -92,6 +95,7 @@ public class ScanMergerImpl implements ScanMerger {
         scan.setApplication(applicationChannel.getApplication());
 
         PathGuesser.generateGuesses(application, scan);
+        webAttackSurfaceService.storeWebAttackSurface(application, scan);
         DefaultConfiguration defaultConfiguration = defaultConfigurationDao.loadCurrentConfiguration();
         ChannelMerger.channelMerge(vulnerabilityService, vulnerabilityStatusService, scan, applicationChannel, defaultConfiguration);
         applicationMerger.applicationMerge(scan, application, null);
