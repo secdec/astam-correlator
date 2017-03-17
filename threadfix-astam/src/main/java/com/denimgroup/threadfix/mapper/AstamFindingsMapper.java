@@ -156,13 +156,22 @@ public class AstamFindingsMapper {
         List<Entities.TraceNode> traceNodeList = new ArrayList<Entities.TraceNode>();
         for (int i=0; i<dataFlowElements.size(); i++) {
             DataFlowElement dataFlowElement = dataFlowElements.get(i);
-            Entities.TraceNode traceNode = Entities.TraceNode.newBuilder()
-                    .setColumn(dataFlowElement.getColumnNumber())
-                    .setLine(dataFlowElement.getLineNumber())
-                    .setFile(dataFlowElement.getSourceFileName())
-                    .setLineOfCode(dataFlowElement.getLineText()).build();
 
-            traceNodeList.add(traceNode);
+            Entities.TraceNode.Builder traceNodeBuilder = Entities.TraceNode.newBuilder()
+                    .setColumn(dataFlowElement.getColumnNumber())
+                    .setLine(dataFlowElement.getLineNumber());
+
+            String sourceFileName = dataFlowElement.getSourceFileName();
+            if (sourceFileName != null) {
+                traceNodeBuilder.setFile(sourceFileName);
+            }
+
+            String lineText = dataFlowElement.getLineText();
+            if (lineText != null) {
+                traceNodeBuilder.setLineOfCode(lineText);
+            }
+
+            traceNodeList.add(traceNodeBuilder.build());
         }
 
         return traceNodeList;
