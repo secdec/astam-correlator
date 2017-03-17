@@ -84,14 +84,21 @@ public class AstamAttackSurfaceMapper {
     private Entities.TraceNode getTraceNode(Finding finding) {
         DataFlowElement first = finding.getDataFlowElements().get(0);
 
-        Entities.TraceNode traceNode = Entities.TraceNode.newBuilder()
-                .setFile(first.getSourceFileName())
+        Entities.TraceNode.Builder traceNodeBuilder = Entities.TraceNode.newBuilder()
                 .setLine(first.getLineNumber())
-                .setColumn(first.getColumnNumber())
-                .setLineOfCode(first.getLineText())
-                .build();
+                .setColumn(first.getColumnNumber());
 
-        return traceNode;
+        String sourceFileName = first.getSourceFileName();
+        if (sourceFileName != null) {
+            traceNodeBuilder.setFile(sourceFileName);
+        }
+
+        String lineText = first.getLineText();
+        if (lineText != null) {
+            traceNodeBuilder.setLineOfCode(lineText);
+        }
+
+        return traceNodeBuilder.build();
     }
 
     private Attacksurface.RawDiscoveredAttackSurface createRawDiscoveredAttackSurface() {
