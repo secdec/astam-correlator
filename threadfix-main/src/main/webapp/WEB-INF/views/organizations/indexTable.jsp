@@ -109,7 +109,11 @@
                         Report Failed
                     </div>
                 </div>
-                <div ng-hide="team.applications">
+             <div ng-show="team.loading" style="float:right;" class="modal-loading">
+                    <div><span class="spinner dark"></span>Loading...</div>
+                </div>
+
+                <div ng-hide="team.applications || !team.loading">
                     No applications were found for this team.
                 </div>
 
