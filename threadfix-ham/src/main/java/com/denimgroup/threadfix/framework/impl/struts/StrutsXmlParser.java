@@ -46,9 +46,16 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 public class StrutsXmlParser {
 	private static final SanitizedLogger log = new SanitizedLogger("FrameworkCalculator");
 
-	private StrutsXmlParser() {}
+     Collection<File> configFiles;
 
-	public static List<StrutsPackage> parse (File f) {
+	public StrutsXmlParser(){}
+
+	public StrutsXmlParser(Collection<File> files) {
+	    this();
+	    this.configFiles = files;
+    }
+
+	public  List<StrutsPackage> parse(File f) {
 		XmlParser handler = new StrutsXmlParser.XmlParser();
 		SAXParserFactory factory = SAXParserFactory.newInstance();
 		SAXParser saxParser = null;
@@ -65,12 +72,14 @@ public class StrutsXmlParser {
 		return handler.strutsPackages;
 	}
 
-	private static class XmlParser extends DefaultHandler {
+
+	private class XmlParser extends DefaultHandler {
 		List<StrutsPackage> strutsPackages = list();
 		boolean bPackage = false;
 		boolean bAction = false;
 		boolean bResult = false;
 		boolean bParam = false;
+		boolean bInclude = false;
 		StrutsPackage strutsPackage;
 		StrutsAction strutsAction;
 		StrutsResult strutsResult;
@@ -80,7 +89,6 @@ public class StrutsXmlParser {
 		public final void startElement(String uri, String localName, String qName,
 		                         Attributes attributes) throws SAXException {
 
-//			System.err.println("Start Element :" + qName);
 
 			if (qName.equalsIgnoreCase("package")) {
 				bPackage = true;
@@ -115,12 +123,18 @@ public class StrutsXmlParser {
 
 			}
 
+			if(qName.equalsIgnoreCase("include")){
+			    bInclude = true;
+			    String path = attributes.getValue("file");
+			    log.info("Found path to another config file: " + path );
+			    strutsPackages.addAll(parse(path));
+            }
+
 		}
 
 		public final void endElement(String uri, String localName,
 		                       String qName) throws SAXException {
 
-//			System.err.println("End Element :" + qName);
 			if (qName.equalsIgnoreCase("package")) {
 				bPackage = false;
 				strutsPackages.add( strutsPackage );
@@ -146,6 +160,10 @@ public class StrutsXmlParser {
 					strutsAction.addParam(paramName, paramValue);
 			}
 
+			if(qName.equalsIgnoreCase("include")){
+			    bInclude = false;
+            }
+
 		}
 
 		public final void characters(char ch[], int start, int length) throws SAXException {
@@ -167,7 +185,29 @@ public class StrutsXmlParser {
 						}
 				}
 			}
+
 		}
+
+		private File getConfigFile(String fName, Collection<File> files){
+            for(Iterator iterator = files.iterator(); iterator.hasNext();){
+		        File file = (File) iterator.next();
+                if(file.getName().equalsIgnoreCase(fName)){
+                    return file;
+                }
+            }
+            return null;
+        }
+
+        private  String extractFileName(String filePath){
+            return filePath.substring(filePath.lastIndexOf("/") + 1, filePath.length());
+        }
+
+        private List<StrutsPackage> parse(String path){
+            String fileName = extractFileName(path);
+            File configFile = getConfigFile(fileName, configFiles);
+            StrutsXmlParser strutsXmlParser = new StrutsXmlParser();
+            return strutsXmlParser.parse(configFile);
+        }
 
 	}
 }
