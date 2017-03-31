@@ -103,15 +103,17 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         for (StrutsPackage strutsPackage : strutsPackages) {
             String namespace = strutsPackage.getNamespace();
 
-            if(strutsPackage.getActions().isEmpty())
-            continue;
+            if(strutsPackage.getActions().isEmpty()) {
+                continue;
+            }
 
             for (StrutsAction strutsAction : strutsPackage.getActions()) {
                 StringBuilder sbUrl = new StringBuilder(namespace);
                 String actionName = strutsAction.getName();
 
-                if(!namespace.contentEquals("/"))
-                sbUrl.append("/");
+                if(!namespace.contentEquals("/")) {
+                    sbUrl.append("/");
+                }
 
                 sbUrl.append( actionName );
                 sbUrl.append( strutsActionExtension );
