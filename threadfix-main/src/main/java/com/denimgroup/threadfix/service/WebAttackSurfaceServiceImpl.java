@@ -78,7 +78,7 @@ public class WebAttackSurfaceServiceImpl implements WebAttackSurfaceService{
 
         for (Finding finding : scan.getFindings()) {
             Endpoint endpoint = database.findBestMatch(ThreadFixInterface.toEndpointQuery(finding));
-            if (endpoint == null) {
+            if (endpoint == null || webAttackSurfaceDao.getFilePaths().contains(endpoint.getFilePath())) {
                 continue;
             }
 

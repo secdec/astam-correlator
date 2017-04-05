@@ -7,6 +7,7 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 /**
  * Created by csotomayor on 3/3/2017.
  */
@@ -21,5 +22,13 @@ public class HibernateWebAttackSurfaceDao extends AbstractObjectDao<WebAttackSur
     @Override
     protected Class<WebAttackSurface> getClassReference() {
         return WebAttackSurface.class;
+    }
+
+    @Override
+    public List<String> getFilePaths() {
+        return sessionFactory.getCurrentSession()
+                .createQuery("select dfe.sourceFileName from WebAttackSurface was " +
+                        "join DataFlowElement dfe on was.dataFlowElement.id = dfe.id")
+                .list();
     }
 }
