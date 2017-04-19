@@ -108,7 +108,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
     }
 
     enum IdentificationState {
-        START, PUBLIC, CLASS, ROUTE_CONFIG, COLON,
+        START, PUBLIC, CLASS, ROUTE_CONFIG, STARTUP, COLON,
     }
     private void processIdentification(String stringValue) {
         log(currentIdentificationState);
@@ -126,11 +126,17 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                         IdentificationState.START;
                 break;
             case CLASS:
-                currentIdentificationState = ROUTE_CONFIG.equals(stringValue) ?
-                        IdentificationState.ROUTE_CONFIG :
-                        IdentificationState.START;
+                if(ROUTE_CONFIG.equals(stringValue))
+                    currentIdentificationState = IdentificationState.ROUTE_CONFIG;
+                else if(STARTUP.equals(stringValue))
+                    currentIdentificationState = IdentificationState.STARTUP;
+                else
+                    currentIdentificationState = IdentificationState.CLASS;
                 break;
             case ROUTE_CONFIG:
+                currentPhase = Phase.IN_CLASS;
+                break;
+            case STARTUP:
                 currentPhase = Phase.IN_CLASS;
                 break;
             case COLON:
@@ -146,7 +152,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
     int currentParenCount = -1;
     String variableName = null; // this is the name of the RouteCollection variable
     enum ClassBodyState {
-        START, METHOD_SIGNATURE, ROUTE_COLLECTION, METHOD_BODY, MAP_ROUTE
+        START, METHOD_SIGNATURE, ROUTE_COLLECTION,IAPPLICATION_BUILDER, METHOD_BODY, MAP_ROUTE
     }
 
     private void processClass(int type, String stringValue) {
@@ -157,11 +163,16 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 if (REGISTER_ROUTES.equals(stringValue)) {
                     currentClassBodyState = ClassBodyState.METHOD_SIGNATURE;
                     currentParenCount = parenCount;
+                } else if(CONFIGURE.equals(stringValue)){
+                    currentClassBodyState = ClassBodyState.METHOD_SIGNATURE;
+                    currentParenCount = parenCount;
                 }
                 break;
             case METHOD_SIGNATURE:
                 if (ROUTE_COLLECTION.equals(stringValue)) {
                     currentClassBodyState = ClassBodyState.ROUTE_COLLECTION;
+                } else if(IAPPLICATION_BUILDER.equals(stringValue)){
+                    currentClassBodyState = ClassBodyState.IAPPLICATION_BUILDER;
                 }
 
                 if (type == ')' && currentParenCount == parenCount) {
@@ -176,13 +187,18 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 variableName = stringValue;
                 currentClassBodyState = ClassBodyState.METHOD_SIGNATURE;
                 break;
+            case IAPPLICATION_BUILDER:
+                variableName = stringValue;
+                currentClassBodyState = ClassBodyState.METHOD_SIGNATURE;
+                break;
             case METHOD_BODY:
                 assert variableName != null;
 
                 if (stringValue != null && stringValue.equals(variableName + ".MapRoute")) {
                     currentClassBodyState = ClassBodyState.MAP_ROUTE;
+                } else if (stringValue != null && stringValue.equals("routes.MapRoute")){
+                    currentClassBodyState = ClassBodyState.MAP_ROUTE;
                 }
-
                 break;
             case MAP_ROUTE:
 
@@ -195,6 +211,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 currentPhase = Phase.IN_METHOD;
 
                 break;
+
         }
 
     }
@@ -209,7 +226,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
     enum MapRouteState { // these states are to be used with the IN_METHOD Phase
         START, URL, URL_COLON, NAME, NAME_COLON, DEFAULTS,
         DEFAULTS_COLON, DEFAULTS_NEW, DEFAULTS_OBJECT, DEFAULTS_CONTROLLER, DEFAULTS_CONTROLLER_EQUALS,
-        DEFAULTS_ACTION, DEFAULTS_ACTION_EQUALS, DEFAULTS_PARAM, DEFAULTS_PARAM_EQUALS
+        DEFAULTS_ACTION, DEFAULTS_ACTION_EQUALS, DEFAULTS_PARAM, DEFAULTS_PARAM_EQUALS, TEMPLATE, TEMPLATE_COLON
     }
 
     int commaCount = 0;
@@ -244,8 +261,13 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                     }
                 } else if (NEW.equals(stringValue) && commaCount == 2) {
                     currentMapRouteState = MapRouteState.DEFAULTS_NEW;
+                } else if (TEMPLATE.equals(stringValue)) {
+                    currentMapRouteState = MapRouteState.TEMPLATE;
+                } else if ((TEMPLATE + ":").equals(stringValue)){
+                    currentMapRouteState = MapRouteState.TEMPLATE_COLON;
                 }
                 break;
+
             case URL:
                 if (type == ':') {
                     currentMapRouteState = MapRouteState.URL_COLON;
@@ -318,6 +340,57 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 parameterValue = stringValue;
                 currentMapRouteState = MapRouteState.DEFAULTS_OBJECT;
                 break;
+            case TEMPLATE:
+                currentMapRouteState = MapRouteState.TEMPLATE_COLON;
+                break;
+            case TEMPLATE_COLON:
+                if(stringValue == null){
+                    currentMapRouteState = MapRouteState.TEMPLATE_COLON;
+                    break;
+                }
+
+                String[] templateSections = stringValue.split("/");
+                String openBracket = "{";
+                String closeBracket ="}";
+                String equals = "=";
+                StringBuilder urlPattern = new StringBuilder("");
+
+                for(int i = 0; i < templateSections.length; i++){
+                    String section, patternSection;
+                    patternSection = section = templateSections[i];
+                    String param, value;
+
+                    if( !section.contains(openBracket) && !section.contains(closeBracket)){
+                        urlPattern.append(section + "/");
+                        continue;
+                    }
+
+                    if(section.contains(equals)){
+                        param = section.substring(section.indexOf(openBracket) + 1, section.indexOf(equals));
+                        value = section.substring(section.indexOf(equals) + 1, section.indexOf(closeBracket));
+                    } else {
+                        param = section.substring(section.indexOf(openBracket) +1, section.indexOf(closeBracket));
+                        value = "";
+                    }
+
+                    if("controller".equalsIgnoreCase(param)){
+                        currentDefaultController = value;
+                        patternSection = section.replace(section.substring(section.lastIndexOf(param) + param.length(), section.indexOf("}")), "");
+                    } else if ("action".equalsIgnoreCase(param)){
+                        patternSection = section.replace(section.substring(section.lastIndexOf(param) + param.length() , section.indexOf("}")), "");
+                        currentDefaultAction = value;
+                    } else {
+                        parameterName = param.replaceAll("[^A-Za-z0-9]+", "");
+                        parameterValue = value;
+                        patternSection = section.replace(section.substring(section.lastIndexOf(parameterName) + parameterName.length(), section.indexOf("}")), "");
+                    }
+
+                    urlPattern.append(patternSection + "/");
+                }
+                urlPattern = urlPattern.deleteCharAt(urlPattern.length() - 1);
+                currentUrl = urlPattern.toString();
+                currentMapRouteState = MapRouteState.START;
+                break;
 
         }
 
@@ -331,4 +404,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
 
     }
 
-}
+
+    }
+
+

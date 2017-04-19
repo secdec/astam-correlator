@@ -70,7 +70,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     }
 
     enum State {
-        START, PUBLIC, CLASS, TYPE_SIGNATURE, BODY, PUBLIC_IN_BODY, ACTION_RESULT, IN_ACTION_SIGNATURE, AFTER_BIND_INCLUDE, DEFAULT_VALUE, IN_ACTION_BODY
+        START, PUBLIC, CLASS, TYPE_SIGNATURE, BODY, PUBLIC_IN_BODY, ACTION_RESULT, IACTION_RESULT, IN_ACTION_SIGNATURE, AFTER_BIND_INCLUDE, DEFAULT_VALUE, IN_ACTION_BODY
     }
 
     enum AttributeState {
@@ -150,6 +150,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 break;
             case PUBLIC_IN_BODY:
                 if (ACTION_RESULT.equals(stringValue) ||
+                        IACTION_RESULT.equals(stringValue) ||
                         HTTP_MESSAGE_RESPONSE.equals(stringValue) ||
                         VIEW_RESULT.equals(stringValue)) {
                     currentState = State.ACTION_RESULT;
