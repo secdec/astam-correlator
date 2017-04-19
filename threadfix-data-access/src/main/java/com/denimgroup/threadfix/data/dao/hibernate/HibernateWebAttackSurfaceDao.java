@@ -3,7 +3,9 @@ package com.denimgroup.threadfix.data.dao.hibernate;
 import com.denimgroup.threadfix.data.dao.AbstractObjectDao;
 import com.denimgroup.threadfix.data.dao.WebAttackSurfaceDao;
 import com.denimgroup.threadfix.data.entities.WebAttackSurface;
+import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -30,5 +32,12 @@ public class HibernateWebAttackSurfaceDao extends AbstractObjectDao<WebAttackSur
                 .createQuery("select dfe.sourceFileName from WebAttackSurface was " +
                         "join DataFlowElement dfe on was.dataFlowElement.id = dfe.id")
                 .list();
+    }
+
+    @Override
+    public List<WebAttackSurface> retrieveWebAttackSurfaceByAppId(int appId) {
+        Criteria criteria = sessionFactory.getCurrentSession().createCriteria(WebAttackSurface.class)
+                .add(Restrictions.eq("application.id", appId));
+        return criteria.list();
     }
 }

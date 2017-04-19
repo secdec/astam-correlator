@@ -12,7 +12,7 @@ import javax.persistence.*;
 public class WebAttackSurface extends AstamAuditableEntity {
     private SurfaceLocation surfaceLocation;
     private DataFlowElement dataFlowElement;
-    private ApplicationVersion applicationVersion;
+    private Application application;
 
     @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "surfaceLocationId")
@@ -35,12 +35,12 @@ public class WebAttackSurface extends AstamAuditableEntity {
     }
 
     @OneToOne(cascade = {CascadeType.ALL})
-    @JoinColumn(name = "applicationVersionId")
-    public ApplicationVersion getApplicationVersion() {
-        return applicationVersion;
+    @JoinColumn(name = "applicationId")
+    public Application getApplication() {
+        return application;
     }
 
-    public void setApplicationVersion(ApplicationVersion applicationVersion) {
-        this.applicationVersion = applicationVersion;
+    public void setApplication(Application application) {
+        this.application = application;
     }
 }

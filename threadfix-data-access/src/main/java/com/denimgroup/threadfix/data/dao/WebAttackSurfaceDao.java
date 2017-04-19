@@ -9,4 +9,5 @@ import java.util.List;
  */
 public interface WebAttackSurfaceDao extends GenericObjectDao<WebAttackSurface> {
     List<String> getFilePaths();
+    List<WebAttackSurface> retrieveWebAttackSurfaceByAppId(int appId);
 }

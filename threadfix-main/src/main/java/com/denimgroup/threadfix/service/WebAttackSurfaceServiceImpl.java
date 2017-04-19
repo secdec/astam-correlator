@@ -49,7 +49,7 @@ public class WebAttackSurfaceServiceImpl implements WebAttackSurfaceService{
         webAttackSurface.setDataFlowElement(dataFlowElement);
 
         Application app = finding.getScan().getApplication();
-        webAttackSurface.setApplicationVersion(applicationVersionService.loadAppVersionByName(app.getName(), app.getId()));
+        webAttackSurface.setApplication(app);
 
         return webAttackSurface;
     }

@@ -16,8 +16,8 @@ public class AstamAttackSurfaceMapper {
 
     public AstamAttackSurfaceMapper(int applicationId) {
         this.applicationId = applicationId;
-        this.webEntryPoints = new ArrayList<Attacksurface.EntryPointWeb>();
-        this.mobileEntryPoints = new ArrayList<Attacksurface.EntryPointMobile>();
+        this.webEntryPoints = new ArrayList<>();
+        this.mobileEntryPoints = new ArrayList<>();
     }
 
     // TODO mobileEntryPoints when proto file is updated
@@ -26,25 +26,23 @@ public class AstamAttackSurfaceMapper {
         return applicationId;
     }
 
-    public void addWebEntryPoints(List<Finding> findings) {
-        for (Finding finding : findings) {
+    public void addWebEntryPoints(List<WebAttackSurface> attackSurfaces) {
+        for (WebAttackSurface attackSurface : attackSurfaces) {
 
             Attacksurface.EntryPointWeb.Builder entryPointWebBuilder = Attacksurface.EntryPointWeb.newBuilder()
-                    .addAllKnownAttackMechanisms(getAttackMechanisms(finding))
-                    .addAllHttpMethod(getHttpMethods(finding.getSurfaceLocation()))
-                    .setRelativePath(finding.getCalculatedUrlPath())
-                    .setId(ProtobufMessageUtils.createUUID(finding.getId().toString()));
-
-            if (!finding.getDataFlowElements().isEmpty())
-                entryPointWebBuilder.setTrace(getTraceNode(finding));
+                    .addAllKnownAttackMechanisms(getAttackMechanisms(attackSurface))
+                    .setTrace(getTraceNode(attackSurface))
+                    .addAllHttpMethod(getHttpMethods(attackSurface.getSurfaceLocation()))
+                    .setRelativePath(attackSurface.getSurfaceLocation().getPath())
+                    .setId(ProtobufMessageUtils.createUUID(attackSurface.getId().toString()));
 
             webEntryPoints.add(entryPointWebBuilder.build());
         }
     }
 
-    private List<Attacksurface.EntryPointWeb.AttackMechanism> getAttackMechanisms(Finding finding) {
+    private List<Attacksurface.EntryPointWeb.AttackMechanism> getAttackMechanisms(WebAttackSurface attackSurface) {
         List<Attacksurface.EntryPointWeb.AttackMechanism> attackMechanismList = new ArrayList<Attacksurface.EntryPointWeb.AttackMechanism>();
-        SurfaceLocation surfaceLocation = finding.getSurfaceLocation();
+        SurfaceLocation surfaceLocation = attackSurface.getSurfaceLocation();
 
         Attacksurface.EntryPointWeb.AttackMechanism attackMechanism = Attacksurface.EntryPointWeb.AttackMechanism.newBuilder()
                     .setType(getWebAttackMechanismType(surfaceLocation))
@@ -81,19 +79,19 @@ public class AstamAttackSurfaceMapper {
         return httpMethods;
     }
 
-    private Entities.TraceNode getTraceNode(Finding finding) {
-        DataFlowElement first = finding.getDataFlowElements().get(0);
+    private Entities.TraceNode getTraceNode(WebAttackSurface attackSurface) {
+        DataFlowElement element = attackSurface.getDataFlowElement();
 
         Entities.TraceNode.Builder traceNodeBuilder = Entities.TraceNode.newBuilder()
-                .setLine(first.getLineNumber())
-                .setColumn(first.getColumnNumber());
+                .setLine(element.getLineNumber())
+                .setColumn(element.getColumnNumber());
 
-        String sourceFileName = first.getSourceFileName();
+        String sourceFileName = element.getSourceFileName();
         if (sourceFileName != null) {
             traceNodeBuilder.setFile(sourceFileName);
         }
 
-        String lineText = first.getLineText();
+        String lineText = element.getLineText();
         if (lineText != null) {
             traceNodeBuilder.setLineOfCode(lineText);
         }
