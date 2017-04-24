@@ -34,14 +34,14 @@ public class AstamAttackSurfaceMapper {
                     .setTrace(getTraceNode(attackSurface))
                     .addAllHttpMethod(getHttpMethods(attackSurface.getSurfaceLocation()))
                     .setRelativePath(attackSurface.getSurfaceLocation().getPath())
-                    .setId(ProtobufMessageUtils.createUUID(attackSurface.getId().toString()));
+                    .setId(ProtobufMessageUtils.createUUID(attackSurface.getUuid()));
 
             webEntryPoints.add(entryPointWebBuilder.build());
         }
     }
 
     private List<Attacksurface.EntryPointWeb.AttackMechanism> getAttackMechanisms(WebAttackSurface attackSurface) {
-        List<Attacksurface.EntryPointWeb.AttackMechanism> attackMechanismList = new ArrayList<Attacksurface.EntryPointWeb.AttackMechanism>();
+        List<Attacksurface.EntryPointWeb.AttackMechanism> attackMechanismList = new ArrayList<>();
         SurfaceLocation surfaceLocation = attackSurface.getSurfaceLocation();
 
         Attacksurface.EntryPointWeb.AttackMechanism attackMechanism = Attacksurface.EntryPointWeb.AttackMechanism.newBuilder()

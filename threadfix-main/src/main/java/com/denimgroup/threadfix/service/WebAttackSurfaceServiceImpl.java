@@ -13,6 +13,7 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.service.translator.FindingProcessorFactory;
+import com.denimgroup.threadfix.util.ProtobufMessageUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,6 +84,8 @@ public class WebAttackSurfaceServiceImpl implements WebAttackSurfaceService{
             }
 
             WebAttackSurface webAttackSurface = createWebAttackSurface(finding, endpoint);
+            webAttackSurfaceDao.saveOrUpdate(webAttackSurface);
+            webAttackSurface.setUuid(ProtobufMessageUtils.createUUIDFromInt(webAttackSurface.getId()).getValue());
             webAttackSurfaceDao.saveOrUpdate(webAttackSurface);
         }
     }
