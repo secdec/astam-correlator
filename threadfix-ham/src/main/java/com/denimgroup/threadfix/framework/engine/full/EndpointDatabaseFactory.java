@@ -30,6 +30,7 @@ import com.denimgroup.threadfix.framework.engine.cleaner.PathCleaner;
 import com.denimgroup.threadfix.framework.engine.cleaner.PathCleanerFactory;
 import com.denimgroup.threadfix.framework.engine.framework.FrameworkCalculator;
 import com.denimgroup.threadfix.framework.engine.partial.PartialMapping;
+import com.denimgroup.threadfix.framework.impl.django.DjangoEndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.DotNetMappings;
 import com.denimgroup.threadfix.framework.impl.dotNetWebForm.WebFormsEndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.jsp.JSPMappings;
@@ -123,6 +124,7 @@ public class EndpointDatabaseFactory {
 			case DOT_NET_MVC: generator = new DotNetMappings(rootFile);           break;
             case DOT_NET_WEB_FORMS: generator = new WebFormsEndpointGenerator(rootFile); break;
             case STRUTS:      generator = new StrutsEndpointMappings(rootFile);   break;
+            case PYTHON:      generator = new DjangoEndpointGenerator(rootFile); break;
 
 			default:
                 String logError = "You should never be here. You are missing a case statement for " + frameworkType;
