@@ -21,12 +21,20 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
     private List<Endpoint> endpoints;
 
-    private File rootDirectory;
+    private File rootDirectory, rootUrlsFile;
 
     public DjangoEndpointGenerator(@Nonnull File rootDirectory) {
         assert rootDirectory.exists() : "Root file did not exist.";
         assert rootDirectory.isDirectory() : "Root file was not a directory.";
 
+        this.rootDirectory = rootDirectory;
+
+        findRootUrlsFile();
+
+        generateMappings();
+    }
+
+    private void findRootUrlsFile() {
         File manageFile = new File(rootDirectory, "manage.py");
         assert manageFile.exists() : "manage.py does not exist in root directory";
         SettingsFinder settingsFinder = new SettingsFinder();
@@ -39,16 +47,20 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         if (settingsFile.isDirectory()) {
             for (File file : settingsFile.listFiles()) {
                 EventBasedTokenizerRunner.run(file, urlFileFinder);
-                if (!urlFileFinder.shouldContinue) break;
+                if (!urlFileFinder.shouldContinue()) break;
             }
         } else {
             EventBasedTokenizerRunner.run(settingsFile, urlFileFinder);
         }
         assert !urlFileFinder.getUrlFile().isEmpty() : "Root URL file setting does not exist.";
 
-        File routesFile = new File(rootDirectory, urlFileFinder.getUrlFile());
+        rootUrlsFile = new File(rootDirectory, urlFileFinder.getUrlFile());
+    }
+
+    private void generateMappings() {
         DjangoRouteParser routeParser = new DjangoRouteParser();
-        EventBasedTokenizerRunner.run(routesFile, routeParser);
+        EventBasedTokenizerRunner.run(rootUrlsFile, routeParser);
+
 
     }
 
@@ -79,7 +91,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         public void processToken(int type, int lineNumber, String stringValue) {
             if (type == StreamTokenizer.TT_WORD && stringValue.equals("DJANGO_SETTINGS_MODULE")) {
                 foundSettingsLocation = true;
-            } else if (foundSettingsLocation == true && type == StreamTokenizer.TT_WORD) {
+            } else if (foundSettingsLocation && type == StreamTokenizer.TT_WORD) {
                 settingsLocation = DjangoPathCleaner.cleanStringFromCode(stringValue);
             }
 
@@ -106,7 +118,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
             if (type == StreamTokenizer.TT_WORD && stringValue.equals("ROOT_URLCONF")) {
                 foundURLSetting = true;
-            } else if (foundURLSetting == true && type == StreamTokenizer.TT_WORD) {
+            } else if (foundURLSetting && type == StreamTokenizer.TT_WORD) {
                 urlFile = DjangoPathCleaner.cleanStringFromCode(stringValue);
             }
 
