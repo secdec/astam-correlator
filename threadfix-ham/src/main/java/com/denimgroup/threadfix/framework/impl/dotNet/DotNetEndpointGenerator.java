@@ -30,7 +30,9 @@ import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetPathCleaner.cleanStringFromCode;
@@ -75,7 +77,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
             return; // can't do anything without routes
         }
 
-        DotNetRouteMappings.MapRoute mapRoute = dotNetRouteMappings.routes.get(0);
+
 
         for (DotNetControllerMappings mappings : dotNetControllerMappings) {
             if (mappings.getControllerName() == null) {
@@ -84,7 +86,15 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 continue;
             }
 
-            String lowerCaseParameterName = mapRoute.defaultRoute.parameter.toLowerCase();
+            DotNetRouteMappings.MapRoute mapRoute = dotNetRouteMappings.getMatchingMapRoute(mappings.hasAreaName(), mappings.getControllerName());
+
+           String lowerCaseParameterName;
+            try {
+                lowerCaseParameterName = mapRoute.defaultRoute.parameter.toLowerCase();
+            } catch(NullPointerException npe){
+                npe.printStackTrace();
+                lowerCaseParameterName = "";
+            }
 
             for (Action action : mappings.getActions()) {
                 if (action == null) {
@@ -100,6 +110,9 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 String result = pattern
                         // substitute in controller name for {controller}
                         .replaceAll("\\{\\w*controller\\w*\\}", mappings.getControllerName());
+                if(mappings.hasAreaName()){
+                    result = result.replaceAll("\\{\\w*area\\w*\\}", mappings.getAreaName());
+                }
 
                 if (action.name.equals("Index")) {
                     result = result.replaceAll("/\\{\\w*action\\w*\\}", "");

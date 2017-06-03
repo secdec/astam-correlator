@@ -218,6 +218,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
 
     String currentUrl = null,
             currentName = null,
+            currentDefaultArea = null,
             currentDefaultController = null,
             currentDefaultAction = null,
             parameterName = null,
@@ -225,7 +226,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
     // TODO split this up
     enum MapRouteState { // these states are to be used with the IN_METHOD Phase
         START, URL, URL_COLON, NAME, NAME_COLON, DEFAULTS,
-        DEFAULTS_COLON, DEFAULTS_NEW, DEFAULTS_OBJECT, DEFAULTS_CONTROLLER, DEFAULTS_CONTROLLER_EQUALS,
+        DEFAULTS_COLON, DEFAULTS_NEW, DEFAULTS_OBJECT, DEFAULTS_AREA, DEFAULTS_AREA_EQUALS, DEFAULTS_CONTROLLER, DEFAULTS_CONTROLLER_EQUALS,
         DEFAULTS_ACTION, DEFAULTS_ACTION_EQUALS, DEFAULTS_PARAM, DEFAULTS_PARAM_EQUALS, TEMPLATE, TEMPLATE_COLON
     }
 
@@ -253,7 +254,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                     currentMapRouteState = MapRouteState.DEFAULTS;
                 } else if ((DEFAULTS + ":").equals(stringValue)) {
                     currentMapRouteState = MapRouteState.DEFAULTS_COLON;
-                } else if ('"' == type) {
+                } else if (type == '"') {
                     if (commaCount == 0) {
                         currentName = stringValue; // name
                     } else if (commaCount == 1) {
@@ -297,24 +298,35 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 }
                 break;
             case DEFAULTS_NEW:
-                if ('{' == type) {
+                if (type == '{') {
                     currentMapRouteState = MapRouteState.DEFAULTS_OBJECT;
                 }
                 break;
             case DEFAULTS_OBJECT:
-                if (CONTROLLER.equals(stringValue)) {
+                if (AREA.equalsIgnoreCase(stringValue)){
+                    currentMapRouteState = MapRouteState.DEFAULTS_AREA;
+                } else if (CONTROLLER.equalsIgnoreCase(stringValue)) {
                     currentMapRouteState = MapRouteState.DEFAULTS_CONTROLLER;
-                } else if (ACTION.equals(stringValue)) {
+                } else if (ACTION.equalsIgnoreCase(stringValue)) {
                     currentMapRouteState = MapRouteState.DEFAULTS_ACTION;
                 } else if (stringValue != null) {
                     parameterName = stringValue;
                     currentMapRouteState = MapRouteState.DEFAULTS_PARAM;
-                } else if ('}' == type) {
+                } else if (type == '}') {
                     currentMapRouteState = MapRouteState.START;
                 }
                 break;
+            case DEFAULTS_AREA:
+                if(type == '='){
+                    currentMapRouteState = MapRouteState.DEFAULTS_AREA_EQUALS;
+                }
+                break;
+            case DEFAULTS_AREA_EQUALS:
+                currentDefaultArea = stringValue;
+                currentMapRouteState = MapRouteState.DEFAULTS_OBJECT;
+                break;
             case DEFAULTS_CONTROLLER:
-                if ('=' == type) {
+                if (type == '=') {
                     currentMapRouteState = MapRouteState.DEFAULTS_CONTROLLER_EQUALS;
                 }
                 break;
@@ -323,7 +335,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 currentMapRouteState = MapRouteState.DEFAULTS_OBJECT;
                 break;
             case DEFAULTS_ACTION:
-                if ('=' == type) {
+                if (type == '=') {
                     currentMapRouteState = MapRouteState.DEFAULTS_ACTION_EQUALS;
                 }
                 break;
@@ -332,7 +344,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 currentMapRouteState = MapRouteState.DEFAULTS_OBJECT;
                 break;
             case DEFAULTS_PARAM:
-                if ('=' == type) {
+                if (type == '=') {
                     currentMapRouteState = MapRouteState.DEFAULTS_PARAM_EQUALS;
                 }
                 break;
@@ -341,7 +353,9 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 currentMapRouteState = MapRouteState.DEFAULTS_OBJECT;
                 break;
             case TEMPLATE:
-                currentMapRouteState = MapRouteState.TEMPLATE_COLON;
+                if(type == ':') {
+                    currentMapRouteState = MapRouteState.TEMPLATE_COLON;
+                }
                 break;
             case TEMPLATE_COLON:
                 if(stringValue == null){
@@ -350,43 +364,50 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 }
 
                 String[] templateSections = stringValue.split("/");
-                String openBracket = "{";
-                String closeBracket ="}";
-                String equals = "=";
+                String  OPEN_BRACKET = "{",
+                        CLOSE_BRACKET ="}",
+                        EQUALS = "=",
+                        COLON = ":",
+                        QUESTION_MARK = "?";
+
                 StringBuilder urlPattern = new StringBuilder("");
 
                 for(int i = 0; i < templateSections.length; i++){
-                    String section, patternSection;
-                    patternSection = section = templateSections[i];
-                    String param, value;
+                    String section = templateSections[i];
+                    String patternSection, param;
+                    String value = "";
 
-                    if( !section.contains(openBracket) && !section.contains(closeBracket)){
+                    if( !section.contains(OPEN_BRACKET) && !section.contains(CLOSE_BRACKET)){
                         urlPattern.append(section + "/");
                         continue;
                     }
 
-                    if(section.contains(equals)){
-                        param = section.substring(section.indexOf(openBracket) + 1, section.indexOf(equals));
-                        value = section.substring(section.indexOf(equals) + 1, section.indexOf(closeBracket));
-                    } else {
-                        param = section.substring(section.indexOf(openBracket) +1, section.indexOf(closeBracket));
-                        value = "";
+                    if(section.contains(EQUALS)){
+                        param = section.substring(section.indexOf(OPEN_BRACKET) + 1, section.indexOf(EQUALS));
+                        value = section.substring(section.indexOf(EQUALS) + 1, section.indexOf(CLOSE_BRACKET));
+                    }else if (section.contains(COLON)){
+                        param = section.substring(section.indexOf(OPEN_BRACKET) + 1, section.indexOf(COLON));
+                    } else if (section.contains(QUESTION_MARK)) {
+                        param = section.substring(section.indexOf(OPEN_BRACKET) + 1, section.indexOf(QUESTION_MARK));
+                        value = section.substring(section.indexOf(QUESTION_MARK) + 1, section.indexOf(CLOSE_BRACKET));
+                    }else {
+                        param = section.substring(section.indexOf(OPEN_BRACKET) + 1, section.indexOf(CLOSE_BRACKET));
                     }
 
-                    if("controller".equalsIgnoreCase(param)){
-                        currentDefaultController = value;
-                        patternSection = section.replace(section.substring(section.lastIndexOf(param) + param.length(), section.indexOf("}")), "");
-                    } else if ("action".equalsIgnoreCase(param)){
-                        patternSection = section.replace(section.substring(section.lastIndexOf(param) + param.length() , section.indexOf("}")), "");
+                    if("action".equalsIgnoreCase(param)){
                         currentDefaultAction = value;
-                    } else {
-                        parameterName = param.replaceAll("[^A-Za-z0-9]+", "");
-                        parameterValue = value;
-                        patternSection = section.replace(section.substring(section.lastIndexOf(parameterName) + parameterName.length(), section.indexOf("}")), "");
+                    } else if ("controller".equalsIgnoreCase(param)){
+                        currentDefaultController = value;
+                    } else if ("area".equalsIgnoreCase(param)){
+                        currentDefaultArea = value;
+                    }else {
+                        parameterName = param;
                     }
 
+                    patternSection = section.replace(section.substring(section.indexOf(param) + param.length(), section.indexOf("}")), "");
                     urlPattern.append(patternSection + "/");
                 }
+
                 urlPattern = urlPattern.deleteCharAt(urlPattern.length() - 1);
                 currentUrl = urlPattern.toString();
                 currentMapRouteState = MapRouteState.START;
@@ -397,7 +418,11 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
         if (parenCount == currentParenCount) {
             log("Paren count: " + parenCount);
             log("Paren current: " + currentParenCount);
-            mappings.addRoute(currentName, currentUrl, currentDefaultController, currentDefaultAction, parameterName);
+            mappings.addRoute(currentName, currentUrl, currentDefaultArea, currentDefaultController, currentDefaultAction, parameterName);
+            currentDefaultAction = null;
+            currentDefaultController = null;
+            currentDefaultArea = null;
+            parameterName = null;
             commaCount = 0;
             currentPhase = Phase.IN_CLASS;
         }

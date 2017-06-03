@@ -46,9 +46,15 @@ public class DotNetRouteMappings {
             this.controller = controller;
         }
 
+        ConcreteRoute(String area, String controller, String action, String parameter){
+            this(controller, action, parameter);
+            this.area = area;
+        }
+
         String parameter;
         String action;
         String controller;
+        String area;
     }
 
     static class MapRoute {
@@ -76,11 +82,35 @@ public class DotNetRouteMappings {
 
 
 
-    public void addRoute(String name, String url, String controller, String action, String parameter) {
+    public void addRoute(String name, String url,String area, String controller, String action, String parameter) {
         ConcreteRoute defaultRoute = controller != null && action != null ?
-                new ConcreteRoute(controller, action, parameter) :
+                new ConcreteRoute(area, controller, action, parameter) :
                 null;
         routes.add(new MapRoute(name, url, defaultRoute));
+    }
+
+    public MapRoute getMatchingMapRoute(boolean hasAreaInMappings, String controllerName){
+        if(routes.size() == 1) return routes.get(0);
+        //TODO: QA
+        MapRoute mapRoute = null;
+        for(MapRoute route : routes){
+            if(hasAreaInMappings && (route.url.contains("area") || "areaRoute".equalsIgnoreCase(route.name))){
+                mapRoute = route;
+                break;
+            } else if(!hasAreaInMappings && (route.url.contains(controllerName) || !route.url.contains("area"))){
+                mapRoute = route;
+                break;
+            } else if(!hasAreaInMappings && ("default".equalsIgnoreCase(route.name))){
+                mapRoute = route;
+                break;
+            }
+        }
+
+        if(mapRoute == null){
+            return routes.get(0);
+        }
+
+        return mapRoute;
     }
 
 }
