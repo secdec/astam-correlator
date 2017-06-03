@@ -87,7 +87,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
             }
 
             DotNetRouteMappings.MapRoute mapRoute = dotNetRouteMappings.getMatchingMapRoute(mappings.hasAreaName(), mappings.getControllerName());
-
+            //TODO: fix npe
            String lowerCaseParameterName;
             try {
                 lowerCaseParameterName = mapRoute.defaultRoute.parameter.toLowerCase();
