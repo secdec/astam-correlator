@@ -91,7 +91,7 @@ public class DotNetRouteMappings {
 
     public MapRoute getMatchingMapRoute(boolean hasAreaInMappings, String controllerName){
         if(routes.size() == 1) return routes.get(0);
-        //TODO: QA
+
         MapRoute mapRoute = null;
         for(MapRoute route : routes){
             if(hasAreaInMappings && (route.url.contains("area") || "areaRoute".equalsIgnoreCase(route.name))){
@@ -106,11 +106,7 @@ public class DotNetRouteMappings {
             }
         }
 
-        if(mapRoute == null){
-            return routes.get(0);
-        }
-
-        return mapRoute;
+       return mapRoute == null ? routes.get(0) : mapRoute;
     }
 
 }

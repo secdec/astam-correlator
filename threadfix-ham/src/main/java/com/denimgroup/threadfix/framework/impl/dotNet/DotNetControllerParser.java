@@ -131,6 +131,8 @@ public class DotNetControllerParser implements EventBasedTokenizer {
             case OPEN_BRACKET:
                 if(stringValue != null && AREA.equalsIgnoreCase(stringValue)){
                     currentState = State.AREA;
+                } else if(type == ']'){
+                    currentState = State.NAMESPACE;
                 }
                 break;
             case AREA:

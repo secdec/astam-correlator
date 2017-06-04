@@ -87,14 +87,6 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
             }
 
             DotNetRouteMappings.MapRoute mapRoute = dotNetRouteMappings.getMatchingMapRoute(mappings.hasAreaName(), mappings.getControllerName());
-            //TODO: fix npe
-           String lowerCaseParameterName;
-            try {
-                lowerCaseParameterName = mapRoute.defaultRoute.parameter.toLowerCase();
-            } catch(NullPointerException npe){
-                npe.printStackTrace();
-                lowerCaseParameterName = "";
-            }
 
             for (Action action : mappings.getActions()) {
                 if (action == null) {
@@ -121,10 +113,13 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 }
 
                 boolean shouldReplaceParameterSection = true;
-                for (String parameter : action.parameters) {
-                    if (parameter.toLowerCase().equals(lowerCaseParameterName)) {
-                        shouldReplaceParameterSection = false;
-                        break;
+                if(action.parameters.contains(mapRoute.defaultRoute.parameter)) {
+                    String lowerCaseParameterName = mapRoute.defaultRoute.parameter.toLowerCase();
+                    for (String parameter : action.parameters) {
+                        if (parameter.toLowerCase().equals(lowerCaseParameterName)) {
+                            shouldReplaceParameterSection = false;
+                            break;
+                        }
                     }
                 }
 
