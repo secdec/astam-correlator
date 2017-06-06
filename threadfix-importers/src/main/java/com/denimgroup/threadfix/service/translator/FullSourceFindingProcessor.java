@@ -23,8 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.service.translator;
 
-import com.denimgroup.threadfix.data.entities.Finding;
-import com.denimgroup.threadfix.data.entities.Scan;
+import com.denimgroup.threadfix.data.entities.*;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.ProjectConfig;
 import com.denimgroup.threadfix.framework.engine.ThreadFixInterface;
@@ -47,6 +46,7 @@ class FullSourceFindingProcessor implements FindingProcessor {
 
     @Nullable
     private final EndpointDatabase database;
+
     @Nullable
     private final ParameterParser parameterParser;
 
@@ -97,6 +97,7 @@ class FullSourceFindingProcessor implements FindingProcessor {
         if (endpoint != null) {
             finding.setCalculatedFilePath(endpoint.getFilePath());
             finding.setCalculatedUrlPath(endpoint.getUrlPath());
+
             finding.setFoundHAMEndpoint(true);
 
             if (parameter != null) {
