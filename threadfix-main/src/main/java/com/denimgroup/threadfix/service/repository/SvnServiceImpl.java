@@ -111,6 +111,12 @@ public class SvnServiceImpl extends RepositoryServiceImpl implements RepositoryS
         }
     }
 
+    /*//TODO: Complete or remove. WIP Stub*/
+    @Override
+    public String getCurrentRevision(Application application) {
+        return null;
+    }
+
     @Override
     public File cloneRepoToDirectory(Application application, File dirLocation) {
 

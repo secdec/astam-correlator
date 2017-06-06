@@ -42,12 +42,15 @@ import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindingResult;
-
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.LsRemoteCommand;
+import org.eclipse.jgit.api.errors.GitAPIException;
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
-@Service
+@Service("gitServiceImpl")
 public class GitServiceImpl extends RepositoryServiceImpl implements RepositoryService {
 
     private static final SanitizedLogger log = new SanitizedLogger(GitServiceImpl.class);
@@ -123,6 +126,7 @@ public class GitServiceImpl extends RepositoryServiceImpl implements RepositoryS
         }
     }
 
+
     @Override
 	public File cloneRepoToDirectory(Application application, File dirLocation) {
 
@@ -150,9 +154,7 @@ public class GitServiceImpl extends RepositoryServiceImpl implements RepositoryS
 
                         List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
 
-                        String repoBranch = (application.getRepositoryBranch() != null &&
-                                !application.getRepositoryBranch().isEmpty()) ? application.getRepositoryBranch() : "master";
-
+                        String repoBranch = getRepoBranch(application);
                         boolean localCheckout = false;
 
                         for (Ref ref : refs) {
@@ -316,4 +318,40 @@ public class GitServiceImpl extends RepositoryServiceImpl implements RepositoryS
         return null;
     }
 
+
+    @Override
+    public String getCurrentRevision(Application application) {
+        InitCommand initCommand = new InitCommand();
+        File applicationDirectory = DiskUtils.getScratchFile(baseDirectory + 'x'+application.getId());
+        initCommand.setDirectory(applicationDirectory);
+
+        String repoUrl = application.getRepositoryUrl();
+        if(repoUrl == null || repoUrl.isEmpty()){
+            log.info("Unable to get current revision: Invalid repo url for " + application.getName() );
+            return null;
+        }
+
+        Ref head = null;
+        String repoBranch = getRepoBranch(application);
+        try {
+            Git localGit = initCommand.call();
+            localGit.getRepository().getConfig().setString("remote", "origin", "url", repoUrl);
+            LsRemoteCommand lsRemoteCommand = localGit.lsRemote().setTags(false).setHeads(true);
+            lsRemoteCommand.setRemote(repoUrl);
+            for(Ref r : lsRemoteCommand.call()){
+                if(r.getName().equalsIgnoreCase("refs/heads/" + repoBranch))
+                    head = r;
+            }
+        } catch (GitAPIException e) {
+            e.printStackTrace();
+        }
+    return head.getObjectId().getName();
+    }
+
+
+    private String getRepoBranch(Application application){
+        return (application.getRepositoryBranch() != null &&
+                !application.getRepositoryBranch().isEmpty()) ? application.getRepositoryBranch() : "master";
+
+    }
 }
