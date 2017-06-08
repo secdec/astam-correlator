@@ -33,12 +33,13 @@ import java.util.Date;
 @Entity
 @Table(name = "ApplicationVersion")
 public class ApplicationVersion extends AstamAuditableEntity implements Comparable<ApplicationVersion> {
-	
+
 	private static final long serialVersionUID = 5185330378304148079L;
 
 	private String name;
 	private Application application;
 	private Date date;
+	private int gitCommitId;
 
 	@Column(length = 50, nullable = false)
 	@JsonView(Object.class)
@@ -69,6 +70,15 @@ public class ApplicationVersion extends AstamAuditableEntity implements Comparab
 
 	public void setDate(Date date) {
 		this.date = date;
+	}
+
+	@Column(length = 40)
+	public int getGitCommitId() {
+		return gitCommitId;
+	}
+
+	public void setGitCommitId(int gitCommitId) {
+		this.gitCommitId = gitCommitId;
 	}
 
 	@Override

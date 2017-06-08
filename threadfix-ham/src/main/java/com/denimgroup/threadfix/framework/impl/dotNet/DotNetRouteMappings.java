@@ -33,6 +33,10 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
  */
 public class DotNetRouteMappings {
 
+    List<MapRoute> routes = list();
+
+    public DotNetRouteMappings() {}
+
     static class ConcreteRoute {
         ConcreteRoute(String controller, String action, String parameter) {
             assert action != null;
@@ -42,9 +46,15 @@ public class DotNetRouteMappings {
             this.controller = controller;
         }
 
+        ConcreteRoute(String area, String controller, String action, String parameter){
+            this(controller, action, parameter);
+            this.area = area;
+        }
+
         String parameter;
         String action;
         String controller;
+        String area;
     }
 
     static class MapRoute {
@@ -70,15 +80,33 @@ public class DotNetRouteMappings {
         return parameters.contains(routes.get(0).defaultRoute.parameter);
     }
 
-    List<MapRoute> routes = list();
 
-    public DotNetRouteMappings() {}
 
-    public void addRoute(String name, String url, String controller, String action, String parameter) {
+    public void addRoute(String name, String url,String area, String controller, String action, String parameter) {
         ConcreteRoute defaultRoute = controller != null && action != null ?
-                new ConcreteRoute(controller, action, parameter) :
+                new ConcreteRoute(area, controller, action, parameter) :
                 null;
         routes.add(new MapRoute(name, url, defaultRoute));
+    }
+
+    public MapRoute getMatchingMapRoute(boolean hasAreaInMappings, String controllerName){
+        if(routes.size() == 1) return routes.get(0);
+
+        MapRoute mapRoute = null;
+        for(MapRoute route : routes){
+            if(hasAreaInMappings && (route.url.contains("area") || "areaRoute".equalsIgnoreCase(route.name))){
+                mapRoute = route;
+                break;
+            } else if(!hasAreaInMappings && (route.url.contains(controllerName) || !route.url.contains("area"))){
+                mapRoute = route;
+                break;
+            } else if(!hasAreaInMappings && ("default".equalsIgnoreCase(route.name))){
+                mapRoute = route;
+                break;
+            }
+        }
+
+       return mapRoute == null ? routes.get(0) : mapRoute;
     }
 
 }

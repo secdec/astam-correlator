@@ -43,7 +43,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 @Component
-class FindingProcessorFactory extends SpringBeanAutowiringSupport {
+public class FindingProcessorFactory extends SpringBeanAutowiringSupport {
 
     private static final SanitizedLogger LOG = new SanitizedLogger(FindingProcessorFactory.class);
 
@@ -81,7 +81,7 @@ class FindingProcessorFactory extends SpringBeanAutowiringSupport {
     }
 
     @Nonnull
-    private static SourceCodeAccessLevel getSourceCodeAccessLevel(
+    public static SourceCodeAccessLevel getSourceCodeAccessLevel(
             @Nonnull Application application,
             @Nonnull Scan scan) {
 
@@ -119,7 +119,7 @@ class FindingProcessorFactory extends SpringBeanAutowiringSupport {
 	private static final String baseDirectory = "scratch/";
 	
 	@Nullable
-	private static File getRootFile(Application application) {
+	public static File getRootFile(Application application) {
 
         FindingProcessorFactory factory = new FindingProcessorFactory();
 
@@ -163,7 +163,7 @@ class FindingProcessorFactory extends SpringBeanAutowiringSupport {
 	}
 
 	@Nonnull
-	private static FrameworkType getFrameworkType(Application application,
+	public static FrameworkType getFrameworkType(Application application,
 			SourceCodeAccessLevel accessLevel, File rootFile, Scan scan) {
 		
 		FrameworkType frameworkType = application.getFrameworkTypeEnum();
