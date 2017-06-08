@@ -70,11 +70,11 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     }
 
     enum State {
-        START, PUBLIC, CLASS, TYPE_SIGNATURE, BODY, PUBLIC_IN_BODY, ACTION_RESULT, IACTION_RESULT, IN_ACTION_SIGNATURE, AFTER_BIND_INCLUDE, DEFAULT_VALUE, IN_ACTION_BODY
+        START, NAMESPACE, OPEN_BRACKET, AREA, PUBLIC, CLASS, TYPE_SIGNATURE, BODY, PUBLIC_IN_BODY, ACTION_RESULT, IACTION_RESULT, IN_ACTION_SIGNATURE, AFTER_BIND_INCLUDE, DEFAULT_VALUE, IN_ACTION_BODY
     }
 
     enum AttributeState {
-        START, OPEN_BRACKET, STRING
+        START, OPEN_BRACKET, STRING, AREA
     }
 
     State currentState      = State.START;
@@ -115,8 +115,32 @@ public class DotNetControllerParser implements EventBasedTokenizer {
 
         switch (currentState) {
             case START:
-                if (PUBLIC.equals(stringValue)) {
+                if (NAMESPACE.equals(stringValue)) {
+                    currentState = State.NAMESPACE;
+                }else if(PUBLIC.equals(stringValue)){
                     currentState = State.PUBLIC;
+                }
+                break;
+            case NAMESPACE:
+                if(PUBLIC.equals(stringValue)){
+                    currentState = State.PUBLIC;
+                }else if( type == '['){
+                    currentState = State.OPEN_BRACKET;
+                }
+                break;
+            case OPEN_BRACKET:
+                if(stringValue != null && AREA.equalsIgnoreCase(stringValue)){
+                    currentState = State.AREA;
+                } else if(type == ']'){
+                    currentState = State.NAMESPACE;
+                }
+                break;
+            case AREA:
+                if(PUBLIC.equals(stringValue)){
+                    currentState = State.PUBLIC;
+                } else if(stringValue != null && type != '(' && type != ')'){
+                    mappings.setAreaName(stringValue);
+                    currentState = State.START;
                 }
                 break;
             case PUBLIC:

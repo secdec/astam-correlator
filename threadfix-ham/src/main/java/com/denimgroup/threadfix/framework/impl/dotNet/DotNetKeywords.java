@@ -32,6 +32,7 @@ final class DotNetKeywords {
 
     public static final String
             PUBLIC = "public",
+            AREA = "Area",
             CLASS = "class",
             ROUTE_CONFIG = "RouteConfig",
             STARTUP = "Startup",
