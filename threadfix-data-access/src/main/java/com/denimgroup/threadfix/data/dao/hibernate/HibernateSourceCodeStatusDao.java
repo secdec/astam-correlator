@@ -33,6 +33,7 @@ public class HibernateSourceCodeStatusDao extends AbstractObjectDao<SourceCodeSt
                 .createCriteria(SourceCodeStatus.class)
                 .add(Restrictions.eq("application",application))
                 .add(Restrictions.eq("repoType", SourceCodeRepoType.getType(application.getRepositoryType())))
+                .add(Restrictions.eq("branch",application.getResolvedRepositoryBranch()))
                 .addOrder(Order.asc("dateTimeChecked"))
                 .setMaxResults(1)
                 .uniqueResult();

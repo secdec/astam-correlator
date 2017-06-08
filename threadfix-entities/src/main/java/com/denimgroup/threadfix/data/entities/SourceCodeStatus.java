@@ -15,6 +15,7 @@ public class SourceCodeStatus extends BaseEntity  implements Comparable<SourceCo
     private Application application;
     private Date dateTimeChecked;
     private SourceCodeRepoType repoType;
+    private String branch;
 
     @Column(length = 40, nullable = false)
     @JsonView(Object.class)
@@ -54,8 +55,24 @@ public class SourceCodeStatus extends BaseEntity  implements Comparable<SourceCo
     public SourceCodeRepoType getRepoType() {return repoType;}
     public void setRepoType(SourceCodeRepoType repoType) { this.repoType = repoType;}
 
+
+    @Column(length = 256, nullable = false)
+    @JsonView(Object.class)
+    public String getBranch() {return branch;}
+    public void setBranch(String branch) {this.branch = branch;}
+
+
     @Override
     public int compareTo(SourceCodeStatus o) {
         return this.getDateTimeChecked().compareTo(o.getDateTimeChecked());
     }
+
+    public String toString(){
+        if(application != null && application.getName() != null) {
+            return application.getId() + " " + application.getName() + " on " + getBranch() + " branch was last checked on "
+                    + dateTimeChecked + " with a commitID of " + commitId;
+        }
+        else return "Invalid Source Code Status. Unable to toString().";
+    }
+
 }

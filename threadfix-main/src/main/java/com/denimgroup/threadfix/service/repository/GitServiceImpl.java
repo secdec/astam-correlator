@@ -47,7 +47,6 @@ import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 
 @Service("gitServiceImpl")
@@ -154,7 +153,7 @@ public class GitServiceImpl extends RepositoryServiceImpl implements RepositoryS
 
                         List<Ref> refs = git.branchList().setListMode(ListBranchCommand.ListMode.ALL).call();
 
-                        String repoBranch = getRepoBranch(application);
+                        String repoBranch = application.getResolvedRepositoryBranch();
                         boolean localCheckout = false;
 
                         for (Ref ref : refs) {
@@ -321,6 +320,7 @@ public class GitServiceImpl extends RepositoryServiceImpl implements RepositoryS
 
     @Override
     public String getCurrentRevision(Application application) {
+        log.info("Getting current revision.");
         InitCommand initCommand = new InitCommand();
         File applicationDirectory = DiskUtils.getScratchFile(baseDirectory + 'x'+application.getId());
         initCommand.setDirectory(applicationDirectory);
@@ -332,7 +332,7 @@ public class GitServiceImpl extends RepositoryServiceImpl implements RepositoryS
         }
 
         Ref head = null;
-        String repoBranch = getRepoBranch(application);
+        String repoBranch = application.getResolvedRepositoryBranch();
         try {
             Git localGit = initCommand.call();
             localGit.getRepository().getConfig().setString("remote", "origin", "url", repoUrl);
@@ -345,13 +345,13 @@ public class GitServiceImpl extends RepositoryServiceImpl implements RepositoryS
         } catch (GitAPIException e) {
             e.printStackTrace();
         }
-    return head.getObjectId().getName();
+        if(head != null && head.getObjectId() != null && head.getObjectId().getName() != null && !head.getObjectId().getName().isEmpty()) {
+            String hash = head.getObjectId().getName();
+            log.info("Origin hash found:" + hash);
+            return hash;
+        }else{
+            return null;
+        }
     }
 
-
-    private String getRepoBranch(Application application){
-        return (application.getRepositoryBranch() != null &&
-                !application.getRepositoryBranch().isEmpty()) ? application.getRepositoryBranch() : "master";
-
-    }
 }

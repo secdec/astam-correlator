@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import javax.jms.*;
 
+/** @author jrios */
 @Component
 public class GitQueueListener implements MessageListener{
 
@@ -26,18 +27,19 @@ public class GitQueueListener implements MessageListener{
     private GitServiceImpl gitService;
 
     @Override
-    @Transactional(readOnly=false)
+    @Transactional
     public void onMessage(Message message) {
         try {
             if (message instanceof MapMessage) {
-                MapMessage map = (MapMessage) message;
-                int applicationId = map.getInt("applicationId");
+                int applicationId = ((MapMessage)message).getInt("applicationId");
                 Application application = applicationService.loadApplication(applicationId);
                 if(application != null){
                     gitSourceCodeMonitorService.doCheck(application);
                 }else{
                     log.error("Unable to load application : " + applicationId);
                 }
+            }else{
+                log.error("Unsupported message class.");
             }
         } catch (Exception e) {
             log.warn("The JMS message threw an error.");

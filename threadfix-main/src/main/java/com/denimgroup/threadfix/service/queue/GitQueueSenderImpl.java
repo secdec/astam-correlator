@@ -36,7 +36,7 @@ public class GitQueueSenderImpl implements GitQueueSender {
     @Override
     public void pollGitRepo(int applicationId) {
         MapMessage  gitPollMap = new ActiveMQMapMessage();
-        log.info("Sending message to poll git application" + applicationId + ".");
+        log.info("Sending message to poll git application with id of " + applicationId + ".");
         try {
             gitPollMap.setString("applicationId", Integer.toString(applicationId));
             jmsTemplate.convertAndSend("gitRequestQueue", gitPollMap);

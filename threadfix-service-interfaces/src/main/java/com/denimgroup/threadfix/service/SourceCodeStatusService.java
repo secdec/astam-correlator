@@ -9,5 +9,6 @@ public interface SourceCodeStatusService extends GenericObjectService<SourceCode
 
  SourceCodeStatus getLatest(Application application);
 
+ void saveNewStatus(Application application,String commitId);
 
 }
