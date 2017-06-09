@@ -61,6 +61,7 @@ public class ParameterParserFactory {
                 break;
             case PYTHON:
                 parser = new DjangoParameterParser();
+                break;
             default:
                 LOG.info("Didn't have parser for " + projectConfig.getFrameworkType());
         }

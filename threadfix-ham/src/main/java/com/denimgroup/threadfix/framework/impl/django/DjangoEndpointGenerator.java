@@ -60,8 +60,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
     private void generateMappings() {
         DjangoRouteParser routeParser = new DjangoRouteParser();
         EventBasedTokenizerRunner.run(rootUrlsFile, routeParser);
-
-
+        
     }
 
     @Nonnull
@@ -89,9 +88,9 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         @Override
         public void processToken(int type, int lineNumber, String stringValue) {
-            if (type == StreamTokenizer.TT_WORD && stringValue.equals("DJANGO_SETTINGS_MODULE")) {
+            if (stringValue != null && stringValue.equals("DJANGO_SETTINGS_MODULE")) {
                 foundSettingsLocation = true;
-            } else if (foundSettingsLocation && type == StreamTokenizer.TT_WORD) {
+            } else if (foundSettingsLocation && stringValue != null) {
                 settingsLocation = DjangoPathCleaner.cleanStringFromCode(stringValue);
             }
 
@@ -116,10 +115,12 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         @Override
         public void processToken(int type, int lineNumber, String stringValue) {
 
-            if (type == StreamTokenizer.TT_WORD && stringValue.equals("ROOT_URLCONF")) {
+            if (stringValue == null) return;
+
+            if (stringValue.equals("URLCONF")) {
                 foundURLSetting = true;
-            } else if (foundURLSetting && type == StreamTokenizer.TT_WORD) {
-                urlFile = DjangoPathCleaner.cleanStringFromCode(stringValue);
+            } else if (foundURLSetting) {
+                urlFile = DjangoPathCleaner.cleanStringFromCode(stringValue).concat(".py");
             }
 
             if (!urlFile.isEmpty()) {

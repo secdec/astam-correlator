@@ -19,14 +19,10 @@ public class DjangoPathCleaner extends DefaultPathCleaner {
         StringBuilder builder = new StringBuilder(64);
         builder.append(root).append("/").append(input);
         File file = new File(builder.toString());
-        if (file.isDirectory()) {
-            return file;
-        } else {
-            return new File(builder.append(".py").toString());
-        }
+        return file;
     }
 
     public static String cleanStringFromCode(String input) {
-        return input.replace('.', '/').concat(".py");
+        return input.replace('.', '/');
     }
 }
