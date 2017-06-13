@@ -1018,4 +1018,13 @@ public class Application extends AuditableEntity {
 		}
 		return false;
 	}
+
+	/*
+	Added this method to help centralize the resolution of the branch since repositoryBranch is not a required field.
+	 */
+	@Transient
+	public String getResolvedRepositoryBranch(){
+			return (getRepositoryBranch() != null &&
+					!getRepositoryBranch().isEmpty()) ? getRepositoryBranch() : "master";
+	}
 }
