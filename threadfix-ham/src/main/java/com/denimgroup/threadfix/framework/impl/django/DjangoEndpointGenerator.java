@@ -9,8 +9,12 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.StreamTokenizer;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
 
 /**
  * Created by csotomayor on 4/27/2017.
@@ -20,6 +24,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
     private static final SanitizedLogger LOG = new SanitizedLogger(DjangoEndpointGenerator.class);
 
     private List<Endpoint> endpoints;
+    private Map<String, DjangoRoute> routeMap;
 
     private File rootDirectory, rootUrlsFile;
 
@@ -30,8 +35,10 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         this.rootDirectory = rootDirectory;
 
         findRootUrlsFile();
+        assert rootUrlsFile.exists() : "Root URL file did not exist";
+        routeMap =  DjangoRouteParser.parse(rootUrlsFile);
 
-        generateMappings();
+        this.endpoints = generateMappings();
     }
 
     private void findRootUrlsFile() {
@@ -57,10 +64,18 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         rootUrlsFile = new File(rootDirectory, urlFileFinder.getUrlFile());
     }
 
-    private void generateMappings() {
-        DjangoRouteParser routeParser = new DjangoRouteParser();
-        EventBasedTokenizerRunner.run(rootUrlsFile, routeParser);
-        
+    private List<Endpoint> generateMappings() {
+        List<Endpoint> mappings = list();
+        for (DjangoRoute route : routeMap.values()) {
+            String urlPath = route.getUrl();
+            String filePath = route.getViewPath();
+
+            //TODO parse controllers(views) to get parameters and httpmethods
+            Collection<String> parameters = list();
+            Collection<String> httpMethods = route.getHttpMethods().values();
+            mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters));
+        }
+        return mappings;
     }
 
     @Nonnull

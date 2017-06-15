@@ -23,6 +23,6 @@ public class DjangoPathCleaner extends DefaultPathCleaner {
     }
 
     public static String cleanStringFromCode(String input) {
-        return input.replace('.', '/');
+        return input == null? "" : input.replace('.', '/');
     }
 }
