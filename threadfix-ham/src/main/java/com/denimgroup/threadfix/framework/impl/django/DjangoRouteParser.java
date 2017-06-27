@@ -18,16 +18,30 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 public class DjangoRouteParser implements EventBasedTokenizer{
 
     public static final SanitizedLogger LOG = new SanitizedLogger(DjangoRouteParser.class);
-    public static final boolean logParsing = true;
+    public static final boolean logParsing = false;
 
     //alias, path
     private Map<String, String> importPathMap = map();
     //url, djangoroute
     private Map<String, DjangoRoute> routeMap = map();
 
-    public static Map parse(@Nonnull File file) {
-        DjangoRouteParser routeParser = new DjangoRouteParser();
+    private String sourceRoot;
+
+    private String rootPath = "";
+
+    public DjangoRouteParser(String sourceRoot, String rootPath) {
+        this.sourceRoot = sourceRoot;
+        this.rootPath = rootPath;
+    }
+
+    public static Map parse(String sourceRoot, String rootPath, @Nonnull File file) {
+        DjangoRouteParser routeParser = new DjangoRouteParser(sourceRoot, rootPath);
         EventBasedTokenizerRunner.run(file, routeParser);
+//        for (String path : routeParser.importPathMap.values()) {
+//            File importFile = new File(root, path);
+//            if (importFile.exists())
+//                routeParser.routeMap.putAll(parse(root, importFile));
+//        }
         return routeParser.routeMap;
     }
 
@@ -36,6 +50,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
         IMPORT = "import",
         ALIAS = "as",
         URL = "url",
+        URLPATTERNS = "urlpatterns",
         REGEXSTART = "r",
         INCLUDE = "include",
         TEMPLATE = "TemplateView.as_view",
@@ -43,7 +58,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
         CACHE = "cache";
 
     private enum Phase {
-        PARSING, IN_IMPORT, IN_URL
+        PARSING, IN_IMPORT, IN_URL, IN_COMMENT
     }
     private Phase           currentPhase        = Phase.PARSING;
     private ImportState     currentImportState  = ImportState.START;
@@ -69,12 +84,14 @@ public class DjangoRouteParser implements EventBasedTokenizer{
         log("string: " + stringValue);
         log("phase: " + currentPhase + " ");
 
-        if (URL.equals(stringValue)){
+        if (URL.equals(stringValue) || URLPATTERNS.equals(stringValue)){
             currentPhase = Phase.IN_URL;
             currentUrlState = UrlState.START;
         } else if (IMPORT_START.equals(stringValue)) {
             currentPhase = Phase.IN_IMPORT;
             currentImportState = ImportState.START;
+        } else if (type == '#') {
+            currentPhase = Phase.IN_COMMENT;
         }
 
         switch (currentPhase) {
@@ -83,6 +100,9 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                 break;
             case IN_URL:
                 processUrl(type, stringValue);
+                break;
+            case IN_COMMENT:
+                break;
         }
     }
 
@@ -110,9 +130,9 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                     importPathMap.remove(alias);
                     alias = "";
                     currentImportState = ImportState.ALIAS;
-                } else {
+                } else if (stringValue != null){
                     alias = stringValue;
-                    path += "/" + stringValue + ".py";
+                    path += "/" + stringValue;
                     importPathMap.put(alias, path);
                 }
                 break;
@@ -151,7 +171,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                     currentUrlState = UrlState.VIEWOPTIONS;
                 } /*
 
-                TODO adjust for when parameter values are in the regex
+                TODO adjust to handle regex values
 
                 else if (type == '(' || type == '$') {
                     inRegex = false;
@@ -163,9 +183,10 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                 break;
             case VIEWOPTIONS:
                 if (type != StreamTokenizer.TT_WORD) break;
-                if (INCLUDE.equals(stringValue))
+                if (INCLUDE.equals(stringValue)) {
+                    viewPath = "";
                     currentUrlState = UrlState.INCLUDE;
-                else if (TEMPLATE.equals(stringValue))
+                } else if (TEMPLATE.equals(stringValue))
                     currentUrlState = UrlState.TEMPLATE;
                 else if (REDIRECT.equals(stringValue))
                     currentUrlState = UrlState.REDIRECT;
@@ -182,6 +203,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                 } else if (type == '_') {
                     viewPath += "_";
                 } else {
+                    //run through controller parser
                     /*
                     should have two entries:
                     0 - controller(view) path
@@ -196,13 +218,31 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                     else
                         viewPath = pathToken;
 
-                    routeMap.put(regexBuilder.toString(), new DjangoRoute(regexBuilder.toString(), viewPath, methodToken, ""));
+                    File controller = new File(sourceRoot, viewPath + ".py");
+                    if (controller.exists()) {
+                        String urlPath = rootPath + "/" + regexBuilder.toString();
+                        routeMap.put(urlPath, DjangoControllerParser.parse(controller, urlPath, methodToken));
+                    }
                     currentPhase = Phase.PARSING;
                     currentUrlState = UrlState.START;
                 }
                 break;
             case INCLUDE:
-                //TODO lookup path in importpathmap, send file through this parser using regexBuilder.toString() as rootPath
+                //run back through url parser
+                if (type == StreamTokenizer.TT_WORD) {
+                    viewPath += stringValue;
+                } else if (type == '_') {
+                    viewPath += "_";
+                } else if (importPathMap.containsKey(viewPath)) {
+                    File importFile = new File(sourceRoot + "/" + importPathMap.get(viewPath));
+                    if (importFile.isDirectory()) {
+                        for (File file : importFile.listFiles())
+                            routeMap.putAll(DjangoRouteParser.parse(sourceRoot, rootPath+regexBuilder.toString(), file));
+                    } else {
+                        routeMap.putAll(DjangoRouteParser.parse(sourceRoot, rootPath+regexBuilder.toString(), importFile));
+                    }
+
+                }
                 break;
             case TEMPLATE:
                 //TODO

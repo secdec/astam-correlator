@@ -9,10 +9,7 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.StreamTokenizer;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
@@ -36,7 +33,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         findRootUrlsFile();
         assert rootUrlsFile.exists() : "Root URL file did not exist";
-        routeMap =  DjangoRouteParser.parse(rootUrlsFile);
+        routeMap =  DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", rootUrlsFile);
 
         this.endpoints = generateMappings();
     }
@@ -70,9 +67,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             String urlPath = route.getUrl();
             String filePath = route.getViewPath();
 
-            //TODO parse controllers(views) to get parameters and httpmethods
-            Collection<String> parameters = list();
-            Collection<String> httpMethods = route.getHttpMethods().values();
+            Collection<String> httpMethods = route.getHttpMethods();
+            Collection<String> parameters = route.getParameters();
             mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters));
         }
         return mappings;

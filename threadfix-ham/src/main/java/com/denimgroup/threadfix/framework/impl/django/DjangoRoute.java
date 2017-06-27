@@ -1,7 +1,9 @@
 package com.denimgroup.threadfix.framework.impl.django;
 
+import java.util.List;
 import java.util.Map;
 
+import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
 /**
@@ -10,36 +12,35 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 public class DjangoRoute {
     private String url;
     private String viewPath;
-    //function name, http method
-    private Map<String, String> httpMethods = map();
+    private List<String> httpMethods = list();
+    private List<String> parameters = list();
 
-    public DjangoRoute(String url, String viewPath, String function, String httpMethod) {
-        this.setUrl(url);
-        this.setViewPath(viewPath);
-        this.addHttpMethod(function, httpMethod);
+    public DjangoRoute(String url, String viewPath) {
+        this.url = url;
+        this.viewPath = viewPath;
     }
 
     public String getUrl() {
         return url;
     }
 
-    public void setUrl(String url) {
-        this.url = url;
-    }
-
     public String getViewPath() {
         return viewPath;
     }
 
-    private void setViewPath(String viewPath) {
-        this.viewPath = viewPath;
-    }
-
-    public Map<String, String> getHttpMethods() {
+    public List<String> getHttpMethods() {
         return httpMethods;
     }
 
-    public void addHttpMethod(String function, String httpMethod) {
-        this.httpMethods.put(function, httpMethod);
+    public List<String> getParameters() {
+        return parameters;
+    }
+
+    public void addHttpMethod(String httpMethod) {
+        httpMethods.add(httpMethod);
+    }
+
+    public void addParameter(String parameter) {
+        parameters.add(parameter);
     }
 }
