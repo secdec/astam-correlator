@@ -21,28 +21,10 @@
 //     Contributor(s): Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
+package com.denimgroup.threadfix.service.queue;
 
-package com.denimgroup.threadfix.service;
+public interface GitQueueSender {
 
-import com.denimgroup.threadfix.data.entities.Application;
-import org.springframework.validation.BindingResult;
+	void pollGitRepo(int applicationId);
 
-import java.io.File;
-
-/**
- * @author zabdisubhan
- */
-public interface RepositoryService {
-
-    boolean testConfiguration(Application application) throws Exception;
-
-    boolean testConfiguration(Application application, String repo, String branch) throws Exception;
-
-    File cloneRepoToDirectory(Application application, File dirLocation);
-
-    File getWorkTree(Application application);
-
-    void handleException(Exception e, Application application, BindingResult result);
-
-    String getCurrentRevision(Application application);
 }
