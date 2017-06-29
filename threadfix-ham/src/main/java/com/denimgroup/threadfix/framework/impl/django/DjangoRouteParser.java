@@ -37,11 +37,6 @@ public class DjangoRouteParser implements EventBasedTokenizer{
     public static Map parse(String sourceRoot, String rootPath, @Nonnull File file) {
         DjangoRouteParser routeParser = new DjangoRouteParser(sourceRoot, rootPath);
         EventBasedTokenizerRunner.run(file, routeParser);
-//        for (String path : routeParser.importPathMap.values()) {
-//            File importFile = new File(root, path);
-//            if (importFile.exists())
-//                routeParser.routeMap.putAll(parse(root, importFile));
-//        }
         return routeParser.routeMap;
     }
 
