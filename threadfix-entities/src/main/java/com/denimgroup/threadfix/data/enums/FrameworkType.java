@@ -33,7 +33,8 @@ public enum FrameworkType {
     SPRING_MVC("Spring MVC"),
     STRUTS("Struts"),
     DOT_NET_MVC(".NET MVC"),
-    DOT_NET_WEB_FORMS("ASP.NET WebForms");
+    DOT_NET_WEB_FORMS("ASP.NET WebForms"),
+    PYTHON("Python");
 
     FrameworkType(String displayName) {
         this.displayName = displayName;
