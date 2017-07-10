@@ -70,7 +70,7 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 public class RiverbedWebAppFirewallLogParser extends WafLogParser {
 
     protected final SanitizedLogger log = new SanitizedLogger(this.getClass());
-    private static final String THREADFIX_HANDLER_NAME = "ThreadfixHandler";
+    private static final String THREADFIX_HANDLER_NAME = "Handler";
     private static final String THREADFIX_HANDLER_COMPONENT = "protection_rules";
     private static final String LOG_TIMESTAMP_FORMAT = "yyyyMMdd-HHmmss"; // 20140131-172342
     private static final String WAF_LOG_MODE_PROTECTION = "P";

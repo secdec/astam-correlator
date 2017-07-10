@@ -148,7 +148,7 @@ public final class DefectTrackerFactory {
 	
 				if (exception != null) {
 					STATIC_LOG.error("The custom importer has not been correctly added. " +
-							"Put the JAR in the lib directory of threadfix under the webapps folder in tomcat.", exception);
+							"Put the JAR in the lib directory under the webapps folder in tomcat.", exception);
 				}
 			}
 				

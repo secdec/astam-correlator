@@ -624,11 +624,13 @@ public class ApplicationServiceImpl implements ApplicationService {
             canManageWafs = true;
         } else if (application.getOrganization() != null) {
 
-			canManageWafs = permissionService.isAuthorized(Permission.CAN_MANAGE_WAFS,
-					application.getOrganization().getId(), application.getId());
+//			canManageWafs = permissionService.isAuthorized(Permission.CAN_MANAGE_WAFS,
+//					application.getOrganization().getId(), application.getId());
+			canManageWafs = false;
 			
-			canManageDefectTrackers = permissionService.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS,
-					application.getOrganization().getId(), application.getId());
+//			canManageDefectTrackers = permissionService.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS,
+//					application.getOrganization().getId(), application.getId());
+			canManageDefectTrackers = false;
 		}
 
         testRepositoryConnections(application, result);

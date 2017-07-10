@@ -5,6 +5,7 @@
 <html lang="en">
 <head>
 	<meta http-equiv="X-FRAME-OPTIONS" content="DENY"/>
+    <%@include file="/common/meta.jsp"%>
 	<title>ThreadFix</title>
     <cbs:cachebustscript src="/scripts/angular.min.js"/>
     <cbs:cachebustscript src="/scripts/angular-sanitize.min.js"/>
@@ -24,7 +25,7 @@
     <div ng-controller="LoginController">
         <form method="post" action="${ fn:escapeXml(loginUrl) }" autocomplete="off" name="form">
             <!-- Attempts to change this will only result in the CSRF filter blocking the user -->
-            <input type='hidden' name='spring-security-redirect' value='/dashboard'/>
+            <input type='hidden' name='spring-security-redirect' value='/teams'/>
             <div style="position:absolute;left:50%;top:50%;margin-left:-250px;margin-top:-191px;">
                 <img src="<%=request.getContextPath()%>/images/ThreadFix_72.jpg" alt="Denim Group" width="177px" height="81px"/>
             </div>

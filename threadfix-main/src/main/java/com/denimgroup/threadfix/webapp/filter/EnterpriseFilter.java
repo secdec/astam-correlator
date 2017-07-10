@@ -83,9 +83,9 @@ public class EnterpriseFilter implements Filter {
             PrintWriter writer = response.getWriter();
 
             if (state == LicenseState.EXPIRED) {
-                writer.write("<h1 style=\"text-align:center\">ThreadFix license has expired. Install a valid license and try again.</h1>");
+                writer.write("<h1 style=\"text-align:center\">Application license has expired. Install a valid license and try again.</h1>");
             } else {
-                writer.write("<h1 style=\"text-align:center\">ThreadFix license check failed. Install a valid license and try again.</h1>");
+                writer.write("<h1 style=\"text-align:center\">Application license check failed. Install a valid license and try again.</h1>");
             }
             writer.close();
         }

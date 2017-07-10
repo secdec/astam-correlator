@@ -94,22 +94,26 @@ public class ThreadFixRestClientImpl implements ThreadFixRestClient {
 	}
 	
 	public RestResponse<String> getRules(String wafId, String appId) {
-		return httpRestUtils.httpGet("/wafs/" + wafId + "/rules" + "/app/" + appId, String.class);
+//		return httpRestUtils.httpGet("/wafs/" + wafId + "/rules" + "/app/" + appId, String.class);
+        return null;
 	}
 
 	public RestResponse<Waf> searchForWafByName(String name) {
-		return httpRestUtils.httpGet("/wafs/lookup", "&name=" + encode(name), Waf.class);
+//		return httpRestUtils.httpGet("/wafs/lookup", "&name=" + encode(name), Waf.class);
+        return null;
 	}
 	
 	public RestResponse<Waf> searchForWafById(String wafId) {
-		return httpRestUtils.httpGet("/wafs/" + wafId, Waf.class);
+//		return httpRestUtils.httpGet("/wafs/" + wafId, Waf.class);
+		return null;
 	}
 	
 	public RestResponse<Waf> createWaf(String name, String type) {
-		return httpRestUtils.httpPost("/wafs/new",
-				new String[] {"name", "type"},
-				new String[] { name,   type},
-                Waf.class);
+//		return httpRestUtils.httpPost("/wafs/new",
+//				new String[] {"name", "type"},
+//				new String[] { name,   type},
+//                Waf.class);
+        return null;
 	}
 	
 	/**

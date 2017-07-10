@@ -70,7 +70,8 @@ public class CustomCweTextController {
     public @ResponseBody RestResponse<GenericVulnerability> submit(@Valid @ModelAttribute GenericVulnerability genericVulnerability,
                                                                    BindingResult result, Model model){
 
-        if(!PermissionUtils.hasGlobalPermission(Permission.CAN_MANAGE_CUSTOM_CWE_TEXT)){
+        if(true){
+//        if(!PermissionUtils.hasGlobalPermission(Permission.CAN_MANAGE_CUSTOM_CWE_TEXT)){
             return failure("You do not have permission to do that.");
         }
 
@@ -101,7 +102,8 @@ public class CustomCweTextController {
     @RequestMapping(value = "/{genericVulnerabilityId}/delete", method = RequestMethod.POST)
     public @ResponseBody RestResponse<String> delete(@PathVariable("genericVulnerabilityId") Integer genericVulnerabilityId){
 
-        if(!PermissionUtils.hasGlobalPermission(Permission.CAN_MANAGE_CUSTOM_CWE_TEXT)){
+        if(true){
+//        if(!PermissionUtils.hasGlobalPermission(Permission.CAN_MANAGE_CUSTOM_CWE_TEXT)){
             return failure("You do not have permission to do that.");
         }
 

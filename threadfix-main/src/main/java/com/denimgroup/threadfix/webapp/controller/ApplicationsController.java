@@ -139,13 +139,13 @@ public class ApplicationsController {
                 Permission.CAN_UPLOAD_SCANS,
                 Permission.CAN_MODIFY_VULNERABILITIES,
                 Permission.CAN_MANAGE_VULN_FILTERS,
-                Permission.CAN_SUBMIT_DEFECTS,
+//                Permission.CAN_SUBMIT_DEFECTS,
                 Permission.CAN_SUBMIT_COMMENTS,
                 Permission.CAN_GENERATE_REPORTS,
-                Permission.CAN_MANAGE_DEFECT_TRACKERS,
-                Permission.CAN_MANAGE_GRC_TOOLS,
-                Permission.CAN_MANAGE_USERS,
-                Permission.CAN_MANAGE_TAGS);
+//                Permission.CAN_MANAGE_DEFECT_TRACKERS,
+//                Permission.CAN_MANAGE_GRC_TOOLS,
+//                Permission.CAN_MANAGE_TAGS,
+                Permission.CAN_MANAGE_USERS);
 		
 		if (application.getPassword() != null && !"".equals(application.getPassword())) {
 			application.setPassword(Application.TEMP_PASSWORD);
@@ -257,9 +257,9 @@ public class ApplicationsController {
         }
 
         // permissions
-        for (Permission permission : new Permission[]{Permission.CAN_MANAGE_DEFECT_TRACKERS, Permission.CAN_MANAGE_WAFS}) {
-            map.put(permission.getCamelCase(), PermissionUtils.hasGlobalPermission(permission));
-        }
+//        for (Permission permission : new Permission[]{Permission.CAN_MANAGE_DEFECT_TRACKERS, Permission.CAN_MANAGE_WAFS}) {
+//            map.put(permission.getCamelCase(), PermissionUtils.hasGlobalPermission(permission));
+//        }
 
         return success(map);
     }

@@ -89,20 +89,20 @@ public class CommandLineParser {
 				String[] setArgs = cmd.getOptionValues("search");
 				printOutput(VulnSearchParameterParser.processVulnerabilitySearchParameters(client, setArgs));
 
-			} else if (cmd.hasOption("sd")) {
-                String[] setArgs = cmd.getOptionValues("sd");
-                printOutput(DefectSubmissionParameterParser.processDefectSubmissionParameters(client, setArgs));
+//			} else if (cmd.hasOption("sd")) {
+//                String[] setArgs = cmd.getOptionValues("sd");
+//                printOutput(DefectSubmissionParameterParser.processDefectSubmissionParameters(client, setArgs));
 
-            } else if (cmd.hasOption("gdp")) {
-                String[] setArgs = cmd.getOptionValues("gdp");
-
-				if (setArgs == null || setArgs.length != 1) {
-					System.out.println("This method requires one argument, the application's ID. Got " + setArgs);
-				} else if (!setArgs[0].matches("^[0-9]+$")) {
-					System.out.println("Non-numeric ID argument given");
-				} else {
-					printOutput(client.getDefectTrackerFields(Integer.valueOf(setArgs[0])));
-				}
+//            } else if (cmd.hasOption("gdp")) {
+//                String[] setArgs = cmd.getOptionValues("gdp");
+//
+//				if (setArgs == null || setArgs.length != 1) {
+//					System.out.println("This method requires one argument, the application's ID. Got " + setArgs);
+//				} else if (!setArgs[0].matches("^[0-9]+$")) {
+//					System.out.println("Non-numeric ID argument given");
+//				} else {
+//					printOutput(client.getDefectTrackerFields(Integer.valueOf(setArgs[0])));
+//				}
 
             } else if (cmd.hasOption("ct")) {
 				String[] createArgs = cmd.getOptionValues("ct");
@@ -112,13 +112,13 @@ public class CommandLineParser {
 				LOGGER.info("Creating a Team with the name " + createArgs[0] + ".");
 				printOutput(client.createTeam(createArgs[0]));
 
-			} else if (cmd.hasOption("cw")) {
-				String[] createArgs = cmd.getOptionValues("cw");
-				if (createArgs.length != 2) {
-					throw new ParseException("Wrong number of arguments.");
-				}
-				LOGGER.info("Creating a Waf with the name " + createArgs[0] + ".");
-				printOutput(client.createWaf(createArgs[0], createArgs[1]));
+//			} else if (cmd.hasOption("cw")) {
+//				String[] createArgs = cmd.getOptionValues("cw");
+//				if (createArgs.length != 2) {
+//					throw new ParseException("Wrong number of arguments.");
+//				}
+//				LOGGER.info("Creating a Waf with the name " + createArgs[0] + ".");
+//				printOutput(client.createWaf(createArgs[0], createArgs[1]));
 
 			} else if (cmd.hasOption("ca")) {
 				String[] createArgs = cmd.getOptionValues("ca");
@@ -250,20 +250,20 @@ public class CommandLineParser {
 					LOGGER.error("Unknown property argument. Try either id or name.");
 				}
 
-			} else if (cmd.hasOption("sw")) {
-				String[] searchArgs = cmd.getOptionValues("sw");
-				if (searchArgs.length != 2) {
-					throw new ParseException("Wrong number of arguments.");
-				}
-				if ("id".equals(searchArgs[0])) {
-					LOGGER.info("Searching for WAF with the id " + searchArgs[1] + ".");
-					printOutput(client.searchForWafById(searchArgs[1]));
-				} else if ("name".equals(searchArgs[0])) {
-					LOGGER.info("Searching for WAF with the name " + searchArgs[1] + ".");
-					printOutput(client.searchForWafByName(searchArgs[1]));
-				} else {
-					throw new ParseException("Unknown property argument. Try either id or name.");
-				}
+//			} else if (cmd.hasOption("sw")) {
+//				String[] searchArgs = cmd.getOptionValues("sw");
+//				if (searchArgs.length != 2) {
+//					throw new ParseException("Wrong number of arguments.");
+//				}
+//				if ("id".equals(searchArgs[0])) {
+//					LOGGER.info("Searching for WAF with the id " + searchArgs[1] + ".");
+//					printOutput(client.searchForWafById(searchArgs[1]));
+//				} else if ("name".equals(searchArgs[0])) {
+//					LOGGER.info("Searching for WAF with the name " + searchArgs[1] + ".");
+//					printOutput(client.searchForWafByName(searchArgs[1]));
+//				} else {
+//					throw new ParseException("Unknown property argument. Try either id or name.");
+//				}
 
 			} else if (cmd.hasOption("sa")) {
 				String[] searchArgs = cmd.getOptionValues("sa");
@@ -295,49 +295,49 @@ public class CommandLineParser {
 						LOGGER.info("Searching for application with the uniqueId " + searchArgs[1] + " of team " + searchArgs[2]);
 						System.out.println(client.searchForApplicationInTeamByUniqueId(searchArgs[1], searchArgs[2]));
 					}
-				} else if ("tagId".equals(searchArgs[0])) {
-					if (searchArgs.length != 2) {
-						System.out.println("Wrong number of arguments.");
-						return;
-					}
-					if (isInteger(searchArgs[1])) {
-						LOGGER.info("Searching for applications with the tagId " + searchArgs[1]);
-						printOutput(client.searchForApplicationsByTagId(searchArgs[1]));
-					} else {
-						LOGGER.warn("TagId is not number, not doing anything.");
-					}
+//				} else if ("tagId".equals(searchArgs[0])) {
+//					if (searchArgs.length != 2) {
+//						System.out.println("Wrong number of arguments.");
+//						return;
+//					}
+//					if (isInteger(searchArgs[1])) {
+//						LOGGER.info("Searching for applications with the tagId " + searchArgs[1]);
+//						printOutput(client.searchForApplicationsByTagId(searchArgs[1]));
+//					} else {
+//						LOGGER.warn("TagId is not number, not doing anything.");
+//					}
 				} else {
 					LOGGER.error("Unknown property argument. Try either id, uniqueId, tagId, or name.");
 				}
 
-			} else if (cmd.hasOption("r")) {
-				String[] ruleArgs = cmd.getOptionValues("r");
-				if (ruleArgs.length != 1) {
-					throw new ParseException("Wrong number of arguments.'");
-				}
-				if (isInteger(ruleArgs[0])) {
-					LOGGER.info("Downloading all rules from WAF with ID " + ruleArgs[0] + ".");
-					printOutput(client.getRules(ruleArgs[0], "-1"));
-				} else
-					LOGGER.warn("WafId is not number, not doing anything.");
+//			} else if (cmd.hasOption("r")) {
+//				String[] ruleArgs = cmd.getOptionValues("r");
+//				if (ruleArgs.length != 1) {
+//					throw new ParseException("Wrong number of arguments.'");
+//				}
+//				if (isInteger(ruleArgs[0])) {
+//					LOGGER.info("Downloading all rules from WAF with ID " + ruleArgs[0] + ".");
+//					printOutput(client.getRules(ruleArgs[0], "-1"));
+//				} else
+//					LOGGER.warn("WafId is not number, not doing anything.");
 
-			} else if (cmd.hasOption("ra")) {
-				String[] ruleArgs = cmd.getOptionValues("ra");
-				if (ruleArgs.length != 2) {
-					throw new ParseException("Wrong number of arguments.'");
-				}
-				if (isInteger(ruleArgs[0])) {
-					if (isInteger(ruleArgs[1])) {
-						LOGGER.info("Downloading all rules from WAF with ID " + ruleArgs[0] + " for application with ID " + ruleArgs[1] + ".");
-						printOutput(client.getRules(ruleArgs[0], ruleArgs[1]));
-					} else {
-						LOGGER.warn("ApplicationId is not number, not doing anything.");
-					}
-				} else
-					LOGGER.warn("WafId is not number, not doing anything.");
+//			} else if (cmd.hasOption("ra")) {
+//				String[] ruleArgs = cmd.getOptionValues("ra");
+//				if (ruleArgs.length != 2) {
+//					throw new ParseException("Wrong number of arguments.'");
+//				}
+//				if (isInteger(ruleArgs[0])) {
+//					if (isInteger(ruleArgs[1])) {
+//						LOGGER.info("Downloading all rules from WAF with ID " + ruleArgs[0] + " for application with ID " + ruleArgs[1] + ".");
+//						printOutput(client.getRules(ruleArgs[0], ruleArgs[1]));
+//					} else {
+//						LOGGER.warn("ApplicationId is not number, not doing anything.");
+//					}
+//				} else
+//					LOGGER.warn("WafId is not number, not doing anything.");
 
-			} else if (requestAboutTag(cmd)) {
-				processTagRequest(cmd);
+//			} else if (requestAboutTag(cmd)) {
+//				processTagRequest(cmd);
 			} else if (cmd.hasOption("ac")) {
 				String[] cmtArgs = cmd.getOptionValues("ac");
 				if (cmtArgs.length < 2) {
@@ -380,98 +380,98 @@ public class CommandLineParser {
 	}
 
 	private static void processTagRequest(CommandLine cmd) throws ParseException {
-		if (cmd.hasOption("tg")) {
-			LOGGER.info("Getting all tags.");
-			printOutput(client.getAllTags());
-
-		} else if (cmd.hasOption("ctg")) {
-			String[] tagArgs = cmd.getOptionValues("ctg");
-			if (tagArgs.length < 1) {
-				throw new ParseException("Wrong number of arguments.'");
-			}
-			LOGGER.info("Creating a tag with the name " + tagArgs[0]);
-			TagType tagType = null;
-			if (tagArgs.length > 1) {
-				tagType = TagType.getTagType(tagArgs[1]);
-				if (tagType == null) {
-					LOGGER.warn("Type was not recognized. Available types are APPLICATION, VULNERABILITY, and COMMENT.");
-					return;
-				}
-			}
-			printOutput(client.createTag(tagArgs[0], tagType == null ? null : tagType.toString()));
-
-		} else if (cmd.hasOption("stg")) {
-			String[] searchTagArgs = cmd.getOptionValues("stg");
-			if (searchTagArgs.length !=2) {
-				throw new ParseException("Wrong number of arguments.'");
-			}
-			if ("id".equals(searchTagArgs[0])) {
-				if (isInteger(searchTagArgs[1])) {
-					LOGGER.info("Searching for tag with the id " + searchTagArgs[1] + ".");
-					printOutput(client.searchTagById(searchTagArgs[1]));
-				} else
-					LOGGER.warn("TagId is not number, not doing anything.");
-
-			} else if ("name".equals(searchTagArgs[0])) {
-				LOGGER.info("Searching for tag with the name " + searchTagArgs[1] + ".");
-				printOutput(client.searchTagsByName(searchTagArgs[1]));
-			} else {
-				LOGGER.error("Unknown property argument. Try either id or name.");
-			}
-
-		} else if (cmd.hasOption("aat")) {
-			String[] addTagArgs = cmd.getOptionValues("aat");
-			if (addTagArgs.length !=2) {
-				throw new ParseException("Wrong number of arguments.'");
-			}
-			if (isInteger(addTagArgs[0]) && isInteger(addTagArgs[1])) {
-				LOGGER.info("Adding TagId " + addTagArgs[1] + " to ApplicationId " + addTagArgs[0] + ".");
-				printOutput(client.addAppTag(addTagArgs[0], addTagArgs[1]));
-			} else
-				LOGGER.warn("ApplicationID or TagId is not number, not doing anything.");
-
-		} else if (cmd.hasOption("rat")) {
-			String[] removeTagArgs = cmd.getOptionValues("rat");
-			if (removeTagArgs.length !=2) {
-				throw new ParseException("Wrong number of arguments.'");
-			}
-			if (isInteger(removeTagArgs[0]) && isInteger(removeTagArgs[1])) {
-				LOGGER.info("Removing TagId " + removeTagArgs[1] + " from ApplicationId " + removeTagArgs[0] + ".");
-				printOutput(client.removeAppTag(removeTagArgs[0], removeTagArgs[1]));
-			} else
-				LOGGER.warn("ApplicationID or TagId is not number, not doing anything.");
-		} else if (cmd.hasOption("utg")) {
-			String[] updateTag = cmd.getOptionValues("utg");
-			if (updateTag.length !=2) {
-				throw new ParseException("Wrong number of arguments.'");
-			}
-			if (isInteger(updateTag[0])) {
-				LOGGER.info("Updating name of TagId " + updateTag[0] + " to " + updateTag[1] + ".");
-				printOutput(client.updateTag(updateTag[0], updateTag[1]));
-			} else
-				LOGGER.warn("TagId is not number, not doing anything.");
-		} else if (cmd.hasOption("rtg")) {
-			String[] removeTag = cmd.getOptionValues("rtg");
-			if (removeTag.length !=1) {
-				throw new ParseException("Wrong number of arguments.'");
-			}
-			if (isInteger(removeTag[0])) {
-				LOGGER.info("Removing TagId " + removeTag[0] + ".");
-				printOutput(client.removeTag(removeTag[0]));
-			} else
-				LOGGER.warn("TagId is not number, not doing anything.");
-		}
+//		if (cmd.hasOption("tg")) {
+//			LOGGER.info("Getting all tags.");
+//			printOutput(client.getAllTags());
+//
+//		} else if (cmd.hasOption("ctg")) {
+//			String[] tagArgs = cmd.getOptionValues("ctg");
+//			if (tagArgs.length < 1) {
+//				throw new ParseException("Wrong number of arguments.'");
+//			}
+//			LOGGER.info("Creating a tag with the name " + tagArgs[0]);
+//			TagType tagType = null;
+//			if (tagArgs.length > 1) {
+//				tagType = TagType.getTagType(tagArgs[1]);
+//				if (tagType == null) {
+//					LOGGER.warn("Type was not recognized. Available types are APPLICATION, VULNERABILITY, and COMMENT.");
+//					return;
+//				}
+//			}
+//			printOutput(client.createTag(tagArgs[0], tagType == null ? null : tagType.toString()));
+//
+//		} else if (cmd.hasOption("stg")) {
+//			String[] searchTagArgs = cmd.getOptionValues("stg");
+//			if (searchTagArgs.length !=2) {
+//				throw new ParseException("Wrong number of arguments.'");
+//			}
+//			if ("id".equals(searchTagArgs[0])) {
+//				if (isInteger(searchTagArgs[1])) {
+//					LOGGER.info("Searching for tag with the id " + searchTagArgs[1] + ".");
+//					printOutput(client.searchTagById(searchTagArgs[1]));
+//				} else
+//					LOGGER.warn("TagId is not number, not doing anything.");
+//
+//			} else if ("name".equals(searchTagArgs[0])) {
+//				LOGGER.info("Searching for tag with the name " + searchTagArgs[1] + ".");
+//				printOutput(client.searchTagsByName(searchTagArgs[1]));
+//			} else {
+//				LOGGER.error("Unknown property argument. Try either id or name.");
+//			}
+//
+//		} else if (cmd.hasOption("aat")) {
+//			String[] addTagArgs = cmd.getOptionValues("aat");
+//			if (addTagArgs.length !=2) {
+//				throw new ParseException("Wrong number of arguments.'");
+//			}
+//			if (isInteger(addTagArgs[0]) && isInteger(addTagArgs[1])) {
+//				LOGGER.info("Adding TagId " + addTagArgs[1] + " to ApplicationId " + addTagArgs[0] + ".");
+//				printOutput(client.addAppTag(addTagArgs[0], addTagArgs[1]));
+//			} else
+//				LOGGER.warn("ApplicationID or TagId is not number, not doing anything.");
+//
+//		} else if (cmd.hasOption("rat")) {
+//			String[] removeTagArgs = cmd.getOptionValues("rat");
+//			if (removeTagArgs.length !=2) {
+//				throw new ParseException("Wrong number of arguments.'");
+//			}
+//			if (isInteger(removeTagArgs[0]) && isInteger(removeTagArgs[1])) {
+//				LOGGER.info("Removing TagId " + removeTagArgs[1] + " from ApplicationId " + removeTagArgs[0] + ".");
+//				printOutput(client.removeAppTag(removeTagArgs[0], removeTagArgs[1]));
+//			} else
+//				LOGGER.warn("ApplicationID or TagId is not number, not doing anything.");
+//		} else if (cmd.hasOption("utg")) {
+//			String[] updateTag = cmd.getOptionValues("utg");
+//			if (updateTag.length !=2) {
+//				throw new ParseException("Wrong number of arguments.'");
+//			}
+//			if (isInteger(updateTag[0])) {
+//				LOGGER.info("Updating name of TagId " + updateTag[0] + " to " + updateTag[1] + ".");
+//				printOutput(client.updateTag(updateTag[0], updateTag[1]));
+//			} else
+//				LOGGER.warn("TagId is not number, not doing anything.");
+//		} else if (cmd.hasOption("rtg")) {
+//			String[] removeTag = cmd.getOptionValues("rtg");
+//			if (removeTag.length !=1) {
+//				throw new ParseException("Wrong number of arguments.'");
+//			}
+//			if (isInteger(removeTag[0])) {
+//				LOGGER.info("Removing TagId " + removeTag[0] + ".");
+//				printOutput(client.removeTag(removeTag[0]));
+//			} else
+//				LOGGER.warn("TagId is not number, not doing anything.");
+//		}
 	}
 
-	private static boolean requestAboutTag(CommandLine cmd) {
-		return cmd.hasOption("ctg")
-				|| cmd.hasOption("stg")
-				|| cmd.hasOption("aat")
-				|| cmd.hasOption("rat")
-				|| cmd.hasOption("tg")
-				|| cmd.hasOption("utg")
-				|| cmd.hasOption("rtg");
-	}
+//	private static boolean requestAboutTag(CommandLine cmd) {
+//		return cmd.hasOption("ctg")
+//				|| cmd.hasOption("stg")
+//				|| cmd.hasOption("aat")
+//				|| cmd.hasOption("rat")
+//				|| cmd.hasOption("tg")
+//				|| cmd.hasOption("utg")
+//				|| cmd.hasOption("rtg");
+//	}
 
 	private static boolean isInteger(String inputStr) {
 		if (inputStr == null)

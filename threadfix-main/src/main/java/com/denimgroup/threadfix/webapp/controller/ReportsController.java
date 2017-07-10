@@ -48,8 +48,8 @@ import java.util.Map;
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
-@Controller
-@RequestMapping("/reports")
+//@Controller
+//@RequestMapping("/reports")
 @PreAuthorize("hasRole('ROLE_CAN_GENERATE_REPORTS')")
 public class ReportsController {
 	
@@ -85,7 +85,7 @@ public class ReportsController {
 		return returnList;
 	}
 
-	@RequestMapping(method = RequestMethod.GET)
+//	@RequestMapping(method = RequestMethod.GET)
 	public String index(Model model, HttpServletRequest request) {
 		model.addAttribute("hasVulnerabilities", vulnerabilityService.activeVulnerabilitiesExist());
 		model.addAttribute("reportParameters", new ReportParameters());
@@ -95,7 +95,7 @@ public class ReportsController {
 		model.addAttribute("firstAppId", ControllerUtils.getItem(request, "appId"));
         boolean isEnterprise = EnterpriseTest.isEnterprise();
         model.addAttribute("isEnterprise", isEnterprise);
-        PermissionUtils.addPermissions(model, null, null, Permission.CAN_MANAGE_TAGS);
+//        PermissionUtils.addPermissions(model, null, null, Permission.CAN_MANAGE_TAGS);
 
 		// Return custom report entities
 		List<Report> reports = reportService.loadAllNonNativeReportsByLocationType(ReportLocation.ANALYTIC);
@@ -107,13 +107,13 @@ public class ReportsController {
 		return "reports/index";
 	}
 
-	@RequestMapping(value="/{reportId}", method = RequestMethod.GET)
+//	@RequestMapping(value="/{reportId}", method = RequestMethod.GET)
 	public String toReport(@PathVariable("reportId") int reportId, HttpServletRequest request) {
 		ControllerUtils.addItem(request, "reportId", reportId);
 		return "redirect:/reports";
 	}
 	
-	@RequestMapping(value="/{reportId}/{teamId}", method = RequestMethod.GET)
+//	@RequestMapping(value="/{reportId}/{teamId}", method = RequestMethod.GET)
 	public String toReport(@PathVariable("reportId") int reportId,
 			@PathVariable("teamId") int teamId, HttpServletRequest request) {
 		ControllerUtils.addItem(request, "reportId", reportId);
@@ -121,7 +121,7 @@ public class ReportsController {
 		return "redirect:/reports";
 	}
 	
-	@RequestMapping(value="/{reportId}/{teamId}/{appId}", method = RequestMethod.GET)
+//	@RequestMapping(value="/{reportId}/{teamId}/{appId}", method = RequestMethod.GET)
 	public String toReport(@PathVariable("reportId") int reportId,
 			@PathVariable("teamId") int teamId,
 			@PathVariable("appId") int appId,
@@ -132,7 +132,7 @@ public class ReportsController {
 		return "redirect:/reports";
 	}
 
-    @RequestMapping(value="/trendingScans", method = RequestMethod.POST)
+//    @RequestMapping(value="/trendingScans", method = RequestMethod.POST)
 	@JsonView(AllViews.RestViewScanStatistic.class)
     public @ResponseBody Object processTrendingScans(@ModelAttribute ReportParameters reportParameters,
                                                      HttpServletRequest request) throws IOException {
@@ -140,7 +140,7 @@ public class ReportsController {
         return RestResponse.success(reportsService.generateTrendingReport(reportParameters, request));
     }
 
-    @RequestMapping(value="/snapshot", method = RequestMethod.POST)
+//    @RequestMapping(value="/snapshot", method = RequestMethod.POST)
 	@JsonView(AllViews.VulnSearchApplications.class)
     public @ResponseBody RestResponse<Map<String, Object>> processSnapShot(@ModelAttribute ReportParameters reportParameters,
                                                                            HttpServletRequest request) throws IOException {
@@ -152,7 +152,7 @@ public class ReportsController {
         return RestResponse.success(map);
     }
 
-    @RequestMapping(value="/getTopApps", method = RequestMethod.POST)
+//    @RequestMapping(value="/getTopApps", method = RequestMethod.POST)
     public @ResponseBody RestResponse<Map<String, Object>> processTopApps(@ModelAttribute VulnerabilitySearchParameters reportParameters,
                                                                            HttpServletRequest request) throws IOException {
         log.info("Generating Top 20 Vulnerable applications report");
@@ -161,7 +161,7 @@ public class ReportsController {
         return RestResponse.success(map);
     }
 
-	@RequestMapping(value="/snapshot/averageAge", method = RequestMethod.POST)
+//	@RequestMapping(value="/snapshot/averageAge", method = RequestMethod.POST)
 	public @ResponseBody RestResponse<Map<String, Object>> getPointInTimeAge(@ModelAttribute VulnerabilitySearchParameters reportParameters) throws IOException {
 		long start = System.currentTimeMillis();
 
@@ -176,7 +176,7 @@ public class ReportsController {
 		return RestResponse.success(map);
 	}
 
-	@RequestMapping(value="/snapshot/progressByType", method = RequestMethod.POST)
+//	@RequestMapping(value="/snapshot/progressByType", method = RequestMethod.POST)
 	public @ResponseBody Object getProgressByType(@ModelAttribute VulnerabilitySearchParameters reportParameters) throws IOException {
 		long start = System.currentTimeMillis();
 
@@ -191,7 +191,7 @@ public class ReportsController {
 		return RestResponse.success(map);
 	}
 
-	@RequestMapping(value="/snapshot/scanComparison", method = RequestMethod.POST)
+//	@RequestMapping(value="/snapshot/scanComparison", method = RequestMethod.POST)
 	public @ResponseBody Object getScanComparison(@ModelAttribute VulnerabilitySearchParameters reportParameters) throws IOException {
 		long start = System.currentTimeMillis();
 

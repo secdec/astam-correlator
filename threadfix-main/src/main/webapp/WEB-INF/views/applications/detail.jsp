@@ -9,14 +9,14 @@
 	<cbs:cachebustscript src="/scripts/application-detail-page-controller.js"/>
 	<cbs:cachebustscript src="/scripts/application-page-modal-controller.js"/>
 	<cbs:cachebustscript src="/scripts/defect-submission-modal-controller.js"/>
-	<cbs:cachebustscript src="/scripts/grc-control-submission-modal-controller.js"/>
+	<%--<cbs:cachebustscript src="/scripts/grc-control-submission-modal-controller.js"/>--%>
 	<cbs:cachebustscript src="/scripts/modal-controller-with-config.js"/>
     <cbs:cachebustscript src="/scripts/edit-application-modal-controller.js"/>
 	<cbs:cachebustscript src="/scripts/scan-table-controller.js"/>
 	<cbs:cachebustscript src="/scripts/upload-scan-controller.js"/>
-	<cbs:cachebustscript src="/scripts/scheduled-scan-tab-controller.js"/>
+	<%--<cbs:cachebustscript src="/scripts/scheduled-scan-tab-controller.js"/>--%>
 	<cbs:cachebustscript src="/scripts/document-form-controller.js"/>
-	<cbs:cachebustscript src="/scripts/scan-agent-tasks-tab-controller.js"/>
+	<%--<cbs:cachebustscript src="/scripts/scan-agent-tasks-tab-controller.js"/>--%>
 	<cbs:cachebustscript src="/scripts/bulk-operations-controller.js"/>
 	<cbs:cachebustscript src="/scripts/vuln-search-controller.js"/>
     <cbs:cachebustscript src="/scripts/vuln-search-tree-controller.js"/>
@@ -54,13 +54,13 @@
             </c:if>
         </div>
 
-        <div class="container-fluid">
-            <div class="row-fluid">
-                <c:set var="csrfToken" value="${ emptyUrl }" scope="request"/>
-                <jsp:include page="${ config.applicationTopLeft.jspFilePath }"/>
-                <jsp:include page="${ config.applicationTopRight.jspFilePath }"/>
-            </div>
-        </div>
+        <%--<div class="container-fluid">--%>
+            <%--<div class="row-fluid">--%>
+                <%--<c:set var="csrfToken" value="${ emptyUrl }" scope="request"/>--%>
+                <%--<jsp:include page="${ config.applicationTopLeft.jspFilePath }"/>--%>
+                <%--<jsp:include page="${ config.applicationTopRight.jspFilePath }"/>--%>
+            <%--</div>--%>
+        <%--</div>--%>
 
         <tabset style="margin-top:10px;">
             <%@ include file="/WEB-INF/views/applications/tabs/vulnTabTree.jsp" %>
@@ -97,10 +97,10 @@
 
     <%@ include file="forms/uploadScanForm.jsp"%>
     <%@ include file="/WEB-INF/views/applications/modals/managePolicyModal.jsp" %>
-    <%@ include file="/WEB-INF/views/applications/forms/addWafForm.jsp" %>
-    <%@ include file="/WEB-INF/views/wafs/forms/createWafForm.jsp" %>
+    <%--<%@ include file="/WEB-INF/views/applications/forms/addWafForm.jsp" %>--%>
+    <%--<%@ include file="/WEB-INF/views/wafs/forms/createWafForm.jsp" %>--%>
     <%@ include file="/WEB-INF/views/applications/forms/addDTForm.jsp" %>
-    <%@ include file="/WEB-INF/views/config/defecttrackers/modals/createDTModal.jsp" %>
+    <%--<%@ include file="/WEB-INF/views/config/defecttrackers/modals/createDTModal.jsp" %>--%>
     <%@ include file="/WEB-INF/views/config/users/permissibleUsers.jsp" %>
     <%@ include file="/WEB-INF/views/defects/submitDefectForm.jsp" %>
     <%@ include file="/WEB-INF/views/applications/modals/submitGRCControl.jsp" %>
@@ -116,6 +116,6 @@
     <%@ include file="/WEB-INF/views/applications/forms/viewApplicationForm.jsp" %>
     <%@ include file="../scans/createMappingModal.jsp" %>
     <%@ include file="/WEB-INF/views/reports/vulnSummaryModal.jsp" %>
-    <%@ include file="../config/defecttrackers/modals/updateDefectDefaultModal.jsp" %>
-    <%@ include file="../config/defecttrackers/modals/createDefaultProfileModal.jsp" %>
+    <%--<%@ include file="../config/defecttrackers/modals/updateDefectDefaultModal.jsp" %>--%>
+    <%--<%@ include file="../config/defecttrackers/modals/createDefaultProfileModal.jsp" %>--%>
 </body>

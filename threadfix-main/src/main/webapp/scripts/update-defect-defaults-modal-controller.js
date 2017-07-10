@@ -231,7 +231,7 @@ myAppModule.controller('UpdateDefectDefaultsModalController', function ($scope, 
         });
 
         if ($scope.config.editableFields.length === 1) {
-            $scope.errorMessage = "ThreadFix was unable to populate a submission form. Check your configuration.";
+            $scope.errorMessage = "Unable to populate a submission form. Check your configuration.";
             $scope.hasFields = false;
         }
     }
