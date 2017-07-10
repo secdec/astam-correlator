@@ -48,6 +48,10 @@ myAppModule.controller('ApplicationPageModalController', function($scope, $rootS
                        })
                    });
 
+                   if (!$scope.config.monitor)
+                       $scope.config.monitor = {};
+
+
                    $scope.config.tags.sort(nameCompare);
                    $scope.config.applicationTags.sort(nameCompare);
 
@@ -56,6 +60,7 @@ myAppModule.controller('ApplicationPageModalController', function($scope, $rootS
                    $scope.$parent.documents = $scope.config.documents;
                    $scope.$parent.application = $scope.config.application;
                    $scope.versions = $scope.config.versions;
+                   $scope.monitor = $scope.config.monitor;
 
                    $rootScope.$broadcast('seeMoreExtension', "/" + $scope.config.application.team.id + "/" + $scope.config.application.id);
 
@@ -66,6 +71,7 @@ myAppModule.controller('ApplicationPageModalController', function($scope, $rootS
                    $rootScope.$broadcast('documents', $scope.config.documents);
                    $rootScope.$broadcast('policyStatuses', $scope.config.application.policyStatuses);
                    $rootScope.$broadcast('versionsChange', $scope.versions);
+                   $rootScope.$broadcast('monitorChanges', $scope.monitor);
 
                    $rootScope.$broadcast('loadVulnerabilitySearchTable');
 
@@ -725,5 +731,43 @@ myAppModule.controller('ApplicationPageModalController', function($scope, $rootS
                 $scope.$parent.errorMessage = "Request to server failed. Got " + status + " response code.";
             });
     }
+
+
+    $scope.manageMonitor = function() {
+        var modalInstance = $modal.open({
+            templateUrl: 'manageMonitorForm.html',
+            windowClass: 'wide',
+            controller: 'ManageMonitorController',
+            resolve: {
+                url: function() {
+                    return "";
+                },
+                object: function () {
+                    return {};
+                },
+                config: function() {
+                    return {
+                        monitor: $scope.config.monitor,
+                        application: $scope.config.application,
+                        frequencyTypes: $scope.config.frequencyTypes,
+                        periodTypes : $scope.config.periodTypes,
+                        daysOfWeek : $scope.config.daysInWeek
+                };
+                },
+                buttonText: function() {
+                    return "Submit";
+                }
+            }
+        });
+
+        $scope.currentModal = modalInstance;
+
+        modalInstance.result.then(function (result) {
+            $scope.$parent.successMessage = result;
+        }, function () {
+            $log.info('Modal dismissed at: ' + new Date());
+        });
+    };
+
 
 });

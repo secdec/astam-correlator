@@ -1,6 +1,8 @@
 package com.denimgroup.threadfix.data.entities;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
+
 import javax.persistence.*;
 
 @Entity
@@ -26,6 +28,7 @@ public class ScheduledGitPoll extends ScheduledJob {
         return enabled;
     }
 
+    @JsonView(Object.class)
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
     }

@@ -5,6 +5,7 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.service.DefaultConfigService;
 import com.denimgroup.threadfix.service.ScheduledJobService;
 import com.denimgroup.threadfix.service.queue.QueueSender;
+import java.time.ZonedDateTime;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +92,7 @@ public abstract class AbstractScheduledJobScheduler<T extends ScheduledJob> {
             //Add default scheduled job
             T defaultScheduledJob = scheduledJobService.getDefaultScheduledJob(); //not static method anymore, returns null if not overridden in service
             if (defaultScheduledJob == null){
-                log.info("No default sechduled Job for " + jobNaturalName + ". Skipping default setup");
+                log.info("No default scheduled Job for " + jobNaturalName + ". Skipping default setup");
                 return;
             }
 
@@ -126,30 +127,64 @@ public abstract class AbstractScheduledJobScheduler<T extends ScheduledJob> {
     }
 
     private String getCronExpression(T scheduledJob) {
-
         DayInWeek dayInWeek = DayInWeek.getDay(scheduledJob.getDay());
         ScheduledFrequencyType frequencyType = ScheduledFrequencyType.getFrequency(scheduledJob.getFrequency());
         ScheduledPeriodType scheduledPeriodType = ScheduledPeriodType.getPeriod(scheduledJob.getPeriod());
         String cronExpression = null;
 
+        /*Simple implementation utilizing just the hour and minute of the schedule job.
+         *This is too allow jobs to recur more than once a day. The expression will allow for every X minutes and/or
+         *every Y hours. In such case that an hour an minute are provided, the job will job run every x minutes
+          * starting next minute and every y hours starting next hour.
+         **/
+        if(frequencyType == ScheduledFrequencyType.RECURRING) {
+            int hour = scheduledJob.getHour();
+            int minutes = scheduledJob.getMinute();
+
+            /*Value sanity checks by cron*/
+            if(hour > 23) hour = 23;
+            if(hour < 0) hour = 0;
+            if(minutes > 59) minutes = 59;
+            if(minutes < 0) minutes = 0;
+
+            ZonedDateTime dt = ZonedDateTime.now();
+            int currentHour = (dt.getHour() == 23  ? 0 : dt.getHour() + 1); //if hourly kick this off next hour
+            int currentMin = (dt.getMinute() == 59 ? 0 : dt.getMinute() + 1); //kick this off the next minute
+
+            String hourExpression;
+            String minExpression;
+            if(hour > 0)
+                hourExpression = currentHour + "/" + hour + " ? * *";
+            else
+                hourExpression = " * ? * *";
+
+            if(minutes > 0 )
+                minExpression = "0 " + currentMin + "/" + minutes;
+            else
+                minExpression = "0 0";
+
+            cronExpression = minExpression + " " + hourExpression;
+            return cronExpression;
+        }
+
         // Set DayOfWeek is ? if schedule daily, and MON-SUN otherwise
         String day = "?";
         if (frequencyType == ScheduledFrequencyType.WEEKLY) {
             if (dayInWeek == null) {
-                log.warn("Unable to schedule ScheduledGRCToolUpdateId " + scheduledJob.getId() + " " + scheduledJob.getFrequency() + " " + scheduledJob.getDay());
+                log.warn("Unable to schedule " + scheduledJob.getId() + " " + scheduledJob.getFrequency() + " " + scheduledJob.getDay());
                 return cronExpression;
             }
-            day = dayInWeek.getDay().toUpperCase();
+            day = dayInWeek.toString().toUpperCase();
         }
 
         // Set DayOfMonth is ? if schedule weekly, and * otherwise
-        String dayOfMonth = (ScheduledFrequencyType.WEEKLY == frequencyType?"?":"*");
+        String dayOfMonth = (ScheduledFrequencyType.WEEKLY == frequencyType ? "?" : "*");
 
         int hour = scheduledJob.getHour();
         if (ScheduledPeriodType.PM == scheduledPeriodType && hour < 12)
             hour += 12;
 
-        cronExpression = "0 " + scheduledJob.getMinute() + " " + hour + " " + dayOfMonth+ " * " + day;
+        cronExpression = "0 " + scheduledJob.getMinute() + " " + hour + " " + dayOfMonth + " * " + day;
 
         return cronExpression;
     }
@@ -220,4 +255,5 @@ public abstract class AbstractScheduledJobScheduler<T extends ScheduledJob> {
 
     //Optionally extend this method to add attributes to the job data map
     protected void setAdditionalJobDataMap(JobDetail job, T scheduledJob){}
+
 }

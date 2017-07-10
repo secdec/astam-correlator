@@ -24,6 +24,10 @@
 
 package com.denimgroup.threadfix.data.entities;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
 /**
  * Created by zabdisubhan on 8/14/14.
  */
@@ -55,4 +59,14 @@ public enum DayInWeek {
         }
         return null;
     }
+
+
+    public static List<String> getDayInWeekDescriptions(){
+        ArrayList<String> descriptions = new ArrayList<String>();
+        for(DayInWeek dayInWeek : DayInWeek.values()){
+            descriptions.add(dayInWeek.getDay());
+        }
+        return descriptions;
+    }
+
 }

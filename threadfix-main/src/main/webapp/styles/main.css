@@ -1602,3 +1602,24 @@ td.doc-name {
 	margin-top: 11px;
 	margin-bottom: 11px;
 }
+
+#monitor-config-div .row{
+	text-align: left;
+	margin:0px 0px 10px 0px;
+}
+
+#frequencyTypeLabel, #periodLabel{
+	padding-top:5px;
+}
+
+#monitorEnabled{
+	float:left;
+}
+
+select#monitorFrequency,select#monitorPeriod{
+	margin-bottom: 0px;
+}
+
+#monitor-config-div .ng-invalid{
+	border: 1px solid red;
+}
