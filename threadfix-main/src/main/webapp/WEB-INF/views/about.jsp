@@ -2,33 +2,19 @@
 
 <html>
     <head>
-        <title>About ThreadFix</title>
+        <title>About ASTAM Correlation</title>
     </head>
     <body>
-        <h2>About ThreadFix</h2>
+        <h2>About ASTAM Correlation</h2>
         <div>
             <p>
-                ThreadFix is a software vulnerability aggregation and management system that helps organizations aggregate vulnerability data, generate virtual patches, and interact with software defect tracking systems.
+                ASTAM Correlation is a Hybrid Analysis Mapping tool used to parse source code and merge scans from SAST and DAST tools to calculate attack surfaces for applications.
             </p>
             <p>
-                Important Links:<br />
-                <ul>
-                    <li>
-                        <a href="http://www.threadfix.org/" target="_blank">Main ThreadFix Site</a>
-                    </li>
-                    <li>
-                        <a href="https://github.com/denimgroup/threadfix" target="_blank">ThreadFix GitHub Site</a>
-                    </li>
-                    <li>
-                        <a href="https://groups.google.com/forum/?fromgroups#!forum/threadfix" target="_blank">ThreadFix Google Group (Community Support)</a>
-                    </li>
-                </ul>
+                <a href="http://astam.securedecisions.com/display/PUB/ASTAM" target="_blank">ASTAM Overview Site</a>
             </p>
         </div>
-        <h2>About This ThreadFix Build</h2>
-        <div>
-            <b>Last commit:</b> <a href="https://github.com/denimgroup/threadfix/commit/${requestScope.gitCommit}" class="commit-id" target="_blank">${requestScope.gitCommit}</a>
-        </div>
+        <h2>About This ASTAM Correlation Build</h2>
         <div>
             <b>Build date:</b> <fmt:formatDate value="${requestScope.buildDate}" pattern="MMM dd, yyyy hh:mm a zzz"/>
         </div>
