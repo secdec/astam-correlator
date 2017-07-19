@@ -106,6 +106,8 @@ public class ApplicationsController {
     @Autowired(required = false)
     private PolicyService policyService;
 
+    @Autowired
+    private ScheduledGitPollService gitPollService;
 
 	@InitBinder
 	public void initBinder(WebDataBinder dataBinder) {
@@ -239,6 +241,15 @@ public class ApplicationsController {
 
         // versions
         map.put("versions", application.getVersions());
+
+        // monitor
+        if(application.getRepositoryType().equalsIgnoreCase(SourceCodeRepoType.GIT.getRepoType())) {
+            ScheduledGitPoll poll = gitPollService.loadByApplicationOrDefault(application);
+            map.put("monitor", poll);
+            map.put("frequencyTypes", ScheduledFrequencyType.values());
+            map.put("periodTypes", ScheduledPeriodType.values());
+            map.put("daysInWeek", DayInWeek.getDayInWeekDescriptions());
+        }
 
         // edit form
         map.put("applicationTypes", FrameworkType.values());

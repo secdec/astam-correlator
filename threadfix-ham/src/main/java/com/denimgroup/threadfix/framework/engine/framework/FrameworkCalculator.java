@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.framework.engine.framework;
 
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.impl.django.DjangoFrameworkChecker;
 import com.denimgroup.threadfix.framework.impl.dotNet.DotNetFrameworkChecker;
 import com.denimgroup.threadfix.framework.impl.dotNetWebForm.WebFormsFrameworkChecker;
 import com.denimgroup.threadfix.framework.impl.rails.RailsFrameworkChecker;
@@ -48,11 +49,11 @@ public class FrameworkCalculator {
 
     static {
         // TODO detect language first and use that to narrow down the frameworks
-        // TODO incorporate python code
         register(new JavaAndJspFrameworkChecker());
         register(new DotNetFrameworkChecker());
         register(new WebFormsFrameworkChecker());
         register(new RailsFrameworkChecker());
+        register(new DjangoFrameworkChecker());
     }
 
     public static void register(FrameworkChecker checker) {

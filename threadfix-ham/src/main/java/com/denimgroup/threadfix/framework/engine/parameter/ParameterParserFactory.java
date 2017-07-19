@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.engine.parameter;
 
 import com.denimgroup.threadfix.framework.engine.ProjectConfig;
+import com.denimgroup.threadfix.framework.impl.django.DjangoParameterParser;
 import com.denimgroup.threadfix.framework.impl.dotNetWebForm.WebFormsParameterParser;
 import com.denimgroup.threadfix.framework.impl.jsp.JSPDataFlowParser;
 import com.denimgroup.threadfix.framework.impl.rails.RailsParameterParser;
@@ -57,6 +58,9 @@ public class ParameterParserFactory {
                 break;
             case RAILS:
                 parser = new RailsParameterParser();
+                break;
+            case PYTHON:
+                parser = new DjangoParameterParser();
                 break;
             default:
                 LOG.info("Didn't have parser for " + projectConfig.getFrameworkType());

@@ -68,7 +68,10 @@
                     <c:if test="${ !canManageApplications }">
                         <li><a class="pointer" id="viewVersionModalButton" ng-click="manageVersions()">View Versions</a></li>
                     </c:if>
-
+                    <%--TODO Verify access permissions for this--%>
+                    <c:if test="${ canManageApplications }">
+                        <li><a class="pointer" id="viewMonitorModalButton" ng-click="manageMonitor()">Manage Repository Monitor</a></li>
+                    </c:if>
                 </ul>
             </div>
         </c:if>

@@ -4,8 +4,10 @@ import com.denimgroup.threadfix.data.entities.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.service.ScheduledGitPollService;
 import com.denimgroup.threadfix.service.queue.GitQueueSender;
+import com.microsoft.tfs.core.clients.build.flags.ScheduleType;
 import org.quartz.JobDetail;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -17,7 +19,7 @@ public class ScheduledGitPollScheduler extends AbstractScheduledJobScheduler<Sch
     private GitQueueSender gitQueueSender;
 
     @Autowired
-    public ScheduledGitPollScheduler(ScheduledGitPollService scheduledGitPollService){
+    public ScheduledGitPollScheduler(@Lazy ScheduledGitPollService scheduledGitPollService){
         super(	scheduledGitPollService,
                 ScheduledGitPollJob.class,
                 "ScheduledGitPollId_",
@@ -25,10 +27,10 @@ public class ScheduledGitPollScheduler extends AbstractScheduledJobScheduler<Sch
                 "ScheduledGitPolls");
     }
 
-    //Filter out any poll that is not currently enabled
     public boolean addScheduledJob(ScheduledGitPoll scheduledGitPoll) {
-        if(scheduledGitPoll.isEnabled())
-            return super.addScheduledJob(scheduledGitPoll);
+        if(scheduledGitPoll.isEnabled()) {
+            super.addScheduledJob(scheduledGitPoll);
+        }
         return false;
     }
 
@@ -44,7 +46,5 @@ public class ScheduledGitPollScheduler extends AbstractScheduledJobScheduler<Sch
         //Since the super assumes the same queue we will replace it
         job.getJobDataMap().put("queueSender",gitQueueSender);
     }
-
-    //TODO override getCronExpression to tweak job scheduling to be more flexible on trigger times
 
 }
