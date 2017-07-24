@@ -56,13 +56,13 @@ public class AstamMessageManager {
         String brokerUrl = astamConfig.getCdsBrokerUrl();
         if(StringUtils.isBlank(brokerUrl)){
             LOGGER.error("Can not setup messaging service, broker url not configured");
-            //throw Exception
+            return;
         }
 
         String compId = astamConfig.getCdsCompId();
         if(StringUtils.isBlank(compId)){
             LOGGER.error("Can not setup messaging service, component id not configured");
-            //throw Exception
+            return;
         }
 
         ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
