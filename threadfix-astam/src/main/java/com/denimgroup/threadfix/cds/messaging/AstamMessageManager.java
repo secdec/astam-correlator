@@ -44,8 +44,10 @@ public class AstamMessageManager {
     private AstamMessageProducer messageProducer = null;
     private AstamMessageSubscriber messageSubscriber = null;
 
+    private boolean isConfigured = false;
     private static AstamConfiguration astamConfig;
     private static Connection connection;
+
 
     public AstamMessageManager(AstamConfiguration astamConfiguration){
         astamConfig = astamConfiguration;
@@ -56,14 +58,18 @@ public class AstamMessageManager {
         String brokerUrl = astamConfig.getCdsBrokerUrl();
         if(StringUtils.isBlank(brokerUrl)){
             LOGGER.error("Can not setup messaging service, broker url not configured");
+            isConfigured = false;
             return;
         }
 
         String compId = astamConfig.getCdsCompId();
         if(StringUtils.isBlank(compId)){
             LOGGER.error("Can not setup messaging service, component id not configured");
+            isConfigured = false;
             return;
         }
+
+        isConfigured = true;
 
         ConnectionFactory connectionFactory = new ActiveMQConnectionFactory(brokerUrl);
         try {
@@ -86,6 +92,9 @@ public class AstamMessageManager {
                        @Nonnull DataSetType dataSetType,
                        @Nonnull List<String> entityIds) {
         setupConnection();
+        if(!isConfigured){
+            return;
+        }
         String topicString = createTopic(dataEntity, dataAction, dataSetType);
          messageProducer = new AstamMessageProducer(connection,
                  topicString,
@@ -101,6 +110,9 @@ public class AstamMessageManager {
                           @Nonnull DataAction dataAction,
                           @Nonnull DataSetType dataSetType){
         setupConnection();
+        if(!isConfigured){
+            return;
+        }
         String topicString = createTopic(dataEntity, dataAction, dataSetType);
         messageSubscriber = new AstamMessageSubscriber(connection, topicString);
         thread(messageSubscriber, false);
