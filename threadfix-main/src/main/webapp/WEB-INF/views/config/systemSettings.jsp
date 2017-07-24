@@ -623,5 +623,88 @@
                         ng-click="submit(otherForm.$valid)">Save Changes</button>
             </div>
         </tab>
+
+        <tab id="cdsTab" heading="CDS Integration" ng-click="setTab('cds')" active="tab.cds">
+            <div ng-form="configForm" name="cdsForm">
+
+
+                <div class="panel panel-default">
+                    <div id="defaultCdsCompIdSettingsPanel" class="panel-heading pointer" style="width:250px"
+                         ng-click="editCdsCompIdSettings = !editCdsCompIdSettings">
+                        <h3 class="panel-title">
+                            <span ng-hide="editCdsCompIdSettings" class="icon icon-chevron-right"></span>
+                            <span ng-show="editCdsCompIdSettings" class="icon icon-chevron-down"></span>
+                            Component Id
+                        </h3>
+                    </div>
+                    <div class="panel-body" ng-show="editCdsCompIdSettings">
+                        <table class="dataTable">
+                             <tr>
+                                 <td style="width:150px" class="no-color">Component Id</td>
+                                 <td class="no-color">
+                                     <input id="compId" type="text" name="compId" class="focus" size="100"
+                                            maxlength="1024" ng-model="astamConfig.cdsCompId"/>
+                                 </td>
+                             </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div id="defaultCdsApiUrlSettingsPanel" class="panel-heading pointer" style="width:250px"
+                         ng-click="editCdsApiUrlSettings = !editCdsApiUrlSettings">
+                        <h3 class="panel-title">
+                            <span ng-hide="editCdsApiUrlSettings" class="icon icon-chevron-right"></span>
+                            <span ng-show="editCdsApiUrlSettings" class="icon icon-chevron-down"></span>
+                            API Base URL
+                        </h3>
+                    </div>
+                    <div class="panel-body" ng-show="editCdsApiUrlSettings">
+                        <table class="even-sized-rows">
+                            <tr>
+                                <td style="width:150px" class="no-color">API Base URL</td>
+                                <td class="no-color">
+                                    <input id="cdsApiBaseUrl" type="text" name="cdsApiBaseUrl" class="focus" size="60"
+                                           maxlength="1024" ng-model="astamConfig.cdsApiUrl"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div id="editCdsBrokerUrlSettingsPanel" class="panel-heading pointer" style="width:250px"
+                         ng-click="editCdsBrokerUrlSettings = !editCdsBrokerUrlSettings">
+                        <h3 class="panel-title">
+                            <span ng-hide="editCdsBrokerUrlSettings" class="icon icon-chevron-right"></span>
+                            <span ng-show="editCdsBrokerUrlSettings" class="icon icon-chevron-down"></span>
+                            Broker URL
+                        </h3>
+                    </div>
+                    <div class="panel-body" ng-show="editCdsBrokerUrlSettings">
+                        <table class="even-sized-rows">
+                            <tr>
+                                <td style="width:150px" class="no-color">Broker URL</td>
+                                <td class="no-color">
+                                    <input id="cdsBrokerUrl" type="text" name="cdsBrokerUrl" class="focus" size="60"
+                                           maxlength="1024" ng-model="astamConfig.cdsBrokerUrl"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+
+                <button id="submitCds"
+                        ng-class="{ disabled : cdsForm.$invalid }"
+                        class="btn btn-primary save"
+                        ng-mouseenter="cdsForm.$dirty = true"
+                        ng-hide="loading"
+                       <%-- ng-click="submitCds(otherForm.$valid)"--%>
+                        ng-click="submitCds()"
+                        spring>Save Changes</button>
+            </div>
+        </tab>
+
     </tabset>
 </body>

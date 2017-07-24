@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.service;
 
+import com.denimgroup.threadfix.cds.service.AstamPushService;
 import com.denimgroup.threadfix.data.dao.*;
 import com.denimgroup.threadfix.data.entities.*;
 import com.denimgroup.threadfix.data.enums.EventAction;
@@ -83,6 +84,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Autowired private ApplicationCriticalityService applicationCriticalityService;
     @Autowired private DefaultDefectProfileServiceImpl defectProfileService;
 	@Autowired private ApplicationVersionService applicationVersionService;
+	@Autowired private AstamPushService astamPushService;
 
     @Nullable
     @Autowired(required = false)
@@ -149,6 +151,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             if (application.getFrameworkType().equals(FrameworkType.NONE.toString()))
                 application.setFrameworkType(FrameworkType.DETECT.toString());
 			applicationDao.saveOrUpdate(application);
+			astamPushService.pushAppMngmtToAstam(application.getId());
 		}
 	}
 

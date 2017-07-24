@@ -8,6 +8,7 @@
 package com.denimgroup.threadfix.webapp.controller;
 
 import com.denimgroup.threadfix.annotations.ReportLocation;
+import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.data.entities.CSVExportField;
 import com.denimgroup.threadfix.data.entities.DefaultConfiguration;
 import com.denimgroup.threadfix.exception.RestIOException;
@@ -69,6 +70,9 @@ public class SystemSettingsController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AstamConfigurationService astamConfigurationService;
+
     @InitBinder
     public void initBinder(WebDataBinder dataBinder) {
 		String[] reports = {
@@ -76,7 +80,7 @@ public class SystemSettingsController {
 				"dashboardTopRight.id", "dashboardBottomLeft.id", "dashboardBottomRight.id",
 				"applicationTopLeft.id", "applicationTopRight.id", "teamTopLeft.id", "teamTopRight.id",
                 "fileUploadLocation", "deleteUploadedFiles", "csvExportFields[*]", "baseUrl", 
-                "closeVulnWhenNoScannersReport"
+                "closeVulnWhenNoScannersReport", "cdsCompId", "cdsApiUrl", "cdsBrokerUrl", "astamConfig"
 		};
 
         String[] otherSections = {
@@ -100,6 +104,7 @@ public class SystemSettingsController {
     @RequestMapping(method = RequestMethod.GET)
     public String setupForm(Model model) {
         model.addAttribute("defaultConfiguration", defaultConfigService.loadCurrentConfiguration());
+        model.addAttribute("astamConfig", astamConfigurationService.loadCurrentConfiguration());
         return "config/systemSettings";
     }
 
@@ -126,12 +131,30 @@ public class SystemSettingsController {
         }
     }
 
+    //TODO: CDS Settings
+    @JsonView(AllViews.FormInfo.class)
+    @RequestMapping(value = "/astam", method = RequestMethod.POST)
+    public @ResponseBody Object processSubmit(@ModelAttribute AstamConfiguration astamConfiguration,
+                                              HttpServletRequest request,
+                                              BindingResult bindingResult) {
+
+        astamConfigurationService.saveConfiguration(astamConfiguration);
+        return success(astamConfiguration);
+
+     /*   if (bindingResult.hasErrors()) {
+
+            return FormRestResponse.failure("Unable save CDS Integration Settings. Try again.", bindingResult);
+        } else {
+
+        }*/
+
+    }
     @JsonView(AllViews.FormInfo.class)
     @RequestMapping(method = RequestMethod.POST)
     public @ResponseBody Object processSubmit(@ModelAttribute DefaultConfiguration defaultConfiguration,
                                               HttpServletRequest request,
                                               BindingResult bindingResult) {
-
+        log.info("settings controller : model"  +defaultConfiguration.toString() +  " req: " + request.toString() + "BR: " + bindingResult.toString());
         if (defaultConfiguration.getDeleteUploadedFiles()) {
             try {
                 scanService.deleteScanFileLocations();
@@ -216,6 +239,10 @@ public class SystemSettingsController {
         map.put("dashboardReports", reportService.loadByLocationType(ReportLocation.DASHBOARD));
         map.put("applicationReports", reportService.loadByLocationType(ReportLocation.APPLICATION));
         map.put("teamReports", reportService.loadByLocationType(ReportLocation.TEAM));
+        map.put("cdsCompId", astamConfigurationService.loadCurrentConfiguration().getCdsCompId());
+        map.put("cdsApiUrl", astamConfigurationService.loadCurrentConfiguration().getCdsApiUrl());
+        map.put("cdsBrokerUrl", astamConfigurationService.loadCurrentConfiguration().getCdsBrokerUrl());
+        map.put("astamConfig", astamConfigurationService.loadCurrentConfiguration());
 
         return map;
     }

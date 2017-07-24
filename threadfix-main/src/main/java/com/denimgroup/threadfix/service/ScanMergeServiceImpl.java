@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.service;
 
 import com.denimgroup.threadfix.DiskUtils;
+import com.denimgroup.threadfix.cds.service.AstamPushService;
 import com.denimgroup.threadfix.data.dao.ApplicationChannelDao;
 import com.denimgroup.threadfix.data.dao.ScanDao;
 import com.denimgroup.threadfix.data.dao.UserDao;
@@ -77,6 +78,8 @@ public class ScanMergeServiceImpl implements ScanMergeService {
 	private PermissionsHandler permissionsHandler;
 	@Autowired
 	private DefaultConfigService defaultConfigService;
+	@Autowired
+	private AstamPushService astamPushService;
 
 	private Pattern scanFileRegex = Pattern.compile("(.*)(scan-file-[0-9]+-[0-9]+)");
 
@@ -185,7 +188,8 @@ public class ScanMergeServiceImpl implements ScanMergeService {
 		scanDao.saveOrUpdate(scan);
 
 		vulnerabilityFilterService.updateVulnerabilities(scan);
-
+        //TODO:
+		//astamPushService.pushFindingsToAstam();
 		return true;
 	}
 

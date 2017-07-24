@@ -1,11 +1,34 @@
+// Copyright 2017 Secure Decisions, a division of Applied Visions, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// This material is based on research sponsored by the Department of Homeland
+// Security (DHS) Science and Technology Directorate, Cyber Security Division
+// (DHS S&T/CSD) via contract number HHSP233201600058C.
+
 package com.denimgroup.threadfix.mapper;
 
 
-import com.denimgroup.threadfix.data.entities.*;
+import com.denimgroup.threadfix.data.entities.DataFlowElement;
+import com.denimgroup.threadfix.data.entities.SurfaceLocation;
+import com.denimgroup.threadfix.data.entities.WebAttackSurface;
 import com.denimgroup.threadfix.util.ProtobufMessageUtils;
-import com.secdec.astam.common.data.models.*;
+import com.secdec.astam.common.data.models.Attacksurface;
+import com.secdec.astam.common.data.models.Common;
+import com.secdec.astam.common.data.models.Entities;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,11 +53,12 @@ public class AstamAttackSurfaceMapper {
         for (WebAttackSurface attackSurface : attackSurfaces) {
 
             Attacksurface.EntryPointWeb.Builder entryPointWebBuilder = Attacksurface.EntryPointWeb.newBuilder()
+                    .setRecordData(ProtobufMessageUtils.createRecordData(attackSurface))
                     .addAllKnownAttackMechanisms(getAttackMechanisms(attackSurface))
                     .setTrace(getTraceNode(attackSurface))
                     .addAllHttpMethod(getHttpMethods(attackSurface.getSurfaceLocation()))
                     .setRelativePath(attackSurface.getSurfaceLocation().getPath())
-                    .setId(ProtobufMessageUtils.createUUID(attackSurface.getUuid()));
+                    .setId(ProtobufMessageUtils.createUUID(attackSurface));
 
             webEntryPoints.add(entryPointWebBuilder.build());
         }
@@ -47,6 +71,8 @@ public class AstamAttackSurfaceMapper {
         Attacksurface.EntryPointWeb.AttackMechanism attackMechanism = Attacksurface.EntryPointWeb.AttackMechanism.newBuilder()
                     .setType(getWebAttackMechanismType(surfaceLocation))
                     .setName(getAttackMechanismName(surfaceLocation))
+                     //.setValueType() This is the parameter type String/Integer
+                     //.addAllValues() This maps to: "repeated string values = 4; "
                     .build();
 
         attackMechanismList.add(attackMechanism);
@@ -112,16 +138,21 @@ public class AstamAttackSurfaceMapper {
                 .addAllEntryPointWebIds(webEntryPointIds)
                 .addAllEntryPointMobileIds(mobileEntryPointIds)
                 //.setReportingTool(service.findIdByName(ThreadFix)
+                //.setReportingExternalToolId()
                 .build();
 
         return rawDiscoveredAttackSurface;
     }
 
     public void writeAttackSurfaceToOutput(OutputStream outputStream) throws IOException {
-        Attacksurface.EntryPointWebSet entryPointWebSet = Attacksurface.EntryPointWebSet.newBuilder()
+        Attacksurface.EntryPointWebSet entryPointWebSet = getEntryPointwebSet();
+        entryPointWebSet.writeTo(outputStream);
+    }
+
+    public Attacksurface.EntryPointWebSet getEntryPointwebSet(){
+        Attacksurface.EntryPointWebSet  entryPointWebSet = Attacksurface.EntryPointWebSet.newBuilder()
                 .addAllWebEntryPoints(webEntryPoints)
                 .build();
-
-        entryPointWebSet.writeTo(outputStream);
+        return entryPointWebSet;
     }
 }

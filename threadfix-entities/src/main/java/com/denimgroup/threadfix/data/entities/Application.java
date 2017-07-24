@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.data.entities;
 
+
 import com.denimgroup.threadfix.data.entities.astam.AstamAuditableEntity;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.enums.SourceCodeAccessLevel;
@@ -43,7 +44,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 @Entity
 @Table(name = "Application")
-public class Application extends AuditableEntity {
+public class Application extends AstamAuditableEntity {
 
 	private static final long serialVersionUID = 1175222046579045669L;
     private static final SanitizedLogger log = new SanitizedLogger(Application.class);
