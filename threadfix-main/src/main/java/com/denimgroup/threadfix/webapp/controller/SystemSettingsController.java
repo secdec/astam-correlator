@@ -80,7 +80,7 @@ public class SystemSettingsController {
 				"dashboardTopRight.id", "dashboardBottomLeft.id", "dashboardBottomRight.id",
 				"applicationTopLeft.id", "applicationTopRight.id", "teamTopLeft.id", "teamTopRight.id",
                 "fileUploadLocation", "deleteUploadedFiles", "csvExportFields[*]", "baseUrl", 
-                "closeVulnWhenNoScannersReport", "cdsCompId", "cdsApiUrl", "cdsBrokerUrl", "astamConfig"
+                "closeVulnWhenNoScannersReport", "astamConfig"
 		};
 
         String[] otherSections = {
@@ -137,7 +137,7 @@ public class SystemSettingsController {
     public @ResponseBody Object processSubmit(@ModelAttribute AstamConfiguration astamConfiguration,
                                               HttpServletRequest request,
                                               BindingResult bindingResult) {
-
+        log.info("AStamConfig Controller" + astamConfiguration.getCdsCompId() + " - " + astamConfiguration.getCdsApiUrl() + " - " + astamConfiguration.getCdsBrokerUrl());
         astamConfigurationService.saveConfiguration(astamConfiguration);
         return success(astamConfiguration);
 
@@ -154,7 +154,7 @@ public class SystemSettingsController {
     public @ResponseBody Object processSubmit(@ModelAttribute DefaultConfiguration defaultConfiguration,
                                               HttpServletRequest request,
                                               BindingResult bindingResult) {
-        log.info("settings controller : model"  +defaultConfiguration.toString() +  " req: " + request.toString() + "BR: " + bindingResult.toString());
+        log.info("settings controller : model"  +defaultConfiguration.toString() + "BR: " + bindingResult.toString());
         if (defaultConfiguration.getDeleteUploadedFiles()) {
             try {
                 scanService.deleteScanFileLocations();
@@ -239,10 +239,8 @@ public class SystemSettingsController {
         map.put("dashboardReports", reportService.loadByLocationType(ReportLocation.DASHBOARD));
         map.put("applicationReports", reportService.loadByLocationType(ReportLocation.APPLICATION));
         map.put("teamReports", reportService.loadByLocationType(ReportLocation.TEAM));
-        map.put("cdsCompId", astamConfigurationService.loadCurrentConfiguration().getCdsCompId());
-        map.put("cdsApiUrl", astamConfigurationService.loadCurrentConfiguration().getCdsApiUrl());
-        map.put("cdsBrokerUrl", astamConfigurationService.loadCurrentConfiguration().getCdsBrokerUrl());
         map.put("astamConfig", astamConfigurationService.loadCurrentConfiguration());
+
 
         return map;
     }

@@ -39,14 +39,14 @@ public class AstamConfiguration extends BaseEntity {
     private String cdsCompId;
     private String cdsBrokerUrl;
 
-   // private boolean hasConfiguration = false;
+    private boolean hasConfiguration = false;
 
     public static AstamConfiguration getInitialConfig(){
         AstamConfiguration config = new AstamConfiguration();
-        //config.setHasConfiguration(false);
-        config.setCdsApiUrl("intial data url");
-        config.setCdsBrokerUrl("intial broker url");
-        config.setCdsCompId("intial comp Id");
+        config.setHasConfiguration(false);
+        config.setCdsApiUrl("");
+        config.setCdsBrokerUrl("");
+        config.setCdsCompId("");
         return config;
     }
 
@@ -69,7 +69,7 @@ public class AstamConfiguration extends BaseEntity {
 
     public void setCdsBrokerUrl(String cdsBrokerUrl) {this.cdsBrokerUrl = cdsBrokerUrl;}
 
-  /*  @Column
+    @Column
     public boolean getHasConfiguration() {
         return hasConfiguration;
     }
@@ -77,5 +77,4 @@ public class AstamConfiguration extends BaseEntity {
     public void setHasConfiguration(boolean hasConfiguration) {
         this.hasConfiguration = hasConfiguration;
     }
-*/
 }

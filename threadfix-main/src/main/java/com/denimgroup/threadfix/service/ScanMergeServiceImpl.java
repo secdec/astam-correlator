@@ -188,8 +188,9 @@ public class ScanMergeServiceImpl implements ScanMergeService {
 		scanDao.saveOrUpdate(scan);
 
 		vulnerabilityFilterService.updateVulnerabilities(scan);
-        //TODO:
-		//astamPushService.pushFindingsToAstam();
+        //TODO: QA
+        astamPushService.pushEntitiesToAstam(scan.getApplication());
+		astamPushService.pushFindingsToAstam(scan.getApplication().getId());
 		return true;
 	}
 

@@ -664,7 +664,7 @@
                             <tr>
                                 <td style="width:150px" class="no-color">API Base URL</td>
                                 <td class="no-color">
-                                    <input id="cdsApiBaseUrl" type="text" name="cdsApiBaseUrl" class="focus" size="60"
+                                    <input id="cdsApiUrl" type="text" name="cdsApiBUrl" class="focus" size="60"
                                            maxlength="1024" ng-model="astamConfig.cdsApiUrl"/>
                                 </td>
                             </tr>
@@ -700,8 +700,8 @@
                         class="btn btn-primary save"
                         ng-mouseenter="cdsForm.$dirty = true"
                         ng-hide="loading"
-                       <%-- ng-click="submitCds(otherForm.$valid)"--%>
-                        ng-click="submitCds()"
+                        ng-click="submitCds(cdsForm.$valid)"
+                       <%-- ng-click="submitCds()"--%>
                         spring>Save Changes</button>
             </div>
         </tab>

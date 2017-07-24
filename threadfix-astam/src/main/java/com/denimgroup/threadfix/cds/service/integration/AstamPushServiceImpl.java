@@ -86,10 +86,10 @@ public class AstamPushServiceImpl implements AstamPushService {
     @Override
     public void pushSingleAppToAstam(Application app){
         int appId = app.getId();
-        //pushEntitiesToAstam(app);
+        pushEntitiesToAstam(app);
         pushAppMngmtToAstam(appId);
-        //pushAttackSurfaceToAstam(appId);
-        //pushFindingsToAstam(appId);
+        pushAttackSurfaceToAstam(appId);
+        pushFindingsToAstam(appId);
     }
 
     @Override

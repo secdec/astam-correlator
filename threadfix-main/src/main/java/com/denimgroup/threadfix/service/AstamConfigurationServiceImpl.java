@@ -61,6 +61,7 @@ public class AstamConfigurationServiceImpl implements AstamConfigurationService 
 
     @Override
     public void saveConfiguration(AstamConfiguration config) {
+        log.info("Saving new configuration to Db. CompId: " + config.getCdsCompId() + " - ApiUrl: " + config.getCdsApiUrl() + " - Broker Url: " + config.getCdsBrokerUrl());
         astamConfigurationDao.saveOrUpdate(config);
         //TODO: (edge case) figure out pushing existing data prior to configuration,
         // only if applications will also be created in the ASTAM correlator

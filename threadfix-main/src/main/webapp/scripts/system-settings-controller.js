@@ -116,9 +116,9 @@ myAppModule.controller('SystemSettingsController', function ($scope, $window, $m
 
     $scope.submitCds = function () {
         var url = tfEncoder.encode('/configuration/settings/astam');
-
+        console.log("astamConfig is:" + astamConfig)
        //TODO: validate
-       // if (valid) {
+        if (valid) {
             $scope.loading = true;
 
             $http.post(url, $scope.astamConfig).
@@ -147,7 +147,7 @@ myAppModule.controller('SystemSettingsController', function ($scope, $window, $m
                 $scope.loading = false;
                 $scope.errorMessage = "Failure. HTTP status was " + status;
             });
-        //}
+        }
     };
 
     $scope.ok = function (valid) {
