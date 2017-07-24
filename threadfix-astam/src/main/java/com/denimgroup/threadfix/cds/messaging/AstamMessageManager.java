@@ -36,8 +36,7 @@ import java.util.List;
 /**
  * Created by amohammed on 6/28/2017.
  */
-//TODO: fix same client id bug, when both a producer/s and subscriber/s are active
-//TODO: they need to share the same connection
+//TODO: same client id bug, when both a producer/s and subscriber/s are active (Done needs testing)
 public class AstamMessageManager {
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(AstamMessageManager.class);
@@ -50,7 +49,6 @@ public class AstamMessageManager {
 
     public AstamMessageManager(AstamConfiguration astamConfiguration){
         astamConfig = astamConfiguration;
-        setupConnection();
     }
 
     private void setupConnection(){
@@ -87,6 +85,7 @@ public class AstamMessageManager {
                        @Nonnull DataAction dataAction,
                        @Nonnull DataSetType dataSetType,
                        @Nonnull List<String> entityIds) {
+        setupConnection();
         String topicString = createTopic(dataEntity, dataAction, dataSetType);
          messageProducer = new AstamMessageProducer(connection,
                  topicString,
@@ -101,6 +100,7 @@ public class AstamMessageManager {
     public void subscribe(@Nonnull DataEntity dataEntity,
                           @Nonnull DataAction dataAction,
                           @Nonnull DataSetType dataSetType){
+        setupConnection();
         String topicString = createTopic(dataEntity, dataAction, dataSetType);
         messageSubscriber = new AstamMessageSubscriber(connection, topicString);
         thread(messageSubscriber, false);
