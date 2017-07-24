@@ -6,7 +6,7 @@
 <head>
 	<meta http-equiv="X-FRAME-OPTIONS" content="DENY"/>
     <%@include file="/common/meta.jsp"%>
-	<title>ThreadFix</title>
+	<title>ASTAM Correlator</title>
     <cbs:cachebustscript src="/scripts/angular.min.js"/>
     <cbs:cachebustscript src="/scripts/angular-sanitize.min.js"/>
     <cbs:cachebustscript src="/scripts/login-controller.js"/>
