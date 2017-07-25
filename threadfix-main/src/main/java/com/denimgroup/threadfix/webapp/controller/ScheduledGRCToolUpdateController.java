@@ -74,7 +74,8 @@ public class ScheduledGRCToolUpdateController {
 
         log.info("Start adding scheduled GRC tool update.");
 
-        if (!PermissionUtils.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS, null, null)){
+//        if (!PermissionUtils.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS, null, null)){
+        if(true){
             return RestResponse.failure("You are not allowed to modify scheduled GRC tool updates.");
         }
 
@@ -114,7 +115,8 @@ public class ScheduledGRCToolUpdateController {
 
         log.info("Start deleting scheduled GRC tool update");
 
-        if (!PermissionUtils.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS, null, null)){
+//        if (!PermissionUtils.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS, null, null)){
+        if(true){
             return RestResponse.failure("You are not authorized to delete this scheduled GRC tool update.");
         }
 

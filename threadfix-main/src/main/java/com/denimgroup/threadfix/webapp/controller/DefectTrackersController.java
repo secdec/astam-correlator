@@ -59,8 +59,8 @@ import static com.denimgroup.threadfix.CollectionUtils.setFrom;
 import static com.denimgroup.threadfix.remote.response.RestResponse.failure;
 import static com.denimgroup.threadfix.remote.response.RestResponse.success;
 
-@Controller
-@RequestMapping("/configuration/defecttrackers")
+//@Controller
+//@RequestMapping("/configuration/defecttrackers")
 @SessionAttributes({"defectTracker","editDefectTracker"})
 @PreAuthorize("hasRole('ROLE_CAN_MANAGE_DEFECT_TRACKERS')")
 public class DefectTrackersController {
@@ -79,11 +79,11 @@ public class DefectTrackersController {
 	@RequestMapping(method = RequestMethod.GET)
 	public String index(Model model) {
         model.addAttribute(new DefectTracker());
-        PermissionUtils.addPermissions(model, null, null, Permission.CAN_MANAGE_DEFECT_TRACKERS);
+//        PermissionUtils.addPermissions(model, null, null, Permission.CAN_MANAGE_DEFECT_TRACKERS);
         return "config/defecttrackers/index";
 	}
 	
-	@RequestMapping("/{defectTrackerId}")
+//	@RequestMapping("/{defectTrackerId}")
 	public ModelAndView detail(@PathVariable("defectTrackerId") int defectTrackerId) {
 		DefectTracker defectTracker = defectTrackerService.loadDefectTracker(defectTrackerId);
 		
@@ -94,12 +94,12 @@ public class DefectTrackersController {
 		
 		ModelAndView mav = new ModelAndView("config/defecttrackers/detail");
 		mav.addObject(defectTracker);
-        PermissionUtils.addPermissions(mav, null, null, Permission.CAN_MANAGE_DEFECT_TRACKERS);
+//        PermissionUtils.addPermissions(mav, null, null, Permission.CAN_MANAGE_DEFECT_TRACKERS);
 		return mav;
 	}
 	
 	@PreAuthorize("hasRole('ROLE_CAN_MANAGE_DEFECT_TRACKERS')")
-	@RequestMapping("/{defectTrackerId}/delete")
+//	@RequestMapping("/{defectTrackerId}/delete")
 	public @ResponseBody RestResponse<String> deleteTracker(@PathVariable("defectTrackerId") int defectTrackerId,
 			SessionStatus status, Model model) {
 		DefectTracker defectTracker = defectTrackerService.loadDefectTracker(defectTrackerId);
@@ -113,7 +113,7 @@ public class DefectTrackersController {
 	}
 
 	@PreAuthorize("hasRole('ROLE_CAN_MANAGE_DEFECT_TRACKERS')")
-	@RequestMapping("/info")
+//	@RequestMapping("/info")
 	@JsonView(AllViews.DefectTrackerInfos.class)
 	public @ResponseBody RestResponse<Map<String, Object>> getList() {
 		Map<String, Object> map = new HashMap<>();
@@ -124,7 +124,7 @@ public class DefectTrackersController {
 	}
 
     // TODO move this elsewhere?
-    @RequestMapping(value = "/jsontest", method = RequestMethod.POST)
+//    @RequestMapping(value = "/jsontest", method = RequestMethod.POST)
     @ResponseBody
     public RestResponse<?> readJson(@Valid @ModelAttribute DefectTracker defectTracker, BindingResult result) {
 

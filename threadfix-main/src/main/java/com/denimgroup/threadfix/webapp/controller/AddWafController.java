@@ -50,8 +50,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
-@RestController
-@RequestMapping("/wafs/new")
+//@RestController
+//@RequestMapping("/wafs/new")
 @SessionAttributes("waf")
 @PreAuthorize("hasRole('ROLE_CAN_MANAGE_WAFS')")
 public class AddWafController {
@@ -70,7 +70,7 @@ public class AddWafController {
 		return wafService.loadAllWafTypes();
 	}
 
-	@RequestMapping(method = RequestMethod.GET)
+//	@RequestMapping(method = RequestMethod.GET)
 	public String newForm(Model model) {
 		Waf waf = new Waf();
 		model.addAttribute(waf);
@@ -83,7 +83,7 @@ public class AddWafController {
 	}
 
 	@JsonView(AllViews.TableRow.class)
-	@RequestMapping(value="/ajax/appPage", method = RequestMethod.POST)
+//	@RequestMapping(value="/ajax/appPage", method = RequestMethod.POST)
 	public Object newSubmitAjaxAppPage(@Valid @ModelAttribute Waf waf,
 								BindingResult result,
 								SessionStatus status, Model model,
@@ -116,7 +116,7 @@ public class AddWafController {
         return RestResponse.success(waf);
 	}
 	
-	@RequestMapping(value="/ajax", method = RequestMethod.POST)
+//	@RequestMapping(value="/ajax", method = RequestMethod.POST)
 	public String newSubmitAjax(@Valid @ModelAttribute Waf waf, 
 			BindingResult result,
 			SessionStatus status, Model model,
@@ -176,7 +176,7 @@ public class AddWafController {
 			model.addAttribute("newWaf", new Waf());
 			model.addAttribute("waf", new Waf());
 			model.addAttribute("wafPage", true);
-            PermissionUtils.addPermissions(model, null, null, Permission.CAN_MANAGE_WAFS);
+//            PermissionUtils.addPermissions(model, null, null, Permission.CAN_MANAGE_WAFS);
 
 			return "SUCCESS";
 		}

@@ -39,7 +39,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.denimgroup.threadfix.data.entities.Permission.CAN_MANAGE_CUSTOM_CWE_TEXT;
+//import static com.denimgroup.threadfix.data.entities.Permission.CAN_MANAGE_CUSTOM_CWE_TEXT;
 import static com.denimgroup.threadfix.data.entities.Permission.CAN_MANAGE_VULN_FILTERS;
 import static com.denimgroup.threadfix.service.enterprise.EnterpriseTest.isEnterprise;
 import static com.denimgroup.threadfix.service.util.PermissionUtils.isAuthorized;
@@ -125,7 +125,8 @@ public abstract class AbstractVulnFilterController {
 	public String indexBackend(Model model, int orgId, int appId) {
 		boolean isGlobal = orgId == -1 && appId == -1,
 				canManageVulnFilters = isAuthorized(CAN_MANAGE_VULN_FILTERS, orgId, appId),
-				canManageCweText     = isAuthorized(CAN_MANAGE_CUSTOM_CWE_TEXT, orgId, appId);
+				canManageCweText = false;
+//				canManageCweText     = isAuthorized(CAN_MANAGE_CUSTOM_CWE_TEXT, orgId, appId);
 
 		if (isGlobal && !canManageCweText && !canManageVulnFilters) {
 			return "403";
@@ -140,9 +141,11 @@ public abstract class AbstractVulnFilterController {
 		model.addAttribute("type", getType(orgId, appId));
 
 		if (orgId == -1 && appId == -1) {
+//			PermissionUtils.addPermissions(model, -1, -1,
+//					CAN_MANAGE_VULN_FILTERS,
+//					CAN_MANAGE_CUSTOM_CWE_TEXT);
 			PermissionUtils.addPermissions(model, -1, -1,
-					CAN_MANAGE_VULN_FILTERS,
-					CAN_MANAGE_CUSTOM_CWE_TEXT);
+					CAN_MANAGE_VULN_FILTERS);
 			return "customize/threadfixVulnTypes/community";
 		}
 		return "filters/index";

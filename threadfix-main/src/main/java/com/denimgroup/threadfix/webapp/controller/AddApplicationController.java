@@ -175,17 +175,18 @@ public class AddApplicationController {
         }
 
         if (result.hasErrors()) {
-            PermissionUtils.addPermissions(model, null, null, Permission.CAN_MANAGE_DEFECT_TRACKERS,
-                    Permission.CAN_MANAGE_WAFS);
+//            PermissionUtils.addPermissions(model, null, null, Permission.CAN_MANAGE_DEFECT_TRACKERS,
+//                    Permission.CAN_MANAGE_WAFS);
+//            PermissionUtils.addPermissions(model, null, null, Permission.CAN_MANAGE_DEFECT_TRACKERS);
 
             model.addAttribute("org",org);
             model.addAttribute("applicationTypes", FrameworkType.values());
             model.addAttribute("tags", tagService.loadAllApplicationTags());
-            model.addAttribute("canSetDefectTracker", PermissionUtils.isAuthorized(
-                    Permission.CAN_MANAGE_DEFECT_TRACKERS, orgId));
+//            model.addAttribute("canSetDefectTracker", PermissionUtils.isAuthorized(
+//                    Permission.CAN_MANAGE_DEFECT_TRACKERS, orgId));
 
-            model.addAttribute("canSetWaf", PermissionUtils.isAuthorized(
-                    Permission.CAN_MANAGE_WAFS, orgId));
+//            model.addAttribute("canSetWaf", PermissionUtils.isAuthorized(
+//                    Permission.CAN_MANAGE_WAFS, orgId));
 
             model.addAttribute("contentPage", "applications/forms/newApplicationForm.jsp");
 

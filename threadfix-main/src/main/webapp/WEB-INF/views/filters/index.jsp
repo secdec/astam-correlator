@@ -23,7 +23,7 @@
 
             <li ng-show="originalType === 'Organization'"><a class="pointer" ng-click="goToTeam(organization)">Team: {{ organization.name }}</a> <span class="divider">/</span></li>
 
-            <li class="active">Customize ThreadFix Vulnerability Types</li>
+            <li class="active">Customize Vulnerability Types</li>
         </ul>
 
         <h2 ng-show="tab.application">Customize Vulnerability Types for Application {{ application.name }}</h2>

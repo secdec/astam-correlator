@@ -21,8 +21,8 @@ import static com.denimgroup.threadfix.remote.response.RestResponse.resultError;
  * Created by skakani on 5/12/2015.
  */
 
-@RestController
-@RequestMapping("rest/cwe")
+//@RestController
+//@RequestMapping("rest/cwe")
 public class CweRestController extends TFRestController {
 
     @Autowired
@@ -31,15 +31,20 @@ public class CweRestController extends TFRestController {
     public static final String CWE_LOOK_UP_FAILED = "CWE look up failed. Check the ID";
 
     @JsonView(AllViews.RestCweView.class)
-    @RequestMapping(value="/{cweId}/setCustomText", method= RequestMethod.POST, headers ="Accept=application/json")
+//    @RequestMapping(value="/{cweId}/setCustomText", method= RequestMethod.POST, headers ="Accept=application/json")
     public Object setCustomText(HttpServletRequest request, @PathVariable("cweId") int cweId,@RequestParam("customText") String customText){
 
         LOG.info("Got REST request to set the custom text to CWE with id = " + cweId + ".");
 
-        Result<String> keyCheck = checkKey(request, RestMethod.CWE_SET_CUSTOM_TEXT, -1, -1);
-        if (!keyCheck.success()) {
-            return resultError(keyCheck);
+        if(true) {
+            return RestResponse.failure("Endpoint is unavailable");
         }
+
+//        Result<String> keyCheck = checkKey(request, RestMethod.CWE_SET_CUSTOM_TEXT, -1, -1);
+//        if (!keyCheck.success()) {
+//            return resultError(keyCheck);
+//        }
+
 
         GenericVulnerability genericVulnerability = genericVulnerabilityService.loadByDisplayId(cweId);
 

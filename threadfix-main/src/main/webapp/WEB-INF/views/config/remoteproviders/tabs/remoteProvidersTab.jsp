@@ -9,7 +9,7 @@
 
     <div id="helpText">
         Remote Providers are links to services which
-        import vulnerability data into ThreadFix.
+        import vulnerability data.
     </div>
 
     <div ng-hide="initialized" class="spinner-div"><span class="spinner dark"></span>Loading</div><br>

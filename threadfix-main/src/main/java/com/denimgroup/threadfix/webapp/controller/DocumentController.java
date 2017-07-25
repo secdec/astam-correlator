@@ -51,7 +51,7 @@ import java.sql.SQLException;
 @RequestMapping("/organizations/{orgId}/applications/{appId}")
 public class DocumentController {
 	
-	public static final String SCANNER_TYPE_ERROR = "ThreadFix was unable to find a suitable " +
+	public static final String SCANNER_TYPE_ERROR = "Unable to find a suitable " +
 			"scanner type for the file. Please choose one from the list.";
 
     @Autowired

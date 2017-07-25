@@ -46,8 +46,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-@Controller
-@RequestMapping("/configuration/defecttrackers/new")
+//@Controller
+//@RequestMapping("/configuration/defecttrackers/new")
 @SessionAttributes("defectTracker")
 @PreAuthorize("hasRole('ROLE_CAN_MANAGE_DEFECT_TRACKERS')")
 public class AddDefectTrackerController {
@@ -81,13 +81,16 @@ public class AddDefectTrackerController {
 		return "config/defecttrackers/form";
 	}
 
-	@RequestMapping(method = RequestMethod.POST)
+//	@RequestMapping(method = RequestMethod.POST)
 	public @ResponseBody Object processSubmit(@Valid @ModelAttribute DefectTracker defectTracker,
 			BindingResult result, Model model) {
 
-        if (!PermissionUtils.hasGlobalPermission(Permission.CAN_MANAGE_DEFECT_TRACKERS)) {
-            return RestResponse.failure("You do not have permission to do that.");
-        }
+//        if (!PermissionUtils.hasGlobalPermission(Permission.CAN_MANAGE_DEFECT_TRACKERS)) {
+//            return RestResponse.failure("You do not have permission to do that.");
+//        }
+		if(true){
+			return RestResponse.failure("You do not have permission to do that.");
+		}
 
 		if (defectTracker.getName().trim().equals("") && !result.hasFieldErrors("name")) {
 			result.rejectValue("name", null, null, "This field cannot be blank");

@@ -17,7 +17,7 @@
     <%@ include file="/WEB-INF/views/wafs/forms/createWafForm.jsp" %>
 
     <div id="helpText" style="width:630px;">
-		A ThreadFix WAF is used to generate rules for a WAF or IDS/IPS program that is used to filter web traffic.
+		A WAF is used to generate rules for a WAF or IDS/IPS program that is used to filter web traffic.
 	</div>
 
     <div ng-hide="initialized" class="spinner-div"><span class="spinner dark"></span>Loading</div><br>

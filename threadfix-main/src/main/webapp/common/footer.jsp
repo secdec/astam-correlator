@@ -1,16 +1,13 @@
 <%@ include file="/common/taglibs.jsp"%>
 
 <div id="footer">
-<div id="poweredBy">ThreadFix is Powered by</div>
-<div id="bottomLogo">
-	<a href="http://www.denimgroup.com/" class="denim-group" target="_blank">
-		<img src="<%=request.getContextPath()%>/images/dg_logo_white.png" class="transparent_png"
-		alt="Denim Group" />
-	</a>
-</div>
 <div id="copyright">
-    Version 2.3.0. Copyright &copy; 2009 - 2016. Denim Group, Ltd. All rights reserved. Built on
+    Copyright &copy; 2017 Secure Decisions, a division of Applied Visions, Inc. All rights reserved. Built on
     <fmt:formatDate value="${requestScope.buildDate}"/>
+	<br>
+	This material is based on research sponsored by the Department of Homeland
+	Security (DHS) Science and Technology Directorate, Cyber Security Division
+	(DHS S&T/CSD) via contract number HHSP233201600058C.
 </div>
 
 </div>

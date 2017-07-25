@@ -2,7 +2,7 @@ README.txt
 
 There are a few components in this util folder.
 
-1. Threadfix Vulnerability Demo Site
+1. Vulnerability Demo Site
 
 This is a collection of pages that showcases a number of vulnerabilities that we can automatically defend against.
 To use, drop the folder into your Apache directory and set up configuration from there. 

@@ -302,46 +302,46 @@ myAppModule.controller('ApplicationPageModalController', function($scope, $rootS
         });
     };
 
-    $scope.showCreateWafModal = function() {
-        var modalInstance = $modal.open({
-            templateUrl: 'createWafModal.html',
-            controller: 'ModalControllerWithConfig',
-            resolve: {
-                url: function() {
-                    return tfEncoder.encode("/wafs/new/ajax/appPage");
-                },
-                object: function () {
-                    return {
-                        wafType: {
-                            id: 1
-                        },
-                        applicationId: $scope.config.application.id
-                    };
-                },
-                config: function() {
-                    return $scope.config;
-                },
-                buttonText: function() {
-                    return "Create WAF";
-                }
-            }
-        });
-
-        $scope.currentModal = modalInstance;
-
-        modalInstance.result.then(function (waf) {
-//            $scope.config.wafs.push(waf);
-            if (!$scope.config.wafList || $scope.config.wafList.length === 0) {
-                $scope.config.wafList = [];
-            }
-            $scope.config.wafList.push(waf);
-            $scope.config.application.waf = waf;
-            $scope.$parent.successMessage = "Successfully created waf " + waf.name;
-            $scope.showEditModal();
-        }, function () {
-            $log.info('Modal dismissed at: ' + new Date());
-        });
-    };
+//     $scope.showCreateWafModal = function() {
+//         var modalInstance = $modal.open({
+//             templateUrl: 'createWafModal.html',
+//             controller: 'ModalControllerWithConfig',
+//             resolve: {
+//                 url: function() {
+//                     return tfEncoder.encode("/wafs/new/ajax/appPage");
+//                 },
+//                 object: function () {
+//                     return {
+//                         wafType: {
+//                             id: 1
+//                         },
+//                         applicationId: $scope.config.application.id
+//                     };
+//                 },
+//                 config: function() {
+//                     return $scope.config;
+//                 },
+//                 buttonText: function() {
+//                     return "Create WAF";
+//                 }
+//             }
+//         });
+//
+//         $scope.currentModal = modalInstance;
+//
+//         modalInstance.result.then(function (waf) {
+// //            $scope.config.wafs.push(waf);
+//             if (!$scope.config.wafList || $scope.config.wafList.length === 0) {
+//                 $scope.config.wafList = [];
+//             }
+//             $scope.config.wafList.push(waf);
+//             $scope.config.application.waf = waf;
+//             $scope.$parent.successMessage = "Successfully created waf " + waf.name;
+//             $scope.showEditModal();
+//         }, function () {
+//             $log.info('Modal dismissed at: ' + new Date());
+//         });
+//     };
 
     // Defect Tracker methods
     $scope.showAddDefectTrackerModal = function(newDt) {
@@ -577,7 +577,7 @@ myAppModule.controller('ApplicationPageModalController', function($scope, $rootS
     };
 
     $scope.goToWaf = function() {
-        window.location.href = tfEncoder.encode("/wafs/" + $scope.config.application.waf.id);
+        // window.location.href = tfEncoder.encode("/wafs/" + $scope.config.application.waf.id);
     };
 
     $scope.showUsers = function() {
