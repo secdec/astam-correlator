@@ -24,6 +24,8 @@ import com.denimgroup.threadfix.data.entities.ChannelType;
 import com.denimgroup.threadfix.util.ProtobufMessageUtils;
 import com.secdec.astam.common.data.models.Entities;
 
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,12 +34,13 @@ import java.util.List;
 //TODO: refactor duplicate code
 public class AstamEntitiesMapper {
 
-    private List<Entities.ExternalTool> externalTools = null;
+    private List<Entities.ExternalTool> externalTools;
 
-    public Entities.ExternalToolSet getExternalToolSet(Application app){
+    public Entities.ExternalToolSet getExternalToolSet(@Nonnull Application app){
         List<ApplicationChannel> applicationChannels = app.getChannelList();
+        externalTools = new ArrayList<>();
         for (ApplicationChannel applicationChannel : applicationChannels){
-            addExternalTool(applicationChannel.getChannelType());
+            addExternalTool(applicationChannel);
         }
 
         Entities.ExternalToolSet externalToolSet = Entities.ExternalToolSet.newBuilder()
@@ -46,10 +49,14 @@ public class AstamEntitiesMapper {
         return externalToolSet;
     }
 
-    private Entities.ExternalTool addExternalTool(ChannelType channelType) {
+    private Entities.ExternalTool addExternalTool(@Nonnull ApplicationChannel applicationChannel) {
+        ChannelType channelType = applicationChannel.getChannelType();
         Entities.ExternalTool externalTool = Entities.ExternalTool.newBuilder()
                 .setId(ProtobufMessageUtils.createUUID(channelType))
-                .setToolName(channelType.getName()).build();
+                .setToolName(channelType.getName())
+                .setToolVersion(channelType.getVersion())
+                .setRecordData(ProtobufMessageUtils.createRecordData(applicationChannel)).build();
+
 
         if (!externalTools.contains(externalTool)) {
             externalTools.add(externalTool);

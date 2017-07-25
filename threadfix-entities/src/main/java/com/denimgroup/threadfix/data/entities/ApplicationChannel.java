@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.data.entities;
 
+import com.denimgroup.threadfix.data.entities.astam.AstamAuditableEntity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
@@ -33,7 +34,7 @@ import static com.denimgroup.threadfix.CollectionUtils.listOf;
 
 @Entity
 @Table(name = "ApplicationChannel")
-public class ApplicationChannel extends AuditableEntity implements Iterable<Scan> {
+public class ApplicationChannel extends AstamAuditableEntity implements Iterable<Scan> {
 
 	private static final long serialVersionUID = 184587892482641379L;
 
