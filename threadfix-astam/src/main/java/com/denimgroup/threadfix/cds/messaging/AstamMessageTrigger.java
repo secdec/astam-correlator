@@ -23,9 +23,10 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.secdec.astam.common.messaging.Messaging;
 import com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataAction;
 import com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataSetType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.stereotype.Component;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import java.util.List;
 
@@ -36,17 +37,19 @@ import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessa
  * This class triggers actions based on messages broadcasted by the CDS
  */
 
-@Component
-public class AstamMessageTrigger {
+
+public class AstamMessageTrigger implements ApplicationContextAware{
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(AstamMessageTrigger.class);
 
     //TODO: Autowire this
-    @Lazy
-    @Autowired
     private static AstamApplicationImporter applicationImporter;
 
+
+    private ApplicationContext applicationContext;
+
     public AstamMessageTrigger(){
+
     }
 
     public void parse(Messaging.AstamMessage message){
@@ -76,5 +79,10 @@ public class AstamMessageTrigger {
             }
         }
 
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+       applicationContext.getAutowireCapableBeanFactory().autowireBeanProperties(applicationImporter, AutowireCapableBeanFactory.AUTOWIRE_AUTODETECT, true);
     }
 }

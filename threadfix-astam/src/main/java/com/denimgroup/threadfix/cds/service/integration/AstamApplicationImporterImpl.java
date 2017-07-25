@@ -124,7 +124,7 @@ public class AstamApplicationImporterImpl implements AstamApplicationImporter {
     }
 
     private void deleteApplication(Application application){
-        //TODO: fix this
+        //TODO: fix this. Add dependency for threadfix-services-interfaces and autowire using @Lazy
    /*     applicationService.deactivateApplication(application);*/
     }
 

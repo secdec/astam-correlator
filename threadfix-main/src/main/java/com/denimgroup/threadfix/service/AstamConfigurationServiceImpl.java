@@ -18,6 +18,7 @@
 
 package com.denimgroup.threadfix.service;
 
+import com.denimgroup.threadfix.cds.messaging.AstamMessageManager;
 import com.denimgroup.threadfix.cds.service.AstamApplicationImporter;
 import com.denimgroup.threadfix.cds.service.AstamPushService;
 import com.denimgroup.threadfix.data.dao.AstamConfigurationDao;
@@ -26,6 +27,10 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataAction.*;
+import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataEntity.DATA_APPLICATION_REGISTRATION;
+import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataSetType.DATA_SET_SINGLE;
 
 /**
  * Created by amohammed on 7/23/2017.
@@ -56,15 +61,14 @@ public class AstamConfigurationServiceImpl implements AstamConfigurationService 
 
     @Override
     public void saveConfiguration(AstamConfiguration config) {
-        log.info("Saving new configuration to Db. CompId: " + config.getCdsCompId() + " - ApiUrl: " + config.getCdsApiUrl() + " - Broker Url: " + config.getCdsBrokerUrl());
         astamConfigurationDao.saveOrUpdate(config);
         //TODO: (edge case) figure out pushing existing data prior to configuration,
         // only if applications will also be created in the ASTAM correlator
         //astamPushService.pushAllToAstam();
-        //astamApplicationImporter.importAllApplications();
-       /* AstamMessageManager messageManager = new AstamMessageManager(config);
+        astamApplicationImporter.importAllApplications();
+        AstamMessageManager messageManager = new AstamMessageManager(config);
         messageManager.subscribe(DATA_APPLICATION_REGISTRATION, DATA_CREATE, DATA_SET_SINGLE);
         messageManager.subscribe(DATA_APPLICATION_REGISTRATION, DATA_UPDATE, DATA_SET_SINGLE);
-        messageManager.subscribe(DATA_APPLICATION_REGISTRATION, DATA_DELETE, DATA_SET_SINGLE);*/
+        messageManager.subscribe(DATA_APPLICATION_REGISTRATION, DATA_DELETE, DATA_SET_SINGLE);
     }
 }
