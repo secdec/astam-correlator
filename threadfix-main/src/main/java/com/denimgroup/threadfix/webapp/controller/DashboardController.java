@@ -54,8 +54,8 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
  * @author mcollins
  * 
  */
-@Controller
-@RequestMapping("/dashboard")
+//@Controller
+//@RequestMapping("/dashboard")
 public class DashboardController {
 	
 	public DashboardController(){}
@@ -83,7 +83,7 @@ public class DashboardController {
 
 	private final SanitizedLogger log = new SanitizedLogger(DashboardController.class);
 
-	@RequestMapping(method = RequestMethod.GET)
+//	@RequestMapping(method = RequestMethod.GET)
 	public String index(Model model, HttpServletRequest request) {
 
         DefaultConfiguration config = defaultConfigService.loadCurrentConfiguration();
@@ -115,7 +115,7 @@ public class DashboardController {
 	}
 
     @JsonView(AllViews.RestViewScanStatistic.class)
-    @RequestMapping(value="/leftReport", method=RequestMethod.GET)
+//    @RequestMapping(value="/leftReport", method=RequestMethod.GET)
     public @ResponseBody Object leftReport(HttpServletRequest request) throws JsonProcessingException {
         long start = System.currentTimeMillis();
         log.info("Processing left report");
@@ -131,7 +131,7 @@ public class DashboardController {
     }
 
 
-	@RequestMapping(value="/rightReport", method=RequestMethod.GET)
+//	@RequestMapping(value="/rightReport", method=RequestMethod.GET)
 	public @ResponseBody RestResponse rightReport(HttpServletRequest request) {
 
         long start = System.currentTimeMillis();

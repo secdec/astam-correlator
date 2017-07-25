@@ -17,7 +17,7 @@
         <%@ include file="editForm.jsp" %>
 
         <div id="helpText">
-            ThreadFix API Keys are used to access the REST interface.<br/>
+            API Keys are used to access the REST interface.<br/>
         </div>
 
         <button class="btn" ng-click="openNewModal()" id="createNewKeyModalButton">Create New Key</button>

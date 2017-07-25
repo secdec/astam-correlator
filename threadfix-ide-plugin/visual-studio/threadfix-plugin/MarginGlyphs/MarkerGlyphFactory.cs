@@ -48,7 +48,7 @@ namespace DenimGroup.threadfix_plugin.MarginGlyph
 
     internal class MarkerGlyphFactory : IGlyphFactory
     {
-        private static readonly string LogoResource = @"pack://application:,,,/threadfix-plugin;component/Resources/DG_logo_mark_13x13.png";
+        private static readonly string LogoResource = @"pack://application:,,,/threadfix-plugin;component/Resources/ASTAM_logo.png";
 
         public UIElement GenerateGlyph(IWpfTextViewLine line, IGlyphTag tag)
         {

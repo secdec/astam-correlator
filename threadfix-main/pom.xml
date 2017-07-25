@@ -145,17 +145,17 @@
                         <configuration>
                             <tasks>
                                 <copy file="${project.build.directory}/../../threadfix-cli/target/threadfix-cli-${project.version}-jar-with-dependencies.jar"
-                                      tofile="target/classes/downloads/tfcli.jar" />
+                                      tofile="target/classes/downloads/cli.jar" />
                                 <copy file="${project.build.directory}/../../threadfix-cli-importers/target/threadfix-cli-importers-${project.version}.jar"
-                                      tofile="target/classes/downloads/threadfix-cli-importers.jar" />
+                                      tofile="target/classes/downloads/cli-importers.jar" />
                                 <copy file="${project.build.directory}/../../threadfix-cli-endpoints/target/threadfix-endpoint-cli-${project.version}-jar-with-dependencies.jar"
                                       tofile="target/classes/downloads/endpoints.jar" />
                                 <copy file="${project.build.directory}/../../threadfix-data-migration/target/threadfix-data-migration-${project.version}.jar"
-                                      tofile="target/classes/downloads/threadfix-data-migration.jar" />
+                                      tofile="target/classes/downloads/data-migration.jar" />
                                 <copy file="${project.build.directory}/../../threadfix-scanner-plugin/burp/target/threadfix-release-2-jar-with-dependencies.jar"
-                                      tofile="target/classes/downloads/threadfix-release-2-burp.jar" />
+                                      tofile="target/classes/downloads/release-2-burp.jar" />
                                 <copy file="${project.build.directory}/../../threadfix-scanner-plugin/zaproxy/target/threadfix-release-2.zap"
-                                      tofile="target/classes/downloads/threadfix-release-2.zap" />
+                                      tofile="target/classes/downloads/release-2.zap" />
                                 <!--<copy file="${project.build.directory}/../../threadfix-sonar-plugin/target/sonar-threadfix-plugin-${project.version}.jar"
                                       tofile="target/classes/downloads/sonar-threadfix-plugin.jar" />-->
                                 <copy file="${project.build.directory}/../../ssvl-converter/target/ssvl-converter-1.0-SNAPSHOT-jar-with-dependencies.jar"

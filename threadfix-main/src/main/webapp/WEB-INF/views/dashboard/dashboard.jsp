@@ -30,7 +30,7 @@
   	 	
 		<security:authorize access="!hasRole('ROLE_READ_ACCESS')">
 			<div class="alert alert-error">
-				You don't have permission to access any ThreadFix applications or to create one for yourself. 
+				You don't have permission to access any applications or to create one for yourself.
 				Contact your administrator to get help.
 			</div>
 		</security:authorize>

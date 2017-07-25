@@ -37,6 +37,6 @@ public class LoginRedirectController {
 
 	@RequestMapping("/index.jsp")
 	public String processIndexRequest() {
-		return "redirect:/dashboard";
+		return "redirect:/teams";
 	}
 }

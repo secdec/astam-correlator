@@ -33,8 +33,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
 
-@Controller
-@RequestMapping("/wafs/{wafId}/rule/{ruleId}/events")
+//@Controller
+//@RequestMapping("/wafs/{wafId}/rule/{ruleId}/events")
 public class SecurityEventController {
 
 	@Autowired
@@ -42,7 +42,7 @@ public class SecurityEventController {
 
 	private final SanitizedLogger log = new SanitizedLogger(SecurityEventController.class);
 
-	@RequestMapping("/{eventId}")
+//	@RequestMapping("/{eventId}")
 	public ModelAndView detail(@PathVariable("eventId") int eventId) {
 		SecurityEvent securityEvent = securityEventService.loadSecurityEvent(eventId);
 		if (securityEvent != null) {

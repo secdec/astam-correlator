@@ -54,8 +54,8 @@ import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-@Controller
-@RequestMapping("/wafs")
+//@Controller
+//@RequestMapping("/wafs")
 @PreAuthorize("hasRole('ROLE_CAN_MANAGE_WAFS')")
 @SessionAttributes({"newWaf","waf"})
 public class WafsController {
@@ -67,7 +67,7 @@ public class WafsController {
 
 	private final SanitizedLogger log = new SanitizedLogger(WafsController.class);
 
-	@RequestMapping(method = RequestMethod.GET)
+//	@RequestMapping(method = RequestMethod.GET)
 	public String index(Model model) {
 		model.addAttribute("newWaf", new Waf());
 		model.addAttribute("waf", new Waf());
@@ -76,7 +76,7 @@ public class WafsController {
 	}
 
 	@JsonView(AllViews.TableRow.class)
-	@RequestMapping(value = "/map", method = RequestMethod.GET)
+//	@RequestMapping(value = "/map", method = RequestMethod.GET)
 	@ResponseBody
 	public Object map() {
         Map<String, Object> responseMap = new HashMap<>();
@@ -87,7 +87,7 @@ public class WafsController {
         return RestResponse.success(responseMap);
     }
 
-	@RequestMapping("/{wafId}")
+//	@RequestMapping("/{wafId}")
 	public ModelAndView detail(@PathVariable("wafId") int wafId,
 			HttpServletRequest request) {
 		ModelAndView mav = new ModelAndView("wafs/detail");
@@ -97,7 +97,7 @@ public class WafsController {
 			log.warn(ResourceNotFoundException.getLogMessage("WAF", wafId));
 			throw new ResourceNotFoundException();
 		}
-		
+
 		boolean canSeeRules;
 
 		if (waf.getApplications() != null && !waf.getApplications().isEmpty()) {
@@ -172,15 +172,15 @@ public class WafsController {
 		}
 
 		mav.addObject(waf);
-        PermissionUtils.addPermissions(mav, null, null,
-                Permission.CAN_MANAGE_WAFS, Permission.CAN_GENERATE_WAF_RULES);
+//        PermissionUtils.addPermissions(mav, null, null,
+//                Permission.CAN_MANAGE_WAFS, Permission.CAN_GENERATE_WAF_RULES);
 		mav.addObject("successMessage", ControllerUtils.getSuccessMessage(request));
 		
 		return mav;
 	}
 
 	@PreAuthorize("hasRole('ROLE_CAN_MANAGE_WAFS')")
-	@RequestMapping("/{wafId}/delete")
+//	@RequestMapping("/{wafId}/delete")
 	@ResponseBody
 	public Object deleteWaf(@PathVariable("wafId") int wafId,
 			SessionStatus status, HttpServletRequest request, Model model) {
@@ -200,7 +200,7 @@ public class WafsController {
 		}
 	}
 
-	@RequestMapping(value = "/{wafId}/rules/download/app/{appId}", method = RequestMethod.GET)
+//	@RequestMapping(value = "/{wafId}/rules/download/app/{appId}", method = RequestMethod.GET)
 	public ModelAndView download(@PathVariable("wafId") int wafId,
                                  @PathVariable("appId") int wafAppId,
 			HttpServletResponse response, HttpServletRequest request) throws IOException {

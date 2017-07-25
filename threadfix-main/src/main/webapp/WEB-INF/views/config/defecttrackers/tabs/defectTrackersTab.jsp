@@ -9,7 +9,7 @@
     <%@ include file="../modals/updateDefaultProfileModal.jsp" %>
 
     <div id="helpText">
-        A Defect Tracker is the ThreadFix link that allows the user to bundle and export
+        A Defect Tracker is the link that allows the user to bundle and export
         vulnerabilities from an Application to a Defect Tracker.
     </div>
 

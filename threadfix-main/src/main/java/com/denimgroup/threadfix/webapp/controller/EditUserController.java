@@ -111,7 +111,7 @@ public class EditUserController {
 		}
 		if (removingAdminAccess) {
 			model.addAttribute("user", new User());
-			return RestResponse.failure("This would leave users unable to access the user management portion of ThreadFix.");
+			return RestResponse.failure("This would leave users unable to access the user management portion.");
 		}
 
 		if (result.hasErrors()) {

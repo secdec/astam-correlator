@@ -83,7 +83,7 @@
     #end
 
     #if( $customTexts.size() > 0 )
-        #header("ThreadFix Custom Text:")$br
+        #header("Custom Text:")$br
         #foreach ($customText in $customTexts)
             $customText
         #end

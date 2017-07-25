@@ -114,12 +114,12 @@ public class OptionsHolder {
                 .create("ca");
         options.addOption(createApp);
 
-        Option createWaf = OptionBuilder.withArgName("name> <wafTypeName")
-                .hasArgs(2)
-                .withLongOpt("create-waf")
-                .withDescription("Creates a ThreadFix WAF and returns its JSON.")
-                .create("cw");
-        options.addOption(createWaf);
+//        Option createWaf = OptionBuilder.withArgName("name> <wafTypeName")
+//                .hasArgs(2)
+//                .withLongOpt("create-waf")
+//                .withDescription("Creates a ThreadFix WAF and returns its JSON.")
+//                .create("cw");
+//        options.addOption(createWaf);
 
         Option searchTeam = OptionBuilder.withArgName("property> <value")
                 .hasArgs(2)
@@ -128,12 +128,12 @@ public class OptionsHolder {
                 .create("st");
         options.addOption(searchTeam);
 
-        Option searchWaf = OptionBuilder.withArgName("property> <value")
-                .hasArgs(2)
-                .withLongOpt("search-waf")
-                .withDescription("Searches for a ThreadFix WAF and returns its JSON.")
-                .create("sw");
-        options.addOption(searchWaf);
+//        Option searchWaf = OptionBuilder.withArgName("property> <value")
+//                .hasArgs(2)
+//                .withLongOpt("search-waf")
+//                .withDescription("Searches for a ThreadFix WAF and returns its JSON.")
+//                .create("sw");
+//        options.addOption(searchWaf);
 
         Option searchApp = OptionBuilder.withArgName("property> <value1> <value2")
                 .hasArgs(3)
@@ -149,91 +149,91 @@ public class OptionsHolder {
                 .create("u");
         options.addOption(upload);
 
-        Option getRules = OptionBuilder.withArgName("wafId")
-                .hasArg()
-                .withLongOpt("rules")
-                .withDescription("Gets WAF Rules and returns its JSON.")
-                .create("r");
-        options.addOption(getRules);
+//        Option getRules = OptionBuilder.withArgName("wafId")
+//                .hasArg()
+//                .withLongOpt("rules")
+//                .withDescription("Gets WAF Rules and returns its JSON.")
+//                .create("r");
+//        options.addOption(getRules);
+//
+//        Option getRulesForApp = OptionBuilder.withArgName("wafId> <applicationId")
+//                .hasArgs(2)
+//                .withLongOpt("rules-for-application")
+//                .withDescription("Gets WAF Rules for an application and returns its JSON.")
+//                .create("ra");
+//        options.addOption(getRulesForApp);
 
-        Option getRulesForApp = OptionBuilder.withArgName("wafId> <applicationId")
-                .hasArgs(2)
-                .withLongOpt("rules-for-application")
-                .withDescription("Gets WAF Rules for an application and returns its JSON.")
-                .create("ra");
-        options.addOption(getRulesForApp);
+//        Option createTag = OptionBuilder.withArgName("name> <[tagType]")
+//                .hasArgs(2)
+//                .withLongOpt("create-tag")
+//                .withDescription("Creates a ThreadFix Tag and returns its JSON. tagType is optional, default is Application Tag.")
+//                .create("ctg");
+//        options.addOption(createTag);
 
-        Option createTag = OptionBuilder.withArgName("name> <[tagType]")
-                .hasArgs(2)
-                .withLongOpt("create-tag")
-                .withDescription("Creates a ThreadFix Tag and returns its JSON. tagType is optional, default is Application Tag.")
-                .create("ctg");
-        options.addOption(createTag);
+//        Option searchTag = OptionBuilder.withArgName("property> <value")
+//                .withValueSeparator(' ')
+//                .hasArgs(2)
+//                .withLongOpt("search-tag")
+//                .withDescription("Searches for ThreadFix Tags by either name or id, and returns their JSON.")
+//                .create("stg");
+//        options.addOption(searchTag);
+//
+//        Option updateTag = OptionBuilder.withArgName("tagId> <name")
+//                .hasArgs(2)
+//                .withLongOpt("update-tag")
+//                .withDescription("Update ThreadFix Tag, and returns their JSON.")
+//                .create("utg");
+//        options.addOption(updateTag);
+//
+//        Option removeTag = OptionBuilder.withArgName("tagId")
+//                .hasArgs(1)
+//                .withLongOpt("remove-tag")
+//                .withDescription("Remove ThreadFix Tag, and returns message.")
+//                .create("rtg");
+//        options.addOption(removeTag);
+//
+//        Option tags = OptionBuilder.withLongOpt("tags")
+//                .withDescription("Fetches a list of ThreadFix tags.")
+//                .create("tg");
+//        options.addOption(tags);
 
-        Option searchTag = OptionBuilder.withArgName("property> <value")
-                .withValueSeparator(' ')
-                .hasArgs(2)
-                .withLongOpt("search-tag")
-                .withDescription("Searches for ThreadFix Tags by either name or id, and returns their JSON.")
-                .create("stg");
-        options.addOption(searchTag);
+//        Option addAppTag = OptionBuilder.withArgName("applicationId> <tagId")
+//                .withValueSeparator(' ')
+//                .hasArgs(2)
+//                .withLongOpt("addAppTag")
+//                .withDescription("Add Tag for the given applicationId")
+//                .create("aat");
+//        options.addOption(addAppTag);
+//
+//        Option removeAppTag = OptionBuilder.withArgName("applicationId> <tagId")
+//                .withValueSeparator(' ')
+//                .hasArgs(2)
+//                .withLongOpt("removeAppTag")
+//                .withDescription("Remove Tag for the given applicationId")
+//                .create("rat");
+//        options.addOption(removeAppTag);
 
-        Option updateTag = OptionBuilder.withArgName("tagId> <name")
-                .hasArgs(2)
-                .withLongOpt("update-tag")
-                .withDescription("Update ThreadFix Tag, and returns their JSON.")
-                .create("utg");
-        options.addOption(updateTag);
-
-        Option removeTag = OptionBuilder.withArgName("tagId")
-                .hasArgs(1)
-                .withLongOpt("remove-tag")
-                .withDescription("Remove ThreadFix Tag, and returns message.")
-                .create("rtg");
-        options.addOption(removeTag);
-
-        Option tags = OptionBuilder.withLongOpt("tags")
-                .withDescription("Fetches a list of ThreadFix tags.")
-                .create("tg");
-        options.addOption(tags);
-
-        Option addAppTag = OptionBuilder.withArgName("applicationId> <tagId")
-                .withValueSeparator(' ')
-                .hasArgs(2)
-                .withLongOpt("addAppTag")
-                .withDescription("Add Tag for the given applicationId")
-                .create("aat");
-        options.addOption(addAppTag);
-
-        Option removeAppTag = OptionBuilder.withArgName("applicationId> <tagId")
-                .withValueSeparator(' ')
-                .hasArgs(2)
-                .withLongOpt("removeAppTag")
-                .withDescription("Remove Tag for the given applicationId")
-                .create("rat");
-        options.addOption(removeAppTag);
-
-        Option addComment = OptionBuilder.withArgName("vulnId> <comment> <[commentTagIds]")
-                .hasArgs(3)
-                .withLongOpt("add-comment")
-                .withDescription("Add comment to a vulnerability. CommentTagIds is optional, separated by comma.")
-                .create("ac");
-        options.addOption(addComment);
-
-        Option submitDefect = OptionBuilder.withArgName("applicationId> <[vulnerabilityIds]> <[*]")
-                .hasArgs(1)
-                .hasOptionalArgs()
-                .withLongOpt("submit-defect")
-                .withDescription("Submit a defect to the defect tracker configured for a specific application.")
-                .create("sd");
-        options.addOption(submitDefect);
-
-        Option getDefectParameters = OptionBuilder.withArgName("applicationId>")
-                .hasArgs(1)
-                .withLongOpt("get-defect-parameters")
-                .withDescription("Get a list of parameters from the defect tracker given an application ID.")
-                .create("gdp");
-        options.addOption(getDefectParameters);
+//        Option addComment = OptionBuilder.withArgName("vulnId> <comment> <[commentTagIds]")
+//                .hasArgs(3)
+//                .withLongOpt("add-comment")
+//                .withDescription("Add comment to a vulnerability. CommentTagIds is optional, separated by comma.")
+//                .create("ac");
+//        options.addOption(addComment);
+//
+//        Option submitDefect = OptionBuilder.withArgName("applicationId> <[vulnerabilityIds]> <[*]")
+//                .hasArgs(1)
+//                .hasOptionalArgs()
+//                .withLongOpt("submit-defect")
+//                .withDescription("Submit a defect to the defect tracker configured for a specific application.")
+//                .create("sd");
+//        options.addOption(submitDefect);
+//
+//        Option getDefectParameters = OptionBuilder.withArgName("applicationId>")
+//                .hasArgs(1)
+//                .withLongOpt("get-defect-parameters")
+//                .withDescription("Get a list of parameters from the defect tracker given an application ID.")
+//                .create("gdp");
+//        options.addOption(getDefectParameters);
 
         return options;
     }

@@ -39,7 +39,7 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 @RequestMapping("/organizations/{orgId}/applications/{appId}/progress/{numScans}")
 public class ScanRefreshController {
 	
-	public static final String SCANNER_TYPE_ERROR = "ThreadFix was unable to find a suitable " +
+	public static final String SCANNER_TYPE_ERROR = "Unable to find a suitable " +
 			"scanner type for the file. Please choose one from the list.";
 
 	private ApplicationService applicationService;

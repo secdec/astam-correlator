@@ -43,7 +43,7 @@
                                             </select>
                                         </td>
                                         <td style="border: 0 solid black; background-color: white; padding-left: 5px">
-                                            <a class="btn" popover="When LDAP users log in, ThreadFix can assign them a default role. If no role is selected here, the user will be unable to access any data in ThreadFix. To configure per-team and per-application permissions for an LDAP user, create a ThreadFix user with the same username.">?</a>
+                                            <a class="btn" popover="When LDAP users log in, the application can assign them a default role. If no role is selected here, the user will be unable to access any data in ThreadFix. To configure per-team and per-application permissions for an LDAP user, create a ThreadFix user with the same username.">?</a>
                                             <span id="globalGroupEnabledServerError" class="errors" ng-show="object.globalGroupEnabled_error"> {{ object.globalGroupEnabled_error }} </span>
                                         </td>
                                     </tr>
@@ -88,7 +88,7 @@
                                         <span id="activeDirectoryBaseServerError" class="errors" ng-show="object.activeDirectoryBase_error"> {{ object.activeDirectoryUsername_error }}</span>
                                     </td>
                                     <td class="no-color" style="padding-left: 5px">
-                                        <a class="btn" style="margin-bottom: 10px; " popover="If you only need to search a particular organizational unit (OU) simply preface the search base with the OU. For example, if you the only unit that requires access to ThreadFix is named 'tfusers', then preface the search base with OU=tfusers.">?</a>
+                                        <a class="btn" style="margin-bottom: 10px; " popover="If you only need to search a particular organizational unit (OU) simply preface the search base with the OU. For example, if you the only unit that requires access to the applction is named 'APPusers', then preface the search base with OU=APPusers.">?</a>
                                     </td>
                                 </tr>
                                 <tr>
@@ -197,62 +197,62 @@
 
         <tab id="reportTab" heading="Report Settings" ng-click="setTab('report')" active="tab.report">
             <div ng-form="configForm" name="reportForm">
-                <div class="panel panel-default">
-                    <div id="defaultDashboardSettingsPanel" class="panel-heading pointer" style="width:200px" ng-click="editDashboardSettings = !editDashboardSettings">
-                        <h3 class="panel-title">
-                            <span ng-hide="editDashboardSettings" class="icon icon-chevron-right"></span>
-                            <span ng-show="editDashboardSettings" class="icon icon-chevron-down"></span>
-                            Dashboard Settings
-                        </h3>
-                    </div>
-                    <div class="panel-body" ng-show="editDashboardSettings">
-                        <table>
-                            <tr ng-show="object.dashboardReport_error">
-                                <td style="padding: 0 0 5px 5px" colspan="4">
-                                    <span id="dashboardReportServerError" class="errors" ng-show="object.dashboardReport_error">{{ object.dashboardReport_error }}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left: 5px">
-                                    <div>
-                                        <b>Top Left Report</b>
-                                    </div>
-                                    <div>
-                                        <select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"
-                                                id="dashboardTopLeftSelect" name="dashboardTopLeft" ng-model="object.dashboardTopLeft" ></select>
-                                    </div>
-                                </td>
-                                <td style="padding-left: 5px">
-                                    <div>
-                                        <b>Top Right Report</b>
-                                    </div>
-                                    <div>
-                                        <select style="width:auto"  ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"
-                                                id="dashboardTopRightSelect" name="dashboardTopRight" ng-model="object.dashboardTopRight" ></select>
-                                    </div>
-                                </td>
-                                <td style="padding-left: 5px">
-                                    <div>
-                                        <b>Bottom Left Report</b>
-                                    </div>
-                                    <div>
-                                        <select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"
-                                                id="dashboardBottomLeftSelect" name="dashboardBottomLeft" ng-model="object.dashboardBottomLeft" ></select>
-                                    </div>
-                                </td>
-                                <td style="padding-left: 5px">
-                                    <div>
-                                        <b>Bottom Right Report</b>
-                                    </div>
-                                    <div>
-                                        <select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"
-                                                id="dashboardBottomRightSelect" name="dashboardBottomRight" ng-model="object.dashboardBottomRight" ></select>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
+                <%--<div class="panel panel-default">--%>
+                    <%--<div id="defaultDashboardSettingsPanel" class="panel-heading pointer" style="width:200px" ng-click="editDashboardSettings = !editDashboardSettings">--%>
+                        <%--<h3 class="panel-title">--%>
+                            <%--<span ng-hide="editDashboardSettings" class="icon icon-chevron-right"></span>--%>
+                            <%--<span ng-show="editDashboardSettings" class="icon icon-chevron-down"></span>--%>
+                            <%--Dashboard Settings--%>
+                        <%--</h3>--%>
+                    <%--</div>--%>
+                    <%--<div class="panel-body" ng-show="editDashboardSettings">--%>
+                        <%--<table>--%>
+                            <%--<tr ng-show="object.dashboardReport_error">--%>
+                                <%--<td style="padding: 0 0 5px 5px" colspan="4">--%>
+                                    <%--<span id="dashboardReportServerError" class="errors" ng-show="object.dashboardReport_error">{{ object.dashboardReport_error }}</span>--%>
+                                <%--</td>--%>
+                            <%--</tr>--%>
+                            <%--<tr>--%>
+                                <%--<td style="padding-left: 5px">--%>
+                                    <%--<div>--%>
+                                        <%--<b>Top Left Report</b>--%>
+                                    <%--</div>--%>
+                                    <%--<div>--%>
+                                        <%--<select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"--%>
+                                                <%--id="dashboardTopLeftSelect" name="dashboardTopLeft" ng-model="object.dashboardTopLeft" ></select>--%>
+                                    <%--</div>--%>
+                                <%--</td>--%>
+                                <%--<td style="padding-left: 5px">--%>
+                                    <%--<div>--%>
+                                        <%--<b>Top Right Report</b>--%>
+                                    <%--</div>--%>
+                                    <%--<div>--%>
+                                        <%--<select style="width:auto"  ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"--%>
+                                                <%--id="dashboardTopRightSelect" name="dashboardTopRight" ng-model="object.dashboardTopRight" ></select>--%>
+                                    <%--</div>--%>
+                                <%--</td>--%>
+                                <%--<td style="padding-left: 5px">--%>
+                                    <%--<div>--%>
+                                        <%--<b>Bottom Left Report</b>--%>
+                                    <%--</div>--%>
+                                    <%--<div>--%>
+                                        <%--<select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"--%>
+                                                <%--id="dashboardBottomLeftSelect" name="dashboardBottomLeft" ng-model="object.dashboardBottomLeft" ></select>--%>
+                                    <%--</div>--%>
+                                <%--</td>--%>
+                                <%--<td style="padding-left: 5px">--%>
+                                    <%--<div>--%>
+                                        <%--<b>Bottom Right Report</b>--%>
+                                    <%--</div>--%>
+                                    <%--<div>--%>
+                                        <%--<select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"--%>
+                                                <%--id="dashboardBottomRightSelect" name="dashboardBottomRight" ng-model="object.dashboardBottomRight" ></select>--%>
+                                    <%--</div>--%>
+                                <%--</td>--%>
+                            <%--</tr>--%>
+                        <%--</table>--%>
+                    <%--</div>--%>
+                <%--</div>--%>
 
                 <div class="panel panel-default">
                     <div id="defaultApplicationDetailPageSettingsPanel" class="panel-heading pointer" style="width:300px"
@@ -558,7 +558,7 @@
                             <tr>
                                 <td>
                                     Check this box to close vulnerabilities only when all scanners report them closed. This only applies to merged vulnerabilities.<br>
-                                    By default, ThreadFix will close vulnerabilities when any scanner that has found the vulnerability reports the vulnerability fixed.
+                                    By default, the application will close vulnerabilities when any scanner that has found the vulnerability reports the vulnerability fixed.
                                 </td>
                                 <td class="inputValue" style="text-align: left;">
                                     <input type="checkbox" id="vulnCloseCheckbox" name="closeVulnWhenNoScannersReport" ng-model="object.closeVulnWhenNoScannersReport"/>
@@ -600,7 +600,7 @@
                         <h3 class="panel-title">
                             <span ng-hide="editBaseUrlSettings" class="icon icon-chevron-right"></span>
                             <span ng-show="editBaseUrlSettings" class="icon icon-chevron-down"></span>
-                            ThreadFix Base URL
+                            Base URL
                         </h3>
                     </div>
                     <div class="panel-body" ng-show="editBaseUrlSettings">

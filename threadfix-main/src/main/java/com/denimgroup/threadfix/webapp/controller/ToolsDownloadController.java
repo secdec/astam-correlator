@@ -53,13 +53,13 @@ public class ToolsDownloadController {
 
     private final static String JAR_DOWNLOAD_DIR = "/WEB-INF/classes/downloads/";
 
-    private final static String TF_CLI_JAR = "tfcli.jar";
-    private final static String TF_SCAN_IMPORTER_JAR = "threadfix-cli-importers.jar";
+    private final static String TF_CLI_JAR = "cli.jar";
+    private final static String TF_SCAN_IMPORTER_JAR = "cli-importers.jar";
     private final static String TF_ENDPOINT_JAR = "endpoints.jar";
-    private final static String TF_DATA_MIGRATION_JAR = "threadfix-data-migration.jar";
-    private final static String TF_BURP_JAR = "threadfix-release-2-burp.jar";
-    private final static String TF_ZAP = "threadfix-release-2.zap";
-    private final static String TF_SONAR_JAR = "sonar-threadfix-plugin.jar";
+    private final static String TF_DATA_MIGRATION_JAR = "data-migration.jar";
+    private final static String TF_BURP_JAR = "release-2-burp.jar";
+    private final static String TF_ZAP = "release-2.zap";
+    private final static String TF_SONAR_JAR = "sonar-plugin.jar";
     private final static String SSVL_CONVERTER_JAR = "ssvl-converter.jar";
     private final static String PROTOBUF_ZIP = "protobuf.zip";
 
@@ -145,7 +145,7 @@ public class ToolsDownloadController {
             if (jarName.endsWith(".jar"))
                 response.setContentType("application/java-archive");
             else
-                response.setContentType("application/octet-stream");;
+                response.setContentType("application/octet-stream");
             response.setContentLength(jarSize);
             response.addHeader("Content-Disposition", "attachment; filename=\"" + jarName + "\"");
 

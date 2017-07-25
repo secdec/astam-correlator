@@ -89,21 +89,21 @@
                     </select>
                 </td>
             </tr>
-            <tr>
-                <td class="right-align">Tag</td>
-                <td class="left-align" >
-                    <multi-select
-                            id-prefix="tags"
-                            id="tagSelect"
-                            input-model="config.tags"
-                            output-model="object.tags"
-                            button-label="name"
-                            item-label="name"
-                            tick-property="selected"
-                            >
-                    </multi-select>
-                </td>
-            </tr>
+            <%--<tr>--%>
+                <%--<td class="right-align">Tag</td>--%>
+                <%--<td class="left-align" >--%>
+                    <%--<multi-select--%>
+                            <%--id-prefix="tags"--%>
+                            <%--id="tagSelect"--%>
+                            <%--input-model="config.tags"--%>
+                            <%--output-model="object.tags"--%>
+                            <%--button-label="name"--%>
+                            <%--item-label="name"--%>
+                            <%--tick-property="selected"--%>
+                            <%-->--%>
+                    <%--</multi-select>--%>
+                <%--</td>--%>
+            <%--</tr>--%>
             <security:authorize access="hasRole('ROLE_ENTERPRISE')">
                 <tr id="appACDiv" ng-show="config.isEnterprise">
                     <td>Policy</td>
@@ -198,42 +198,42 @@
                     <span id="sourceFolderOtherError" class="errors" ng-show="object.repositoryFolder_error"> {{ object.repositoryFolder_error }}</span>
                 </td>
             </tr>
-			<tr id="appDTDiv">
-                <td>WAF</td>
-                <td id="wafName" ng-show="object.waf" class="pointer">
-                    <a id="wafNameText" ng-click="switchTo('goToWaf')">
-                        {{ object.waf.name }}
-                    </a>
-                </td>
-                <td><button class="btn" ng-click="switchTo('addWaf')" id="addWafButton">Set WAF</button></td>
-			</tr>
-			<tr id="appWafDiv">
-                <td>Defect Tracker</td>
-                <td id="defectTrackerName" ng-show="object.defectTracker">
-                    <a id="linkDT" ng-href="{{object.defectTracker.url}}" class="pointer" target='_blank'>{{ object.defectTracker.name }}</a>
-                </td>
-                <td><button id="addDefectTrackerButton" class="btn" ng-click="switchTo('addDefectTracker')">Set Defect Tracker</button></td>
-			</tr>
-            <tr ng-show="object.defectTracker && object.defectTracker.defectTrackerType.name !== 'Bugzilla'">
-                <td>Default Defect Profile</td>
-                <td ng-show="object.defectTracker.defaultDefectProfiles">
-                    <select ng-model="object.mainDefaultDefectProfile.id" name="mainDefaultDefectProfile.id">
-                            <option value="" ng-selected="{{!object.mainDefaultDefectProfile.id}}">Select profile</option>
-                            <option ng-repeat="defaultProfile in object.defectTracker.defaultDefectProfiles" value="{{ defaultProfile.id }}"
-                                    ng-selected="{{defaultProfile.id == object.mainDefaultDefectProfile.id}}">
-                                {{defaultProfile.name}}
-                            </option>
-                    </select>
-                </td>
-                <td><button id="addDefectProfileButton" class="btn" ng-click="switchTo('addDefectProfile')">Create Defect Profile</button></td>
-            </tr>
+			<%--<tr id="appDTDiv">--%>
+                <%--<td>WAF</td>--%>
+                <%--<td id="wafName" ng-show="object.waf" class="pointer">--%>
+                    <%--<a id="wafNameText" ng-click="switchTo('goToWaf')">--%>
+                        <%--{{ object.waf.name }}--%>
+                    <%--</a>--%>
+                <%--</td>--%>
+                <%--<td><button class="btn" ng-click="switchTo('addWaf')" id="addWafButton">Set WAF</button></td>--%>
+			<%--</tr>--%>
+			<%--<tr id="appWafDiv">--%>
+                <%--<td>Defect Tracker</td>--%>
+                <%--<td id="defectTrackerName" ng-show="object.defectTracker">--%>
+                    <%--<a id="linkDT" ng-href="{{object.defectTracker.url}}" class="pointer" target='_blank'>{{ object.defectTracker.name }}</a>--%>
+                <%--</td>--%>
+                <%--<td><button id="addDefectTrackerButton" class="btn" ng-click="switchTo('addDefectTracker')">Set Defect Tracker</button></td>--%>
+			<%--</tr>--%>
+            <%--<tr ng-show="object.defectTracker && object.defectTracker.defectTrackerType.name !== 'Bugzilla'">--%>
+                <%--<td>Default Defect Profile</td>--%>
+                <%--<td ng-show="object.defectTracker.defaultDefectProfiles">--%>
+                    <%--<select ng-model="object.mainDefaultDefectProfile.id" name="mainDefaultDefectProfile.id">--%>
+                            <%--<option value="" ng-selected="{{!object.mainDefaultDefectProfile.id}}">Select profile</option>--%>
+                            <%--<option ng-repeat="defaultProfile in object.defectTracker.defaultDefectProfiles" value="{{ defaultProfile.id }}"--%>
+                                    <%--ng-selected="{{defaultProfile.id == object.mainDefaultDefectProfile.id}}">--%>
+                                <%--{{defaultProfile.name}}--%>
+                            <%--</option>--%>
+                    <%--</select>--%>
+                <%--</td>--%>
+                <%--<td><button id="addDefectProfileButton" class="btn" ng-click="switchTo('addDefectProfile')">Create Defect Profile</button></td>--%>
+            <%--</tr>--%>
             <tr>
                 <td>
                     Disable Vulnerability Merging
                 </td>
                 <td class="inputValue">
                     <input id="skipApplicationMerge" type="checkbox" ng-model="object.skipApplicationMerge" name="skipApplicationMerge"/>
-                    <a class="btn" popover="ThreadFix detects matching scan results and combines them in order to simplify the result set. This can make the number of vulnerabilities in ThreadFix lower than the number of results in a scan. Checking this box disables this behavior.">?</a>
+                    <a class="btn" popover="Detects matching scan results and combines them in order to simplify the result set. This can make the number of vulnerabilities in ThreadFix lower than the number of results in a scan. Checking this box disables this behavior.">?</a>
                 </td>
             </tr>
 		</table>

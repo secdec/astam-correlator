@@ -64,12 +64,12 @@ public abstract class AbstractTFQualityProfile extends ProfileDefinition {
             String string = settings.getString("threadfix.profiles");
 
             if (string == null) {
-                LOG.info("No explicit profile configuration found, ThreadFix will submit profiles for all configured languages.");
+                LOG.info("No explicit profile configuration found, Application will submit profiles for all configured languages.");
                 LOG.info("To change this behavior, set the property threadfix.profiles for this sonar installation.");
             } else if (csvContains(string, languageKey)) {
                 LOG.info("Configuration was found and contained " + languageKey + ", continuing.");
             } else {
-                LOG.info("Profiles were configured for ThreadFix and " + languageKey + " wasn't found in the list. Returning null.");
+                LOG.info("Profiles were configured for Application and " + languageKey + " wasn't found in the list. Returning null.");
                 return null;
             }
 

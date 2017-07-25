@@ -16,7 +16,7 @@ myAppModule.controller('SystemSettingsController', function ($scope, $window, $m
                     $scope.applicationCount = data.object.applicationCount;
                     $scope.licenseCount = data.object.licenseCount;
                     $scope.licenseExpirationDate = data.object.licenseExpirationDate;
-                    $scope.dashboardReports = data.object.dashboardReports;
+                    // $scope.dashboardReports = data.object.dashboardReports;
                     $scope.applicationReports = data.object.applicationReports;
                     $scope.teamReports = data.object.teamReports;
                     $scope.exportFieldDisplayNames = data.object.exportFieldDisplayNames;
