@@ -31,7 +31,6 @@ import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.data.entities.Organization;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.mapper.ThreadfixApplicationMapper;
-import com.denimgroup.threadfix.service.ApplicationService;
 import com.secdec.astam.common.data.models.Appmgmt;
 import com.secdec.astam.common.data.models.Appmgmt.ApplicationRegistration;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +39,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+
+/*import com.denimgroup.threadfix.service.ApplicationService;*/
 
 @Service
 public class AstamApplicationImporterImpl implements AstamApplicationImporter {
@@ -50,19 +51,18 @@ public class AstamApplicationImporterImpl implements AstamApplicationImporter {
 
     private ApplicationDao applicationDao;
     private OrganizationDao organizationDao;
-    private ApplicationService applicationService;
+    /*private ApplicationService applicationService;*/
 
     @Autowired
     public AstamApplicationImporterImpl(AstamConfigurationDao astamConfigurationDao,
                                         OrganizationDao organizationDao,
-                                        ApplicationDao applicationDao,
-                                        ApplicationService applicationService){
+                                        ApplicationDao applicationDao){
 
         astamConfiguration = astamConfigurationDao.loadCurrentConfiguration();
         astamApplicationClient = new AstamApplicationClientImpl(astamConfiguration);
         this.organizationDao = organizationDao;
         this.applicationDao = applicationDao;
-        this.applicationService = applicationService;
+        /*this.applicationService = applicationService;*/
 
     }
 
@@ -113,7 +113,7 @@ public class AstamApplicationImporterImpl implements AstamApplicationImporter {
         importApplication(appRegistration);
     }
 
-    //TODO: change this
+
     @Override
     public void deleteApplications(List<String> uuids) {
         List<Application> apps = getCorrespondingApplications(uuids);
@@ -124,7 +124,8 @@ public class AstamApplicationImporterImpl implements AstamApplicationImporter {
     }
 
     private void deleteApplication(Application application){
-        applicationService.deactivateApplication(application);
+        //TODO: fix this
+   /*     applicationService.deactivateApplication(application);*/
     }
 
     @Override

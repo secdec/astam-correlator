@@ -20,6 +20,7 @@ import com.denimgroup.threadfix.views.AllViews;
 import com.denimgroup.threadfix.webapp.config.FormRestResponse;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -47,21 +48,21 @@ import static com.denimgroup.threadfix.remote.response.RestResponse.success;
 @SessionAttributes("defaultConfiguration")
 @PreAuthorize("hasRole('ROLE_CAN_MANAGE_SYSTEM_SETTINGS')")
 public class SystemSettingsController {
-	
-	protected final SanitizedLogger log = new SanitizedLogger(SystemSettingsController.class);
 
-	@Autowired(required = false)
-	private LdapService ldapService;
+    protected final SanitizedLogger log = new SanitizedLogger(SystemSettingsController.class);
+
+    @Autowired(required = false)
+    private LdapService ldapService;
 
     @Autowired
-	private RoleService roleService = null;
-	@Autowired
+    private RoleService roleService = null;
+    @Autowired
     private DefaultConfigService defaultConfigService = null;
-	@Autowired
-	private ReportService reportService = null;
-	@Autowired
-	private ApplicationService applicationService;
-	@Autowired(required = false)
+    @Autowired
+    private ReportService reportService = null;
+    @Autowired
+    private ApplicationService applicationService;
+    @Autowired(required = false)
     LicenseService licenseService;
     @Autowired
     private ScanService scanService;
@@ -75,13 +76,13 @@ public class SystemSettingsController {
 
     @InitBinder
     public void initBinder(WebDataBinder dataBinder) {
-		String[] reports = {
-				"dashboardTopLeft.id",
-				"dashboardTopRight.id", "dashboardBottomLeft.id", "dashboardBottomRight.id",
-				"applicationTopLeft.id", "applicationTopRight.id", "teamTopLeft.id", "teamTopRight.id",
-                "fileUploadLocation", "deleteUploadedFiles", "csvExportFields[*]", "baseUrl", 
+        String[] reports = {
+                "dashboardTopLeft.id",
+                "dashboardTopRight.id", "dashboardBottomLeft.id", "dashboardBottomRight.id",
+                "applicationTopLeft.id", "applicationTopRight.id", "teamTopLeft.id", "teamTopRight.id",
+                "fileUploadLocation", "deleteUploadedFiles", "csvExportFields[*]", "baseUrl",
                 "closeVulnWhenNoScannersReport", "astamConfig"
-		};
+        };
 
         String[] otherSections = {
                 "defaultRoleId", "globalGroupEnabled", "activeDirectoryBase",
@@ -100,7 +101,7 @@ public class SystemSettingsController {
 
         dataBinder.registerCustomEditor(CSVExportField.class, "csvExportFields[*]", new CSVExportFieldEnumConverter(CSVExportField.class));
     }
-	
+
     @RequestMapping(method = RequestMethod.GET)
     public String setupForm(Model model) {
         model.addAttribute("defaultConfiguration", defaultConfigService.loadCurrentConfiguration());
@@ -131,30 +132,41 @@ public class SystemSettingsController {
         }
     }
 
-    //TODO: CDS Settings
+
     @JsonView(AllViews.FormInfo.class)
     @RequestMapping(value = "/astam", method = RequestMethod.POST)
     public @ResponseBody Object processSubmit(@ModelAttribute AstamConfiguration astamConfiguration,
                                               HttpServletRequest request,
                                               BindingResult bindingResult) {
-        log.info("AStamConfig Controller" + astamConfiguration.getCdsCompId() + " - " + astamConfiguration.getCdsApiUrl() + " - " + astamConfiguration.getCdsBrokerUrl());
-        astamConfigurationService.saveConfiguration(astamConfiguration);
-        return success(astamConfiguration);
 
-     /*   if (bindingResult.hasErrors()) {
+        //TODO: fix Json parsing and use instead
+        String cdsCompId = request.getParameter("cdsCompId");
+        String cdsApiUrl = request.getParameter("cdsApiUrl");
+        String cdsBrokerUrl = request.getParameter("cdsBrokerUrl");
+
+        if(StringUtils.isBlank(cdsCompId)
+                || StringUtils.isBlank(cdsApiUrl)
+                || StringUtils.isBlank(cdsBrokerUrl)
+                || bindingResult.hasErrors()){
 
             return FormRestResponse.failure("Unable save CDS Integration Settings. Try again.", bindingResult);
         } else {
-
-        }*/
-
+            AstamConfiguration config = astamConfigurationService.loadCurrentConfiguration();
+            config.setCdsCompId(cdsCompId);
+            config.setCdsApiUrl(cdsApiUrl);
+            config.setCdsBrokerUrl(cdsBrokerUrl);
+            config.setHasConfiguration(true);
+            astamConfigurationService.saveConfiguration(config);
+            return success(astamConfiguration);
+        }
     }
+
+
     @JsonView(AllViews.FormInfo.class)
     @RequestMapping(method = RequestMethod.POST)
     public @ResponseBody Object processSubmit(@ModelAttribute DefaultConfiguration defaultConfiguration,
                                               HttpServletRequest request,
                                               BindingResult bindingResult) {
-        log.info("settings controller : model"  +defaultConfiguration.toString() + "BR: " + bindingResult.toString());
         if (defaultConfiguration.getDeleteUploadedFiles()) {
             try {
                 scanService.deleteScanFileLocations();

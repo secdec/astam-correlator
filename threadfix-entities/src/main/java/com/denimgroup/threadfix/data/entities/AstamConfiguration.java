@@ -39,7 +39,7 @@ public class AstamConfiguration extends BaseEntity {
     private String cdsCompId;
     private String cdsBrokerUrl;
 
-    private boolean hasConfiguration = false;
+    private boolean hasConfiguration;
 
     public static AstamConfiguration getInitialConfig(){
         AstamConfiguration config = new AstamConfiguration();
@@ -50,26 +50,26 @@ public class AstamConfiguration extends BaseEntity {
         return config;
     }
 
-    //TODO: 36 + 2?
+
     @JsonView(AllViews.FormInfo.class)
-    @Column(length = 50, nullable = true)
+    @Column(length = 50, nullable = false)
     public String getCdsCompId(){return cdsCompId;}
 
     public void setCdsCompId(String cdsCompId) {this.cdsCompId = cdsCompId;}
 
     @JsonView(AllViews.FormInfo.class)
-    @Column(length = 1024, nullable = true)
+    @Column(length = 1024, nullable = false)
     public String getCdsApiUrl(){return cdsApiUrl;}
 
     public void setCdsApiUrl(String cdsApiUrl) {this.cdsApiUrl = cdsApiUrl;}
 
     @JsonView(AllViews.FormInfo.class)
-    @Column(length = 1024, nullable = true)
+    @Column(length = 1024, nullable = false)
     public String getCdsBrokerUrl(){return cdsBrokerUrl;}
 
     public void setCdsBrokerUrl(String cdsBrokerUrl) {this.cdsBrokerUrl = cdsBrokerUrl;}
 
-    @Column
+   @Column
     public boolean getHasConfiguration() {
         return hasConfiguration;
     }

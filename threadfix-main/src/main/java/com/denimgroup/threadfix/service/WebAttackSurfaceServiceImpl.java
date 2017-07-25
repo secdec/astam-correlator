@@ -92,7 +92,7 @@ public class WebAttackSurfaceServiceImpl implements WebAttackSurfaceService{
             //TODO: remove this
             webAttackSurface.setUuid(ProtobufMessageUtils.createUUIDFromInt(webAttackSurface.getId()).getValue());
             webAttackSurfaceDao.saveOrUpdate(webAttackSurface);
-            //TODO: QA
+
             astamPushService.pushAttackSurfaceToAstam(application.getId());
         }
     }

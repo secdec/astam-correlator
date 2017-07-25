@@ -54,12 +54,14 @@ public class AstamApplicationPushServiceImpl implements AstamApplicationPushServ
     private AstamMessageManager messageNotifier;
 
     private UuidUpdater uuidUpdater;
+    private AstamConfigurationDao astamConfigDao;
 
     @Autowired
-    public AstamApplicationPushServiceImpl(UuidUpdater uuidUpdater, AstamConfigurationDao astamConfigurationDao){
+    public AstamApplicationPushServiceImpl(AstamConfigurationDao astamConfigurationDao, UuidUpdater uuidUpdater){
         this.uuidUpdater = uuidUpdater;
-        AstamConfiguration astamConfig = astamConfigurationDao.loadCurrentConfiguration();
-        this.applicationClient = new AstamApplicationClientImpl(astamConfig);
+        this.astamConfigDao = astamConfigurationDao;
+        AstamConfiguration astamConfig = astamConfigDao.loadCurrentConfiguration();
+        applicationClient = new AstamApplicationClientImpl(astamConfig);
         messageNotifier = new AstamMessageManager(astamConfig);
     }
 

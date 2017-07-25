@@ -71,7 +71,7 @@ public class HibernateAstamConfigurationDao
         } else if (list.size() > 1) {
             AstamConfiguration config = list.get(0);
             list.remove(0);
-            for (AstamConfiguration defaultConfig : list) {
+           for (AstamConfiguration defaultConfig : list) {
                 delete(defaultConfig);
             }
             configuration = config;

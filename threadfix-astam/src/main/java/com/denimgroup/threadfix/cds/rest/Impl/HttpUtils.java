@@ -29,6 +29,7 @@ import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
+import org.apache.http.conn.socket.PlainConnectionSocketFactory;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
@@ -69,7 +70,7 @@ public class HttpUtils {
                                 ACCEPT = "Accept",
                                 PROTOBUF_CONTENT = "application/x-protobuf";
 
-    public HttpUtils(AstamConfiguration astamConfiguration){
+    public HttpUtils(@Nonnull AstamConfiguration astamConfiguration){
         System.setProperty("javax.net.ssl.trustStore", JAVA_KEY_STORE_FILE);
         compId = astamConfiguration.getCdsCompId();
         apiUrl = astamConfiguration.getCdsApiUrl();
@@ -105,7 +106,7 @@ public class HttpUtils {
             statusCode = response.getStatusLine().getStatusCode();
 
             if (statusCode != 200){
-                LOGGER.error("Request for '" + path
+                LOGGER.error("Request for '" + urlString
                         + "' status was " + statusCode
                         + ", not a 200 as expected. Reason: "
                         + response.getStatusLine().getReasonPhrase());
@@ -323,7 +324,7 @@ public class HttpUtils {
 
         //TODO: Allow http option for dev purposes only. Add enable/disable option in settings.
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create()
-                //.register("http", PlainConnectionSocketFactory.INSTANCE)
+                .register("http", PlainConnectionSocketFactory.INSTANCE)
                 .register("https", sslConnectionSocketFactory )
                 .build();
 

@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * Created by amohammed on 6/28/2017.
  */
-//TODO: same client id bug, when both a producer/s and subscriber/s are active (Done needs testing)
+
 public class AstamMessageManager {
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(AstamMessageManager.class);

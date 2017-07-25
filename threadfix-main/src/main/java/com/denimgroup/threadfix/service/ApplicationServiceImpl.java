@@ -229,6 +229,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
 		// Delete Scans & Findings attached to application
 		deleteScans(application);
+
 	}
 
 	private void deleteScans(Application application) {

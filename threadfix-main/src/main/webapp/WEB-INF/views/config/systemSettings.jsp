@@ -626,8 +626,6 @@
 
         <tab id="cdsTab" heading="CDS Integration" ng-click="setTab('cds')" active="tab.cds">
             <div ng-form="configForm" name="cdsForm">
-
-
                 <div class="panel panel-default">
                     <div id="defaultCdsCompIdSettingsPanel" class="panel-heading pointer" style="width:250px"
                          ng-click="editCdsCompIdSettings = !editCdsCompIdSettings">

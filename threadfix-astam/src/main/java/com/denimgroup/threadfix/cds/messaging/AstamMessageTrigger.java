@@ -18,26 +18,33 @@
 
 package com.denimgroup.threadfix.cds.messaging;
 
+import com.denimgroup.threadfix.cds.service.AstamApplicationImporter;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.secdec.astam.common.messaging.Messaging;
 import com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataAction;
 import com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataSetType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataEntity.DATA_APPLICATION_REGISTRATION;
 
-//TODO: test
 /**
  * Created by amohammed on 7/19/2017.
  * This class triggers actions based on messages broadcasted by the CDS
  */
+
+@Component
 public class AstamMessageTrigger {
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(AstamMessageTrigger.class);
 
-   /* @Autowired
-    private AstamApplicationImporter applicationImporter;*/
+    //TODO: Autowire this
+    @Lazy
+    @Autowired
+    private static AstamApplicationImporter applicationImporter;
 
     public AstamMessageTrigger(){
     }
@@ -59,7 +66,7 @@ public class AstamMessageTrigger {
 
                 if(dataSetType == DataSetType.DATA_SET_SINGLE || dataSetType == DataSetType.DATA_SET_COMPLETE){
                     List<String> uuids = dataMessage.getEntityIdsList();
-                    //applicationImporter.importApplications(uuids);
+                    applicationImporter.importApplications(uuids);
                 }
             } else if(dataAction == DataAction.DATA_DELETE){
                 if(dataSetType == DataSetType.DATA_SET_SINGLE || dataSetType == DataSetType.DATA_SET_COMPLETE) {

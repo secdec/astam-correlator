@@ -48,10 +48,10 @@ public class AstamPushServiceImpl implements AstamPushService {
     private final AstamRemoteFindingsServiceImpl astamFindingsService;
     private final AstamRemoteAttackSurfaceServiceImpl astamAttackSurfaceService;
 
-    private AstamApplicationPushServiceImpl applicationPushService;
-    private AstamAttackSurfacePushServiceImpl attackSurfacePushService;
-    private AstamFindingsPushServiceImpl findingsPushService;
-    private AstamEntitiesPushServiceImpl astamEntitiesPushService;
+    private final AstamApplicationPushServiceImpl applicationPushService;
+    private final AstamAttackSurfacePushServiceImpl attackSurfacePushService;
+    private final AstamFindingsPushServiceImpl findingsPushService;
+    private final AstamEntitiesPushServiceImpl astamEntitiesPushService;
 
     @Autowired
     public AstamPushServiceImpl(ApplicationDao applicationDao,
@@ -86,10 +86,10 @@ public class AstamPushServiceImpl implements AstamPushService {
     @Override
     public void pushSingleAppToAstam(Application app){
         int appId = app.getId();
-        pushEntitiesToAstam(app);
         pushAppMngmtToAstam(appId);
+        pushEntitiesToAstam(app);
         pushAttackSurfaceToAstam(appId);
-        pushFindingsToAstam(appId);
+        //pushFindingsToAstam(appId);
     }
 
     @Override

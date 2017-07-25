@@ -155,10 +155,5 @@
             <artifactId>httpclient</artifactId>
             <version>4.5.3</version>
         </dependency>
-        <dependency>
-            <groupId>com.denimgroup.threadfix</groupId>
-            <artifactId>threadfix-service-interfaces</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
     </dependencies>
 </project>

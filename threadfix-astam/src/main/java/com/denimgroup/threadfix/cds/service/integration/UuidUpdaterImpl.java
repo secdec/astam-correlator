@@ -43,20 +43,28 @@ public class UuidUpdaterImpl implements UuidUpdater {
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(UuidUpdaterImpl.class);
 
-    private final ApplicationDao applicationDao;
-    private final FindingDao findingDao;
-    private final ChannelTypeDao channelTypeDao;
-    private final WebAttackSurfaceDao attackSurfaceDao;
 
     @Autowired
-    public UuidUpdaterImpl(ApplicationDao applicationDao,
+    private ApplicationDao applicationDao;
+
+    @Autowired
+    private FindingDao findingDao;
+
+    @Autowired
+    private ChannelTypeDao channelTypeDao;
+
+    @Autowired
+    private WebAttackSurfaceDao attackSurfaceDao;
+
+
+    public UuidUpdaterImpl(/*ApplicationDao applicationDao,
                            FindingDao findingDao,
                            ChannelTypeDao channelTypeDao,
-                           WebAttackSurfaceDao attackSurfaceDao){
-        this.applicationDao = applicationDao;
+                           WebAttackSurfaceDao attackSurfaceDao*/){
+      /*  this.applicationDao = applicationDao;
         this.findingDao = findingDao;
         this.channelTypeDao = channelTypeDao;
-        this.attackSurfaceDao = attackSurfaceDao;
+        this.attackSurfaceDao = attackSurfaceDao;*/
     }
 
     /**
@@ -74,9 +82,11 @@ public class UuidUpdaterImpl implements UuidUpdater {
                 applicationDao.saveOrUpdate(application);
                 break;
             case SAST_FINDING:
+                LOGGER.info("Updating local SAST finding id: " + id + ", adding uuid from CDS. UUID:" + newUuid);
                 updateUUID(id, newUuid, FINDING);
                 break;
             case DAST_FINDING:
+                LOGGER.info("Updating local DAST finding id: " + id + ", adding uuid from CDS. UUID:" + newUuid);
                 updateUUID(id, newUuid, FINDING);
                 break;
             case FINDING:
@@ -85,6 +95,7 @@ public class UuidUpdaterImpl implements UuidUpdater {
                 findingDao.saveOrUpdate(finding);
                 break;
             case EXTERNAL_TOOL:
+                LOGGER.info("Updating local ExternalTool/ChannelType id: " + id + ", adding uuid from CDS. UUID:" + newUuid);
                 ChannelType channelType = channelTypeDao.retrieveById(id);
                 channelType.setUuid(newUuid);
                 channelTypeDao.saveOrUpdate(channelType);
@@ -92,8 +103,10 @@ public class UuidUpdaterImpl implements UuidUpdater {
             case RAW_FINDING:
                 break;
             case CORRELATED_FINDING:
+                //TODO:
                 break;
             case ENTRY_POINT_WEB:
+                LOGGER.info("Updating local WebAttackSurface id: " + id + ", adding uuid from CDS. UUID:" + newUuid);
                 WebAttackSurface attacksurface = attackSurfaceDao.retrieveById(id);
                 attacksurface.setUuid(newUuid);
                 attackSurfaceDao.saveOrUpdate(attacksurface);

@@ -53,10 +53,12 @@ public class AstamEntitiesPushServiceImpl implements AstamEntitiesPushService {
     private AstamEntitiesClient astamEntitiesClient;
     private AstamMessageManager messageNotifier;
     private UuidUpdater uuidUpdater;
+    private AstamConfigurationDao astamConfigurationDao;
 
     @Autowired
     public AstamEntitiesPushServiceImpl(AstamConfigurationDao astamConfigurationDao, UuidUpdater uuidUpdater){
         this.uuidUpdater = uuidUpdater;
+        this.astamConfigurationDao = astamConfigurationDao;
         AstamConfiguration astamConfig = astamConfigurationDao.loadCurrentConfiguration();
         this.astamEntitiesClient = new AstamEntitiesClientImpl(astamConfig);
         this.messageNotifier = new AstamMessageManager(astamConfig);

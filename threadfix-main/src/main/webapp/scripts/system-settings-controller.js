@@ -116,8 +116,7 @@ myAppModule.controller('SystemSettingsController', function ($scope, $window, $m
 
     $scope.submitCds = function () {
         var url = tfEncoder.encode('/configuration/settings/astam');
-        console.log("astamConfig is:" + astamConfig)
-       //TODO: validate
+
         if (valid) {
             $scope.loading = true;
 
