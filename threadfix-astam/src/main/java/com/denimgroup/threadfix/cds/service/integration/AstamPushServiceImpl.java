@@ -87,8 +87,8 @@ public class AstamPushServiceImpl implements AstamPushService {
     public void pushSingleAppToAstam(Application app){
         int appId = app.getId();
         pushAppMngmtToAstam(appId);
-        pushEntitiesToAstam(app);
-        pushAttackSurfaceToAstam(appId);
+        //pushEntitiesToAstam(app);
+        //pushAttackSurfaceToAstam(appId);
         //pushFindingsToAstam(appId);
     }
 
@@ -119,8 +119,10 @@ public class AstamPushServiceImpl implements AstamPushService {
     public void pushAttackSurfaceToAstam(int applicationId){
         AstamAttackSurfaceMapper astamMapper = new AstamAttackSurfaceMapper(applicationId );
         Attacksurface.EntryPointWebSet entryPointWebSet = astamAttackSurfaceService.getEntryPointWebSet(astamMapper, applicationId);
+
         //Attacksurface.EntryPointMobileSet entryPointMobileSet =
-        //Attacksurface.RawDiscoveredAttackSurfaceSet rawDiscoveredAttackSurfaceSet =
+        //Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface = astamAttackSurfaceService.getRawDiscoveredAttackSurface(astamMapper);
+        //entryPointWebSet
         attackSurfacePushService.pushAttackSurfaceToAstam(entryPointWebSet);
     }
 }

@@ -20,12 +20,9 @@ package com.denimgroup.threadfix.cds.service.integration;
 
 import com.denimgroup.threadfix.cds.messaging.AstamMessageManager;
 import com.denimgroup.threadfix.cds.rest.AstamEntitiesClient;
-import com.denimgroup.threadfix.cds.rest.Impl.AstamEntitiesClientImpl;
 import com.denimgroup.threadfix.cds.rest.response.RestResponse;
 import com.denimgroup.threadfix.cds.service.AstamEntitiesPushService;
 import com.denimgroup.threadfix.cds.service.UuidUpdater;
-import com.denimgroup.threadfix.data.dao.AstamConfigurationDao;
-import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.util.ProtobufMessageUtils;
 import com.secdec.astam.common.data.models.Entities;
@@ -53,15 +50,15 @@ public class AstamEntitiesPushServiceImpl implements AstamEntitiesPushService {
     private AstamEntitiesClient astamEntitiesClient;
     private AstamMessageManager messageNotifier;
     private UuidUpdater uuidUpdater;
-    private AstamConfigurationDao astamConfigurationDao;
 
     @Autowired
-    public AstamEntitiesPushServiceImpl(AstamConfigurationDao astamConfigurationDao, UuidUpdater uuidUpdater){
+    public AstamEntitiesPushServiceImpl(AstamEntitiesClient entitiesClient,
+                                        AstamMessageManager messageManager,
+                                        UuidUpdater uuidUpdater){
+
+        this.astamEntitiesClient = entitiesClient;
+        this.messageNotifier = messageManager;
         this.uuidUpdater = uuidUpdater;
-        this.astamConfigurationDao = astamConfigurationDao;
-        AstamConfiguration astamConfig = astamConfigurationDao.loadCurrentConfiguration();
-        this.astamEntitiesClient = new AstamEntitiesClientImpl(astamConfig);
-        this.messageNotifier = new AstamMessageManager(astamConfig);
     }
 
     @Override
@@ -127,7 +124,7 @@ public class AstamEntitiesPushServiceImpl implements AstamEntitiesPushService {
             if (restResponse.success){
                 success = true;
                 int id = ProtobufMessageUtils.createIdFromUUID(externalTool.getId().getValue());
-                uuidUpdater.updateUUID(id, externalTool.getId().getValue(), EXTERNAL_TOOL);
+                uuidUpdater.updateUUID(id, restResponse.uuid, EXTERNAL_TOOL);
             } else if(restResponse.responseCode == 409){
                 pushExternalTool(externalTool, true);
             }

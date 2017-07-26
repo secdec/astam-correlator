@@ -20,19 +20,24 @@ package com.denimgroup.threadfix.cds.rest.Impl;
 
 import com.denimgroup.threadfix.cds.rest.AstamEntitiesClient;
 import com.denimgroup.threadfix.cds.rest.response.RestResponse;
+import com.denimgroup.threadfix.data.dao.AstamConfigurationDao;
 import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.secdec.astam.common.data.models.Entities;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by amohammed on 7/11/2017.
  */
+
+@Component
 public class AstamEntitiesClientImpl implements AstamEntitiesClient {
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(AstamEntitiesClientImpl.class);
 
-    final HttpUtils httpUtils;
+    private final HttpUtils httpUtils;
 
     private final static String CONTROLLER_ENTITIES = "entities/",
             CWE = "cwe/",
@@ -40,7 +45,9 @@ public class AstamEntitiesClientImpl implements AstamEntitiesClient {
             EXTERNAL_TOOL = "externalTool/",
             EXCEPTION_MESSAGE = "InvalidProtocolBufferException while attempting to parse retrieved protobuf data.";
 
-    public AstamEntitiesClientImpl(AstamConfiguration astamConfiguration){
+    @Autowired
+    public AstamEntitiesClientImpl(AstamConfigurationDao astamConfigurationDao){
+        AstamConfiguration astamConfiguration = astamConfigurationDao.loadCurrentConfiguration();
         httpUtils = new HttpUtils(astamConfiguration);
     }
 

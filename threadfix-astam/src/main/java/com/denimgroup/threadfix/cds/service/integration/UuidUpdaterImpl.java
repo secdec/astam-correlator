@@ -57,15 +57,7 @@ public class UuidUpdaterImpl implements UuidUpdater {
     private WebAttackSurfaceDao attackSurfaceDao;
 
 
-    public UuidUpdaterImpl(/*ApplicationDao applicationDao,
-                           FindingDao findingDao,
-                           ChannelTypeDao channelTypeDao,
-                           WebAttackSurfaceDao attackSurfaceDao*/){
-      /*  this.applicationDao = applicationDao;
-        this.findingDao = findingDao;
-        this.channelTypeDao = channelTypeDao;
-        this.attackSurfaceDao = attackSurfaceDao;*/
-    }
+    public UuidUpdaterImpl(){}
 
     /**
      * @param id This represents the object's original id in threadfix

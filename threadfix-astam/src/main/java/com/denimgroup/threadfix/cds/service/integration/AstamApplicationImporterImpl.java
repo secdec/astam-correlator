@@ -20,14 +20,11 @@ package com.denimgroup.threadfix.cds.service.integration;
 
 
 import com.denimgroup.threadfix.cds.rest.AstamApplicationClient;
-import com.denimgroup.threadfix.cds.rest.Impl.AstamApplicationClientImpl;
 import com.denimgroup.threadfix.cds.rest.response.RestResponse;
 import com.denimgroup.threadfix.cds.service.AstamApplicationImporter;
 import com.denimgroup.threadfix.data.dao.ApplicationDao;
-import com.denimgroup.threadfix.data.dao.AstamConfigurationDao;
 import com.denimgroup.threadfix.data.dao.OrganizationDao;
 import com.denimgroup.threadfix.data.entities.Application;
-import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.data.entities.Organization;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.mapper.ThreadfixApplicationMapper;
@@ -46,24 +43,20 @@ import java.util.List;
 public class AstamApplicationImporterImpl implements AstamApplicationImporter {
 
     private AstamApplicationClient astamApplicationClient;
-
-    private AstamConfiguration astamConfiguration;
-
     private ApplicationDao applicationDao;
     private OrganizationDao organizationDao;
+
     /*private ApplicationService applicationService;*/
 
     @Autowired
-    public AstamApplicationImporterImpl(AstamConfigurationDao astamConfigurationDao,
+    public AstamApplicationImporterImpl(AstamApplicationClient applicationClient,
                                         OrganizationDao organizationDao,
                                         ApplicationDao applicationDao){
 
-        astamConfiguration = astamConfigurationDao.loadCurrentConfiguration();
-        astamApplicationClient = new AstamApplicationClientImpl(astamConfiguration);
+        this.astamApplicationClient = applicationClient;
         this.organizationDao = organizationDao;
         this.applicationDao = applicationDao;
         /*this.applicationService = applicationService;*/
-
     }
 
     @Override

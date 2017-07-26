@@ -20,12 +20,9 @@ package com.denimgroup.threadfix.cds.service.integration;
 
 import com.denimgroup.threadfix.cds.messaging.AstamMessageManager;
 import com.denimgroup.threadfix.cds.rest.AstamApplicationClient;
-import com.denimgroup.threadfix.cds.rest.Impl.AstamApplicationClientImpl;
 import com.denimgroup.threadfix.cds.rest.response.RestResponse;
 import com.denimgroup.threadfix.cds.service.AstamApplicationPushService;
 import com.denimgroup.threadfix.cds.service.UuidUpdater;
-import com.denimgroup.threadfix.data.dao.AstamConfigurationDao;
-import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.util.ProtobufMessageUtils;
 import com.secdec.astam.common.data.models.Appmgmt.*;
@@ -52,17 +49,17 @@ public class AstamApplicationPushServiceImpl implements AstamApplicationPushServ
 
     private AstamApplicationClient applicationClient;
     private AstamMessageManager messageNotifier;
-
     private UuidUpdater uuidUpdater;
-    private AstamConfigurationDao astamConfigDao;
+
 
     @Autowired
-    public AstamApplicationPushServiceImpl(AstamConfigurationDao astamConfigurationDao, UuidUpdater uuidUpdater){
+    public AstamApplicationPushServiceImpl(AstamApplicationClient applicationClient,
+                                           AstamMessageManager messageManager,
+                                           UuidUpdater uuidUpdater){
+
+        this.applicationClient = applicationClient;
+        this.messageNotifier = messageManager;
         this.uuidUpdater = uuidUpdater;
-        this.astamConfigDao = astamConfigurationDao;
-        AstamConfiguration astamConfig = astamConfigDao.loadCurrentConfiguration();
-        applicationClient = new AstamApplicationClientImpl(astamConfig);
-        messageNotifier = new AstamMessageManager(astamConfig);
     }
 
     @Override

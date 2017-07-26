@@ -23,10 +23,13 @@ import com.secdec.astam.common.data.models.Attacksurface;
 /**
  * Created by amohammed on 7/22/2017.
  */
-public interface AstamAttackSurfaceService {
+public interface AstamAttackSurfacePushService {
     void pushAttackSurfaceToAstam(Attacksurface.EntryPointWebSet entryPointWebSet);
 
     void pushEntryPointWebSet(Attacksurface.EntryPointWebSet localEntryPointWebSet);
 
     boolean pushEntryPointWeb(Attacksurface.EntryPointWeb entryPointWeb, boolean doesExist);
+
+    String pushRawDiscoveredAttackSurface(Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface, boolean doesExist);
+
 }

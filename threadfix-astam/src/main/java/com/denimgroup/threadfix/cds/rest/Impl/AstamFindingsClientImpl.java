@@ -20,10 +20,13 @@ package com.denimgroup.threadfix.cds.rest.Impl;
 
 import com.denimgroup.threadfix.cds.rest.AstamFindingsClient;
 import com.denimgroup.threadfix.cds.rest.response.RestResponse;
+import com.denimgroup.threadfix.data.dao.AstamConfigurationDao;
 import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.secdec.astam.common.data.models.Findings.*;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 
@@ -31,11 +34,13 @@ import javax.annotation.Nonnull;
 /**
  * Created by amohammed on 6/23/2017.
  */
+
+@Component
 public class AstamFindingsClientImpl implements AstamFindingsClient {
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(AstamFindingsClientImpl.class);
 
-    final HttpUtils httpUtils;
+    private final HttpUtils httpUtils;
 
     private final static String CONTROLLER_FINDINGS = "findings/",
             CORRELATION_RESULTS = "correlationResults/",
@@ -45,7 +50,9 @@ public class AstamFindingsClientImpl implements AstamFindingsClient {
             DAST = "dast/",
             EXCEPTION_MESSAGE = "InvalidProtocolBufferException while attempting to parse retrieved protobuf data.";
 
-    public AstamFindingsClientImpl(AstamConfiguration astamConfiguration){
+    @Autowired
+    public AstamFindingsClientImpl(AstamConfigurationDao astamConfigurationDao){
+        AstamConfiguration astamConfiguration = astamConfigurationDao.loadCurrentConfiguration();
         httpUtils = new HttpUtils(astamConfiguration);
     }
 

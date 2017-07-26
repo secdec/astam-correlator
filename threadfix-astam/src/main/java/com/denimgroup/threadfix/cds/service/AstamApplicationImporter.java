@@ -24,6 +24,7 @@ import java.util.List;
  * Created by amohammed on 7/22/2017.
  */
 public interface AstamApplicationImporter {
+
     void importAllApplications();
 
     void importApplications(List<String> uuids);
