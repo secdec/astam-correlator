@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.data.entities;
 
+import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
 import com.denimgroup.threadfix.data.entities.astam.AstamAuditableEntity;
 
 import javax.persistence.*;
@@ -13,6 +14,7 @@ public class WebAttackSurface extends AstamAuditableEntity {
     private SurfaceLocation surfaceLocation;
     private DataFlowElement dataFlowElement;
     private Application application;
+    private AstamApplicationDeployment astamApplicationDeployment;
 
     @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "surfaceLocationId")
@@ -43,4 +45,17 @@ public class WebAttackSurface extends AstamAuditableEntity {
     public void setApplication(Application application) {
         this.application = application;
     }
+
+
+    @OneToOne(cascade = {CascadeType.ALL})
+    @JoinColumn(name = "astamApplicationDeploymentId")
+    public AstamApplicationDeployment getAstamApplicationDeployment() {
+        return astamApplicationDeployment;
+    }
+
+    public void setAstamApplicationDeployment(AstamApplicationDeployment astamApplicationDeployment) {
+        this.astamApplicationDeployment = astamApplicationDeployment;
+    }
+
+
 }
