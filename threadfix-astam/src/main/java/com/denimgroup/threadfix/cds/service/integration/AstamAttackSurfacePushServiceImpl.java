@@ -20,14 +20,12 @@ package com.denimgroup.threadfix.cds.service.integration;
 
 import com.denimgroup.threadfix.cds.messaging.AstamMessageManager;
 import com.denimgroup.threadfix.cds.rest.AstamAttackSurfaceClient;
-import com.denimgroup.threadfix.cds.rest.Impl.AstamAttackSurfaceClientImpl;
 import com.denimgroup.threadfix.cds.rest.response.RestResponse;
-import com.denimgroup.threadfix.cds.service.AstamAttackSurfaceService;
+import com.denimgroup.threadfix.cds.service.AstamAttackSurfacePushService;
 import com.denimgroup.threadfix.cds.service.UuidUpdater;
-import com.denimgroup.threadfix.data.dao.AstamConfigurationDao;
-import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.util.ProtobufMessageUtils;
+import com.secdec.astam.common.data.models.Attacksurface;
 import com.secdec.astam.common.data.models.Attacksurface.EntryPointWeb;
 import com.secdec.astam.common.data.models.Attacksurface.EntryPointWebSet;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,21 +46,22 @@ import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessa
  */
 
 @Service
-public class AstamAttackSurfacePushServiceImpl implements AstamAttackSurfaceService {
+public class AstamAttackSurfacePushServiceImpl implements AstamAttackSurfacePushService {
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(AstamAttackSurfacePushServiceImpl.class);
 
     private AstamAttackSurfaceClient attackSurfaceClient;
     private AstamMessageManager messageNotifier;
-
     private UuidUpdater uuidUpdater;
 
     @Autowired
-    public AstamAttackSurfacePushServiceImpl(AstamConfigurationDao astamConfigurationDao, UuidUpdater uuidUpdater){
+    public AstamAttackSurfacePushServiceImpl(AstamAttackSurfaceClient attackSurfaceClient,
+                                             AstamMessageManager messageManager,
+                                             UuidUpdater uuidUpdater){
+
+        this.attackSurfaceClient = attackSurfaceClient;
+        this.messageNotifier = messageManager;
         this.uuidUpdater = uuidUpdater;
-        AstamConfiguration astamConfig = astamConfigurationDao.loadCurrentConfiguration();
-        attackSurfaceClient = new AstamAttackSurfaceClientImpl(astamConfig);
-        messageNotifier = new AstamMessageManager(astamConfig);
     }
 
     @Override
@@ -83,14 +82,14 @@ public class AstamAttackSurfacePushServiceImpl implements AstamAttackSurfaceServ
 
         try {
             CDSEntryPointWebSet = attackSurfaceClient.getAllEntryPointsWeb().getObject();
+            CDSEntryPointWebList = CDSEntryPointWebSet.getWebEntryPointsList();
         }catch (NullPointerException e){
             LOGGER.debug("Data set does not exist in CDS. Attempting to create ...");
         }
 
-        if(CDSEntryPointWebSet == null || CDSEntryPointWebList.isEmpty()) {
+
+        if(CDSEntryPointWebList == null || CDSEntryPointWebList.isEmpty()) {
             isCreateOperation = true;
-        } else {
-            CDSEntryPointWebList = CDSEntryPointWebSet.getWebEntryPointsList();
         }
 
         boolean doesExist;
@@ -141,5 +140,32 @@ public class AstamAttackSurfacePushServiceImpl implements AstamAttackSurfaceServ
 
         }
         return success;
+    }
+
+    @Override
+    public String pushRawDiscoveredAttackSurface(Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface, boolean doesExist){
+        RestResponse<EntryPointWeb> restResponse;
+        boolean success = false;
+
+        if (!doesExist){
+            restResponse = attackSurfaceClient.createRawDiscoveredAttackSurface(rawDiscoveredAttackSurface);
+            if (restResponse.success){
+                success = true;
+                /*int id = ProtobufMessageUtils.createIdFromUUID(rawDiscoveredAttackSurface.getId().getValue());
+                //uuidUpdater.updateUUID(id, restResponse.uuid, );*/
+            } else if(restResponse.responseCode == 409){
+                pushRawDiscoveredAttackSurface(rawDiscoveredAttackSurface, true);
+            }
+        } else {
+            //TODO: this won't work because we can't map back to it locally
+            restResponse = attackSurfaceClient.updateRawDiscoveredAttackSurface(rawDiscoveredAttackSurface.getId().getValue(), rawDiscoveredAttackSurface);
+            if (restResponse.success) {
+                success = true;
+            } else if(restResponse.responseCode == 422){
+                pushRawDiscoveredAttackSurface(rawDiscoveredAttackSurface, false);
+            }
+
+        }
+        return "";
     }
 }

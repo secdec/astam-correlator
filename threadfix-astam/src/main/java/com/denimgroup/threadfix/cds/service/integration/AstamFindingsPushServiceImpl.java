@@ -20,12 +20,9 @@ package com.denimgroup.threadfix.cds.service.integration;
 
 import com.denimgroup.threadfix.cds.messaging.AstamMessageManager;
 import com.denimgroup.threadfix.cds.rest.AstamFindingsClient;
-import com.denimgroup.threadfix.cds.rest.Impl.AstamFindingsClientImpl;
 import com.denimgroup.threadfix.cds.rest.response.RestResponse;
 import com.denimgroup.threadfix.cds.service.AstamFindingsPushService;
 import com.denimgroup.threadfix.cds.service.UuidUpdater;
-import com.denimgroup.threadfix.data.dao.AstamConfigurationDao;
-import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.util.ProtobufMessageUtils;
 import com.secdec.astam.common.data.models.Findings.*;
@@ -54,11 +51,13 @@ public class AstamFindingsPushServiceImpl implements AstamFindingsPushService {
     private UuidUpdater uuidUpdater;
 
     @Autowired
-    public AstamFindingsPushServiceImpl(AstamConfigurationDao astamConfigurationDao, UuidUpdaterImpl uuidUpdaterImpl){
-        AstamConfiguration astamConfig = astamConfigurationDao.loadCurrentConfiguration();
-        findingsClient = new AstamFindingsClientImpl(astamConfig);
-        messageNotifier = new AstamMessageManager(astamConfig);
-        this.uuidUpdater = uuidUpdaterImpl;
+    public AstamFindingsPushServiceImpl(AstamFindingsClient findingsClient,
+                                        AstamMessageManager messageManager,
+                                        UuidUpdater uuidUpdater){
+
+        this.findingsClient = findingsClient;
+        this.messageNotifier = messageManager;
+        this.uuidUpdater = uuidUpdater;
     }
 
     @Override
