@@ -35,6 +35,7 @@ import com.denimgroup.threadfix.service.defects.AbstractDefectTracker;
 import com.denimgroup.threadfix.service.defects.DefectTrackerFactory;
 import com.denimgroup.threadfix.service.repository.RepositoryServiceFactory;
 import com.denimgroup.threadfix.service.util.PermissionUtils;
+import com.denimgroup.threadfix.util.AfterCommitExecutor;
 import org.owasp.esapi.ESAPI;
 import org.owasp.esapi.errors.EncryptionException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -109,6 +110,9 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Autowired(required = false)
     private PolicyStatusService policyStatusService;
 
+    @Autowired
+	AfterCommitExecutor afterCommitExecutor;
+
     @Override
 	public List<Application> loadAllActive() {
 		return applicationDao.retrieveAllActive();
@@ -151,7 +155,12 @@ public class ApplicationServiceImpl implements ApplicationService {
             if (application.getFrameworkType().equals(FrameworkType.NONE.toString()))
                 application.setFrameworkType(FrameworkType.DETECT.toString());
 			applicationDao.saveOrUpdate(application);
-			astamPushService.pushAppMngmtToAstam(application.getId());
+			afterCommitExecutor.execute(new Runnable() {
+				@Override
+				public void run() {
+					astamPushService.pushAppMngmtToAstam(application.getId());
+				}
+			});
 		}
 	}
 

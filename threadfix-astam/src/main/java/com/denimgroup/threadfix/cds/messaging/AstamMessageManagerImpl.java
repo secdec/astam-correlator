@@ -131,7 +131,7 @@ public class AstamMessageManagerImpl implements AstamMessageManager {
         }
         String topicString = createTopic(dataEntity, dataAction, dataSetType);
         messageSubscriber.setup(connection, topicString);
-        //thread(messageSubscriber, false);
+        thread((Runnable)messageSubscriber, false);
     }
 
     private String createTopic(DataEntity dataEntity, DataAction dataAction, DataSetType dataSetType) {
