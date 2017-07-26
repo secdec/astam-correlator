@@ -167,9 +167,9 @@ public class EditApplicationController {
         }
 
 		if (result.hasErrors()) {
-            PermissionUtils.addPermissions(model, orgId, appId, Permission.CAN_MANAGE_DEFECT_TRACKERS,
-					Permission.CAN_MANAGE_WAFS);
-			
+//            PermissionUtils.addPermissions(model, orgId, appId, Permission.CAN_MANAGE_DEFECT_TRACKERS,
+//					Permission.CAN_MANAGE_WAFS);
+
 			if (application.getWaf() != null && application.getWaf().getId() == null) {
 				application.setWaf(null);
 			}

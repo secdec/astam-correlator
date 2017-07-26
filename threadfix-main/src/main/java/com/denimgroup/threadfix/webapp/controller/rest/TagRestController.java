@@ -45,8 +45,8 @@ import static com.denimgroup.threadfix.remote.response.RestResponse.*;
 import static com.denimgroup.threadfix.util.ValidationUtils.HTML_ERROR;
 import static com.denimgroup.threadfix.util.ValidationUtils.containsHTML;
 
-@RestController
-@RequestMapping("/rest/tags")
+//@RestController
+//@RequestMapping("/rest/tags")
 public class TagRestController extends TFRestController {
 
     private static final SanitizedLogger LOG = new SanitizedLogger(TagRestController.class);
@@ -63,15 +63,19 @@ public class TagRestController extends TFRestController {
      * @see com.denimgroup.threadfix.remote.ThreadFixRestClient#createTag(String name, String tagType)
      *
      */
-    @RequestMapping(headers="Accept=application/json", value="/new", method=RequestMethod.POST)
+//    @RequestMapping(headers="Accept=application/json", value="/new", method=RequestMethod.POST)
     @JsonView(AllViews.RestView2_1.class)
     public Object createTag(HttpServletRequest request) {
         this.LOG.info("Received REST request for a new tag.");
 
-        Result<String> keyCheck = checkKey(request, RestMethod.TAG_CREATE, -1, -1);
-        if (!keyCheck.success()) {
-            return resultError(keyCheck);
+        if(true) {
+            return RestResponse.failure("Endpoint is unavailable");
         }
+
+//        Result<String> keyCheck = checkKey(request, RestMethod.TAG_CREATE, -1, -1);
+//        if (!keyCheck.success()) {
+//            return resultError(keyCheck);
+//        }
 
         String name = request.getParameter("name");
         String tagType = request.getParameter("tagType");
@@ -108,16 +112,20 @@ public class TagRestController extends TFRestController {
      * @see com.denimgroup.threadfix.remote.ThreadFixRestClient#searchTagById(String id)
      *
      */
-    @RequestMapping(headers="Accept=application/json", value="/{tagId}", method=RequestMethod.GET)
+//    @RequestMapping(headers="Accept=application/json", value="/{tagId}", method=RequestMethod.GET)
     @JsonView(AllViews.RestViewApplication2_1.class)
     public Object tagDetail(HttpServletRequest request,
                             @PathVariable("tagId") int tagId) {
         this.LOG.info("Received REST request for tag with id = " + tagId + ".");
 
-        Result<String> keyCheck = checkKey(request, RestMethod.TAG_LOOKUP, -1, -1);
-        if (!keyCheck.success()) {
-            return resultError(keyCheck);
+        if(true) {
+            return RestResponse.failure("Endpoint is unavailable");
         }
+
+//        Result<String> keyCheck = checkKey(request, RestMethod.TAG_LOOKUP, -1, -1);
+//        if (!keyCheck.success()) {
+//            return resultError(keyCheck);
+//        }
 
         Tag tag = tagService.loadTag(tagId);
 
@@ -133,14 +141,18 @@ public class TagRestController extends TFRestController {
      * Return details about a specific tag.
      * @see com.denimgroup.threadfix.remote.ThreadFixRestClient#searchTagsByName(String name)
      */
-    @RequestMapping(headers="Accept=application/json", value="/lookup", method=RequestMethod.GET)
+//    @RequestMapping(headers="Accept=application/json", value="/lookup", method=RequestMethod.GET)
     public Object tagLookup(HttpServletRequest request) {
         String tagName = request.getParameter("name");
 
-        Result<String> keyCheck = checkKey(request, RestMethod.TAG_LOOKUP, -1, -1);
-        if (!keyCheck.success()) {
-            return resultError(keyCheck);
+        if(true) {
+            return RestResponse.failure("Endpoint is unavailable");
         }
+
+//        Result<String> keyCheck = checkKey(request, RestMethod.TAG_LOOKUP, -1, -1);
+//        if (!keyCheck.success()) {
+//            return resultError(keyCheck);
+//        }
         if ((tagName == null)) {
             return failure(TAG_LOOKUP_FAILED);
         }
@@ -157,13 +169,17 @@ public class TagRestController extends TFRestController {
      * Return all active tags.
      * @see com.denimgroup.threadfix.remote.ThreadFixRestClient#getAllTags()
      */
-    @RequestMapping(headers="Accept=application/json", value="/index", method=RequestMethod.GET)
+//    @RequestMapping(headers="Accept=application/json", value="/index", method=RequestMethod.GET)
     public Object index(HttpServletRequest request) {
 
-        Result<String> keyCheck = checkKey(request, RestMethod.TAG_LIST, -1, -1);
-        if (!keyCheck.success()) {
-            return resultError(keyCheck);
+        if(true) {
+            return RestResponse.failure("Endpoint is unavailable");
         }
+
+//        Result<String> keyCheck = checkKey(request, RestMethod.TAG_LIST, -1, -1);
+//        if (!keyCheck.success()) {
+//            return resultError(keyCheck);
+//        }
         this.LOG.info("Received REST request to query all tags.");
         Map<String, Object> map = map();
         map.put("Application Tag", tagService.loadAllApplicationTags());
@@ -173,32 +189,40 @@ public class TagRestController extends TFRestController {
         return RestResponse.success(map);
     }
 
-    @RequestMapping(value = "/list", method = RequestMethod.GET, headers = "Accept=application/json")
+//    @RequestMapping(value = "/list", method = RequestMethod.GET, headers = "Accept=application/json")
     @JsonView(RestViewTag.class)
     public Object list(HttpServletRequest request){
 
         this.LOG.info("Received REST request for Tag list.");
 
-        Result<String> keyCheck = checkKey(request, RestMethod.TAG_LIST, -1, -1);
-        if (!keyCheck.success()) {
-            return resultError(keyCheck);
+        if(true) {
+            return RestResponse.failure("Endpoint is unavailable");
         }
+
+//        Result<String> keyCheck = checkKey(request, RestMethod.TAG_LIST, -1, -1);
+//        if (!keyCheck.success()) {
+//            return resultError(keyCheck);
+//        }
 
         List<Tag> tags = tagService.loadAll();
 
         return success(tags);
     }
 
-    @RequestMapping(value = "/{tagId}/update", method = RequestMethod.POST, headers = "Accept=application/json")
+//    @RequestMapping(value = "/{tagId}/update", method = RequestMethod.POST, headers = "Accept=application/json")
     @JsonView(RestViewTag.class)
     public Object updateTag(@PathVariable("tagId") Integer tagId, @RequestParam("name") String tagName, HttpServletRequest request){
 
         this.LOG.info("Received REST request for updating an existing Tag.");
 
-        Result<String> keyCheck = checkKey(request, RestMethod.TAG_EDIT, -1, -1);
-        if (!keyCheck.success()) {
-            return resultError(keyCheck);
+        if(true) {
+            return RestResponse.failure("Endpoint is unavailable");
         }
+
+//        Result<String> keyCheck = checkKey(request, RestMethod.TAG_EDIT, -1, -1);
+//        if (!keyCheck.success()) {
+//            return resultError(keyCheck);
+//        }
 
         if(tagName == null || tagName.trim().isEmpty()){
             return failure("Name is required");
@@ -223,15 +247,19 @@ public class TagRestController extends TFRestController {
         return success(tag);
     }
 
-    @RequestMapping(value = "/{tagId}/delete", method = RequestMethod.POST, headers = "Accept=application/json")
+//    @RequestMapping(value = "/{tagId}/delete", method = RequestMethod.POST, headers = "Accept=application/json")
     public Object deleteTag(@PathVariable("tagId") Integer tagId, HttpServletRequest request){
 
         this.LOG.info("Received REST request for deleting an existing Tag.");
 
-        Result<String> keyCheck = checkKey(request, RestMethod.TAG_DELETE, -1, -1);
-        if (!keyCheck.success()) {
-            return resultError(keyCheck);
+        if(true) {
+            return RestResponse.failure("Endpoint is unavailable");
         }
+
+//        Result<String> keyCheck = checkKey(request, RestMethod.TAG_DELETE, -1, -1);
+//        if (!keyCheck.success()) {
+//            return resultError(keyCheck);
+//        }
 
         Tag tag = tagService.loadTag(tagId);
 
@@ -243,16 +271,20 @@ public class TagRestController extends TFRestController {
         }
     }
 
-    @RequestMapping(value = "/{tagId}/listApplications", method = RequestMethod.GET, headers = "Accept=application/json")
+//    @RequestMapping(value = "/{tagId}/listApplications", method = RequestMethod.GET, headers = "Accept=application/json")
     @JsonView(RestViewTag.class)
     public Object listApplications(@PathVariable("tagId") Integer tagId, HttpServletRequest request){
 
         this.LOG.info("Received REST request for listing Applications with a Tag.");
 
-        Result<String> keyCheck = checkKey(request, RestMethod.TAG_APPLICATION_LIST, -1, -1);
-        if (!keyCheck.success()) {
-            return resultError(keyCheck);
+        if(true) {
+            return RestResponse.failure("Endpoint is unavailable");
         }
+
+//        Result<String> keyCheck = checkKey(request, RestMethod.TAG_APPLICATION_LIST, -1, -1);
+//        if (!keyCheck.success()) {
+//            return resultError(keyCheck);
+//        }
 
         Tag tag = tagService.loadTag(tagId);
 

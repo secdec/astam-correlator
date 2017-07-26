@@ -34,12 +34,12 @@
             <td id="logId{{ $index }}">
                 <a class="pointer" ng-click="log.expanded = !log.expanded">{{ log.time | date:'MMM d, y h:mm:ss a' }} -- {{ log.type }}</a>
             </td>
-            <td id="reportLink{{ $index }}" style="padding-left: 5em">
-                <a class="pointer" ng-click="log.expanded = true"
-                   href="mailto:support@threadfix.org?subject={{ log.time | date : 'medium' }} -- {{ log.type }}
-                   &body=***** Please copy log trace here *****">
-                   Report To ThreadFix Team</a>
-            </td>
+            <%--<td id="reportLink{{ $index }}" style="padding-left: 5em">--%>
+                <%--<a class="pointer" ng-click="log.expanded = true"--%>
+                   <%--href="mailto:support@threadfix.org?subject={{ log.time | date : 'medium' }} -- {{ log.type }}--%>
+                   <%--&body=***** Please copy log trace here *****">--%>
+                   <%--Report To Application Team</a>--%>
+            <%--</td>--%>
 
         </tr>
         <tr ng-repeat-end>

@@ -57,7 +57,7 @@
   <extensions defaultExtensionNs="com.intellij">
 
       <toolWindow id="ThreadFix"
-                  icon="/icons/DG_logo_mark_13x13.png"
+                  icon="/icons/ASTAM_logo.png"
                   anchor="bottom"
                   conditionClass="com.denimgroup.threadfix.plugins.intellij.toolwindow.ThreadFixShowCondition"
                   factoryClass="com.denimgroup.threadfix.plugins.intellij.toolwindow.ThreadFixWindowFactory">

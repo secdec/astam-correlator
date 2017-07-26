@@ -111,7 +111,7 @@ public class VersionOneDefectTracker extends AbstractDefectTracker {
         String result = makePostRequest(getUrlWithRest() + "Defect", defectXml);
 
         if (result == null) {
-            throw new DefectTrackerCommunicationException("ThreadFix was unable to submit a defect to the tracker.");
+            throw new DefectTrackerCommunicationException("Unable to submit a defect to the tracker.");
         }
 
         return getDefectNumber(result);

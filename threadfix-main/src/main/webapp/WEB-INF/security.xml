@@ -43,7 +43,7 @@
 								access="hasRole('ROLE_USER')"/>
 		<security:form-login
 				login-page="/login.jsp"
-				default-target-url="/dashboard"
+				default-target-url="/teams"
 				authentication-success-handler-ref="customLoginSuccessHandler"
 				always-use-default-target="true"/>
 		<security:logout success-handler-ref="customLogoutSuccessHandler"/>

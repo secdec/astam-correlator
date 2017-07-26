@@ -43,7 +43,7 @@ public interface Constants {
             CANCEL_PRESSED_MESSAGE = "Cancel pressed.",
             TOOL_WINDOW_NAME = "ThreadFix",
             APPLICATION_SELECTION_TITLE = "ThreadFix Applications to Import",
-            THREADFIX_ICON_NAME = "/icons/DG_logo_mark_13x13.png",
+            THREADFIX_ICON_NAME = "/icons/ASTAM_logo.png",
             MARKERS_URL_SEGMENT = "/code/markers/",
             APPLICATIONS_URL_SEGMENT = "/code/applications/",
             API_KEY_QUERY_START = "?apiKey=",

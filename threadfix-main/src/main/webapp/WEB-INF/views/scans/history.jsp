@@ -11,7 +11,7 @@
 	<h2>Scans</h2>
 	
 	<div id="helpText">
-		This page lists all of the scans that have been uploaded to ThreadFix.
+		This page lists all of the scans that have been uploaded.
 	</div>
 		
 	<div ng-controller="ScanHistoryController" ng-init="loading = true">

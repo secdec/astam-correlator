@@ -180,7 +180,7 @@ module.controller('RemoteProvidersTabController', function($scope, $http, $modal
             success(function(data, status, headers, config) {
                 if (data.success) {
                     // TODO better progress indicators
-                    provider.successMessage = "ThreadFix is importing scans from " + provider.name +
+                    provider.successMessage = "Importing scans from " + provider.name +
                         " in the background. It may take a few minutes to finish the process.";
                 } else {
                     provider.errorMessage = "Error encountered: " + data.message;
@@ -201,7 +201,7 @@ module.controller('RemoteProvidersTabController', function($scope, $http, $modal
         $http.get(url).
             success(function(data, status, headers, config) {
                 if (data.success) {
-                    if (confirm("ThreadFix imported scans successfully. Would you like to go to the application's page?")) {
+                    if (confirm("Imported scans successfully. Would you like to go to the application's page?")) {
                         window.location.href = tfEncoder.encode("/organizations/" + app.application.team.id + "/applications/" + app.application.id);
                     }
                 } else {

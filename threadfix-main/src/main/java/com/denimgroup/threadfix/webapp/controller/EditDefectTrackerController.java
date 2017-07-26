@@ -47,8 +47,8 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import java.util.List;
 
-@Controller
-@RequestMapping("/configuration/defecttrackers/{defectTrackerId}/edit")
+//@Controller
+//@RequestMapping("/configuration/defecttrackers/{defectTrackerId}/edit")
 @SessionAttributes({"defectTracker", "editDefectTracker"})
 @PreAuthorize("hasRole('ROLE_CAN_MANAGE_DEFECT_TRACKERS')")
 public class EditDefectTrackerController {
@@ -75,7 +75,7 @@ public class EditDefectTrackerController {
 		return defectTrackerService.loadAllDefectTrackerTypes();
 	}
 
-	@RequestMapping(method = RequestMethod.POST)
+//	@RequestMapping(method = RequestMethod.POST)
 	@ResponseBody
 	@JsonView(AllViews.DefectTrackerInfos.class)
 	public RestResponse<DefectTracker> processSubmitAjax(

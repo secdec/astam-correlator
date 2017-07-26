@@ -1,7 +1,7 @@
 <%@ include file="/common/taglibs.jsp"%>
 
 <head>
-    <title>Customize ThreadFix Severities</title>
+    <title>Customize Severities</title>
     <cbs:cachebustscript src="/scripts/community-severity-text-controller.js"/>
 </head>
 

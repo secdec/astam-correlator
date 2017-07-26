@@ -6,10 +6,10 @@
     	<pattern>/configuration/filters/*/delete*</pattern>
     	<pattern>/configuration/filters/tab*</pattern>
     	<pattern>/configuration/severityFilter/set*</pattern>
-    	<pattern>/configuration/defecttrackers/new*</pattern>
-    	<pattern>/configuration/defecttrackers/*/edit*</pattern>
-        <pattern>/configuration/defecttrackers/*/edit/ajax*</pattern>
-    	<pattern>/configuration/defecttrackers/*/delete*</pattern>
+    	<!--<pattern>/configuration/defecttrackers/new*</pattern>-->
+    	<!--<pattern>/configuration/defecttrackers/*/edit*</pattern>-->
+        <!--<pattern>/configuration/defecttrackers/*/edit/ajax*</pattern>-->
+    	<!--<pattern>/configuration/defecttrackers/*/delete*</pattern>-->
     	<pattern>/configuration/keys/*/edit*</pattern>
     	<pattern>/configuration/keys/new*</pattern>
     	<pattern>/configuration/keys/*/delete*</pattern>
@@ -21,8 +21,6 @@
     	<pattern>/configuration/users/*/access*</pattern>
     	<pattern>/configuration/users/*/edit*</pattern>
     	<pattern>/configuration/users/new*</pattern>
-    	<pattern>/dashboard/leftReport*</pattern>
-    	<pattern>/dashboard/rightReport*</pattern>
     	<pattern>/login*</pattern>
     	<pattern>/organizations/teamTable*</pattern>
     	<pattern>/organizations/modalAdd*</pattern>
@@ -75,10 +73,10 @@
     	<pattern>/organizations/*/modalEdit*</pattern>
     	<pattern>/reports/ajax*</pattern>
     	<pattern>/scans/table*</pattern>
-    	<pattern>/wafs/new/ajax*</pattern>
-    	<pattern>/wafs/new/ajax/appPage*</pattern>
-    	<pattern>/wafs/*/edit/ajax*</pattern>
-        <pattern>/wafs/*/rules*</pattern>
+    	<!--<pattern>/wafs/new/ajax*</pattern>-->
+    	<!--<pattern>/wafs/new/ajax/appPage*</pattern>-->
+    	<!--<pattern>/wafs/*/edit/ajax*</pattern>-->
+        <!--<pattern>/wafs/*/rules*</pattern>-->
     	<pattern>/configuration/remoteproviders/*/table*</pattern>
     	<pattern>/configuration/scanqueue/organizations/*/applications/*/scanQueueTask/*/delete*</pattern>
     	<pattern>/configuration/scanqueue/organizations/*/applications/*/addScanQueueTask*</pattern>

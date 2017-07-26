@@ -47,8 +47,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 
-@Controller
-@RequestMapping("/wafs/{wafId}/edit")
+//@Controller
+//@RequestMapping("/wafs/{wafId}/edit")
 @SessionAttributes("waf")
 @PreAuthorize("hasRole('ROLE_CAN_MANAGE_WAFS')")
 public class EditWafController {
@@ -69,7 +69,7 @@ public class EditWafController {
 	}
 
 	@JsonView(AllViews.TableRow.class)
-	@RequestMapping(method = RequestMethod.POST)
+//	@RequestMapping(method = RequestMethod.POST)
 	@ResponseBody
 	public Object editSubmitFromTable(@PathVariable("wafId") int wafId, @Valid @ModelAttribute Waf waf,
 			BindingResult result, SessionStatus status, Model model) {
@@ -83,7 +83,7 @@ public class EditWafController {
 		}
 	}
 	
-	@RequestMapping(value="detail/ajax", method = RequestMethod.POST)
+//	@RequestMapping(value="detail/ajax", method = RequestMethod.POST)
 	public String editSubmitFromDetail(@PathVariable("wafId") int wafId, @Valid @ModelAttribute Waf waf,
 			BindingResult result, SessionStatus status, Model model, HttpServletRequest request) {
 		String editResult = editSubmit(wafId, waf, result, status, model);
