@@ -167,6 +167,7 @@ public class HttpUtils {
         CloseableHttpResponse response = null;
         RestResponse restResponse = null;
         int statusCode = -1;
+        String location = null;
 
         try {
             LOGGER.info("Attempting POST request: " + urlString);
@@ -179,10 +180,10 @@ public class HttpUtils {
                         + ", not 201 as expected. Reason: "
                         + response.getStatusLine().getReasonPhrase());
             } else {
+                location = response.getFirstHeader("Location").getValue();
                 LOGGER.info("Request successful.");
             }
 
-            String location = response.getFirstHeader("Location").getValue();
             restResponse = ResponseParser.getRestResponse(null, statusCode, location);
 
         } catch (SSLHandshakeException sslHandshakeException){
