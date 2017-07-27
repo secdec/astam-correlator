@@ -25,6 +25,7 @@ import com.denimgroup.threadfix.cds.service.protobuf.AstamRemoteFindingsServiceI
 import com.denimgroup.threadfix.data.dao.ApplicationDao;
 import com.denimgroup.threadfix.data.entities.Application;
 import com.denimgroup.threadfix.mapper.AstamEntitiesMapper;
+import com.secdec.astam.common.data.models.Appmgmt;
 import com.secdec.astam.common.data.models.Appmgmt.ApplicationRegistration;
 import com.secdec.astam.common.data.models.Attacksurface;
 import com.secdec.astam.common.data.models.Entities;
@@ -102,32 +103,33 @@ public class AstamPushServiceImpl implements AstamPushService {
     @Override
     public void pushAppMngmtToAstam(int applicationId) {
 
+        astamApplicationService.setup(applicationId);
 
-            astamApplicationService.setup(applicationId);
+        boolean success = false;
 
-            boolean success = false;
-            while (!success) {
-                ApplicationRegistration appRegistration = astamApplicationService.getAppRegistration();
-                success = applicationPushService.pushAppRegistration(appRegistration, false);
-            }
+        ApplicationRegistration appRegistration = astamApplicationService.getAppRegistration();
+        success = applicationPushService.pushAppRegistration(appRegistration, false);
+        if(!success){
+            return;
+        }
 
-            success = false;
-            while (!success) {
-                //Appmgmt.ApplicationEnvironment appEnvironment = astamApplicationService.getAppEnvironment();
-                //success = applicationPushService.pushAppEnvironment(appEnvironment, false);
-            }
+        success = false;
+        Appmgmt.ApplicationEnvironment appEnvironment = astamApplicationService.getAppEnvironment();
+        success = applicationPushService.pushAppEnvironment(appEnvironment, false);
+        if(!success){
+            return;
+        }
 
-            success = false;
-            while (!success) {
-                //Appmgmt.ApplicationVersion appVersion = astamApplicationService.getAppVersion();
-                //success = applicationPushService.pushAppVersion(appVersion, false);
+        success = false;
+        Appmgmt.ApplicationVersion appVersion = astamApplicationService.getAppVersion();
+        success = applicationPushService.pushAppVersion(appVersion, false);
+        if(!success){
+            return;
+        }
 
-            }
-            success = false;
-            while (!success) {
-                //Appmgmt.ApplicationDeployment appDeployment = astamApplicationService.getAppDeployment();
-                //success = applicationPushService.pushAppDeployment(appDeployment, false);
-            }
+        success = false;
+        Appmgmt.ApplicationDeployment appDeployment = astamApplicationService.getAppDeployment();
+        success = applicationPushService.pushAppDeployment(appDeployment, false);
     }
 
     @Override
