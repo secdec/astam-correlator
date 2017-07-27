@@ -149,7 +149,7 @@ public class SystemSettingsController {
                 || StringUtils.isBlank(cdsBrokerUrl)
                 || bindingResult.hasErrors()){
 
-            return FormRestResponse.failure("Unable save CDS Integration Settings. Try again.", bindingResult);
+            return FormRestResponse.failure("Unable to save CDS Integration Settings. Try again.", bindingResult);
         } else {
             AstamConfiguration config = astamConfigurationService.loadCurrentConfiguration();
             config.setCdsCompId(cdsCompId);
