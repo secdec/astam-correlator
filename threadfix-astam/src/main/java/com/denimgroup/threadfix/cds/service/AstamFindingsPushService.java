@@ -24,10 +24,6 @@ import com.secdec.astam.common.data.models.Findings;
  * Created by amohammed on 7/22/2017.
  */
 public interface AstamFindingsPushService {
-    void pushFindingsToAstam(Findings.SastFindingSet sastFindingSet,
-                             Findings.DastFindingSet dastFindingSet,
-                             //RawFindingsSet rawFindingsSet,
-                             Findings.CorrelatedFindingSet correlatedFindingSet);
 
     void pushSastFindingSet(Findings.SastFindingSet localSastFindingSet);
 

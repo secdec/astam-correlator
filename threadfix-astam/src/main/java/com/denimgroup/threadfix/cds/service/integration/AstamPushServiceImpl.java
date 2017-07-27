@@ -25,7 +25,6 @@ import com.denimgroup.threadfix.cds.service.protobuf.AstamRemoteFindingsServiceI
 import com.denimgroup.threadfix.data.dao.ApplicationDao;
 import com.denimgroup.threadfix.data.entities.Application;
 import com.denimgroup.threadfix.mapper.AstamEntitiesMapper;
-import com.secdec.astam.common.data.models.Appmgmt;
 import com.secdec.astam.common.data.models.Appmgmt.ApplicationRegistration;
 import com.secdec.astam.common.data.models.Attacksurface;
 import com.secdec.astam.common.data.models.Entities;
@@ -75,7 +74,7 @@ public class AstamPushServiceImpl implements AstamPushService {
 
     @Override
     public void pushAllToAstam(){
-        List<Application> applicationList = applicationDao.retrieveAllActive();
+        List<Application> applicationList = applicationDao.retrieveAll();
         for (int i=0; i<applicationList.size(); i++) {
             Application app = applicationList.get(i);
             pushSingleAppToAstam(app);
@@ -114,20 +113,20 @@ public class AstamPushServiceImpl implements AstamPushService {
 
             success = false;
             while (!success) {
-                Appmgmt.ApplicationEnvironment appEnvironment = astamApplicationService.getAppEnvironment();
-                success = applicationPushService.pushAppEnvironment(appEnvironment, false);
+                //Appmgmt.ApplicationEnvironment appEnvironment = astamApplicationService.getAppEnvironment();
+                //success = applicationPushService.pushAppEnvironment(appEnvironment, false);
             }
 
             success = false;
             while (!success) {
-                Appmgmt.ApplicationVersion appVersion = astamApplicationService.getAppVersion();
-                success = applicationPushService.pushAppVersion(appVersion, false);
+                //Appmgmt.ApplicationVersion appVersion = astamApplicationService.getAppVersion();
+                //success = applicationPushService.pushAppVersion(appVersion, false);
 
             }
             success = false;
             while (!success) {
-                Appmgmt.ApplicationDeployment appDeployment = astamApplicationService.getAppDeployment();
-                success = applicationPushService.pushAppDeployment(appDeployment, false);
+                //Appmgmt.ApplicationDeployment appDeployment = astamApplicationService.getAppDeployment();
+                //success = applicationPushService.pushAppDeployment(appDeployment, false);
             }
     }
 

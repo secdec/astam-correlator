@@ -1,7 +1,7 @@
 package com.denimgroup.threadfix.data.entities;
 
-import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
 import com.denimgroup.threadfix.data.entities.astam.AstamAuditableEntity;
+import com.denimgroup.threadfix.data.entities.astam.AstamRawDiscoveredAttackSurface;
 
 import javax.persistence.*;
 
@@ -14,7 +14,7 @@ public class WebAttackSurface extends AstamAuditableEntity {
     private SurfaceLocation surfaceLocation;
     private DataFlowElement dataFlowElement;
     private Application application;
-    private AstamApplicationDeployment astamApplicationDeployment;
+    private AstamRawDiscoveredAttackSurface astamRawDiscoveredAttackSurface;
 
     @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "surfaceLocationId")
@@ -47,15 +47,15 @@ public class WebAttackSurface extends AstamAuditableEntity {
     }
 
 
+    //TODO:  remove this, have one RawDiscoveredAttackSurface hold references to multiple WebattackSurfaces
     @OneToOne(cascade = {CascadeType.ALL})
-    @JoinColumn(name = "astamApplicationDeploymentId")
-    public AstamApplicationDeployment getAstamApplicationDeployment() {
-        return astamApplicationDeployment;
+    @JoinColumn(name = "astamAstamRawDiscoveredAttackSurfaceId")
+    public AstamRawDiscoveredAttackSurface getAstamRawDiscoveredAttackSurface() {
+        return astamRawDiscoveredAttackSurface;
     }
 
-    public void setAstamApplicationDeployment(AstamApplicationDeployment astamApplicationDeployment) {
-        this.astamApplicationDeployment = astamApplicationDeployment;
+    public void setAstamRawDiscoveredAttackSurface(AstamRawDiscoveredAttackSurface astamRawDiscoveredAttackSurface) {
+        this.astamRawDiscoveredAttackSurface = astamRawDiscoveredAttackSurface;
     }
-
 
 }

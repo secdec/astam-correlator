@@ -246,8 +246,11 @@ public class AstamFindingsMapper {
             if (findings.size() < 2) {
                 continue;
             }
+
             //TODO: setRecordData()
             Findings.CorrelatedFinding.Builder correlatedFindingBuilder = Findings.CorrelatedFinding.newBuilder()
+                   // .setRecordData(ProtobufMessageUtils.createRecordData()
+                    //.setCorrelationResultId()
                     .addAllDastFindingIds(getUuidsForFindings(vulnerability.getDynamicFindings()))
                     .addAllSastFindingIds(getUuidsForFindings(vulnerability.getStaticFindings()))
                     .setSeverity(severityMap.get(severity.getName()));

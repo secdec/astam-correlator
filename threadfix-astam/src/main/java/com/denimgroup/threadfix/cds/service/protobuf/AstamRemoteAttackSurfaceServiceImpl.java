@@ -22,6 +22,7 @@ import com.denimgroup.threadfix.cds.service.AstamRemoteAttackSurfaceService;
 import com.denimgroup.threadfix.data.dao.ScanDao;
 import com.denimgroup.threadfix.data.dao.WebAttackSurfaceDao;
 import com.denimgroup.threadfix.data.entities.WebAttackSurface;
+import com.denimgroup.threadfix.data.entities.astam.AstamRawDiscoveredAttackSurface;
 import com.denimgroup.threadfix.mapper.AstamAttackSurfaceMapper;
 import com.secdec.astam.common.data.models.Attacksurface;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,20 +32,44 @@ import java.util.List;
 
 @Service
 public class AstamRemoteAttackSurfaceServiceImpl implements AstamRemoteAttackSurfaceService {
+
     private final WebAttackSurfaceDao attackSurfaceDao;
+
+    private AstamAttackSurfaceMapper mapper;
+
+    private List<WebAttackSurface> attackSurfaces;
 
     @Autowired
     public AstamRemoteAttackSurfaceServiceImpl(WebAttackSurfaceDao attackSurfaceDao, ScanDao scanDao) {
         this.attackSurfaceDao = attackSurfaceDao;
     }
 
+    public void setup(int applicationId){
+        attackSurfaces = attackSurfaceDao.retrieveWebAttackSurfaceByAppId(applicationId);
+        mapper = new AstamAttackSurfaceMapper(applicationId);
+    }
+
     @Override
-    public Attacksurface.EntryPointWebSet getEntryPointWebSet(AstamAttackSurfaceMapper mapper, int applicationId){
-        List<WebAttackSurface> attackSurfaces = attackSurfaceDao.retrieveWebAttackSurfaceByAppId(applicationId);
+    public Attacksurface.RawDiscoveredAttackSurface getRawDiscoveredAttackSurface(){
+        //TODO: change this
+        //send this first, we must check if no attack surface has been found
+        WebAttackSurface webAttackSurface = null;
+        if(attackSurfaces != null && !attackSurfaces.isEmpty()){
+            webAttackSurface = attackSurfaces.get(0);
+        }
 
+        //TODO: change this. Get RawDiscoverAttackSurface from the current deployment
+       AstamRawDiscoveredAttackSurface rawDiscoveredAttackSurface = webAttackSurface.getAstamRawDiscoveredAttackSurface();
+        mapper.createRawDiscoveredAttackSurface(rawDiscoveredAttackSurface);
+        return mapper.getRawDiscoveredAttackSurface();
+    }
+
+    @Override
+    public Attacksurface.EntryPointWebSet getEntryPointWebSet(){
         mapper.addWebEntryPoints(attackSurfaces);
-
         return mapper.getEntryPointwebSet();
     }
+
+
 
 }

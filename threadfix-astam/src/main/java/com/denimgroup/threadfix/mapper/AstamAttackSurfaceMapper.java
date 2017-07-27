@@ -22,6 +22,7 @@ package com.denimgroup.threadfix.mapper;
 import com.denimgroup.threadfix.data.entities.DataFlowElement;
 import com.denimgroup.threadfix.data.entities.SurfaceLocation;
 import com.denimgroup.threadfix.data.entities.WebAttackSurface;
+import com.denimgroup.threadfix.data.entities.astam.AstamRawDiscoveredAttackSurface;
 import com.denimgroup.threadfix.util.ProtobufMessageUtils;
 import com.secdec.astam.common.data.models.Attacksurface;
 import com.secdec.astam.common.data.models.Common;
@@ -36,6 +37,7 @@ public class AstamAttackSurfaceMapper {
     private int applicationId;
     public List<Attacksurface.EntryPointWeb> webEntryPoints;
     public List<Attacksurface.EntryPointMobile> mobileEntryPoints;
+    public Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface;
 
     public AstamAttackSurfaceMapper(int applicationId) {
         this.applicationId = applicationId;
@@ -43,21 +45,22 @@ public class AstamAttackSurfaceMapper {
         this.mobileEntryPoints = new ArrayList<>();
     }
 
-    // TODO mobileEntryPoints when proto file is updated
-
     public int getApplicationId() {
         return applicationId;
     }
 
     public void addWebEntryPoints(List<WebAttackSurface> attackSurfaces) {
-        for (WebAttackSurface attackSurface : attackSurfaces) {
 
+        for (WebAttackSurface attackSurface : attackSurfaces) {
+            //TODO: change this relationship
+            Common.UUID rawDiscoveredAttackSurfaceId = ProtobufMessageUtils.createUUID(attackSurface.getAstamRawDiscoveredAttackSurface());
             Attacksurface.EntryPointWeb.Builder entryPointWebBuilder = Attacksurface.EntryPointWeb.newBuilder()
                     .setRecordData(ProtobufMessageUtils.createRecordData(attackSurface))
                     .addAllKnownAttackMechanisms(getAttackMechanisms(attackSurface))
                     .setTrace(getTraceNode(attackSurface))
                     .addAllHttpMethod(getHttpMethods(attackSurface.getSurfaceLocation()))
                     .setRelativePath(attackSurface.getSurfaceLocation().getPath())
+                    .setRawDiscoveredAttackSurfaceId(rawDiscoveredAttackSurfaceId)
                     .setId(ProtobufMessageUtils.createUUID(attackSurface));
 
             webEntryPoints.add(entryPointWebBuilder.build());
@@ -69,11 +72,11 @@ public class AstamAttackSurfaceMapper {
         SurfaceLocation surfaceLocation = attackSurface.getSurfaceLocation();
 
         Attacksurface.EntryPointWeb.AttackMechanism attackMechanism = Attacksurface.EntryPointWeb.AttackMechanism.newBuilder()
-                    .setType(getWebAttackMechanismType(surfaceLocation))
-                    .setName(getAttackMechanismName(surfaceLocation))
-                     //.setValueType() This is the parameter type String/Integer
-                     //.addAllValues() This maps to: "repeated string values = 4; "
-                    .build();
+                .setType(getWebAttackMechanismType(surfaceLocation))
+                .setName(getAttackMechanismName(surfaceLocation))
+                //.setValueType() This is the parameter type String/Integer
+                //.addAllValues() This maps to: "repeated string values = 4; "
+                .build();
 
         attackMechanismList.add(attackMechanism);
 
@@ -100,7 +103,7 @@ public class AstamAttackSurfaceMapper {
         List<Common.HttpMethod> httpMethods = new ArrayList<Common.HttpMethod>();
 
         if (surfaceLocation.getHttpMethod() != null)
-             httpMethods.add(Common.HttpMethod.valueOf(surfaceLocation.getHttpMethod()));
+            httpMethods.add(Common.HttpMethod.valueOf(surfaceLocation.getHttpMethod()));
 
         return httpMethods;
     }
@@ -125,7 +128,7 @@ public class AstamAttackSurfaceMapper {
         return traceNodeBuilder.build();
     }
 
-    private Attacksurface.RawDiscoveredAttackSurface createRawDiscoveredAttackSurface() {
+    public Attacksurface.RawDiscoveredAttackSurface createRawDiscoveredAttackSurface(AstamRawDiscoveredAttackSurface astamRawDiscoveredAttackSurface) {
         List<Common.UUID> webEntryPointIds = new ArrayList<Common.UUID>();
         for (Attacksurface.EntryPointWeb entryPointWeb : webEntryPoints)
             webEntryPointIds.add(entryPointWeb.getId());
@@ -134,11 +137,14 @@ public class AstamAttackSurfaceMapper {
         for (Attacksurface.EntryPointMobile entryPointMobile : mobileEntryPoints)
             mobileEntryPointIds.add(entryPointMobile.getId());
 
+        Common.UUID appDeploymentId = ProtobufMessageUtils.createUUID(astamRawDiscoveredAttackSurface.getAstamApplicationDeployment());
         Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface = Attacksurface.RawDiscoveredAttackSurface.newBuilder()
-                .addAllEntryPointWebIds(webEntryPointIds)
-                .addAllEntryPointMobileIds(mobileEntryPointIds)
+                .setId(ProtobufMessageUtils.createUUID(astamRawDiscoveredAttackSurface))
+                .setApplicationDeploymentId(appDeploymentId)
+                //.setReportingExternalToolId() //this is threadfix
+                //.addAllEntryPointWebIds(webEntryPointIds) //  these will be ignored as they are projections
+                //.addAllEntryPointMobileIds(mobileEntryPointIds)
                 //.setReportingTool(service.findIdByName(ThreadFix)
-                //.setReportingExternalToolId()
                 .build();
 
         return rawDiscoveredAttackSurface;
@@ -149,10 +155,15 @@ public class AstamAttackSurfaceMapper {
         entryPointWebSet.writeTo(outputStream);
     }
 
+    public Attacksurface.RawDiscoveredAttackSurface getRawDiscoveredAttackSurface(){
+        return rawDiscoveredAttackSurface;
+    }
+
     public Attacksurface.EntryPointWebSet getEntryPointwebSet(){
         Attacksurface.EntryPointWebSet  entryPointWebSet = Attacksurface.EntryPointWebSet.newBuilder()
                 .addAllWebEntryPoints(webEntryPoints)
                 .build();
         return entryPointWebSet;
     }
+
 }

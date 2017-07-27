@@ -37,6 +37,7 @@ import java.util.List;
 public class AstamRemoteFindingsServiceImpl implements AstamRemoteFindingsService {
     private final VulnerabilityDao vulnerabilityDao;
     private final ScanDao scanDao;
+    private AstamFindingsMapper astamMapper;
 
     @Autowired
     public AstamRemoteFindingsServiceImpl(VulnerabilityDao vulnerabilityDao, ScanDao scanDao) {
@@ -52,7 +53,17 @@ public class AstamRemoteFindingsServiceImpl implements AstamRemoteFindingsServic
     }
 
     @Override
-    public Findings.DastFindingSet getDastFindings(AstamFindingsMapper astamMapper){
+    public Findings.RawFindingsSet getRawFindingsSet() {
+        return null;
+    }
+
+    @Override
+    public void setup(int applicationId){
+        astamMapper = new AstamFindingsMapper(applicationId);
+    }
+
+    @Override
+    public Findings.DastFindingSet getDastFindings(){
         List<Scan> scanList = getScansByApplicationId(astamMapper.getApplicationId());
 
         for (int i=0; i<scanList.size(); i++) {
@@ -68,7 +79,7 @@ public class AstamRemoteFindingsServiceImpl implements AstamRemoteFindingsServic
     }
 
     @Override
-    public Findings.SastFindingSet getSastFindings(AstamFindingsMapper astamMapper) {
+    public Findings.SastFindingSet getSastFindings() {
         List<Scan> scanList = getScansByApplicationId(astamMapper.getApplicationId());
 
         for (int i=0; i<scanList.size(); i++) {
@@ -84,7 +95,12 @@ public class AstamRemoteFindingsServiceImpl implements AstamRemoteFindingsServic
     }
 
     @Override
-    public Findings.CorrelatedFindingSet getCorrelatedFindings(AstamFindingsMapper astamMapper){
+    public Findings.CorrelationResultSet getCorrelatedResultSet() {
+        return null;
+    }
+
+    @Override
+    public Findings.CorrelatedFindingSet getCorrelatedFindings(){
         List<Vulnerability> vulnerabilityList = vulnerabilityDao
                 .retrieveAllByApplication(astamMapper.getApplicationId());
         astamMapper.addCorrelatedFindings(vulnerabilityList);
@@ -93,7 +109,7 @@ public class AstamRemoteFindingsServiceImpl implements AstamRemoteFindingsServic
     }
 
     @Override
-    public Entities.ExternalToolSet getExternalTools(AstamFindingsMapper astamMapper) {
+    public Entities.ExternalToolSet getExternalTools() {
         return astamMapper.getExternalToolsSet();
     }
 

@@ -126,14 +126,14 @@ public class AstamEntitiesPushServiceImpl implements AstamEntitiesPushService {
                 int id = ProtobufMessageUtils.createIdFromUUID(externalTool.getId().getValue());
                 uuidUpdater.updateUUID(id, restResponse.uuid, EXTERNAL_TOOL);
             } else if(restResponse.responseCode == 409){
-                pushExternalTool(externalTool, true);
+                success = pushExternalTool(externalTool, true);
             }
         } else {
             restResponse = astamEntitiesClient.updateExternalTool(externalTool.getId().getValue(), externalTool);
             if (restResponse.success) {
                 success = true;
             } else if(restResponse.responseCode == 422){
-                pushExternalTool(externalTool, false);
+                success = pushExternalTool(externalTool, false);
             }
         }
         return success;
@@ -196,14 +196,14 @@ public class AstamEntitiesPushServiceImpl implements AstamEntitiesPushService {
             if (restResponse.success){
                 success = true;
             } else if(restResponse.responseCode == 409){
-                pushCwe(cwe, true);
+                success = pushCwe(cwe, true);
             }
         } else {
             restResponse = astamEntitiesClient.updateCWE(String.valueOf(cwe.getCweId()), cwe);
             if (restResponse.success) {
                 success = true;
             } else if(restResponse.responseCode == 422){
-                pushCwe(cwe, false);
+                success = pushCwe(cwe, false);
             }
         }
         return success;

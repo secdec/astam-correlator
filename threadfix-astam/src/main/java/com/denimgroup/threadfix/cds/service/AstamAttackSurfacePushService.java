@@ -30,6 +30,6 @@ public interface AstamAttackSurfacePushService {
 
     boolean pushEntryPointWeb(Attacksurface.EntryPointWeb entryPointWeb, boolean doesExist);
 
-    String pushRawDiscoveredAttackSurface(Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface, boolean doesExist);
+    boolean pushRawDiscoveredAttackSurface(Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface, boolean doesExist);
 
 }

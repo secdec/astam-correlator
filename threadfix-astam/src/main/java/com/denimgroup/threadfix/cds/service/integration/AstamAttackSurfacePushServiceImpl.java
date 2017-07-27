@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.denimgroup.threadfix.data.enums.AstamEntityType.ENTRY_POINT_WEB;
+import static com.denimgroup.threadfix.data.enums.AstamEntityType.RAW_DISCOVERED_ATTACK_SURFACE;
 import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataAction.DATA_CREATE;
 import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataAction.DATA_UPDATE;
 import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataEntity.DATA_ENTRY_POINT_WEB;
@@ -128,14 +129,14 @@ public class AstamAttackSurfacePushServiceImpl implements AstamAttackSurfacePush
                 int id = ProtobufMessageUtils.createIdFromUUID(entryPointWeb.getId().getValue());
                 uuidUpdater.updateUUID(id, restResponse.uuid, ENTRY_POINT_WEB);
             } else if(restResponse.responseCode == 409){
-                pushEntryPointWeb(entryPointWeb, true);
+                success = pushEntryPointWeb(entryPointWeb, true);
             }
         } else {
             restResponse = attackSurfaceClient.updateEntryPointWeb(entryPointWeb.getId().getValue(), entryPointWeb);
             if (restResponse.success) {
                 success = true;
             } else if(restResponse.responseCode == 422){
-                pushEntryPointWeb(entryPointWeb, false);
+                success = pushEntryPointWeb(entryPointWeb, false);
             }
 
         }
@@ -143,7 +144,7 @@ public class AstamAttackSurfacePushServiceImpl implements AstamAttackSurfacePush
     }
 
     @Override
-    public String pushRawDiscoveredAttackSurface(Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface, boolean doesExist){
+    public boolean pushRawDiscoveredAttackSurface(Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface, boolean doesExist){
         RestResponse<EntryPointWeb> restResponse;
         boolean success = false;
 
@@ -151,21 +152,20 @@ public class AstamAttackSurfacePushServiceImpl implements AstamAttackSurfacePush
             restResponse = attackSurfaceClient.createRawDiscoveredAttackSurface(rawDiscoveredAttackSurface);
             if (restResponse.success){
                 success = true;
-                /*int id = ProtobufMessageUtils.createIdFromUUID(rawDiscoveredAttackSurface.getId().getValue());
-                //uuidUpdater.updateUUID(id, restResponse.uuid, );*/
+                  int id = ProtobufMessageUtils.createIdFromUUID(rawDiscoveredAttackSurface.getId().getValue());
+                   uuidUpdater.updateUUID(id, restResponse.uuid, RAW_DISCOVERED_ATTACK_SURFACE);
             } else if(restResponse.responseCode == 409){
-                pushRawDiscoveredAttackSurface(rawDiscoveredAttackSurface, true);
+                success = pushRawDiscoveredAttackSurface(rawDiscoveredAttackSurface, true);
             }
         } else {
-            //TODO: this won't work because we can't map back to it locally
             restResponse = attackSurfaceClient.updateRawDiscoveredAttackSurface(rawDiscoveredAttackSurface.getId().getValue(), rawDiscoveredAttackSurface);
             if (restResponse.success) {
                 success = true;
             } else if(restResponse.responseCode == 422){
-                pushRawDiscoveredAttackSurface(rawDiscoveredAttackSurface, false);
+                success = pushRawDiscoveredAttackSurface(rawDiscoveredAttackSurface, false);
             }
 
         }
-        return "";
+        return success;
     }
 }

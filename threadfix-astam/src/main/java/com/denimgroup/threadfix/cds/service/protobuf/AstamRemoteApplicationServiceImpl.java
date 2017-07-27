@@ -48,7 +48,7 @@ public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplication
     @Override
     public void setup(int applicationId){
         application = applicationDao.retrieveById(applicationId);
-        appDeployment = application.getAstamApplicationDeployment();
+        //appDeployment = application.getAstamApplicationDeployment();
     }
 
     @Override

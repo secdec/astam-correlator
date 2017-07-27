@@ -18,12 +18,14 @@
 
 package com.denimgroup.threadfix.cds.service;
 
-import com.denimgroup.threadfix.mapper.AstamAttackSurfaceMapper;
 import com.secdec.astam.common.data.models.Attacksurface;
 
 /**
  * Created by amohammed on 7/22/2017.
  */
 public interface AstamRemoteAttackSurfaceService {
-    Attacksurface.EntryPointWebSet getEntryPointWebSet(AstamAttackSurfaceMapper mapper, int applicationId);
+
+    Attacksurface.RawDiscoveredAttackSurface getRawDiscoveredAttackSurface();
+
+    Attacksurface.EntryPointWebSet getEntryPointWebSet();
 }

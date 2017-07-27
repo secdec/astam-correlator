@@ -49,18 +49,18 @@ public class AstamApplicationImporterImpl implements AstamApplicationImporter {
     private ApplicationDao applicationDao;
     private OrganizationDao organizationDao;
 
-    /*private ApplicationService applicationService;*/
+/*
+    @Lazy
+    @Autowired
+    private ApplicationService applicationService;
+*/
+
+    AstamApplicationClient applicationClient;
 
 
     @Autowired
-    public AstamApplicationImporterImpl(AstamApplicationClient applicationClient,
-                                        OrganizationDao organizationDao,
-                                        ApplicationDao applicationDao){
-
-        this.astamApplicationClient = applicationClient;
-        this.organizationDao = organizationDao;
-        this.applicationDao = applicationDao;
-        /*this.applicationService = applicationService;*/
+    public AstamApplicationImporterImpl(AstamApplicationClient applicationClient){
+        this.applicationClient = applicationClient;
     }
 
     @Override

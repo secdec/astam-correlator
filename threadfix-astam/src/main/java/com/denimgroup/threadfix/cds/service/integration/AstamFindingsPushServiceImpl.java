@@ -61,18 +61,6 @@ public class AstamFindingsPushServiceImpl implements AstamFindingsPushService {
     }
 
     @Override
-    public void pushFindingsToAstam(SastFindingSet sastFindingSet,
-                                    DastFindingSet dastFindingSet,
-                                    //RawFindingsSet rawFindingsSet,
-                                    CorrelatedFindingSet correlatedFindingSet){
-
-        pushSastFindingSet(sastFindingSet);
-        pushDastFindingSet(dastFindingSet);
-        //pushRawFindingsSet(rawFindingsSet);
-        pushCorrelatedFindingSet(correlatedFindingSet);
-    }
-
-    @Override
     public void pushSastFindingSet(SastFindingSet localSastFindingSet) {
 
         List<SastFinding> localSastFindingList = localSastFindingSet.getSastFindingsList();
@@ -131,14 +119,14 @@ public class AstamFindingsPushServiceImpl implements AstamFindingsPushService {
                 int id = ProtobufMessageUtils.createIdFromUUID(sastFinding.getId().getValue());
                 uuidUpdater.updateUUID(id, restResponse.uuid, SAST_FINDING);
             } else if(restResponse.responseCode == 409){
-                pushSastFinding(sastFinding, true);
+                success = pushSastFinding(sastFinding, true);
             }
         } else {
             restResponse = findingsClient.updateSastFinding(sastFinding.getId().getValue(), sastFinding);
             if (restResponse.success) {
                 success = true;
             } else if(restResponse.responseCode == 422){
-                pushSastFinding(sastFinding, false);
+                success = pushSastFinding(sastFinding, false);
             }
         }
         return success;
@@ -201,7 +189,7 @@ public class AstamFindingsPushServiceImpl implements AstamFindingsPushService {
                 int id = ProtobufMessageUtils.createIdFromUUID(dastFinding.getId().getValue());
                 uuidUpdater.updateUUID(id, restResponse.uuid, DAST_FINDING);
             } else if(restResponse.responseCode == 409){
-                pushDastFinding(dastFinding, true);
+                success = pushDastFinding(dastFinding, true);
             }
 
         } else {
@@ -209,7 +197,7 @@ public class AstamFindingsPushServiceImpl implements AstamFindingsPushService {
             if (restResponse.success) {
                 success = true;
             } else if(restResponse.responseCode == 422){
-                pushDastFinding(dastFinding, false);
+                success = pushDastFinding(dastFinding, false);
             }
 
         }
@@ -275,14 +263,14 @@ public class AstamFindingsPushServiceImpl implements AstamFindingsPushService {
                 int id = ProtobufMessageUtils.createIdFromUUID(rawFindings.getId().getValue());
                 uuidUpdater.updateUUID(id, restResponse.uuid, RAW_FINDING);
             } else if(restResponse.responseCode == 409){
-                pushRawFindings(rawFindings, true);
+                success = pushRawFindings(rawFindings, true);
             }
         } else {
             restResponse = findingsClient.updateRawFindings(rawFindings.getId().getValue(), rawFindings);
             if (restResponse.success) {
                 success = true;
             } else if(restResponse.responseCode == 422){
-                pushRawFindings(rawFindings, false);
+                success = pushRawFindings(rawFindings, false);
             }
 
         }
@@ -345,7 +333,7 @@ public class AstamFindingsPushServiceImpl implements AstamFindingsPushService {
                 int id = ProtobufMessageUtils.createIdFromUUID(correlatedFinding.getId().getValue());
                 uuidUpdater.updateUUID(id, restResponse.uuid, CORRELATED_FINDING);
             } else if(restResponse.responseCode == 409){
-                pushCorrelatedFinding(correlatedFinding, true);
+                success = pushCorrelatedFinding(correlatedFinding, true);
             }
         } else {
             restResponse = findingsClient.updateCorrelatedFinding(
@@ -355,7 +343,7 @@ public class AstamFindingsPushServiceImpl implements AstamFindingsPushService {
             if (restResponse.success) {
                 success = true;
             } else if(restResponse.responseCode == 422){
-                pushCorrelatedFinding(correlatedFinding, false);
+                success = pushCorrelatedFinding(correlatedFinding, false);
             }
         }
 

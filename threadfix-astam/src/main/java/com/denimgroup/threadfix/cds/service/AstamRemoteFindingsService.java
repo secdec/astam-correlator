@@ -19,7 +19,6 @@
 package com.denimgroup.threadfix.cds.service;
 
 import com.denimgroup.threadfix.data.entities.Scan;
-import com.denimgroup.threadfix.mapper.AstamFindingsMapper;
 import com.secdec.astam.common.data.models.Entities;
 import com.secdec.astam.common.data.models.Findings;
 
@@ -31,11 +30,17 @@ import java.util.List;
 public interface AstamRemoteFindingsService {
     List<Scan> getScansByApplicationId(int applicationId);
 
-    Findings.DastFindingSet getDastFindings(AstamFindingsMapper astamMapper);
+    Findings.RawFindingsSet getRawFindingsSet();
 
-    Findings.SastFindingSet getSastFindings(AstamFindingsMapper astamMapper);
+    void setup(int applicationId);
 
-    Findings.CorrelatedFindingSet getCorrelatedFindings(AstamFindingsMapper astamMapper);
+    Findings.DastFindingSet getDastFindings( );
 
-    Entities.ExternalToolSet getExternalTools(AstamFindingsMapper astamMapper);
+    Findings.SastFindingSet getSastFindings( );
+
+    Findings.CorrelationResultSet getCorrelatedResultSet();
+
+    Findings.CorrelatedFindingSet getCorrelatedFindings( );
+
+    Entities.ExternalToolSet getExternalTools( );
 }
