@@ -23,11 +23,8 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.webapp.controller;
 
-import com.denimgroup.threadfix.cds.messaging.AstamMessageManager;
-import com.denimgroup.threadfix.cds.service.AstamPushService;
 import com.denimgroup.threadfix.data.entities.ExceptionLog;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
-import com.denimgroup.threadfix.service.AstamConfigurationService;
 import com.denimgroup.threadfix.service.AstamExportService;
 import com.denimgroup.threadfix.service.ExceptionLogService;
 import org.apache.commons.io.IOUtils;
@@ -51,15 +48,6 @@ public class ToolsDownloadController {
 
     @Autowired
     private AstamExportService astamExportService;
-
-    @Autowired
-    private AstamMessageManager messageManager;
-
-    @Autowired
-    AstamPushService astamPushService;
-
-    @Autowired
-    private AstamConfigurationService astamConfigurationService;
 
 	private final SanitizedLogger log = new SanitizedLogger(ToolsDownloadController.class);
 
@@ -128,11 +116,6 @@ public class ToolsDownloadController {
             ServletOutputStream servletOutputStream = response.getOutputStream();
             response.setContentType("application/zip");
             response.addHeader("Content-Disposition", "attachment; filename=\"" + PROTOBUF_ZIP + "\"");
-
-            //astamExportService.writeAllToOutput(servletOutputStream);
-            //messageManager.subscribe(DATA_APPLICATION_REGISTRATION, null, DATA_SET_SINGLE);
-             astamPushService.pushAllToAstam();
-
 
             servletOutputStream.flush();
             servletOutputStream.close();
