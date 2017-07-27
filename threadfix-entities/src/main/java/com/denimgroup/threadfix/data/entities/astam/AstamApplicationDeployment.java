@@ -3,10 +3,7 @@ package com.denimgroup.threadfix.data.entities.astam;
 import com.denimgroup.threadfix.data.entities.ApplicationVersion;
 import com.fasterxml.jackson.annotation.JsonView;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
+import javax.persistence.*;
 
 @Entity
 public class AstamApplicationDeployment extends AstamAuditableEntity{
@@ -20,12 +17,7 @@ public class AstamApplicationDeployment extends AstamAuditableEntity{
     @JsonView(Object.class)
     AstamDeploymentType deploymentType;
 
-    @Column(name = "applicationVersionId", nullable = false)
-    @JsonView(Object.class)
     ApplicationVersion applicationVersion;
-
-    @Column(name = "applicationEnvironmentId", nullable = false)
-    @JsonView(Object.class)
     AstamApplicationEnvironment applicationEnvironment;
 
 
@@ -45,6 +37,9 @@ public class AstamApplicationDeployment extends AstamAuditableEntity{
         this.name = name;
     }
 
+    @JsonView(Object.class)
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "applicationVersionId", nullable = false)
     public ApplicationVersion getApplicationVersion() {
         return applicationVersion;
     }
@@ -53,6 +48,9 @@ public class AstamApplicationDeployment extends AstamAuditableEntity{
         this.applicationVersion = applicationVersion;
     }
 
+    @JsonView(Object.class)
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "applicationEnvironmentId")
     public AstamApplicationEnvironment getApplicationEnvironment() {
         return applicationEnvironment;
     }
