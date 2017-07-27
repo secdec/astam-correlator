@@ -1032,7 +1032,7 @@ public class Application extends AstamAuditableEntity {
 					!getRepositoryBranch().isEmpty()) ? getRepositoryBranch() : "master";
 	}
 
-    //TODO: change this OneToMany
+    //TODO: change this
     @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "astamApplicationDeploymentId")
     public AstamApplicationDeployment getAstamApplicationDeployment() {

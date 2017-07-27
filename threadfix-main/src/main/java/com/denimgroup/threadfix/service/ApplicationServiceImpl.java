@@ -27,7 +27,6 @@ import com.denimgroup.threadfix.cds.service.AstamPushService;
 import com.denimgroup.threadfix.data.dao.*;
 import com.denimgroup.threadfix.data.entities.*;
 import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
-import com.denimgroup.threadfix.data.entities.astam.AstamApplicationEnvironment;
 import com.denimgroup.threadfix.data.enums.EventAction;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.importer.util.IntegerUtils;
@@ -124,6 +123,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Autowired
     private ApplicationVersionDao applicationVersionDao;
 
+
     @Override
 	public List<Application> loadAllActive() {
 		return applicationDao.retrieveAllActive();
@@ -165,7 +165,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
 			//This code is for demo only, in real use we will be importing application mngmt data
 			//If we want to export as well as import we need to check. If exporting will be enabled in prod correctly setup this data;
-			AstamApplicationEnvironment astamApplicationEnvironment = new AstamApplicationEnvironment();
+			/*AstamApplicationEnvironment astamApplicationEnvironment = new AstamApplicationEnvironment();
 			astamApplicationEnvironment.setName("Default Env");
 			applicationEnvironmentDao.saveOrUpdate(astamApplicationEnvironment);
 
@@ -180,7 +180,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 			astamApplicationDeployment.setName("Default");
 			astamApplicationDeploymentDao.saveOrUpdate(astamApplicationDeployment);
 
-			application.setAstamApplicationDeployment(astamApplicationDeployment);
+			application.setAstamApplicationDeployment(astamApplicationDeployment);*/
 
             // Set default for Application Type is Detect
             if (application.getFrameworkType().equals(FrameworkType.NONE.toString()))
@@ -189,7 +189,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 			afterCommitExecutor.execute(new Runnable() {
 				@Override
 				public void run() {
-
+                astamPushService.pushAppMngmtToAstam(application.getId());
 				}
 			});
 		}
