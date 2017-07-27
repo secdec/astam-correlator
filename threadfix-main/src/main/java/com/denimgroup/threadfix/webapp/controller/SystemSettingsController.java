@@ -157,7 +157,7 @@ public class SystemSettingsController {
             config.setCdsBrokerUrl(cdsBrokerUrl);
             config.setHasConfiguration(true);
             astamConfigurationService.saveConfiguration(config);
-            return success(astamConfiguration);
+            return success(config);
         }
     }
 

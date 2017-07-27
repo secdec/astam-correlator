@@ -27,6 +27,7 @@ import com.denimgroup.threadfix.data.dao.OrganizationDao;
 import com.denimgroup.threadfix.data.entities.Application;
 import com.denimgroup.threadfix.data.entities.Organization;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
+import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.mapper.ThreadfixApplicationMapper;
 import com.secdec.astam.common.data.models.Appmgmt;
 import com.secdec.astam.common.data.models.Appmgmt.ApplicationRegistration;
@@ -42,11 +43,14 @@ import java.util.List;
 @Service
 public class AstamApplicationImporterImpl implements AstamApplicationImporter {
 
+    private final SanitizedLogger log = new SanitizedLogger(AstamApplicationImporterImpl.class);
+
     private AstamApplicationClient astamApplicationClient;
     private ApplicationDao applicationDao;
     private OrganizationDao organizationDao;
 
     /*private ApplicationService applicationService;*/
+
 
     @Autowired
     public AstamApplicationImporterImpl(AstamApplicationClient applicationClient,
@@ -62,10 +66,16 @@ public class AstamApplicationImporterImpl implements AstamApplicationImporter {
     @Override
     public void importAllApplications(){
         RestResponse<Appmgmt.ApplicationRegistrationSet> response = astamApplicationClient.getAllAppRegistrations();
-        Appmgmt.ApplicationRegistrationSet appRegistrationSet = response.getObject();
-        List<ApplicationRegistration> appRegistrationsList =  appRegistrationSet.getApplicationRegistrationsList();
-        for(ApplicationRegistration appRegistration: appRegistrationsList){
-            importApplication(appRegistration);
+        if(response.responseCode == 200 || response.success){
+            Appmgmt.ApplicationRegistrationSet appRegistrationSet = response.getObject();
+            if(appRegistrationSet != null && appRegistrationSet.getApplicationRegistrationsList() != null) {
+                List<ApplicationRegistration> appRegistrationsList = appRegistrationSet.getApplicationRegistrationsList();
+                for (ApplicationRegistration appRegistration : appRegistrationsList) {
+                    importApplication(appRegistration);
+                }
+            }
+        }else{//TODO: Handle response codes here.
+            log.debug("AstamApImporter importAllApps received a " + response.responseCode + " responseCode.");
         }
     }
 

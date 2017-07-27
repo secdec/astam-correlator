@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
  * Created by amohammed on 7/23/2017.
  */
 @Service
+@Transactional(readOnly = true)
 public class AstamConfigurationServiceImpl implements AstamConfigurationService {
 
     protected final SanitizedLogger log = new SanitizedLogger(AstamConfigurationServiceImpl.class);
@@ -44,23 +45,25 @@ public class AstamConfigurationServiceImpl implements AstamConfigurationService 
     @Autowired
     private AstamApplicationImporter astamApplicationImporter;
 
-    @Transactional(readOnly = false)
+
     @Override
     public AstamConfiguration loadCurrentConfiguration() {
         AstamConfiguration configuration = astamConfigurationDao.loadCurrentConfiguration();
-
         assert configuration != null;
-
         return configuration;
     }
 
     @Override
+    @Transactional(readOnly = false)
     public void saveConfiguration(AstamConfiguration config) {
         astamConfigurationDao.saveOrUpdate(config);
         //TODO: (edge case) figure out pushing existing data prior to configuration,
         // only if applications will also be created in the ASTAM correlator
         //astamPushService.pushAllToAstam();
-        astamApplicationImporter.importAllApplications();/*
+
+        astamApplicationImporter.importAllApplications();
+
+        /*
         AstamMessageManagerImpl messageManager = new AstamMessageManagerImpl(config);
         messageManager.subscribe(DATA_APPLICATION_REGISTRATION, DATA_CREATE, DATA_SET_SINGLE);
         messageManager.subscribe(DATA_APPLICATION_REGISTRATION, DATA_UPDATE, DATA_SET_SINGLE);
