@@ -17,9 +17,11 @@
 	<spring:url value="login" var="loginUrl"/>
 	<div style="position:absolute;left:50%;top:50%;margin-top:-100px;margin-left:-250px;width:500px;height:220px">
         <table style="width:500px;height:200px;border-width:1px;border-collapse:collapse;border-color:black;border-style:solid;">
+            <th style="background:#EFEFEF;">
+                <img src="<%=request.getContextPath()%>/images/ASTAM_logo.png" alt="ASTAM" style="margin-top: 0px"/>
+            </th>
             <tr style="height:200px;background:#EFEFEF;">
                 <td>
-                    <img src="<%=request.getContextPath()%>/images/ASTAM_logo.png" alt="ASTAM" style="margin-top: -90px"/>
                 </td>
             </tr>
         </table>
