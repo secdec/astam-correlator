@@ -19,14 +19,10 @@
 package com.denimgroup.threadfix.cds.service.integration;
 
 import com.denimgroup.threadfix.cds.service.UuidUpdater;
-import com.denimgroup.threadfix.data.dao.ApplicationDao;
-import com.denimgroup.threadfix.data.dao.ChannelTypeDao;
-import com.denimgroup.threadfix.data.dao.FindingDao;
-import com.denimgroup.threadfix.data.dao.WebAttackSurfaceDao;
-import com.denimgroup.threadfix.data.entities.Application;
-import com.denimgroup.threadfix.data.entities.ChannelType;
-import com.denimgroup.threadfix.data.entities.Finding;
-import com.denimgroup.threadfix.data.entities.WebAttackSurface;
+import com.denimgroup.threadfix.data.dao.*;
+import com.denimgroup.threadfix.data.entities.*;
+import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
+import com.denimgroup.threadfix.data.entities.astam.AstamApplicationEnvironment;
 import com.denimgroup.threadfix.data.enums.AstamEntityType;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +52,15 @@ public class UuidUpdaterImpl implements UuidUpdater {
     @Autowired
     private WebAttackSurfaceDao attackSurfaceDao;
 
+    @Autowired
+    private ApplicationVersionDao applicationVersionDao;
+
+    @Autowired
+    private AstamApplicationEnvironmentDao applicationEnvironmentDao;
+
+    @Autowired
+    private AstamApplicationDeploymentDao applicationDeploymentDao;
+
 
     public UuidUpdaterImpl(){}
 
@@ -64,21 +69,21 @@ public class UuidUpdaterImpl implements UuidUpdater {
      * @param newUuid represents the new random UUID assigned to the object, when first pushed to CDS
      * @param astamEntityType
      */
+    //TODO: saveOrUpdate should be done through the service class
+
     @Override
     public void updateUUID(int id, String newUuid, AstamEntityType astamEntityType ){
+        LOGGER.debug("Updating local " + astamEntityType + " Id: " + id + " with UUID: " + newUuid);
         switch (astamEntityType){
             case APP_REGISTRATION:
                 Application application = applicationDao.retrieveById(id);
                 application.setUuid(newUuid);
-                LOGGER.info("Updating local application id: " + id + ", adding uuid from CDS. UUID:" + newUuid);
                 applicationDao.saveOrUpdate(application);
                 break;
             case SAST_FINDING:
-                LOGGER.info("Updating local SAST finding id: " + id + ", adding uuid from CDS. UUID:" + newUuid);
                 updateUUID(id, newUuid, FINDING);
                 break;
             case DAST_FINDING:
-                LOGGER.info("Updating local DAST finding id: " + id + ", adding uuid from CDS. UUID:" + newUuid);
                 updateUUID(id, newUuid, FINDING);
                 break;
             case FINDING:
@@ -87,7 +92,7 @@ public class UuidUpdaterImpl implements UuidUpdater {
                 findingDao.saveOrUpdate(finding);
                 break;
             case EXTERNAL_TOOL:
-                LOGGER.info("Updating local ExternalTool/ChannelType id: " + id + ", adding uuid from CDS. UUID:" + newUuid);
+
                 ChannelType channelType = channelTypeDao.retrieveById(id);
                 channelType.setUuid(newUuid);
                 channelTypeDao.saveOrUpdate(channelType);
@@ -98,12 +103,24 @@ public class UuidUpdaterImpl implements UuidUpdater {
                 //TODO:
                 break;
             case ENTRY_POINT_WEB:
-                LOGGER.info("Updating local WebAttackSurface id: " + id + ", adding uuid from CDS. UUID:" + newUuid);
                 WebAttackSurface attacksurface = attackSurfaceDao.retrieveById(id);
                 attacksurface.setUuid(newUuid);
                 attackSurfaceDao.saveOrUpdate(attacksurface);
                 break;
-
+            case APP_VERSION:
+                ApplicationVersion appVersion = applicationVersionDao.retrieveById(id);
+                appVersion.setUuid(newUuid);
+                applicationVersionDao.saveOrUpdate(appVersion);
+                break;
+            case APP_DEPLOYMENT:
+                AstamApplicationDeployment appDeployment = applicationDeploymentDao.retrieveById(id);
+                appDeployment.setUuid(newUuid);
+                applicationDeploymentDao.saveOrUpdate(appDeployment);
+                break;
+            case APP_ENVIRONMENT:
+                AstamApplicationEnvironment appEnvironment = applicationEnvironmentDao.retrieveById(id);
+                appEnvironment.setUuid(newUuid);
+                applicationEnvironmentDao.saveOrUpdate(appEnvironment);
         }
     }
 }

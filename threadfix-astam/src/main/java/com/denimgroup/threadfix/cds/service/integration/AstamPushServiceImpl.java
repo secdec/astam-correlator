@@ -27,6 +27,7 @@ import com.denimgroup.threadfix.data.entities.Application;
 import com.denimgroup.threadfix.mapper.AstamAttackSurfaceMapper;
 import com.denimgroup.threadfix.mapper.AstamEntitiesMapper;
 import com.denimgroup.threadfix.mapper.AstamFindingsMapper;
+import com.secdec.astam.common.data.models.Appmgmt;
 import com.secdec.astam.common.data.models.Appmgmt.ApplicationRegistration;
 import com.secdec.astam.common.data.models.Attacksurface;
 import com.secdec.astam.common.data.models.Entities;
@@ -101,8 +102,33 @@ public class AstamPushServiceImpl implements AstamPushService {
 
     @Override
     public void pushAppMngmtToAstam(int applicationId) {
-        ApplicationRegistration appRegistration = astamApplicationService.getAppRegistration(applicationId);
-        applicationPushService.pushApplicationToAstam(applicationId, appRegistration);
+
+        astamApplicationService.setup(applicationId);
+
+        boolean success = false;
+        while(!success){
+            ApplicationRegistration appRegistration = astamApplicationService.getAppRegistration();
+            success = applicationPushService.pushAppRegistration(appRegistration, false);
+        }
+
+        success = false;
+        while(!success){
+            Appmgmt.ApplicationEnvironment appEnvironment = astamApplicationService.getAppEnvironment();
+            success = applicationPushService.pushAppEnvironment(appEnvironment, false);
+        }
+
+        success = false;
+        while(!success){
+            Appmgmt.ApplicationVersion appVersion = astamApplicationService.getAppVersion();
+           success = applicationPushService.pushAppVersion(appVersion, false);
+
+        }
+        success = false;
+        while(!success){
+            Appmgmt.ApplicationDeployment appDeployment = astamApplicationService.getAppDeployment();
+            success = applicationPushService.pushAppDeployment(appDeployment, false);
+        }
+
     }
 
     @Override

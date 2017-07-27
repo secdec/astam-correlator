@@ -19,9 +19,13 @@
 package com.denimgroup.threadfix.mapper;
 
 import com.denimgroup.threadfix.data.entities.Application;
+import com.denimgroup.threadfix.data.entities.ApplicationVersion;
 import com.denimgroup.threadfix.data.entities.Organization;
+import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
+import com.denimgroup.threadfix.data.entities.astam.AstamApplicationEnvironment;
 import com.denimgroup.threadfix.util.ProtobufMessageUtils;
 import com.secdec.astam.common.data.models.Appmgmt;
+import com.secdec.astam.common.data.models.Common;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -31,6 +35,23 @@ import java.io.OutputStream;
  */
 public class AstamApplicationMapper {
     private Appmgmt.ApplicationRegistration applicationRegistration;
+    private Appmgmt.ApplicationVersion applicationVersion;
+    private Appmgmt.ApplicationDeployment applicationDeployment;
+    private Appmgmt.ApplicationEnvironment applicationEnvironment;
+
+
+    public AstamApplicationMapper(){}
+
+    public void setup(Application app,
+                      ApplicationVersion appVersion,
+                      AstamApplicationEnvironment appEnvironment,
+                      AstamApplicationDeployment appDeployment){
+
+        setApplication(app);
+        setApplicationVersion(appVersion);
+        setApplicationEnvironment(appEnvironment);
+        setApplicationDeployment(appDeployment);
+    }
 
     private Appmgmt.ApplicationRegistration.VersionControlRepository createVersionControlRepository(Application app) {
         Appmgmt.ApplicationRegistration.VersionControlRepository.Builder repoBuilder =
@@ -60,7 +81,6 @@ public class AstamApplicationMapper {
         Appmgmt.ApplicationRegistration.VersionControlRepository repo = createVersionControlRepository(app);
 
         Appmgmt.ApplicationRegistration.Builder appBuilder = Appmgmt.ApplicationRegistration.newBuilder()
-                //TODO: change to setId(app.getUuid())
                 .setId(ProtobufMessageUtils.createUUID(app))
                 .setName(app.getName())
                 .setRecordData(ProtobufMessageUtils.createRecordData(app))
@@ -75,12 +95,53 @@ public class AstamApplicationMapper {
         applicationRegistration = appBuilder.build();
     }
 
+    //TODO: map this
+    //URL changeset_url = 7;
+    //string build_id = 8;
+    //URL build_url = 9;
+    public void setApplicationVersion(ApplicationVersion appVersion){
+        Common.UUID appRegistrationUuid = ProtobufMessageUtils.createUUID(appVersion.getApplication());
+
+        Appmgmt.ApplicationVersion applicationVersion = Appmgmt.ApplicationVersion.newBuilder()
+                .setId(ProtobufMessageUtils.createUUID(appVersion))
+                .setRecordData(ProtobufMessageUtils.createRecordData(appVersion))
+                .setApplicationRegistrationId(appRegistrationUuid)
+                .setTime(ProtobufMessageUtils.createTimestamp(appVersion.getDate()))
+                .build();
+
+        this.applicationVersion = applicationVersion;
+    }
+
+   public void setApplicationEnvironment(AstamApplicationEnvironment appEnvironment) {
+        Appmgmt.ApplicationEnvironment applicationEnvironment = Appmgmt.ApplicationEnvironment.newBuilder()
+                .setId(ProtobufMessageUtils.createUUID(appEnvironment))
+                .setRecordData(ProtobufMessageUtils.createRecordData(appEnvironment))
+                .setName(appEnvironment.getName()).build();
+
+        this.applicationEnvironment = applicationEnvironment;
+    }
+
+    public void setApplicationDeployment(AstamApplicationDeployment appDeployment){
+        Appmgmt.ApplicationDeployment applicationDeployment = Appmgmt.ApplicationDeployment.newBuilder()
+                .setId(ProtobufMessageUtils.createUUID(appDeployment))
+                .setRecordData(ProtobufMessageUtils.createRecordData(appDeployment))
+                // make sure to call setApplicationEnvironment & Version prior
+                .setApplicationEnvironmentId(applicationEnvironment.getId())
+                .setApplicationVersionId(applicationVersion.getId())
+                .setName(appDeployment.getName()).build();
+
+     this.applicationDeployment = applicationDeployment;
+    }
+
     public void writeApplicationToOutput(OutputStream outputStream) throws IOException {
         applicationRegistration.writeTo(outputStream);
     }
 
-    public Appmgmt.ApplicationRegistration getAppRegistration(){
-        return applicationRegistration;
-    }
+    public Appmgmt.ApplicationRegistration getAppRegistration(){return applicationRegistration;}
 
+    public Appmgmt.ApplicationEnvironment getAppEnvironment() { return applicationEnvironment;}
+
+    public Appmgmt.ApplicationVersion getAppVersion(){ return applicationVersion;}
+
+    public Appmgmt.ApplicationDeployment getAppDeployment(){ return applicationDeployment;}
 }

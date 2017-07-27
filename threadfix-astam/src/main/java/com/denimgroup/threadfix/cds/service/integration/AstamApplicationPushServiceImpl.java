@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.denimgroup.threadfix.data.enums.AstamEntityType.APP_REGISTRATION;
+import static com.denimgroup.threadfix.data.enums.AstamEntityType.*;
 import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataAction.DATA_CREATE;
 import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataAction.DATA_UPDATE;
 import static com.secdec.astam.common.messaging.Messaging.AstamMessage.DataMessage.DataEntity.*;
@@ -62,21 +62,9 @@ public class AstamApplicationPushServiceImpl implements AstamApplicationPushServ
         this.uuidUpdater = uuidUpdater;
     }
 
-    @Override
-    public void pushApplicationToAstam(int appId, ApplicationRegistration appReg) {
-        pushAppRegistration(appId, appReg);
-    }
 
     @Override
-    public void pushAppRegistration(int appId, ApplicationRegistration appRegistration){
-        String appRegId = appRegistration.getId().getValue();
-        RestResponse<ApplicationRegistration> response = applicationClient.getAppRegistration(appRegId);
-        boolean doesExist = response.success && response.getObject() != null && response.getObject().hasId();
-        pushAppRegistration(appId, appRegistration, doesExist);
-    }
-
-    @Override
-    public boolean pushAppRegistration(int appId, ApplicationRegistration appRegistration, boolean doesExist){
+    public boolean pushAppRegistration(ApplicationRegistration appRegistration, boolean doesExist){
         RestResponse<ApplicationRegistration> restResponse;
         boolean success = false;
 
@@ -85,17 +73,20 @@ public class AstamApplicationPushServiceImpl implements AstamApplicationPushServ
 
             if (restResponse.success){
                 success = true;
-                uuidUpdater.updateUUID(appId, restResponse.uuid, APP_REGISTRATION);
+                int id = ProtobufMessageUtils.createIdFromUUID(appRegistration.getId().getValue());
+                uuidUpdater.updateUUID(id, restResponse.uuid, APP_REGISTRATION);
+                LOGGER.info("Application Registration successfully created in CDS. Id: " + id + " UUID: " + restResponse.uuid);
             } else if(restResponse.responseCode == 409){
-                pushAppRegistration(0 , appRegistration, true);
+                success = pushAppRegistration(appRegistration, true);
             }
         } else {
             restResponse = applicationClient.updateAppRegistration(appRegistration.getId().getValue(), appRegistration);
 
             if (restResponse.success) {
                 success = true;
+                LOGGER.info("Application Registration successfully updated in CDS. UUID: " +  appRegistration.getId());
             } else if(restResponse.responseCode == 422){
-                pushAppRegistration(appId, appRegistration, false);
+                success = pushAppRegistration(appRegistration, false);
             }
         }
         return success;
@@ -156,16 +147,18 @@ public class AstamApplicationPushServiceImpl implements AstamApplicationPushServ
             if (restResponse.success){
                 success = true;
                 int id = ProtobufMessageUtils.createIdFromUUID(appVersion.getId().getValue());
-               // uuidUpdater.updateUUID(id, restResponse.uuid, APP_);
+               uuidUpdater.updateUUID(id, restResponse.uuid, APP_VERSION);
+                LOGGER.info("Application Version successfully created in CDS. Id: " + id + " UUID: " + restResponse.uuid);
             } else if(restResponse.responseCode == 409){
-                pushAppVersion(appVersion, true);
+                success = pushAppVersion(appVersion, true);
             }
         } else {
             restResponse = applicationClient.updateAppVersion(appVersion.getId().getValue(), appVersion);
             if (restResponse.success) {
                 success = true;
+                LOGGER.info("Application Version successfully updated in CDS. UUID: " +  appVersion.getId());
             } else if(restResponse.responseCode == 422){
-                pushAppVersion(appVersion, false);
+                success = pushAppVersion(appVersion, false);
             }
         }
 
@@ -228,15 +221,19 @@ public class AstamApplicationPushServiceImpl implements AstamApplicationPushServ
             restResponse = applicationClient.createEnvironment(appEnvironment);
             if (restResponse.success){
                 success = true;
+                int id = ProtobufMessageUtils.createIdFromUUID(appEnvironment.getId().getValue());
+                uuidUpdater.updateUUID(id, restResponse.uuid, APP_ENVIRONMENT);
+                LOGGER.info("Application Environment successfully created in CDS. Id: " + id + " UUID: " + restResponse.uuid);
             } else if(restResponse.responseCode == 409){
-                pushAppEnvironment(appEnvironment, true);
+                success = pushAppEnvironment(appEnvironment, true);
             }
         } else {
             restResponse = applicationClient.updateEnvironment(appEnvironment.getId().getValue(), appEnvironment);
             if (restResponse.success) {
                 success = true;
+                LOGGER.info("Application Environment successfully updated in CDS. UUID: " +  appEnvironment.getId());
             } else if(restResponse.responseCode == 422){
-                pushAppEnvironment(appEnvironment, false);
+                success = pushAppEnvironment(appEnvironment, false);
             }
         }
 
@@ -299,15 +296,19 @@ public class AstamApplicationPushServiceImpl implements AstamApplicationPushServ
             restResponse = applicationClient.createAppDeployment(appDeployment);
             if (restResponse.success){
                 success = true;
+                int id = ProtobufMessageUtils.createIdFromUUID(appDeployment.getId().getValue());
+                uuidUpdater.updateUUID(id, restResponse.uuid, APP_DEPLOYMENT);
+                LOGGER.info("Application Deployment successfully created in CDS. Id: " + id + " UUID: " + restResponse.uuid);
             } else if(restResponse.responseCode == 409){
-                pushAppDeployment(appDeployment, true);
+                success = pushAppDeployment(appDeployment, true);
             }
         } else {
             restResponse = applicationClient.updateAppDeployment(appDeployment.getId().getValue(), appDeployment);
             if (restResponse.success) {
                 success = true;
+                LOGGER.info("Application Deployment successfully updated in CDS. UUID: " +  appDeployment.getId());
             } else if(restResponse.responseCode == 422){
-                pushAppDeployment(appDeployment, false);
+                success = pushAppDeployment(appDeployment, false);
             }
         }
 

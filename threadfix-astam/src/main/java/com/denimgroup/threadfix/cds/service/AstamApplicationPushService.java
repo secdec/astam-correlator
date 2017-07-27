@@ -24,11 +24,8 @@ import com.secdec.astam.common.data.models.Appmgmt;
  * Created by amohammed on 7/22/2017.
  */
 public interface AstamApplicationPushService {
-    void pushApplicationToAstam(int appId, Appmgmt.ApplicationRegistration appReg);
 
-    void pushAppRegistration(int appId, Appmgmt.ApplicationRegistration appRegistration);
-
-    boolean pushAppRegistration(int appId, Appmgmt.ApplicationRegistration appRegistration, boolean doesExist);
+    boolean pushAppRegistration(Appmgmt.ApplicationRegistration appRegistration, boolean doesExist);
 
     void pushAppVersionSet(Appmgmt.ApplicationVersionSet localAppVersionSet, String appRegistrationId);
 

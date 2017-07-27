@@ -21,28 +21,58 @@ package com.denimgroup.threadfix.cds.service.protobuf;
 import com.denimgroup.threadfix.cds.service.AstamRemoteApplicationService;
 import com.denimgroup.threadfix.data.dao.ApplicationDao;
 import com.denimgroup.threadfix.data.entities.Application;
+import com.denimgroup.threadfix.data.entities.ApplicationVersion;
+import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
+import com.denimgroup.threadfix.data.entities.astam.AstamApplicationEnvironment;
 import com.denimgroup.threadfix.mapper.AstamApplicationMapper;
 import com.secdec.astam.common.data.models.Appmgmt;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-//TODO: refactor. It's very similar to the zip export related service.
 @Service
 public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplicationService {
-    private final ApplicationDao applicationDao;
 
     @Autowired
-    public AstamRemoteApplicationServiceImpl(ApplicationDao applicationDao) {
-        this.applicationDao = applicationDao;
+    private ApplicationDao applicationDao;
+
+    private AstamApplicationMapper appMapper;
+
+    private Application application;
+    private AstamApplicationDeployment appDeployment;
+
+
+    public AstamRemoteApplicationServiceImpl() {}
+
+    @Override
+    public void setup(int applicationId){
+        application = applicationDao.retrieveById(applicationId);
+        appDeployment = application.getAstamApplicationDeployment();
     }
 
     @Override
-    public Appmgmt.ApplicationRegistration getAppRegistration(int applicationId){
-        AstamApplicationMapper appMapper = new AstamApplicationMapper();
-        Application app = applicationDao.retrieveById(applicationId);
-
-        appMapper.setApplication(app);
+    public Appmgmt.ApplicationRegistration getAppRegistration(){
+        appMapper.setApplication(application);
         return appMapper.getAppRegistration();
+    }
+
+    @Override
+    public Appmgmt.ApplicationEnvironment getAppEnvironment(){
+        AstamApplicationEnvironment appEnvironment = appDeployment.getApplicationEnvironment();
+        appMapper.setApplicationEnvironment(appEnvironment);
+        return appMapper.getAppEnvironment();
+    }
+
+    @Override
+    public Appmgmt.ApplicationVersion getAppVersion(){
+        ApplicationVersion appVersion = appDeployment.getApplicationVersion();
+        appMapper.setApplicationVersion(appVersion);
+        return appMapper.getAppVersion();
+    }
+
+    @Override
+    public Appmgmt.ApplicationDeployment getAppDeployment(){
+        appDeployment = application.getAstamApplicationDeployment();
+        return appMapper.getAppDeployment();
     }
 
 }

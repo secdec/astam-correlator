@@ -24,5 +24,15 @@ import com.secdec.astam.common.data.models.Appmgmt;
  * Created by amohammed on 7/22/2017.
  */
 public interface AstamRemoteApplicationService {
-    Appmgmt.ApplicationRegistration getAppRegistration(int applicationId);
+
+    void setup(int applicationId);
+
+    Appmgmt.ApplicationRegistration getAppRegistration();
+
+    Appmgmt.ApplicationDeployment getAppDeployment();
+
+    Appmgmt.ApplicationEnvironment getAppEnvironment();
+
+    Appmgmt.ApplicationVersion getAppVersion();
+
 }

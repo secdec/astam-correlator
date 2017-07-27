@@ -23,6 +23,9 @@ package com.denimgroup.threadfix.data.enums;
  */
 public enum AstamEntityType {
     APP_REGISTRATION,
+    APP_VERSION,
+    APP_DEPLOYMENT,
+    APP_ENVIRONMENT,
     FINDING,
     SAST_FINDING,
     DAST_FINDING,

@@ -26,6 +26,8 @@ package com.denimgroup.threadfix.service;
 import com.denimgroup.threadfix.cds.service.AstamPushService;
 import com.denimgroup.threadfix.data.dao.*;
 import com.denimgroup.threadfix.data.entities.*;
+import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
+import com.denimgroup.threadfix.data.entities.astam.AstamApplicationEnvironment;
 import com.denimgroup.threadfix.data.enums.EventAction;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.importer.util.IntegerUtils;
@@ -113,6 +115,9 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Autowired
 	AfterCommitExecutor afterCommitExecutor;
 
+    @Autowired
+    AstamApplicationDeploymentDao astamApplicationDeploymentDao;
+
     @Override
 	public List<Application> loadAllActive() {
 		return applicationDao.retrieveAllActive();
@@ -158,11 +163,45 @@ public class ApplicationServiceImpl implements ApplicationService {
 			afterCommitExecutor.execute(new Runnable() {
 				@Override
 				public void run() {
-					astamPushService.pushAppMngmtToAstam(application.getId());
+                    //This code is for demo only, in real use we will be importing application mngmt data
+                    //If we want to export as well as import we need to check. If exporting will be enabled in prod correctly setup this data;
+                    AstamApplicationEnvironment astamApplicationEnvironment = new AstamApplicationEnvironment();
+                    astamApplicationEnvironment.setName("Default Environment");
+
+                    ApplicationVersion applicationVersion = new ApplicationVersion();
+                    applicationVersion.setApplication(application);
+                    applicationVersion.setName("Default Version");
+                    AstamApplicationDeployment astamApplicationDeployment = new AstamApplicationDeployment();
+                    astamApplicationDeployment.setApplicationEnvironment(astamApplicationEnvironment);
+                    astamApplicationDeployment.setApplicationVersion(applicationVersion);
+                    astamApplicationDeployment.setName("Default Deployment");
+
+                    //
+                    //storeDeployment(astamApplicationDeployment, application, EventAction.UNKOWN_EVENT);
+
 				}
 			});
 		}
 	}
+
+	//for now
+    @Override
+    @Transactional(readOnly = false)
+    public void storeDeployment(AstamApplicationDeployment astamApplicationDeployment, Application application, EventAction eventAction) {
+        if (astamApplicationDeployment != null) {
+
+            astamApplicationDeploymentDao.saveOrUpdate(astamApplicationDeployment);
+
+            afterCommitExecutor.execute(new Runnable() {
+                @Override
+                public void run() {
+
+
+                    astamPushService.pushAppMngmtToAstam(application.getId());
+                }
+            });
+        }
+    }
 
 	@Override
 	@Transactional(readOnly = false)
