@@ -22,7 +22,7 @@ public class HibernateAstamApplicationDeploymentDao implements AstamApplicationD
     @Override
     public AstamApplicationDeployment retrieveById(int id) {
         return (AstamApplicationDeployment)sessionFactory.getCurrentSession()
-                .createCriteria(AstamApplicationEnvironment.class)
+                .createCriteria(AstamApplicationDeployment.class)
                 .add(Restrictions.eq("id",id))
                 .setMaxResults(1)
                 .uniqueResult();
@@ -31,7 +31,7 @@ public class HibernateAstamApplicationDeploymentDao implements AstamApplicationD
     @Override
     public List<AstamApplicationDeployment> retrieveAllActive() {
         List<AstamApplicationDeployment> list = sessionFactory.getCurrentSession()
-                .createCriteria(AstamApplicationEnvironment.class)
+                .createCriteria(AstamApplicationDeployment.class)
                 .add(Restrictions.eq("active", true))
                 .list();
         return list;
@@ -40,7 +40,7 @@ public class HibernateAstamApplicationDeploymentDao implements AstamApplicationD
     @Override
     public List<AstamApplicationDeployment> retrieveAll() {
         List<AstamApplicationDeployment> list = sessionFactory.getCurrentSession()
-                .createCriteria(AstamApplicationEnvironment.class)
+                .createCriteria(AstamApplicationDeployment.class)
                 .list();
         return list;
     }
