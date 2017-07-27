@@ -78,8 +78,8 @@ public interface ApplicationService {
 	void storeApplication(Application application, EventAction eventAction);
 
 
-	@Transactional(readOnly = false)
-	void storeDeployment(AstamApplicationDeployment astamApplicationDeployment, Application application, EventAction eventAction);
+    @Transactional(readOnly = false)
+	void storeDeployment(AstamApplicationDeployment astamApplicationDeployment, Application application);
 
 	/**
 	 * Prepare the application for deletion.

@@ -35,7 +35,7 @@ public class AstamMessageProducer implements Runnable{
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(AstamMessageProducer.class);
 
-    private Connection connection;
+    private static Connection connection;
     private Session session;
     private MessageProducer messageProducer;
     private BytesMessage bytesMessage;
@@ -47,14 +47,14 @@ public class AstamMessageProducer implements Runnable{
     private List<String> entityIds;
 
     public AstamMessageProducer(
-            @Nonnull Connection connection,
+            @Nonnull Connection sharedConnection,
             @Nonnull String topicString,
             @Nonnull DataEntity dataEntity,
             @Nonnull DataAction dataAction,
             @Nonnull DataSetType dataSetType,
             @Nonnull List<String> entityIds){
 
-        this.connection = connection;
+        connection = sharedConnection;
         this.topicString = topicString;
         this.dataEntity = dataEntity;
         this.dataAction = dataAction;
@@ -97,7 +97,7 @@ public class AstamMessageProducer implements Runnable{
                     .setDataEntity(dataEntity)
                     .setDataAction(dataAction)
                     .setDataSetType(dataSetType)
-                     .addAllEntityIds(entityIds)
+                    .addAllEntityIds(entityIds)
                     .build();
 
             if(dataMessage != null){

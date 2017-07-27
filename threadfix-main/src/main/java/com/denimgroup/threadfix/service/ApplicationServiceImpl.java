@@ -116,7 +116,13 @@ public class ApplicationServiceImpl implements ApplicationService {
 	AfterCommitExecutor afterCommitExecutor;
 
     @Autowired
-    AstamApplicationDeploymentDao astamApplicationDeploymentDao;
+    private AstamApplicationDeploymentDao astamApplicationDeploymentDao;
+
+    @Autowired
+    private AstamApplicationEnvironmentDao applicationEnvironmentDao;
+
+    @Autowired
+    private ApplicationVersionDao applicationVersionDao;
 
     @Override
 	public List<Application> loadAllActive() {
@@ -156,6 +162,26 @@ public class ApplicationServiceImpl implements ApplicationService {
 	@Transactional(readOnly = false)
 	public void storeApplication(Application application, EventAction eventAction) {
 		if (application != null) {
+
+			//This code is for demo only, in real use we will be importing application mngmt data
+			//If we want to export as well as import we need to check. If exporting will be enabled in prod correctly setup this data;
+			AstamApplicationEnvironment astamApplicationEnvironment = new AstamApplicationEnvironment();
+			astamApplicationEnvironment.setName("Default Env");
+			applicationEnvironmentDao.saveOrUpdate(astamApplicationEnvironment);
+
+			ApplicationVersion applicationVersion = new ApplicationVersion();
+			applicationVersion.setApplication(application);
+			applicationVersion.setName("Default");
+			applicationVersionDao.saveOrUpdate(applicationVersion);
+
+			AstamApplicationDeployment astamApplicationDeployment = new AstamApplicationDeployment();
+			astamApplicationDeployment.setApplicationEnvironment(astamApplicationEnvironment);
+			astamApplicationDeployment.setApplicationVersion(applicationVersion);
+			astamApplicationDeployment.setName("Default");
+			astamApplicationDeploymentDao.saveOrUpdate(astamApplicationDeployment);
+
+			application.setAstamApplicationDeployment(astamApplicationDeployment);
+
             // Set default for Application Type is Detect
             if (application.getFrameworkType().equals(FrameworkType.NONE.toString()))
                 application.setFrameworkType(FrameworkType.DETECT.toString());
@@ -163,31 +189,16 @@ public class ApplicationServiceImpl implements ApplicationService {
 			afterCommitExecutor.execute(new Runnable() {
 				@Override
 				public void run() {
-                    //This code is for demo only, in real use we will be importing application mngmt data
-                    //If we want to export as well as import we need to check. If exporting will be enabled in prod correctly setup this data;
-                    AstamApplicationEnvironment astamApplicationEnvironment = new AstamApplicationEnvironment();
-                    astamApplicationEnvironment.setName("Default Environment");
-
-                    ApplicationVersion applicationVersion = new ApplicationVersion();
-                    applicationVersion.setApplication(application);
-                    applicationVersion.setName("Default Version");
-                    AstamApplicationDeployment astamApplicationDeployment = new AstamApplicationDeployment();
-                    astamApplicationDeployment.setApplicationEnvironment(astamApplicationEnvironment);
-                    astamApplicationDeployment.setApplicationVersion(applicationVersion);
-                    astamApplicationDeployment.setName("Default Deployment");
-
-                    //
-                    //storeDeployment(astamApplicationDeployment, application, EventAction.UNKOWN_EVENT);
 
 				}
 			});
 		}
 	}
 
-	//for now
+
     @Override
     @Transactional(readOnly = false)
-    public void storeDeployment(AstamApplicationDeployment astamApplicationDeployment, Application application, EventAction eventAction) {
+    public void storeDeployment(AstamApplicationDeployment astamApplicationDeployment, Application application) {
         if (astamApplicationDeployment != null) {
 
             astamApplicationDeploymentDao.saveOrUpdate(astamApplicationDeployment);
@@ -195,9 +206,7 @@ public class ApplicationServiceImpl implements ApplicationService {
             afterCommitExecutor.execute(new Runnable() {
                 @Override
                 public void run() {
-
-
-                    astamPushService.pushAppMngmtToAstam(application.getId());
+                    //astamPushService.pushAppMngmtToAstam(application.getId());
                 }
             });
         }

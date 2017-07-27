@@ -23,6 +23,7 @@ import com.denimgroup.threadfix.data.dao.*;
 import com.denimgroup.threadfix.data.entities.*;
 import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
 import com.denimgroup.threadfix.data.entities.astam.AstamApplicationEnvironment;
+import com.denimgroup.threadfix.data.entities.astam.AstamRawDiscoveredAttackSurface;
 import com.denimgroup.threadfix.data.enums.AstamEntityType;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,6 +61,9 @@ public class UuidUpdaterImpl implements UuidUpdater {
 
     @Autowired
     private AstamApplicationDeploymentDao applicationDeploymentDao;
+
+    @Autowired
+    private AstamRawDiscoveredAttackSurfaceDao rawDiscoveredAttackSurfaceDao;
 
 
     public UuidUpdaterImpl(){}
@@ -121,6 +125,11 @@ public class UuidUpdaterImpl implements UuidUpdater {
                 AstamApplicationEnvironment appEnvironment = applicationEnvironmentDao.retrieveById(id);
                 appEnvironment.setUuid(newUuid);
                 applicationEnvironmentDao.saveOrUpdate(appEnvironment);
+                break;
+            case RAW_DISCOVERED_ATTACK_SURFACE:
+                AstamRawDiscoveredAttackSurface rawDiscoveredAttackSurface = rawDiscoveredAttackSurfaceDao.retrieveById(id);
+                rawDiscoveredAttackSurface.setUuid(newUuid);
+                rawDiscoveredAttackSurfaceDao.saveOrUpdate(rawDiscoveredAttackSurface);
         }
     }
 }

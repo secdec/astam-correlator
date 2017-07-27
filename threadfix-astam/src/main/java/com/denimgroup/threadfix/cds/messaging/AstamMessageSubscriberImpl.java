@@ -40,6 +40,7 @@ public class AstamMessageSubscriberImpl implements AstamMessageSubscriber, Runna
     private Connection connection;
     private Session session;
     private String topicString;
+    private String brokerUrl;
 
     @Autowired private AstamMessageTrigger messageTrigger;
 
@@ -55,7 +56,7 @@ public class AstamMessageSubscriberImpl implements AstamMessageSubscriber, Runna
 
     public void receiveMessage() throws JMSException, com.google.protobuf.InvalidProtocolBufferException {
         connection.start();
-        session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+        session = connection.createSession(false, Session.CLIENT_ACKNOWLEDGE);
         Topic topic = session.createTopic(topicString);
         String subName = Thread.currentThread().getName();
         TopicSubscriber topicSubscriber = session.createDurableSubscriber(topic, subName);
@@ -68,6 +69,7 @@ public class AstamMessageSubscriberImpl implements AstamMessageSubscriber, Runna
             Messaging.AstamMessage astamMessage = Messaging.AstamMessage.parseFrom(bytes);
             LOGGER.info("ASTAM message received: " + astamMessage.toString());
             messageTrigger.parse(astamMessage);
+            message.acknowledge();
         }
     }
 

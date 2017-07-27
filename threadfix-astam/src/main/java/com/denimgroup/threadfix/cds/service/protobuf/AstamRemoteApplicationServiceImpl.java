@@ -41,7 +41,9 @@ public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplication
     private AstamApplicationDeployment appDeployment;
 
 
-    public AstamRemoteApplicationServiceImpl() {}
+    public AstamRemoteApplicationServiceImpl() {
+        appMapper = new AstamApplicationMapper();
+    }
 
     @Override
     public void setup(int applicationId){

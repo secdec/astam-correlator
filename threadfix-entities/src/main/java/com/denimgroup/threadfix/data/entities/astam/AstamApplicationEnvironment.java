@@ -12,7 +12,7 @@ import javax.persistence.Entity;
 public class AstamApplicationEnvironment extends AstamAuditableEntity{
 
 
-    @Column(length = 50, nullable = false)
+    @Column(length = 1024, nullable = false)
     @JsonView(Object.class)
     String name;
 

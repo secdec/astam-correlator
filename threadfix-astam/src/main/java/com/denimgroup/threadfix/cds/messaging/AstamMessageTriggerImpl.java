@@ -53,8 +53,7 @@ public class AstamMessageTriggerImpl implements AstamMessageTrigger{
         }
 
         Messaging.AstamMessage.DataMessage.DataEntity dataEntity = dataMessage.getDataEntity();
-
-        //currently we only need to listen to application registrations
+        //TODO: subscribe to Version, Deployment, Environment events
         if(dataEntity == DATA_APPLICATION_REGISTRATION){
             DataAction dataAction = dataMessage.getDataAction();
             DataSetType dataSetType = dataMessage.getDataSetType();
@@ -63,7 +62,7 @@ public class AstamMessageTriggerImpl implements AstamMessageTrigger{
 
                 if(dataSetType == DataSetType.DATA_SET_SINGLE || dataSetType == DataSetType.DATA_SET_COMPLETE){
                     List<String> uuids = dataMessage.getEntityIdsList();
-                    applicationImporter.importApplications(uuids);
+                    //applicationImporter.importApplications(uuids);
                 }
             } else if(dataAction == DataAction.DATA_DELETE){
                 if(dataSetType == DataSetType.DATA_SET_SINGLE || dataSetType == DataSetType.DATA_SET_COMPLETE) {

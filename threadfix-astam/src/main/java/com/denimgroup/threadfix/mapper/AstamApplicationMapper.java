@@ -42,16 +42,7 @@ public class AstamApplicationMapper {
 
     public AstamApplicationMapper(){}
 
-    public void setup(Application app,
-                      ApplicationVersion appVersion,
-                      AstamApplicationEnvironment appEnvironment,
-                      AstamApplicationDeployment appDeployment){
-
-        setApplication(app);
-        setApplicationVersion(appVersion);
-        setApplicationEnvironment(appEnvironment);
-        setApplicationDeployment(appDeployment);
-    }
+    public void setup(){}
 
     private Appmgmt.ApplicationRegistration.VersionControlRepository createVersionControlRepository(Application app) {
         Appmgmt.ApplicationRegistration.VersionControlRepository.Builder repoBuilder =
@@ -127,7 +118,7 @@ public class AstamApplicationMapper {
                 .setRecordData(ProtobufMessageUtils.createRecordData(appDeployment))
                 // make sure to call setApplicationEnvironment & Version prior
                 .setApplicationEnvironmentId(applicationEnvironment.getId())
-                .setApplicationVersionId(applicationVersion.getId())
+                .setApplicationVersionId(applicationEnvironment.getId())
                 .setName(appDeployment.getName()).build();
 
      this.applicationDeployment = applicationDeployment;

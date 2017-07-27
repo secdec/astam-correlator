@@ -35,7 +35,7 @@ public class ResponseParser {
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(ResponseParser.class);
 
-    public static <T> RestResponse<T> getRestResponse(@Nonnull InputStream responseStream, @Nonnull int responseCode, @Nullable String location){
+    public static <T> RestResponse<T> getRestResponse(@Nullable InputStream responseStream, @Nonnull int responseCode, @Nullable String location){
         RestResponse<T> response = new RestResponse<T>();
 
         if(responseStream != null){

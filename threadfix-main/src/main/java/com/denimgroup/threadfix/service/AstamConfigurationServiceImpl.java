@@ -18,8 +18,6 @@
 
 package com.denimgroup.threadfix.service;
 
-import com.denimgroup.threadfix.cds.service.AstamApplicationImporter;
-import com.denimgroup.threadfix.cds.service.AstamPushService;
 import com.denimgroup.threadfix.data.dao.AstamConfigurationDao;
 import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -39,12 +37,6 @@ public class AstamConfigurationServiceImpl implements AstamConfigurationService 
     @Autowired
     private AstamConfigurationDao astamConfigurationDao;
 
-    @Autowired
-    private AstamPushService astamPushService;
-
-    @Autowired
-    private AstamApplicationImporter astamApplicationImporter;
-
 
     @Override
     public AstamConfiguration loadCurrentConfiguration() {
@@ -57,16 +49,5 @@ public class AstamConfigurationServiceImpl implements AstamConfigurationService 
     @Transactional(readOnly = false)
     public void saveConfiguration(AstamConfiguration config) {
         astamConfigurationDao.saveOrUpdate(config);
-        //TODO: (edge case) figure out pushing existing data prior to configuration,
-        // only if applications will also be created in the ASTAM correlator
-        //astamPushService.pushAllToAstam();
-
-        astamApplicationImporter.importAllApplications();
-
-        /*
-        AstamMessageManagerImpl messageManager = new AstamMessageManagerImpl(config);
-        messageManager.subscribe(DATA_APPLICATION_REGISTRATION, DATA_CREATE, DATA_SET_SINGLE);
-        messageManager.subscribe(DATA_APPLICATION_REGISTRATION, DATA_UPDATE, DATA_SET_SINGLE);
-        messageManager.subscribe(DATA_APPLICATION_REGISTRATION, DATA_DELETE, DATA_SET_SINGLE);*/
     }
 }

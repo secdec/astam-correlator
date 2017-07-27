@@ -24,9 +24,7 @@ import com.denimgroup.threadfix.cds.service.protobuf.AstamRemoteAttackSurfaceSer
 import com.denimgroup.threadfix.cds.service.protobuf.AstamRemoteFindingsServiceImpl;
 import com.denimgroup.threadfix.data.dao.ApplicationDao;
 import com.denimgroup.threadfix.data.entities.Application;
-import com.denimgroup.threadfix.mapper.AstamAttackSurfaceMapper;
 import com.denimgroup.threadfix.mapper.AstamEntitiesMapper;
-import com.denimgroup.threadfix.mapper.AstamFindingsMapper;
 import com.secdec.astam.common.data.models.Appmgmt;
 import com.secdec.astam.common.data.models.Appmgmt.ApplicationRegistration;
 import com.secdec.astam.common.data.models.Attacksurface;
@@ -88,6 +86,8 @@ public class AstamPushServiceImpl implements AstamPushService {
     public void pushSingleAppToAstam(Application app){
         int appId = app.getId();
         pushAppMngmtToAstam(appId);
+
+        //TODO
         //pushEntitiesToAstam(app);
         //pushAttackSurfaceToAstam(appId);
         //pushFindingsToAstam(appId);
@@ -103,53 +103,70 @@ public class AstamPushServiceImpl implements AstamPushService {
     @Override
     public void pushAppMngmtToAstam(int applicationId) {
 
-        astamApplicationService.setup(applicationId);
 
-        boolean success = false;
-        while(!success){
-            ApplicationRegistration appRegistration = astamApplicationService.getAppRegistration();
-            success = applicationPushService.pushAppRegistration(appRegistration, false);
-        }
+            astamApplicationService.setup(applicationId);
 
-        success = false;
-        while(!success){
-            Appmgmt.ApplicationEnvironment appEnvironment = astamApplicationService.getAppEnvironment();
-            success = applicationPushService.pushAppEnvironment(appEnvironment, false);
-        }
+            boolean success = false;
+            while (!success) {
+                ApplicationRegistration appRegistration = astamApplicationService.getAppRegistration();
+                success = applicationPushService.pushAppRegistration(appRegistration, false);
+            }
 
-        success = false;
-        while(!success){
-            Appmgmt.ApplicationVersion appVersion = astamApplicationService.getAppVersion();
-           success = applicationPushService.pushAppVersion(appVersion, false);
+            success = false;
+            while (!success) {
+                Appmgmt.ApplicationEnvironment appEnvironment = astamApplicationService.getAppEnvironment();
+                success = applicationPushService.pushAppEnvironment(appEnvironment, false);
+            }
 
-        }
-        success = false;
-        while(!success){
-            Appmgmt.ApplicationDeployment appDeployment = astamApplicationService.getAppDeployment();
-            success = applicationPushService.pushAppDeployment(appDeployment, false);
-        }
+            success = false;
+            while (!success) {
+                Appmgmt.ApplicationVersion appVersion = astamApplicationService.getAppVersion();
+                success = applicationPushService.pushAppVersion(appVersion, false);
 
+            }
+            success = false;
+            while (!success) {
+                Appmgmt.ApplicationDeployment appDeployment = astamApplicationService.getAppDeployment();
+                success = applicationPushService.pushAppDeployment(appDeployment, false);
+            }
     }
 
     @Override
     public void pushFindingsToAstam(int applicationId){
-        AstamFindingsMapper astamMapper = new AstamFindingsMapper(applicationId);
-        Findings.SastFindingSet sastFindingSet = astamFindingsService.getSastFindings(astamMapper);
-        Findings.DastFindingSet dastFindingSet = astamFindingsService.getDastFindings(astamMapper);
-        //TODO: Findings.RawFindingsSet rawFindingsSet =
-        Findings.CorrelatedFindingSet correlatedFindingSet = astamFindingsService.getCorrelatedFindings(astamMapper);
-        findingsPushService.pushFindingsToAstam(sastFindingSet, dastFindingSet, correlatedFindingSet);
+        astamFindingsService.setup(applicationId);
+        boolean success = false;
+
+
+        //Findings.RawFindingsSet rawFindingsSet = astamFindingsService.getRawFindingsSet();
+        //findingsPushService.pushRawFindingsSet(rawFindingsSet);
+
+        //Don't push Sast or Dast findings until RawFindings are pushed
+        Findings.SastFindingSet sastFindingSet = astamFindingsService.getSastFindings();
+        findingsPushService.pushSastFindingSet(sastFindingSet);
+
+        Findings.DastFindingSet dastFindingSet = astamFindingsService.getDastFindings();
+        findingsPushService.pushDastFindingSet(dastFindingSet);
+
+        //Findings.CorrelationResultSet correlationResultSet = astamFindingsService.getCorrelatedResultSet();
+        //findingsPushService.p
+
+        Findings.CorrelatedFindingSet correlatedFindingSet = astamFindingsService.getCorrelatedFindings();
+        findingsPushService.pushCorrelatedFindingSet(correlatedFindingSet);
+
     }
 
     @Override
     public void pushAttackSurfaceToAstam(int applicationId){
-        AstamAttackSurfaceMapper astamMapper = new AstamAttackSurfaceMapper(applicationId );
-        Attacksurface.EntryPointWebSet entryPointWebSet = astamAttackSurfaceService.getEntryPointWebSet(astamMapper, applicationId);
+        astamApplicationService.setup(applicationId);
 
-        //Attacksurface.EntryPointMobileSet entryPointMobileSet =
-        //Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface = astamAttackSurfaceService.getRawDiscoveredAttackSurface(astamMapper);
-        //entryPointWebSet
-        attackSurfacePushService.pushAttackSurfaceToAstam(entryPointWebSet);
+        boolean success = false;
+        while(!success){
+            Attacksurface.RawDiscoveredAttackSurface rawDiscoveredAttackSurface = astamAttackSurfaceService.getRawDiscoveredAttackSurface();
+            success = attackSurfacePushService.pushRawDiscoveredAttackSurface(rawDiscoveredAttackSurface, false);
+        }
+
+        Attacksurface.EntryPointWebSet entryPointWebSet = astamAttackSurfaceService.getEntryPointWebSet();
+        attackSurfacePushService.pushEntryPointWebSet(entryPointWebSet);
     }
 }
 

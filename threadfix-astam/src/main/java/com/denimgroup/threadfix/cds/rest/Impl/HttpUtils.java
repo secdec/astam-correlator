@@ -338,7 +338,6 @@ public class HttpUtils {
         return httpClient;
     }
 
-    //TODO: Remove String @Param
     private String makeUrl(@Nonnull String path, @Nonnull String param){
         StringBuilder finalUrl = new StringBuilder(apiUrl);
 
