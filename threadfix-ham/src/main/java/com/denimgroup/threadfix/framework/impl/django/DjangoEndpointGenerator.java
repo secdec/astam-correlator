@@ -72,6 +72,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 if (!urlFileFinder.shouldContinue()) break;
             }
         } else {
+            settingsFile = new File(settingsFile.getAbsolutePath().concat(".py"));
             EventBasedTokenizerRunner.run(settingsFile, urlFileFinder);
         }
         assert !urlFileFinder.getUrlFile().isEmpty() : "Root URL file setting does not exist.";

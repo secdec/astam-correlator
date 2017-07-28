@@ -246,7 +246,8 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                     viewPath += stringValue;
                 } else if (type == '_') {
                     viewPath += "_";
-                } else if (importPathMap.containsKey(viewPath)) {
+                } else if (!viewPath.isEmpty() &&
+                        (importPathMap.containsKey(viewPath) || importPathMap.containsKey(viewPath.split("\\.")[0]))) {
                     File importFile = new File(sourceRoot + "/" + importPathMap.get(viewPath));
                     if (importFile.isDirectory()) {
                         for (File file : importFile.listFiles())
@@ -254,7 +255,6 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                     } else {
                         routeMap.putAll(DjangoRouteParser.parse(sourceRoot, rootPath+regexBuilder.toString(), importFile));
                     }
-
                 }
                 break;
             case TEMPLATE:
