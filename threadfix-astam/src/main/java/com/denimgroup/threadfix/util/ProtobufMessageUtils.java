@@ -65,6 +65,7 @@ public class ProtobufMessageUtils {
     * @return id , this will be 48879
     * */
     public static int createIdFromUUID(String uuid){
+        //TODO fix this
         uuid = uuid.replace("-", "0");
         int id = Integer.valueOf(uuid);
         return id;

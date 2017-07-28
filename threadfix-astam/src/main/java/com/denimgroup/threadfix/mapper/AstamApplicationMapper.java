@@ -64,6 +64,7 @@ public class AstamApplicationMapper {
             repoBuilder.setToken(repoToken);
         }
 
+
         return repoBuilder.build();
     }
 
@@ -76,6 +77,7 @@ public class AstamApplicationMapper {
                 .setName(app.getName())
                 .setRecordData(ProtobufMessageUtils.createRecordData(app))
                 .setOrganization(organization.getName())
+                .setApplicationType(Appmgmt.ApplicationType.WEB)
                 .setRepository(repo);
 
 

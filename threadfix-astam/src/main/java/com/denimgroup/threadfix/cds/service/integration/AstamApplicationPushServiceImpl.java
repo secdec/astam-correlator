@@ -62,31 +62,41 @@ public class AstamApplicationPushServiceImpl implements AstamApplicationPushServ
         this.uuidUpdater = uuidUpdater;
     }
 
+    @Override
+    public boolean pushAppRegistration(int id, ApplicationRegistration appRegistration){
+        boolean success = false;
+        RestResponse<ApplicationRegistration> restResponse = applicationClient.getAppRegistration(appRegistration.getId().getValue());
+        success = pushAppRegistration(id, appRegistration,  restResponse.success);
+
+       return success;
+    }
+
 
     @Override
-    public boolean pushAppRegistration(ApplicationRegistration appRegistration, boolean doesExist){
+    public boolean pushAppRegistration(int id, ApplicationRegistration appRegistration, boolean doesExist){
         RestResponse<ApplicationRegistration> restResponse;
         boolean success = false;
-
+        //TODO: remove extra steps since we are checking first with a GET request
         if (!doesExist){
             restResponse = applicationClient.createAppRegistration(appRegistration);
 
             if (restResponse.success){
                 success = true;
-                int id = ProtobufMessageUtils.createIdFromUUID(appRegistration.getId().getValue());
+                //int id = ProtobufMessageUtils.createIdFromUUID(appRegistration.getId().getValue());
                 uuidUpdater.updateUUID(id, restResponse.uuid, APP_REGISTRATION);
                 LOGGER.info("Application Registration successfully created in CDS. Id: " + id + " UUID: " + restResponse.uuid);
-            } else if(restResponse.responseCode == 409){
-                success = pushAppRegistration(appRegistration, true);
+
+            } else if(restResponse.responseCode == 409 ){
+                 success = pushAppRegistration(id, appRegistration, true);
             }
         } else {
             restResponse = applicationClient.updateAppRegistration(appRegistration.getId().getValue(), appRegistration);
 
-            if (restResponse.success) {
+            if (restResponse.success && restResponse.responseCode == 204) {
                 success = true;
                 LOGGER.info("Application Registration successfully updated in CDS. UUID: " +  appRegistration.getId());
-            } else if(restResponse.responseCode == 422){
-                success = pushAppRegistration(appRegistration, false);
+            } else {
+                success = false;
             }
         }
         return success;

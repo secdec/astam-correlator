@@ -25,11 +25,8 @@ import com.denimgroup.threadfix.cds.service.protobuf.AstamRemoteFindingsServiceI
 import com.denimgroup.threadfix.data.dao.ApplicationDao;
 import com.denimgroup.threadfix.data.entities.Application;
 import com.denimgroup.threadfix.mapper.AstamEntitiesMapper;
-import com.secdec.astam.common.data.models.Appmgmt;
 import com.secdec.astam.common.data.models.Appmgmt.ApplicationRegistration;
-import com.secdec.astam.common.data.models.Attacksurface;
 import com.secdec.astam.common.data.models.Entities;
-import com.secdec.astam.common.data.models.Findings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -87,7 +84,7 @@ public class AstamPushServiceImpl implements AstamPushService {
         int appId = app.getId();
         pushAppMngmtToAstam(appId);
 
-        //TODO
+        //TODO:
         //pushEntitiesToAstam(app);
         //pushAttackSurfaceToAstam(appId);
         //pushFindingsToAstam(appId);
@@ -108,11 +105,11 @@ public class AstamPushServiceImpl implements AstamPushService {
         boolean success = false;
 
         ApplicationRegistration appRegistration = astamApplicationService.getAppRegistration();
-        success = applicationPushService.pushAppRegistration(appRegistration, false);
-        if(!success){
+        applicationPushService.pushAppRegistration(applicationId, appRegistration);
+       /*if(!success){
             return;
-        }
-
+        }*/
+        /*
         success = false;
         Appmgmt.ApplicationEnvironment appEnvironment = astamApplicationService.getAppEnvironment();
         success = applicationPushService.pushAppEnvironment(appEnvironment, false);
@@ -129,17 +126,18 @@ public class AstamPushServiceImpl implements AstamPushService {
 
         success = false;
         Appmgmt.ApplicationDeployment appDeployment = astamApplicationService.getAppDeployment();
-        success = applicationPushService.pushAppDeployment(appDeployment, false);
+        success = applicationPushService.pushAppDeployment(appDeployment, false);*/
     }
 
     @Override
     public void pushFindingsToAstam(int applicationId){
-        astamFindingsService.setup(applicationId);
+        //TODO:
+      /*  astamFindingsService.setup(applicationId);
         boolean success = false;
 
 
-        //Findings.RawFindingsSet rawFindingsSet = astamFindingsService.getRawFindingsSet();
-        //findingsPushService.pushRawFindingsSet(rawFindingsSet);
+        Findings.RawFindingsSet rawFindingsSet = astamFindingsService.getRawFindingsSet();
+        findingsPushService.pushRawFindingsSet(rawFindingsSet);
 
         //Don't push Sast or Dast findings until RawFindings are pushed
         Findings.SastFindingSet sastFindingSet = astamFindingsService.getSastFindings();
@@ -148,17 +146,18 @@ public class AstamPushServiceImpl implements AstamPushService {
         Findings.DastFindingSet dastFindingSet = astamFindingsService.getDastFindings();
         findingsPushService.pushDastFindingSet(dastFindingSet);
 
-        //Findings.CorrelationResultSet correlationResultSet = astamFindingsService.getCorrelatedResultSet();
-        //findingsPushService.p
+        Findings.CorrelationResultSet correlationResultSet = astamFindingsService.getCorrelatedResultSet();
+        findingsPushService.p
 
         Findings.CorrelatedFindingSet correlatedFindingSet = astamFindingsService.getCorrelatedFindings();
-        findingsPushService.pushCorrelatedFindingSet(correlatedFindingSet);
+        findingsPushService.pushCorrelatedFindingSet(correlatedFindingSet);*/
 
     }
 
     @Override
     public void pushAttackSurfaceToAstam(int applicationId){
-        astamApplicationService.setup(applicationId);
+        //TODO:
+     /*   astamApplicationService.setup(applicationId);
 
         boolean success = false;
         while(!success){
@@ -167,7 +166,7 @@ public class AstamPushServiceImpl implements AstamPushService {
         }
 
         Attacksurface.EntryPointWebSet entryPointWebSet = astamAttackSurfaceService.getEntryPointWebSet();
-        attackSurfacePushService.pushEntryPointWebSet(entryPointWebSet);
+        attackSurfacePushService.pushEntryPointWebSet(entryPointWebSet);*/
     }
 }
 

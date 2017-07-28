@@ -165,22 +165,6 @@ public class ApplicationServiceImpl implements ApplicationService {
 
 			//This code is for demo only, in real use we will be importing application mngmt data
 			//If we want to export as well as import we need to check. If exporting will be enabled in prod correctly setup this data;
-			/*AstamApplicationEnvironment astamApplicationEnvironment = new AstamApplicationEnvironment();
-			astamApplicationEnvironment.setName("Default Env");
-			applicationEnvironmentDao.saveOrUpdate(astamApplicationEnvironment);
-
-			ApplicationVersion applicationVersion = new ApplicationVersion();
-			applicationVersion.setApplication(application);
-			applicationVersion.setName("Default");
-			applicationVersionDao.saveOrUpdate(applicationVersion);
-
-			AstamApplicationDeployment astamApplicationDeployment = new AstamApplicationDeployment();
-			astamApplicationDeployment.setApplicationEnvironment(astamApplicationEnvironment);
-			astamApplicationDeployment.setApplicationVersion(applicationVersion);
-			astamApplicationDeployment.setName("Default");
-			astamApplicationDeploymentDao.saveOrUpdate(astamApplicationDeployment);
-
-			application.setAstamApplicationDeployment(astamApplicationDeployment);*/
 
             // Set default for Application Type is Detect
             if (application.getFrameworkType().equals(FrameworkType.NONE.toString()))
@@ -189,7 +173,32 @@ public class ApplicationServiceImpl implements ApplicationService {
 			afterCommitExecutor.execute(new Runnable() {
 				@Override
 				public void run() {
-                astamPushService.pushAppMngmtToAstam(application.getId());
+
+                       /* AstamApplicationEnvironment astamApplicationEnvironment = new AstamApplicationEnvironment();
+                        astamApplicationEnvironment.setName("Default Env");
+                        applicationEnvironmentDao.saveOrUpdate(astamApplicationEnvironment);
+
+                        Date date = new Date();
+                        Timestamp timestamp = new Timestamp(date.getTime());
+                        ApplicationVersion applicationVersion = new ApplicationVersion();
+                        applicationVersion.setApplication(application);
+                        applicationVersion.setName("Default");
+                        applicationVersion.setDate(timestamp);
+                        applicationVersionDao.saveOrUpdate(applicationVersion);
+
+
+                        AstamApplicationDeployment astamApplicationDeployment = new AstamApplicationDeployment();
+                        astamApplicationDeployment.setApplicationEnvironment(astamApplicationEnvironment);
+                        astamApplicationDeployment.setApplicationVersion(applicationVersion);
+                        astamApplicationDeployment.setName("Default");
+                        astamApplicationDeploymentDao.saveOrUpdate(astamApplicationDeployment);
+
+                        application.setAstamApplicationDeployment(astamApplicationDeployment);*/
+                    try{
+                        astamPushService.pushAppMngmtToAstam(application.getId());
+                    } catch (Exception e){
+                        LOG.error("Error while trying to push Application Management Data", e);
+                    }
 				}
 			});
 		}
