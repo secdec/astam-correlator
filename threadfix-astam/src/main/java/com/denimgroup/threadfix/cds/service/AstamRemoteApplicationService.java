@@ -18,6 +18,7 @@
 
 package com.denimgroup.threadfix.cds.service;
 
+import com.denimgroup.threadfix.data.entities.Application;
 import com.secdec.astam.common.data.models.Appmgmt;
 
 /**
@@ -25,11 +26,9 @@ import com.secdec.astam.common.data.models.Appmgmt;
  */
 public interface AstamRemoteApplicationService {
 
-    void setup(int applicationId);
-
-    Appmgmt.ApplicationRegistration getAppRegistration();
-
     Appmgmt.ApplicationDeployment getAppDeployment();
+
+    Appmgmt.ApplicationRegistration getAppRegistration(Application application);
 
     Appmgmt.ApplicationEnvironment getAppEnvironment();
 

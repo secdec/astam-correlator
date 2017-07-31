@@ -19,19 +19,15 @@
 package com.denimgroup.threadfix.cds.service.protobuf;
 
 import com.denimgroup.threadfix.cds.service.AstamRemoteApplicationService;
-import com.denimgroup.threadfix.data.dao.ApplicationDao;
 import com.denimgroup.threadfix.data.entities.Application;
 import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
 import com.denimgroup.threadfix.mapper.AstamApplicationMapper;
 import com.secdec.astam.common.data.models.Appmgmt;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplicationService {
 
-    @Autowired
-    private ApplicationDao applicationDao;
 
     private AstamApplicationMapper appMapper;
 
@@ -41,17 +37,11 @@ public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplication
 
 
     public AstamRemoteApplicationServiceImpl( ) {
-
-    }
-
-    @Override
-    public void setup(int applicationId){
-        application = applicationDao.retrieveById(applicationId);
         appMapper = new AstamApplicationMapper();
     }
 
     @Override
-    public Appmgmt.ApplicationRegistration getAppRegistration(){
+    public Appmgmt.ApplicationRegistration getAppRegistration(Application application){
         appMapper.setApplication(application);
         return appMapper.getAppRegistration();
     }

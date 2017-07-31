@@ -30,7 +30,7 @@ public interface AstamPushService {
 
     void pushEntitiesToAstam(Application app);
 
-    void pushAppMngmtToAstam(int applicationId);
+    void pushAppMngmtToAstam(Application app);
 
     void pushFindingsToAstam(int applicationId);
 

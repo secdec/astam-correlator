@@ -83,7 +83,7 @@ public class AstamPushServiceImpl implements AstamPushService {
     @Override
     public void pushSingleAppToAstam(Application app){
         int appId = app.getId();
-        pushAppMngmtToAstam(appId);
+        pushAppMngmtToAstam(app);
         //pushEntitiesToAstam(app);
         //TODO:
         //pushAttackSurfaceToAstam(appId);
@@ -99,12 +99,11 @@ public class AstamPushServiceImpl implements AstamPushService {
     }
 
     @Override
-    public void pushAppMngmtToAstam(int applicationId) {
-        astamApplicationService.setup(applicationId);
+    public void pushAppMngmtToAstam(Application app) {
         //boolean success = false;
 
-        ApplicationRegistration appRegistration = astamApplicationService.getAppRegistration();
-        applicationPushService.pushAppRegistration(applicationId, appRegistration);
+        ApplicationRegistration appRegistration = astamApplicationService.getAppRegistration(app);
+        applicationPushService.pushAppRegistration(app.getId(), appRegistration);
 
         //TODO: create local enitites (ApplicationVersion/SourceCodeStatus, Deployment and Environment) when an Application is created.
         //TODO: fix relationships between entities as required by CDS

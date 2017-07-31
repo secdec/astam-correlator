@@ -26,7 +26,6 @@ import com.denimgroup.threadfix.data.entities.astam.AstamApplicationEnvironment;
 import com.denimgroup.threadfix.data.entities.astam.AstamRawDiscoveredAttackSurface;
 import com.denimgroup.threadfix.data.enums.AstamEntityType;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
-import com.denimgroup.threadfix.util.AfterCommitExecutor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -40,9 +39,6 @@ import static com.denimgroup.threadfix.data.enums.AstamEntityType.FINDING;
 public class UuidUpdaterImpl implements UuidUpdater {
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(UuidUpdaterImpl.class);
-
-    @Autowired
-    private AfterCommitExecutor afterCommitExecutor;
 
     @Autowired
     private ApplicationDao applicationDao;
@@ -76,8 +72,6 @@ public class UuidUpdaterImpl implements UuidUpdater {
      * @param newUuid represents the new random UUID assigned to the object, when first pushed to CDS
      * @param astamEntityType
      */
-    //TODO: saveOrUpdate should be done through the service class.
-    //TODO: saving uuid operation not consistent, missing uuid's cause creating a new entity in CDS when an update is required
 
     @Override
     public void updateUUID(int id, String newUuid, AstamEntityType astamEntityType ){
@@ -100,7 +94,6 @@ public class UuidUpdaterImpl implements UuidUpdater {
                 findingDao.saveOrUpdate(finding);
                 break;
             case EXTERNAL_TOOL:
-
                 ChannelType channelType = channelTypeDao.retrieveById(id);
                 channelType.setUuid(newUuid);
                 channelTypeDao.saveOrUpdate(channelType);
@@ -137,12 +130,7 @@ public class UuidUpdaterImpl implements UuidUpdater {
                 break;
         }
 
-    /*    afterCommitExecutor.execute(new Runnable() {
-            @Override
-            public void run() {
-                LOGGER.info("Updated local " + astamEntityType + " Id: " + id + " with UUID: " + newUuid);
-            }
-        });*/
+        LOGGER.info("Updated local " + astamEntityType + " Id: " + id + " with UUID: " + newUuid);
 
 
     }
