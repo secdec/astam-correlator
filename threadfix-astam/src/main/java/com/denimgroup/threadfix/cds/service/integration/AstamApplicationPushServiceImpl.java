@@ -66,9 +66,16 @@ public class AstamApplicationPushServiceImpl implements AstamApplicationPushServ
     public boolean pushAppRegistration(int id, ApplicationRegistration appRegistration){
         boolean success = false;
         RestResponse<ApplicationRegistration> restResponse = applicationClient.getAppRegistration(appRegistration.getId().getValue());
-        success = pushAppRegistration(id, appRegistration,  restResponse.success);
 
-       return success;
+        if (!restResponse.success){
+            success = pushAppRegistration(id, appRegistration,  false);
+        } else {
+            //TODO: to allow update/PUT we need to add support for merging locally first
+            LOGGER.debug("Cannot update existing entity in CDS with a stale entity.");
+            success = false;
+        }
+
+        return success;
     }
 
 

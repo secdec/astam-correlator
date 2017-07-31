@@ -48,7 +48,6 @@ public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplication
     public void setup(int applicationId){
         application = applicationDao.retrieveById(applicationId);
         appMapper = new AstamApplicationMapper();
-        //appDeployment = application.getAstamApplicationDeployment();
     }
 
     @Override
@@ -76,7 +75,8 @@ public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplication
     @Override
     public Appmgmt.ApplicationDeployment getAppDeployment(){
         //TODO: make sure we get refreshed Deployment since Version and Environment has been updated
-        //appDeployment = application.getAstamApplicationDeployment();
+        //appDeployment =
+        //appMapper.setApplicationDeployment(appDeployment, appVersion, appEnvironmnet);
         return appMapper.getAppDeployment();
     }
 

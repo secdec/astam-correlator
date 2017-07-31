@@ -18,10 +18,7 @@
 
 package com.denimgroup.threadfix.cds.service.integration;
 
-import com.denimgroup.threadfix.cds.service.AstamPushService;
-import com.denimgroup.threadfix.cds.service.protobuf.AstamRemoteApplicationServiceImpl;
-import com.denimgroup.threadfix.cds.service.protobuf.AstamRemoteAttackSurfaceServiceImpl;
-import com.denimgroup.threadfix.cds.service.protobuf.AstamRemoteFindingsServiceImpl;
+import com.denimgroup.threadfix.cds.service.*;
 import com.denimgroup.threadfix.data.dao.ApplicationDao;
 import com.denimgroup.threadfix.data.entities.Application;
 import com.denimgroup.threadfix.mapper.AstamEntitiesMapper;
@@ -40,41 +37,38 @@ import java.util.List;
 public class AstamPushServiceImpl implements AstamPushService {
 
     private final ApplicationDao applicationDao;
-    private final AstamRemoteApplicationServiceImpl astamApplicationService;
-    private final AstamRemoteFindingsServiceImpl astamFindingsService;
-    private final AstamRemoteAttackSurfaceServiceImpl astamAttackSurfaceService;
+    private final AstamRemoteApplicationService astamApplicationService;
+    private final AstamRemoteFindingsService astamFindingsService;
+    private final AstamRemoteAttackSurfaceService astamAttackSurfaceService;
 
-    @Autowired
-    private AstamApplicationPushServiceImpl applicationPushService;
 
-    @Autowired
-    private AstamAttackSurfacePushServiceImpl attackSurfacePushService;
+    private AstamApplicationPushService applicationPushService;
 
-    @Autowired
-    private AstamFindingsPushServiceImpl findingsPushService;
+    private AstamAttackSurfacePushService attackSurfacePushService;
 
-    @Autowired
-    private AstamEntitiesPushServiceImpl astamEntitiesPushService;
+    private AstamFindingsPushService findingsPushService;
+
+    private AstamEntitiesPushService astamEntitiesPushService;
 
     @Autowired
     public AstamPushServiceImpl(ApplicationDao applicationDao,
-                                AstamRemoteApplicationServiceImpl astamApplicationService,
-                                AstamRemoteFindingsServiceImpl astamFindingsService,
-                                AstamRemoteAttackSurfaceServiceImpl astamAttackSurfaceService
-                             /*   AstamEntitiesPushServiceImpl astamEntitiesPushService,
-                                AstamApplicationPushServiceImpl astamApplicationPushService,
-                                AstamAttackSurfacePushServiceImpl astamAttackSurfacePushService,
-                                AstamFindingsPushServiceImpl astamFindingsPushService*/) {
+                                AstamRemoteApplicationService astamApplicationService,
+                                AstamRemoteFindingsService astamFindingsService,
+                                AstamRemoteAttackSurfaceService astamAttackSurfaceService,
+                                AstamEntitiesPushService astamEntitiesPushService,
+                                AstamApplicationPushService astamApplicationPushService,
+                                AstamAttackSurfacePushService astamAttackSurfacePushService,
+                                AstamFindingsPushServiceImpl astamFindingsPushService) {
 
         this.applicationDao = applicationDao;
         this.astamApplicationService = astamApplicationService;
         this.astamFindingsService = astamFindingsService;
         this.astamAttackSurfaceService = astamAttackSurfaceService;
 
-       /* this.astamEntitiesPushService = astamEntitiesPushService;
+        this.astamEntitiesPushService = astamEntitiesPushService;
         this.applicationPushService = astamApplicationPushService;
         this.attackSurfacePushService = astamAttackSurfacePushService;
-        this.findingsPushService = astamFindingsPushService;*/
+        this.findingsPushService = astamFindingsPushService;
     }
 
     @Override
@@ -95,6 +89,7 @@ public class AstamPushServiceImpl implements AstamPushService {
         //pushAttackSurfaceToAstam(appId);
         //pushFindingsToAstam(appId);
     }
+
 
     @Override
     public void pushEntitiesToAstam(Application app){

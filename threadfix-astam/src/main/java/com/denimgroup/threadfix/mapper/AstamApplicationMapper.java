@@ -114,13 +114,16 @@ public class AstamApplicationMapper {
         this.applicationEnvironment = applicationEnvironment;
     }
 
-    public void setApplicationDeployment(AstamApplicationDeployment appDeployment){
+    public void setApplicationDeployment(AstamApplicationDeployment appDeployment,
+                                         ApplicationVersion appVersion,
+                                         AstamApplicationEnvironment appEnvironment){
+
         Appmgmt.ApplicationDeployment applicationDeployment = Appmgmt.ApplicationDeployment.newBuilder()
                 .setId(ProtobufMessageUtils.createUUID(appDeployment))
                 .setRecordData(ProtobufMessageUtils.createRecordData(appDeployment))
                 // make sure to call setApplicationEnvironment & Version prior
-                .setApplicationEnvironmentId(applicationEnvironment.getId())
-                .setApplicationVersionId(applicationEnvironment.getId())
+                .setApplicationEnvironmentId(ProtobufMessageUtils.createUUID(appEnvironment))
+                .setApplicationVersionId(ProtobufMessageUtils.createUUID(appVersion))
                 .setName(appDeployment.getName()).build();
 
      this.applicationDeployment = applicationDeployment;
