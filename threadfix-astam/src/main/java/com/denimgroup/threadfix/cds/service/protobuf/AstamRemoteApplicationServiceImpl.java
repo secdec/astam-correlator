@@ -21,9 +21,7 @@ package com.denimgroup.threadfix.cds.service.protobuf;
 import com.denimgroup.threadfix.cds.service.AstamRemoteApplicationService;
 import com.denimgroup.threadfix.data.dao.ApplicationDao;
 import com.denimgroup.threadfix.data.entities.Application;
-import com.denimgroup.threadfix.data.entities.ApplicationVersion;
 import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
-import com.denimgroup.threadfix.data.entities.astam.AstamApplicationEnvironment;
 import com.denimgroup.threadfix.mapper.AstamApplicationMapper;
 import com.secdec.astam.common.data.models.Appmgmt;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,17 +30,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplicationService {
 
-
+    @Autowired
     private ApplicationDao applicationDao;
 
     private AstamApplicationMapper appMapper;
 
     private Application application;
+
     private AstamApplicationDeployment appDeployment;
 
-    @Autowired
-    public AstamRemoteApplicationServiceImpl(ApplicationDao applicationDao) {
-        this.applicationDao = applicationDao;
+
+    public AstamRemoteApplicationServiceImpl( ) {
 
     }
 
@@ -62,23 +60,23 @@ public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplication
     @Override
     public Appmgmt.ApplicationEnvironment getAppEnvironment(){
         //TODO: make sure we fetch ApplicationEnvironment from db not from cache
-        AstamApplicationEnvironment appEnvironment = appDeployment.getApplicationEnvironment();
-        appMapper.setApplicationEnvironment(appEnvironment);
+        //AstamApplicationEnvironment appEnvironment = appDeployment.getApplicationEnvironment();
+        //appMapper.setApplicationEnvironment(appEnvironment);
         return appMapper.getAppEnvironment();
     }
 
     @Override
     public Appmgmt.ApplicationVersion getAppVersion(){
         //TODO: make sure we get refreshed ApplicationVersion since Application has been updated
-        ApplicationVersion appVersion = appDeployment.getApplicationVersion();
-        appMapper.setApplicationVersion(appVersion);
+        //ApplicationVersion appVersion = appDeployment.getApplicationVersion();
+        //appMapper.setApplicationVersion(appVersion);
         return appMapper.getAppVersion();
     }
 
     @Override
     public Appmgmt.ApplicationDeployment getAppDeployment(){
         //TODO: make sure we get refreshed Deployment since Version and Environment has been updated
-        appDeployment = application.getAstamApplicationDeployment();
+        //appDeployment = application.getAstamApplicationDeployment();
         return appMapper.getAppDeployment();
     }
 

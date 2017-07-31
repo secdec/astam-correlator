@@ -24,7 +24,6 @@
 package com.denimgroup.threadfix.data.entities;
 
 
-import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
 import com.denimgroup.threadfix.data.entities.astam.AstamAuditableEntity;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.enums.SourceCodeAccessLevel;
@@ -171,7 +170,8 @@ public class Application extends AstamAuditableEntity {
 
 	private List<ApplicationVersion> versions;
 
-    private AstamApplicationDeployment astamApplicationDeployment;
+	//TODO:
+    //private AstamApplicationDeployment astamApplicationDeployment;
 
 	@Column(length = NAME_LENGTH, nullable = false)
     @JsonView(Object.class) // This means it will be included in all ObjectWriters with Views.
@@ -1032,7 +1032,7 @@ public class Application extends AstamAuditableEntity {
 					!getRepositoryBranch().isEmpty()) ? getRepositoryBranch() : "master";
 	}
 
-    //TODO: change this
+ /*   //TODO: change this
     @OneToOne(cascade = {CascadeType.ALL})
     @JoinColumn(name = "astamApplicationDeploymentId")
     public AstamApplicationDeployment getAstamApplicationDeployment() {
@@ -1041,5 +1041,5 @@ public class Application extends AstamAuditableEntity {
 
     public void setAstamApplicationDeployment(AstamApplicationDeployment astamApplicationDeployment) {
         this.astamApplicationDeployment = astamApplicationDeployment;
-    }
+    }*/
 }
