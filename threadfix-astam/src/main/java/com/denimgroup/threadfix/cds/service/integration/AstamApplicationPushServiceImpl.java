@@ -94,7 +94,7 @@ public class AstamApplicationPushServiceImpl implements AstamApplicationPushServ
                 LOGGER.info("Application Registration successfully created in CDS. Id: " + id + " UUID: " + restResponse.uuid);
 
             } else if(restResponse.responseCode == 409 ){
-                 success = pushAppRegistration(id, appRegistration, true);
+                 //success = pushAppRegistration(id, appRegistration, true);
             }
         } else {
             restResponse = applicationClient.updateAppRegistration(appRegistration.getId().getValue(), appRegistration);
