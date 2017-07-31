@@ -88,7 +88,7 @@ public class AstamApplicationMapper {
         applicationRegistration = appBuilder.build();
     }
 
-    //TODO: map this
+    //TODO: map this, also possible map/use SourceCodeStatus instead of ApplicationVersion
     //URL changeset_url = 7;
     //string build_id = 8;
     //URL build_url = 9;

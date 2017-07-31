@@ -32,7 +32,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplicationService {
 
-    @Autowired
+
     private ApplicationDao applicationDao;
 
     private AstamApplicationMapper appMapper;
@@ -40,14 +40,16 @@ public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplication
     private Application application;
     private AstamApplicationDeployment appDeployment;
 
+    @Autowired
+    public AstamRemoteApplicationServiceImpl(ApplicationDao applicationDao) {
+        this.applicationDao = applicationDao;
 
-    public AstamRemoteApplicationServiceImpl() {
-        appMapper = new AstamApplicationMapper();
     }
 
     @Override
     public void setup(int applicationId){
         application = applicationDao.retrieveById(applicationId);
+        appMapper = new AstamApplicationMapper();
         //appDeployment = application.getAstamApplicationDeployment();
     }
 
@@ -59,6 +61,7 @@ public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplication
 
     @Override
     public Appmgmt.ApplicationEnvironment getAppEnvironment(){
+        //TODO: make sure we fetch ApplicationEnvironment from db not from cache
         AstamApplicationEnvironment appEnvironment = appDeployment.getApplicationEnvironment();
         appMapper.setApplicationEnvironment(appEnvironment);
         return appMapper.getAppEnvironment();
@@ -66,6 +69,7 @@ public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplication
 
     @Override
     public Appmgmt.ApplicationVersion getAppVersion(){
+        //TODO: make sure we get refreshed ApplicationVersion since Application has been updated
         ApplicationVersion appVersion = appDeployment.getApplicationVersion();
         appMapper.setApplicationVersion(appVersion);
         return appMapper.getAppVersion();
@@ -73,6 +77,7 @@ public class AstamRemoteApplicationServiceImpl implements AstamRemoteApplication
 
     @Override
     public Appmgmt.ApplicationDeployment getAppDeployment(){
+        //TODO: make sure we get refreshed Deployment since Version and Environment has been updated
         appDeployment = application.getAstamApplicationDeployment();
         return appMapper.getAppDeployment();
     }

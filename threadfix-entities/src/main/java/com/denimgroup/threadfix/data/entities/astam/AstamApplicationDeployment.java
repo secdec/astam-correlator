@@ -18,8 +18,8 @@ public class AstamApplicationDeployment extends AstamAuditableEntity{
     AstamDeploymentType deploymentType;
 
     ApplicationVersion applicationVersion;
-    AstamApplicationEnvironment applicationEnvironment;
 
+    AstamApplicationEnvironment applicationEnvironment;
 
     public AstamDeploymentType getDeploymentType() {
         return deploymentType;
@@ -38,7 +38,7 @@ public class AstamApplicationDeployment extends AstamAuditableEntity{
     }
 
     @JsonView(Object.class)
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "applicationVersionId", nullable = false)
     public ApplicationVersion getApplicationVersion() {
         return applicationVersion;
@@ -47,6 +47,8 @@ public class AstamApplicationDeployment extends AstamAuditableEntity{
     public void setApplicationVersion(ApplicationVersion applicationVersion) {
         this.applicationVersion = applicationVersion;
     }
+
+
 
     @JsonView(Object.class)
     @OneToOne(cascade = CascadeType.ALL)

@@ -26,7 +26,6 @@ package com.denimgroup.threadfix.service;
 import com.denimgroup.threadfix.cds.service.AstamPushService;
 import com.denimgroup.threadfix.data.dao.*;
 import com.denimgroup.threadfix.data.entities.*;
-import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
 import com.denimgroup.threadfix.data.enums.EventAction;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.importer.util.IntegerUtils;
@@ -114,14 +113,6 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Autowired
 	AfterCommitExecutor afterCommitExecutor;
 
-    @Autowired
-    private AstamApplicationDeploymentDao astamApplicationDeploymentDao;
-
-    @Autowired
-    private AstamApplicationEnvironmentDao applicationEnvironmentDao;
-
-    @Autowired
-    private ApplicationVersionDao applicationVersionDao;
 
 
     @Override
@@ -163,9 +154,6 @@ public class ApplicationServiceImpl implements ApplicationService {
 	public void storeApplication(Application application, EventAction eventAction) {
 		if (application != null) {
 
-			//This code is for demo only, in real use we will be importing application mngmt data
-			//If we want to export as well as import we need to check. If exporting will be enabled in prod correctly setup this data;
-
             // Set default for Application Type is Detect
             if (application.getFrameworkType().equals(FrameworkType.NONE.toString()))
                 application.setFrameworkType(FrameworkType.DETECT.toString());
@@ -174,26 +162,6 @@ public class ApplicationServiceImpl implements ApplicationService {
 				@Override
 				public void run() {
 
-                       /* AstamApplicationEnvironment astamApplicationEnvironment = new AstamApplicationEnvironment();
-                        astamApplicationEnvironment.setName("Default Env");
-                        applicationEnvironmentDao.saveOrUpdate(astamApplicationEnvironment);
-
-                        Date date = new Date();
-                        Timestamp timestamp = new Timestamp(date.getTime());
-                        ApplicationVersion applicationVersion = new ApplicationVersion();
-                        applicationVersion.setApplication(application);
-                        applicationVersion.setName("Default");
-                        applicationVersion.setDate(timestamp);
-                        applicationVersionDao.saveOrUpdate(applicationVersion);
-
-
-                        AstamApplicationDeployment astamApplicationDeployment = new AstamApplicationDeployment();
-                        astamApplicationDeployment.setApplicationEnvironment(astamApplicationEnvironment);
-                        astamApplicationDeployment.setApplicationVersion(applicationVersion);
-                        astamApplicationDeployment.setName("Default");
-                        astamApplicationDeploymentDao.saveOrUpdate(astamApplicationDeployment);
-
-                        application.setAstamApplicationDeployment(astamApplicationDeployment);*/
                     try{
                         astamPushService.pushAppMngmtToAstam(application.getId());
                     } catch (Exception e){
@@ -205,21 +173,6 @@ public class ApplicationServiceImpl implements ApplicationService {
 	}
 
 
-    @Override
-    @Transactional(readOnly = false)
-    public void storeDeployment(AstamApplicationDeployment astamApplicationDeployment, Application application) {
-        if (astamApplicationDeployment != null) {
-
-            astamApplicationDeploymentDao.saveOrUpdate(astamApplicationDeployment);
-
-            afterCommitExecutor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    //astamPushService.pushAppMngmtToAstam(application.getId());
-                }
-            });
-        }
-    }
 
 	@Override
 	@Transactional(readOnly = false)

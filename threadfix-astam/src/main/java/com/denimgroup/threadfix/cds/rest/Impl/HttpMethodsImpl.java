@@ -18,11 +18,14 @@
 
 package com.denimgroup.threadfix.cds.rest.Impl;
 
+import com.denimgroup.threadfix.cds.rest.HttpMethods;
 import com.denimgroup.threadfix.cds.rest.cert.InstallCert;
 import com.denimgroup.threadfix.cds.rest.response.ResponseParser;
 import com.denimgroup.threadfix.cds.rest.response.RestResponse;
+import com.denimgroup.threadfix.data.dao.AstamConfigurationDao;
 import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.*;
 import org.apache.http.config.Registry;
@@ -39,6 +42,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.Nonnull;
 import javax.net.ssl.SSLHandshakeException;
@@ -53,16 +58,21 @@ import java.security.NoSuchAlgorithmException;
 /**
  * Created by amohammed on 6/20/2017.
  */
-public class HttpUtils {
+@Component
+public class HttpMethodsImpl implements HttpMethods{
 
     public static final String JAVA_KEY_STORE_FILE = getKeyStorePath();
 
-    private static final SanitizedLogger LOGGER = new SanitizedLogger(HttpUtils.class);
+    private static final SanitizedLogger LOGGER = new SanitizedLogger(HttpMethodsImpl.class);
 
     private static int count = 0;
 
-    private static String compId;
-    private static String apiUrl;
+    private String compId;
+    private String apiUrl;
+    private boolean hasConfig = false;
+
+    @Autowired
+    private AstamConfigurationDao astamConfigurationDao;
 
 
     private static final String AUTH_HEADER_ID = "compId",
@@ -70,17 +80,39 @@ public class HttpUtils {
                                 ACCEPT = "Accept",
                                 PROTOBUF_CONTENT = "application/x-protobuf";
 
-    public HttpUtils(@Nonnull AstamConfiguration astamConfiguration){
+    public HttpMethodsImpl(){
         System.setProperty("javax.net.ssl.trustStore", JAVA_KEY_STORE_FILE);
-        compId = astamConfiguration.getCdsCompId();
-        apiUrl = astamConfiguration.getCdsApiUrl();
     }
 
+    //TODO: look into this. Keeping this out of constructor, to retrive latest settings after constructor has been called on startup.
+    private void setConfigurations(){
+        if(hasConfig) return;
+
+       AstamConfiguration config = astamConfigurationDao.loadCurrentConfiguration();
+       compId = config.getCdsCompId();
+       apiUrl = config.getCdsApiUrl();
+
+       if(!config.getHasConfiguration() || StringUtils.isBlank(compId) || StringUtils.isBlank(apiUrl)){
+           hasConfig = false;
+       } else {
+           hasConfig = true;
+       }
+
+    }
+
+    @Override
     public <T> RestResponse<T> httpGet(@Nonnull String path){
         return httpGet(path, "");
     }
 
+    @Override
     public <T> RestResponse<T> httpGet(@Nonnull String path, @Nonnull String param){
+
+        setConfigurations();
+        if(!hasConfig){
+            LOGGER.info("Please check your CDS settings");
+            return ResponseParser.getErrorResponse("Please check your CDS settings", 0);
+        }
 
         String urlString = makeUrl(path, param);
 
@@ -127,7 +159,8 @@ public class HttpUtils {
         } catch (SSLHandshakeException sslHandshakeException) {
             importCert(sslHandshakeException);
         } catch (org.apache.http.conn.HttpHostConnectException hhce){
-            //TODO
+            LOGGER.error("Error while trying to connect to CDS", hhce);
+            restResponse = ResponseParser.getErrorResponse("Error while trying to connect to CDS",0 );
         }catch (IOException e){
             LOGGER.error("Executing GET request encountered IOException", e);
             restResponse = ResponseParser.getErrorResponse(
@@ -144,8 +177,16 @@ public class HttpUtils {
     return restResponse;
     }
 
-
+    @Override
     public <T> RestResponse<T> httpPost(@Nonnull String path, byte[] entity){
+
+        setConfigurations();
+        if(!hasConfig){
+            LOGGER.info("Please check your CDS settings");
+            return ResponseParser.getErrorResponse("Please check your CDS settings", 0);
+        }
+
+
         String urlString = makeUrl(path);
 
         if(urlString == null){
@@ -204,7 +245,16 @@ public class HttpUtils {
         return restResponse;
     }
 
+    @Override
     public <T> RestResponse<T> httpPut(@Nonnull String path, @Nonnull String param, byte[] bytes){
+
+        setConfigurations();
+        if(!hasConfig){
+            LOGGER.info("Please check your CDS settings");
+            return ResponseParser.getErrorResponse("Please check your CDS settings", 0);
+        }
+
+
         String urlString = makeUrl(path, param);
 
         if(urlString == null){
@@ -259,7 +309,16 @@ public class HttpUtils {
         return restResponse;
     }
 
+    @Override
     public <T> RestResponse<T> httpDelete(@Nonnull String path, @Nonnull String param){
+
+        setConfigurations();
+        if(!hasConfig){
+            LOGGER.info("Please check your CDS settings");
+            return ResponseParser.getErrorResponse("Please check your CDS settings", 0);
+        }
+
+
         String urlString = makeUrl(path, param);
 
         if (urlString == null) {
@@ -366,14 +425,14 @@ public class HttpUtils {
     }
 
     // this is necessary because Spring double-decodes %s in the URL for some reason
-    public static String encodeDoublePercent(String input) {
+    private static String encodeDoublePercent(String input) {
         if (input.contains("%")) {
             input = input.replaceAll("%", "%25");
         }
         return encode(input);
     }
 
-    public static String encode(String input) {
+    private static String encode(String input) {
         try {
             return URLEncoder.encode(input, "UTF-8");
         } catch (UnsupportedEncodingException e) {

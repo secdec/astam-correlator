@@ -40,7 +40,6 @@ public class UuidUpdaterImpl implements UuidUpdater {
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(UuidUpdaterImpl.class);
 
-
     @Autowired
     private ApplicationDao applicationDao;
 
@@ -73,11 +72,12 @@ public class UuidUpdaterImpl implements UuidUpdater {
      * @param newUuid represents the new random UUID assigned to the object, when first pushed to CDS
      * @param astamEntityType
      */
-    //TODO: saveOrUpdate should be done through the service class
+    //TODO: saveOrUpdate should be done through the service class.
+    //TODO: saving uuid operation not consistent, missing uuid's cause creating a new entity in CDS when an update is required
 
     @Override
     public void updateUUID(int id, String newUuid, AstamEntityType astamEntityType ){
-        LOGGER.debug("Updating local " + astamEntityType + " Id: " + id + " with UUID: " + newUuid);
+
         switch (astamEntityType){
             case APP_REGISTRATION:
                 Application application = applicationDao.retrieveById(id);
@@ -130,6 +130,10 @@ public class UuidUpdaterImpl implements UuidUpdater {
                 AstamRawDiscoveredAttackSurface rawDiscoveredAttackSurface = rawDiscoveredAttackSurfaceDao.retrieveById(id);
                 rawDiscoveredAttackSurface.setUuid(newUuid);
                 rawDiscoveredAttackSurfaceDao.saveOrUpdate(rawDiscoveredAttackSurface);
+                break;
         }
+
+        LOGGER.info("Updated local " + astamEntityType + " Id: " + id + " with UUID: " + newUuid);
+
     }
 }

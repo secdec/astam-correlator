@@ -27,10 +27,8 @@ import com.denimgroup.threadfix.data.entities.Application;
 import com.denimgroup.threadfix.data.entities.Organization;
 import com.denimgroup.threadfix.data.entities.Policy;
 import com.denimgroup.threadfix.data.entities.Vulnerability;
-import com.denimgroup.threadfix.data.entities.astam.AstamApplicationDeployment;
 import com.denimgroup.threadfix.data.enums.EventAction;
 import com.denimgroup.threadfix.service.beans.TableSortBean;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
 import org.springframework.validation.BindingResult;
 
@@ -77,9 +75,6 @@ public interface ApplicationService {
 	 */
 	void storeApplication(Application application, EventAction eventAction);
 
-
-    @Transactional(readOnly = false)
-	void storeDeployment(AstamApplicationDeployment astamApplicationDeployment, Application application);
 
 	/**
 	 * Prepare the application for deletion.

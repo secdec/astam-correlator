@@ -148,7 +148,7 @@ public class SystemSettingsController {
                 || StringUtils.isBlank(cdsApiUrl)
                 || StringUtils.isBlank(cdsBrokerUrl)
                 || bindingResult.hasErrors()){
-
+        //TODO: allow user to clear settings
             return FormRestResponse.failure("Unable to save CDS Integration Settings. Try again.", bindingResult);
         } else {
             AstamConfiguration config = astamConfigurationService.loadCurrentConfiguration();

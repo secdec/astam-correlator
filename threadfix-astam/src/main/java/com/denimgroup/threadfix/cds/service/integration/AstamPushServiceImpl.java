@@ -44,30 +44,37 @@ public class AstamPushServiceImpl implements AstamPushService {
     private final AstamRemoteFindingsServiceImpl astamFindingsService;
     private final AstamRemoteAttackSurfaceServiceImpl astamAttackSurfaceService;
 
-    private final AstamApplicationPushServiceImpl applicationPushService;
-    private final AstamAttackSurfacePushServiceImpl attackSurfacePushService;
-    private final AstamFindingsPushServiceImpl findingsPushService;
-    private final AstamEntitiesPushServiceImpl astamEntitiesPushService;
+    @Autowired
+    private AstamApplicationPushServiceImpl applicationPushService;
+
+    @Autowired
+    private AstamAttackSurfacePushServiceImpl attackSurfacePushService;
+
+    @Autowired
+    private AstamFindingsPushServiceImpl findingsPushService;
+
+    @Autowired
+    private AstamEntitiesPushServiceImpl astamEntitiesPushService;
 
     @Autowired
     public AstamPushServiceImpl(ApplicationDao applicationDao,
                                 AstamRemoteApplicationServiceImpl astamApplicationService,
                                 AstamRemoteFindingsServiceImpl astamFindingsService,
-                                AstamRemoteAttackSurfaceServiceImpl astamAttackSurfaceService,
-                                AstamEntitiesPushServiceImpl astamEntitiesPushService,
+                                AstamRemoteAttackSurfaceServiceImpl astamAttackSurfaceService
+                             /*   AstamEntitiesPushServiceImpl astamEntitiesPushService,
                                 AstamApplicationPushServiceImpl astamApplicationPushService,
                                 AstamAttackSurfacePushServiceImpl astamAttackSurfacePushService,
-                                AstamFindingsPushServiceImpl astamFindingsPushService) {
+                                AstamFindingsPushServiceImpl astamFindingsPushService*/) {
 
         this.applicationDao = applicationDao;
         this.astamApplicationService = astamApplicationService;
         this.astamFindingsService = astamFindingsService;
         this.astamAttackSurfaceService = astamAttackSurfaceService;
 
-        this.astamEntitiesPushService = astamEntitiesPushService;
+       /* this.astamEntitiesPushService = astamEntitiesPushService;
         this.applicationPushService = astamApplicationPushService;
         this.attackSurfacePushService = astamAttackSurfacePushService;
-        this.findingsPushService = astamFindingsPushService;
+        this.findingsPushService = astamFindingsPushService;*/
     }
 
     @Override
@@ -83,9 +90,8 @@ public class AstamPushServiceImpl implements AstamPushService {
     public void pushSingleAppToAstam(Application app){
         int appId = app.getId();
         pushAppMngmtToAstam(appId);
-
-        //TODO:
         //pushEntitiesToAstam(app);
+        //TODO:
         //pushAttackSurfaceToAstam(appId);
         //pushFindingsToAstam(appId);
     }
@@ -99,13 +105,14 @@ public class AstamPushServiceImpl implements AstamPushService {
 
     @Override
     public void pushAppMngmtToAstam(int applicationId) {
-
         astamApplicationService.setup(applicationId);
-
-        boolean success = false;
+        //boolean success = false;
 
         ApplicationRegistration appRegistration = astamApplicationService.getAppRegistration();
         applicationPushService.pushAppRegistration(applicationId, appRegistration);
+
+        //TODO: create local enitites (ApplicationVersion/SourceCodeStatus, Deployment and Environment) when an Application is created.
+        //TODO: fix relationships between entities as required by CDS
        /*if(!success){
             return;
         }*/

@@ -19,9 +19,8 @@
 package com.denimgroup.threadfix.cds.rest.Impl;
 
 import com.denimgroup.threadfix.cds.rest.AstamAttackSurfaceClient;
+import com.denimgroup.threadfix.cds.rest.HttpMethods;
 import com.denimgroup.threadfix.cds.rest.response.RestResponse;
-import com.denimgroup.threadfix.data.dao.AstamConfigurationDao;
-import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.secdec.astam.common.data.models.Attacksurface.*;
@@ -41,7 +40,8 @@ public class AstamAttackSurfaceClientImpl implements AstamAttackSurfaceClient {
 
     private static final SanitizedLogger LOGGER = new SanitizedLogger(AstamAttackSurfaceClientImpl.class);
 
-    private final HttpUtils httpUtils;
+    @Autowired
+    private HttpMethods httpUtils;
 
     private final static String CONTROLLER_ATK_SUR = "AttackSurface/",
             RAW_DISCOVERED_ATTACK_SURFACE = "RawDiscoveredAttackSurface/",
@@ -50,10 +50,7 @@ public class AstamAttackSurfaceClientImpl implements AstamAttackSurfaceClient {
             MOBILE = "mobile/",
             EXCEPTION_MESSAGE = "InvalidProtocolBufferException while attempting to parse retrieved protobuf data.";
 
-    @Autowired
-    public AstamAttackSurfaceClientImpl(AstamConfigurationDao astamConfigurationDao){
-        AstamConfiguration astamConfiguration = astamConfigurationDao.loadCurrentConfiguration();
-        httpUtils = new HttpUtils(astamConfiguration);
+    public AstamAttackSurfaceClientImpl( ){
     }
 
     @Override

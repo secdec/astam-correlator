@@ -60,7 +60,6 @@ public class HibernateAstamConfigurationDao
         return getSession().createQuery("from AstamConfiguration").list();
     }
 
-
     @Override
     public AstamConfiguration loadCurrentConfiguration() {
         AstamConfiguration configuration;

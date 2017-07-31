@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * Created by amohammed on 6/28/2017.
  */
-
+//TODO: fix InvalidClientIDException, caused by multiple subs with the same clientId
 @Component
 public class AstamMessageManagerImpl implements AstamMessageManager {
 
