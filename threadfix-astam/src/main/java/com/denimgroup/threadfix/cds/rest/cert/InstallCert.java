@@ -44,7 +44,7 @@ import java.security.MessageDigest;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
-import static com.denimgroup.threadfix.cds.rest.Impl.HttpUtils.JAVA_KEY_STORE_FILE;
+import static com.denimgroup.threadfix.cds.rest.Impl.HttpMethodsImpl.JAVA_KEY_STORE_FILE;
 /**
  * Class used to add the server's certificate to the KeyStore
  * with your trusted certificates.
