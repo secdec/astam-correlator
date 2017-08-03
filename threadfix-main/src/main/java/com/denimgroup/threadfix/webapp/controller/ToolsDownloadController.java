@@ -117,8 +117,6 @@ public class ToolsDownloadController {
             response.setContentType("application/zip");
             response.addHeader("Content-Disposition", "attachment; filename=\"" + PROTOBUF_ZIP + "\"");
 
-            astamExportService.writeAllToOutput(servletOutputStream);
-
             servletOutputStream.flush();
             servletOutputStream.close();
         } catch (IOException ioe) {

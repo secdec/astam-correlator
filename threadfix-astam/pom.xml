@@ -17,6 +17,8 @@
     <properties>
         <protobuf.version>3.1.0</protobuf.version>
         <astam-protobuf.version>1.0-SNAPSHOT</astam-protobuf.version>
+        <astam-messaging-protobuf.version>1.0-SNAPSHOT</astam-messaging-protobuf.version>
+        <activemq.version>5.8.0</activemq.version>
     </properties>
 
     <build>
@@ -30,6 +32,27 @@
                     <source>1.8</source>
                     <target>1.8</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>com.denimgroup.threadfix.Main</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
@@ -103,9 +126,34 @@
             <version>${astam-protobuf.version}</version>
         </dependency>
         <dependency>
+            <groupId>com.denimgroup</groupId>
+            <artifactId>astam-messaging-protobuf</artifactId>
+            <version>${astam-messaging-protobuf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.activemq</groupId>
+            <artifactId>activemq-all</artifactId>
+            <version>${activemq.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
             <version>${protobuf.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.3</version>
         </dependency>
     </dependencies>
 </project>

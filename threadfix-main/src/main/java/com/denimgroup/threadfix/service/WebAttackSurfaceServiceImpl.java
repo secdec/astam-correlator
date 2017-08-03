@@ -85,8 +85,10 @@ public class WebAttackSurfaceServiceImpl implements WebAttackSurfaceService{
 
             WebAttackSurface webAttackSurface = createWebAttackSurface(finding, endpoint);
             webAttackSurfaceDao.saveOrUpdate(webAttackSurface);
+            //TODO: look into this
             webAttackSurface.setUuid(ProtobufMessageUtils.createUUIDFromInt(webAttackSurface.getId()).getValue());
             webAttackSurfaceDao.saveOrUpdate(webAttackSurface);
+
         }
     }
 }

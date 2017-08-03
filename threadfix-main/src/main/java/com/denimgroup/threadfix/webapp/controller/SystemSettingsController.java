@@ -8,6 +8,7 @@
 package com.denimgroup.threadfix.webapp.controller;
 
 import com.denimgroup.threadfix.annotations.ReportLocation;
+import com.denimgroup.threadfix.data.entities.AstamConfiguration;
 import com.denimgroup.threadfix.data.entities.CSVExportField;
 import com.denimgroup.threadfix.data.entities.DefaultConfiguration;
 import com.denimgroup.threadfix.exception.RestIOException;
@@ -19,6 +20,7 @@ import com.denimgroup.threadfix.views.AllViews;
 import com.denimgroup.threadfix.webapp.config.FormRestResponse;
 import com.fasterxml.jackson.annotation.JsonView;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -46,21 +48,21 @@ import static com.denimgroup.threadfix.remote.response.RestResponse.success;
 @SessionAttributes("defaultConfiguration")
 @PreAuthorize("hasRole('ROLE_CAN_MANAGE_SYSTEM_SETTINGS')")
 public class SystemSettingsController {
-	
-	protected final SanitizedLogger log = new SanitizedLogger(SystemSettingsController.class);
 
-	@Autowired(required = false)
-	private LdapService ldapService;
+    protected final SanitizedLogger log = new SanitizedLogger(SystemSettingsController.class);
+
+    @Autowired(required = false)
+    private LdapService ldapService;
 
     @Autowired
-	private RoleService roleService = null;
-	@Autowired
+    private RoleService roleService = null;
+    @Autowired
     private DefaultConfigService defaultConfigService = null;
-	@Autowired
-	private ReportService reportService = null;
-	@Autowired
-	private ApplicationService applicationService;
-	@Autowired(required = false)
+    @Autowired
+    private ReportService reportService = null;
+    @Autowired
+    private ApplicationService applicationService;
+    @Autowired(required = false)
     LicenseService licenseService;
     @Autowired
     private ScanService scanService;
@@ -69,15 +71,18 @@ public class SystemSettingsController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private AstamConfigurationService astamConfigurationService;
+
     @InitBinder
     public void initBinder(WebDataBinder dataBinder) {
-		String[] reports = {
-				"dashboardTopLeft.id",
-				"dashboardTopRight.id", "dashboardBottomLeft.id", "dashboardBottomRight.id",
-				"applicationTopLeft.id", "applicationTopRight.id", "teamTopLeft.id", "teamTopRight.id",
-                "fileUploadLocation", "deleteUploadedFiles", "csvExportFields[*]", "baseUrl", 
-                "closeVulnWhenNoScannersReport"
-		};
+        String[] reports = {
+                "dashboardTopLeft.id",
+                "dashboardTopRight.id", "dashboardBottomLeft.id", "dashboardBottomRight.id",
+                "applicationTopLeft.id", "applicationTopRight.id", "teamTopLeft.id", "teamTopRight.id",
+                "fileUploadLocation", "deleteUploadedFiles", "csvExportFields[*]", "baseUrl",
+                "closeVulnWhenNoScannersReport", "astamConfig"
+        };
 
         String[] otherSections = {
                 "defaultRoleId", "globalGroupEnabled", "activeDirectoryBase",
@@ -96,10 +101,11 @@ public class SystemSettingsController {
 
         dataBinder.registerCustomEditor(CSVExportField.class, "csvExportFields[*]", new CSVExportFieldEnumConverter(CSVExportField.class));
     }
-	
+
     @RequestMapping(method = RequestMethod.GET)
     public String setupForm(Model model) {
         model.addAttribute("defaultConfiguration", defaultConfigService.loadCurrentConfiguration());
+        model.addAttribute("astamConfig", astamConfigurationService.loadCurrentConfiguration());
         return "config/systemSettings";
     }
 
@@ -126,12 +132,41 @@ public class SystemSettingsController {
         }
     }
 
+
+    @JsonView(AllViews.FormInfo.class)
+    @RequestMapping(value = "/astam", method = RequestMethod.POST)
+    public @ResponseBody Object processSubmit(@ModelAttribute AstamConfiguration astamConfiguration,
+                                              HttpServletRequest request,
+                                              BindingResult bindingResult) {
+
+        //TODO: fix Json parsing and use instead
+        String cdsCompId = request.getParameter("cdsCompId");
+        String cdsApiUrl = request.getParameter("cdsApiUrl");
+        String cdsBrokerUrl = request.getParameter("cdsBrokerUrl");
+
+        if(StringUtils.isBlank(cdsCompId)
+                || StringUtils.isBlank(cdsApiUrl)
+                || StringUtils.isBlank(cdsBrokerUrl)
+                || bindingResult.hasErrors()){
+        //TODO: allow user to clear settings
+            return FormRestResponse.failure("Unable to save CDS Integration Settings. Try again.", bindingResult);
+        } else {
+            AstamConfiguration config = astamConfigurationService.loadCurrentConfiguration();
+            config.setCdsCompId(cdsCompId);
+            config.setCdsApiUrl(cdsApiUrl);
+            config.setCdsBrokerUrl(cdsBrokerUrl);
+            config.setHasConfiguration(true);
+            astamConfigurationService.saveConfiguration(config);
+            return success(config);
+        }
+    }
+
+
     @JsonView(AllViews.FormInfo.class)
     @RequestMapping(method = RequestMethod.POST)
     public @ResponseBody Object processSubmit(@ModelAttribute DefaultConfiguration defaultConfiguration,
                                               HttpServletRequest request,
                                               BindingResult bindingResult) {
-
         if (defaultConfiguration.getDeleteUploadedFiles()) {
             try {
                 scanService.deleteScanFileLocations();
@@ -216,6 +251,8 @@ public class SystemSettingsController {
         map.put("dashboardReports", reportService.loadByLocationType(ReportLocation.DASHBOARD));
         map.put("applicationReports", reportService.loadByLocationType(ReportLocation.APPLICATION));
         map.put("teamReports", reportService.loadByLocationType(ReportLocation.TEAM));
+        map.put("astamConfig", astamConfigurationService.loadCurrentConfiguration());
+
 
         return map;
     }

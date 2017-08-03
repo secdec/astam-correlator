@@ -1,3 +1,21 @@
+// Copyright 2017 Secure Decisions, a division of Applied Visions, Inc.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+//
+// This material is based on research sponsored by the Department of Homeland
+// Security (DHS) Science and Technology Directorate, Cyber Security Division
+// (DHS S&T/CSD) via contract number HHSP233201600058C.
+
 package com.denimgroup.threadfix.mapper;
 
 import com.denimgroup.threadfix.data.entities.*;
@@ -52,8 +70,8 @@ public class AstamFindingsMapper {
 
     private Entities.CWE addCwe(GenericVulnerability genericVulnerability) {
         Entities.CWE cwe = Entities.CWE.newBuilder()
-                .setWeaknessId(genericVulnerability.getCweId())
-                .setTitle(genericVulnerability.getName()).build();
+                .setCweId(genericVulnerability.getCweId())
+                .setName(genericVulnerability.getName()).build();
 
         if (!cwes.contains(cwe)) {
             cwes.add(cwe);
@@ -64,7 +82,7 @@ public class AstamFindingsMapper {
 
     private Entities.ExternalTool addExternalTool(ChannelType channelType) {
         Entities.ExternalTool externalTool = Entities.ExternalTool.newBuilder()
-                .setId(ProtobufMessageUtils.createUUIDFromInt(channelType.getId()))
+                .setId(ProtobufMessageUtils.createUUID(channelType))
                 .setToolName(channelType.getName()).build();
 
         if (!externalTools.contains(externalTool)) {
@@ -132,7 +150,7 @@ public class AstamFindingsMapper {
                     .setReportingExternalToolId(externalTool.getId())
                     .addAttackVariants(getAttackVariant(finding))
                     .setRecordData(ProtobufMessageUtils.createRecordData(finding))
-                    .setId(ProtobufMessageUtils.createUUIDFromInt(finding.getId()));
+                    .setId(ProtobufMessageUtils.createUUID(finding));
 
             ChannelSeverity channelSeverity = finding.getChannelSeverity();
             String toolSeverityName = channelSeverity.getName();
@@ -144,7 +162,7 @@ public class AstamFindingsMapper {
             if (genericVulnerability != null) {
                 Entities.CWE cwe = addCwe(genericVulnerability);
                 dastFindingBuilder.setName(genericVulnerability.getName())
-                        .addCweIds(cwe.getWeaknessId());
+                        .addCweIds(cwe.getCweId());
             }
 
             dastFindings.add(dastFindingBuilder.build());
@@ -188,14 +206,15 @@ public class AstamFindingsMapper {
                     .setReportingExternalToolId(externalTool.getId())
                     .setToolDefinedSeverity(finding.getChannelSeverity().getName())
                     .addAllTrace(getTraceNodes(finding))
+                    //.setRawFindingId()
                     .setRecordData(ProtobufMessageUtils.createRecordData(finding))
-                    .setId(ProtobufMessageUtils.createUUIDFromInt(finding.getId()));
+                    .setId(ProtobufMessageUtils.createUUID(finding));
 
             GenericVulnerability genericVulnerability = getGenericVulnerability(finding);
             if (genericVulnerability != null) {
                 Entities.CWE cwe = addCwe(genericVulnerability);
                 sastFindingBuilder.setName(genericVulnerability.getName())
-                        .addCweIds(cwe.getWeaknessId());
+                        .addCweIds(cwe.getCweId());
             }
 
             String description = finding.getLongDescription();
@@ -212,7 +231,7 @@ public class AstamFindingsMapper {
 
         for (int i=0; i<findingList.size(); i++) {
             Finding finding = findingList.get(i);
-            uuids.add(ProtobufMessageUtils.createUUIDFromInt(finding.getId()));
+            uuids.add(ProtobufMessageUtils.createUUID(finding));
         }
 
         return uuids;
@@ -228,7 +247,10 @@ public class AstamFindingsMapper {
                 continue;
             }
 
+            //TODO: setRecordData()
             Findings.CorrelatedFinding.Builder correlatedFindingBuilder = Findings.CorrelatedFinding.newBuilder()
+                   // .setRecordData(ProtobufMessageUtils.createRecordData()
+                    //.setCorrelationResultId()
                     .addAllDastFindingIds(getUuidsForFindings(vulnerability.getDynamicFindings()))
                     .addAllSastFindingIds(getUuidsForFindings(vulnerability.getStaticFindings()))
                     .setSeverity(severityMap.get(severity.getName()));
@@ -244,26 +266,47 @@ public class AstamFindingsMapper {
     }
 
     public void writeDastFindingsToOutput(OutputStream outputStream) throws IOException {
-        Findings.DastFindingSet dastFindingSet = Findings.DastFindingSet.newBuilder()
-                .addAllDastFindings(dastFindings).build();
+        Findings.DastFindingSet dastFindingSet = getDastFindingSet();
         dastFindingSet.writeTo(outputStream);
    }
 
+   public Findings.DastFindingSet getDastFindingSet(){
+       Findings.DastFindingSet.Builder dastFindingSetBuilder = Findings.DastFindingSet.newBuilder()
+               .addAllDastFindings(dastFindings);
+       return dastFindingSetBuilder.build();
+   }
+
     public void writeSastFindingsToOutput(OutputStream outputStream) throws IOException {
-        Findings.SastFindingSet sastFindingSet = Findings.SastFindingSet.newBuilder()
-                .addAllSastFindings(sastFindings).build();
+        Findings.SastFindingSet sastFindingSet = getSastFindingSet();
         sastFindingSet.writeTo(outputStream);
     }
 
+    public Findings.SastFindingSet getSastFindingSet(){
+        Findings.SastFindingSet.Builder sastFindingSetBuilder = Findings.SastFindingSet.newBuilder()
+                .addAllSastFindings(sastFindings);
+        return sastFindingSetBuilder.build();
+    }
+
     public void writeCorrelatedFindingsToOutput(OutputStream outputStream) throws IOException {
-        Findings.CorrelatedFindingSet correlatedFindingSet = Findings.CorrelatedFindingSet.newBuilder()
-                .addAllCorrelatedFindings(correlatedFindings).build();
+        Findings.CorrelatedFindingSet correlatedFindingSet = getCorrelatedFindingSet();
         correlatedFindingSet.writeTo(outputStream);
+    }
+
+    public Findings.CorrelatedFindingSet getCorrelatedFindingSet(){
+        Findings.CorrelatedFindingSet.Builder correlatedFindingSetBuilder = Findings.CorrelatedFindingSet.newBuilder()
+                .addAllCorrelatedFindings(correlatedFindings);
+        return correlatedFindingSetBuilder.build();
     }
 
     public void writeExternalToolsToOutput(OutputStream outputStream) throws IOException {
         Entities.ExternalToolSet externalToolSet = Entities.ExternalToolSet.newBuilder()
                 .addAllExternalTools(externalTools).build();
         externalToolSet.writeTo(outputStream);
+    }
+
+    public Entities.ExternalToolSet getExternalToolsSet(){
+        Entities.ExternalToolSet.Builder externalToolSetBuilder = Entities.ExternalToolSet.newBuilder()
+                .addAllExternalTools(externalTools);
+        return externalToolSetBuilder.build();
     }
 }
