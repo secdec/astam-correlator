@@ -80,9 +80,9 @@ public class ScanMergeServiceImpl implements ScanMergeService {
 	@Autowired
 	private DefaultConfigService defaultConfigService;
 
-	@Lazy
-	@Autowired
-	private AstamPushService astamPushService;
+	// @Lazy
+	// @Autowired
+	// private AstamPushService astamPushService;
 
 	private Pattern scanFileRegex = Pattern.compile("(.*)(scan-file-[0-9]+-[0-9]+)");
 
@@ -192,8 +192,8 @@ public class ScanMergeServiceImpl implements ScanMergeService {
 
 		vulnerabilityFilterService.updateVulnerabilities(scan);
 
-        astamPushService.pushEntitiesToAstam(scan.getApplication());
-		astamPushService.pushFindingsToAstam(scan.getApplication().getId());
+        // astamPushService.pushEntitiesToAstam(scan.getApplication());
+		// astamPushService.pushFindingsToAstam(scan.getApplication().getId());
 		return true;
 	}
 
