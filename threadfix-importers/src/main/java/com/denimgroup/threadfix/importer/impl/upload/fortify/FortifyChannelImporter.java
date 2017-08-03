@@ -107,7 +107,8 @@ public class FortifyChannelImporter extends AbstractChannelImporter {
 		Scan returnScan = parseSAXInput(new FortifySAXParser());
 
 		FortifyAuditXmlParser timeParser = new FortifyAuditXmlParser();
-		ScanUtils.readSAXInput(timeParser, FILE_CHECK_COMPLETED, auditXmlStream);
+		if (auditXmlStream != null)
+			ScanUtils.readSAXInput(timeParser, FILE_CHECK_COMPLETED, auditXmlStream);
 		Calendar auditXmlDate = timeParser.resultTime;
 
 		applySuppressedInformation(timeParser, returnScan);

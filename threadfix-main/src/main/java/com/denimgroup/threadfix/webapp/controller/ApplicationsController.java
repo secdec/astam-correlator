@@ -243,7 +243,7 @@ public class ApplicationsController {
         map.put("versions", application.getVersions());
 
         // monitor
-        if(application.getRepositoryType().equalsIgnoreCase(SourceCodeRepoType.GIT.getRepoType())) {
+        if(application.getRepositoryType() != null && application.getRepositoryType().equalsIgnoreCase(SourceCodeRepoType.GIT.getRepoType())) {
             ScheduledGitPoll poll = gitPollService.loadByApplicationOrDefault(application);
             map.put("monitor", poll);
             map.put("frequencyTypes", ScheduledFrequencyType.values());
