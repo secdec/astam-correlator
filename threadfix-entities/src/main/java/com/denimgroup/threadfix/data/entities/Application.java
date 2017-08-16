@@ -23,6 +23,8 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.data.entities;
 
+
+import com.denimgroup.threadfix.data.entities.astam.AstamAuditableEntity;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.enums.SourceCodeAccessLevel;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -42,7 +44,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 @Entity
 @Table(name = "Application")
-public class Application extends AuditableEntity {
+public class Application extends AstamAuditableEntity {
 
 	private static final long serialVersionUID = 1175222046579045669L;
     private static final SanitizedLogger log = new SanitizedLogger(Application.class);
@@ -167,6 +169,9 @@ public class Application extends AuditableEntity {
     private Boolean useDefaultProject = false;
 
 	private List<ApplicationVersion> versions;
+
+	//TODO:
+    //private AstamApplicationDeployment astamApplicationDeployment;
 
 	@Column(length = NAME_LENGTH, nullable = false)
     @JsonView(Object.class) // This means it will be included in all ObjectWriters with Views.
@@ -1017,4 +1022,24 @@ public class Application extends AuditableEntity {
 		}
 		return false;
 	}
+
+	/*
+	Added this method to help centralize the resolution of the branch since repositoryBranch is not a required field.
+	 */
+	@Transient
+	public String getResolvedRepositoryBranch(){
+			return (getRepositoryBranch() != null &&
+					!getRepositoryBranch().isEmpty()) ? getRepositoryBranch() : "master";
+	}
+
+ /*   //TODO: change this
+    @OneToOne(cascade = {CascadeType.ALL})
+    @JoinColumn(name = "astamApplicationDeploymentId")
+    public AstamApplicationDeployment getAstamApplicationDeployment() {
+        return astamApplicationDeployment;
+    }
+
+    public void setAstamApplicationDeployment(AstamApplicationDeployment astamApplicationDeployment) {
+        this.astamApplicationDeployment = astamApplicationDeployment;
+    }*/
 }

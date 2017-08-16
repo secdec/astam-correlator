@@ -58,7 +58,7 @@ public class ScannerSeverityMappingsBootstrapper {
 
     @Transactional
     public void bootstrap() {
-        LOG.info("Setting initial mappings for scanner severities to ThreadFix severities.");
+        LOG.info("Setting initial mappings for scanner severities to severities.");
 
         long start = System.currentTimeMillis();
 

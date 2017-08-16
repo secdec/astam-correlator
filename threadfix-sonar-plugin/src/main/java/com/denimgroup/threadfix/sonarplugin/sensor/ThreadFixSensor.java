@@ -126,7 +126,7 @@ public class ThreadFixSensor implements Sensor {
         ThreadFixInfo info = new ThreadFixInfo(properties);
 
         if (!info.valid()) {
-            LOG.info("Invalid ThreadFix configuration.");
+            LOG.info("Invalid configuration.");
             for (String error : info.getErrors()) {
                 LOG.info(error);
             }

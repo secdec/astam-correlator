@@ -26,8 +26,6 @@ package com.denimgroup.threadfix.data.entities;
 import com.denimgroup.threadfix.views.AllViews;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
-import org.hibernate.annotations.CollectionOfElements;
-import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import javax.validation.constraints.Size;
@@ -37,7 +35,9 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
 @Entity
-@Table(name = "Scan")
+@Table(name = "Scan", indexes = {
+		@Index(name = "importTime", columnList = "importTime")
+})
 public class Scan extends BaseEntity implements Iterable<Finding> {
 
 	private static final long serialVersionUID = -8461350611851383656L;
@@ -109,7 +109,7 @@ public class Scan extends BaseEntity implements Iterable<Finding> {
             ScannerType.BRAKEMAN.getDisplayName(),
             ScannerType.CHECKMARX.getDisplayName());
     private static final List<String> MIXED_TYPES  = Arrays.asList(ScannerType.SENTINEL.getDisplayName());
-    private static final String       DYNAMIC      = "Dynamic", STATIC = "Static", MIXED = "Mixed";
+    public static final String DYNAMIC = "Dynamic", STATIC = "Static", MIXED = "Mixed";
 
     @Size(max = 255, message = "{errors.maxlength} 255.")
     private String filePathRoot;
@@ -135,7 +135,6 @@ public class Scan extends BaseEntity implements Iterable<Finding> {
 
     @Temporal(TemporalType.TIMESTAMP)
     @JsonView({AllViews.TableRow.class, AllViews.FormInfo.class, AllViews.RestView2_1.class, AllViews.RestViewScanStatistic.class, AllViews.RestViewScanList.class})
-	@Index(name="importTime")
     public Calendar getImportTime() {
         return importTime;
     }
@@ -215,7 +214,6 @@ public class Scan extends BaseEntity implements Iterable<Finding> {
     }
 
 	@CollectionTable(name="ScanFileNames", joinColumns=@JoinColumn(name="scanId"))
-	@CollectionOfElements // for sonar
 	@ElementCollection
 	@JsonView({AllViews.FormInfo.class, AllViews.TableRow.class, AllViews.RestViewScanStatistic.class})
     public List<String> getOriginalFileNames() {
@@ -227,7 +225,6 @@ public class Scan extends BaseEntity implements Iterable<Finding> {
     }
 
 	@CollectionTable(name="ScanSavedFileNames", joinColumns=@JoinColumn(name="scanId"))
-	@CollectionOfElements
 	@ElementCollection
 	@JsonView({AllViews.FormInfo.class, AllViews.RestViewScanStatistic.class})
 	public List<String> getSavedFileNames() {

@@ -14,7 +14,7 @@
     <%@ include file="/WEB-INF/views/errorMessage.jspf"%>
 
     <tabset>
-        <security:authorize ifAnyGranted="ROLE_ENTERPRISE">
+        <security:authorize access="hasRole('ROLE_ENTERPRISE')">
             <tab id="loginTab" heading="Login Settings" ng-click="setTab('login')" active="tab.login">
                 <div ng-form="configForm" name="loginForm">
                     <div class="panel panel-default">
@@ -28,7 +28,8 @@
                         </div>
                         <div class="panel-body" ng-show="editDefaultPermissions">
                             <table class="dataTable">
-                                <security:authorize ifAnyGranted="ROLE_CAN_MANAGE_ROLES">
+                                <security:authorize
+                                        access="hasRole('ROLE_CAN_MANAGE_ROLES')">
                                     <tr>
                                         <td>
                                             Default role enabled for LDAP users
@@ -42,7 +43,7 @@
                                             </select>
                                         </td>
                                         <td style="border: 0 solid black; background-color: white; padding-left: 5px">
-                                            <a class="btn" popover="When LDAP users log in, ThreadFix can assign them a default role. If no role is selected here, the user will be unable to access any data in ThreadFix. To configure per-team and per-application permissions for an LDAP user, create a ThreadFix user with the same username.">?</a>
+                                            <a class="btn" popover="When LDAP users log in, the application can assign them a default role. If no role is selected here, the user will be unable to access any data in ThreadFix. To configure per-team and per-application permissions for an LDAP user, create a ThreadFix user with the same username.">?</a>
                                             <span id="globalGroupEnabledServerError" class="errors" ng-show="object.globalGroupEnabled_error"> {{ object.globalGroupEnabled_error }} </span>
                                         </td>
                                     </tr>
@@ -87,7 +88,7 @@
                                         <span id="activeDirectoryBaseServerError" class="errors" ng-show="object.activeDirectoryBase_error"> {{ object.activeDirectoryUsername_error }}</span>
                                     </td>
                                     <td class="no-color" style="padding-left: 5px">
-                                        <a class="btn" style="margin-bottom: 10px; " popover="If you only need to search a particular organizational unit (OU) simply preface the search base with the OU. For example, if you the only unit that requires access to ThreadFix is named 'tfusers', then preface the search base with OU=tfusers.">?</a>
+                                        <a class="btn" style="margin-bottom: 10px; " popover="If you only need to search a particular organizational unit (OU) simply preface the search base with the OU. For example, if you the only unit that requires access to the applction is named 'APPusers', then preface the search base with OU=APPusers.">?</a>
                                     </td>
                                 </tr>
                                 <tr>
@@ -196,62 +197,62 @@
 
         <tab id="reportTab" heading="Report Settings" ng-click="setTab('report')" active="tab.report">
             <div ng-form="configForm" name="reportForm">
-                <div class="panel panel-default">
-                    <div id="defaultDashboardSettingsPanel" class="panel-heading pointer" style="width:200px" ng-click="editDashboardSettings = !editDashboardSettings">
-                        <h3 class="panel-title">
-                            <span ng-hide="editDashboardSettings" class="icon icon-chevron-right"></span>
-                            <span ng-show="editDashboardSettings" class="icon icon-chevron-down"></span>
-                            Dashboard Settings
-                        </h3>
-                    </div>
-                    <div class="panel-body" ng-show="editDashboardSettings">
-                        <table>
-                            <tr ng-show="object.dashboardReport_error">
-                                <td style="padding: 0 0 5px 5px" colspan="4">
-                                    <span id="dashboardReportServerError" class="errors" ng-show="object.dashboardReport_error">{{ object.dashboardReport_error }}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding-left: 5px">
-                                    <div>
-                                        <b>Top Left Report</b>
-                                    </div>
-                                    <div>
-                                        <select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"
-                                                id="dashboardTopLeftSelect" name="dashboardTopLeft" ng-model="object.dashboardTopLeft" ></select>
-                                    </div>
-                                </td>
-                                <td style="padding-left: 5px">
-                                    <div>
-                                        <b>Top Right Report</b>
-                                    </div>
-                                    <div>
-                                        <select style="width:auto"  ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"
-                                                id="dashboardTopRightSelect" name="dashboardTopRight" ng-model="object.dashboardTopRight" ></select>
-                                    </div>
-                                </td>
-                                <td style="padding-left: 5px">
-                                    <div>
-                                        <b>Bottom Left Report</b>
-                                    </div>
-                                    <div>
-                                        <select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"
-                                                id="dashboardBottomLeftSelect" name="dashboardBottomLeft" ng-model="object.dashboardBottomLeft" ></select>
-                                    </div>
-                                </td>
-                                <td style="padding-left: 5px">
-                                    <div>
-                                        <b>Bottom Right Report</b>
-                                    </div>
-                                    <div>
-                                        <select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"
-                                                id="dashboardBottomRightSelect" name="dashboardBottomRight" ng-model="object.dashboardBottomRight" ></select>
-                                    </div>
-                                </td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
+                <%--<div class="panel panel-default">--%>
+                    <%--<div id="defaultDashboardSettingsPanel" class="panel-heading pointer" style="width:200px" ng-click="editDashboardSettings = !editDashboardSettings">--%>
+                        <%--<h3 class="panel-title">--%>
+                            <%--<span ng-hide="editDashboardSettings" class="icon icon-chevron-right"></span>--%>
+                            <%--<span ng-show="editDashboardSettings" class="icon icon-chevron-down"></span>--%>
+                            <%--Dashboard Settings--%>
+                        <%--</h3>--%>
+                    <%--</div>--%>
+                    <%--<div class="panel-body" ng-show="editDashboardSettings">--%>
+                        <%--<table>--%>
+                            <%--<tr ng-show="object.dashboardReport_error">--%>
+                                <%--<td style="padding: 0 0 5px 5px" colspan="4">--%>
+                                    <%--<span id="dashboardReportServerError" class="errors" ng-show="object.dashboardReport_error">{{ object.dashboardReport_error }}</span>--%>
+                                <%--</td>--%>
+                            <%--</tr>--%>
+                            <%--<tr>--%>
+                                <%--<td style="padding-left: 5px">--%>
+                                    <%--<div>--%>
+                                        <%--<b>Top Left Report</b>--%>
+                                    <%--</div>--%>
+                                    <%--<div>--%>
+                                        <%--<select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"--%>
+                                                <%--id="dashboardTopLeftSelect" name="dashboardTopLeft" ng-model="object.dashboardTopLeft" ></select>--%>
+                                    <%--</div>--%>
+                                <%--</td>--%>
+                                <%--<td style="padding-left: 5px">--%>
+                                    <%--<div>--%>
+                                        <%--<b>Top Right Report</b>--%>
+                                    <%--</div>--%>
+                                    <%--<div>--%>
+                                        <%--<select style="width:auto"  ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"--%>
+                                                <%--id="dashboardTopRightSelect" name="dashboardTopRight" ng-model="object.dashboardTopRight" ></select>--%>
+                                    <%--</div>--%>
+                                <%--</td>--%>
+                                <%--<td style="padding-left: 5px">--%>
+                                    <%--<div>--%>
+                                        <%--<b>Bottom Left Report</b>--%>
+                                    <%--</div>--%>
+                                    <%--<div>--%>
+                                        <%--<select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"--%>
+                                                <%--id="dashboardBottomLeftSelect" name="dashboardBottomLeft" ng-model="object.dashboardBottomLeft" ></select>--%>
+                                    <%--</div>--%>
+                                <%--</td>--%>
+                                <%--<td style="padding-left: 5px">--%>
+                                    <%--<div>--%>
+                                        <%--<b>Bottom Right Report</b>--%>
+                                    <%--</div>--%>
+                                    <%--<div>--%>
+                                        <%--<select style="width:auto" ng-options="dashboardReport.displayName for dashboardReport in dashboardReports track by dashboardReport.id"--%>
+                                                <%--id="dashboardBottomRightSelect" name="dashboardBottomRight" ng-model="object.dashboardBottomRight" ></select>--%>
+                                    <%--</div>--%>
+                                <%--</td>--%>
+                            <%--</tr>--%>
+                        <%--</table>--%>
+                    <%--</div>--%>
+                <%--</div>--%>
 
                 <div class="panel panel-default">
                     <div id="defaultApplicationDetailPageSettingsPanel" class="panel-heading pointer" style="width:300px"
@@ -375,7 +376,7 @@
         <tab id="otherTab" heading="Other Settings" ng-click="setTab('other')" active="tab.other">
             <div ng-form="configForm" name="otherForm">
 
-                <security:authorize ifAnyGranted="ROLE_ENTERPRISE">
+                <security:authorize access="hasRole('ROLE_ENTERPRISE')">
 
                     <div class="panel panel-default">
                         <div id="proxySettingsPanel" class="panel-heading pointer" style="width:150px"
@@ -557,7 +558,7 @@
                             <tr>
                                 <td>
                                     Check this box to close vulnerabilities only when all scanners report them closed. This only applies to merged vulnerabilities.<br>
-                                    By default, ThreadFix will close vulnerabilities when any scanner that has found the vulnerability reports the vulnerability fixed.
+                                    By default, the application will close vulnerabilities when any scanner that has found the vulnerability reports the vulnerability fixed.
                                 </td>
                                 <td class="inputValue" style="text-align: left;">
                                     <input type="checkbox" id="vulnCloseCheckbox" name="closeVulnWhenNoScannersReport" ng-model="object.closeVulnWhenNoScannersReport"/>
@@ -599,7 +600,7 @@
                         <h3 class="panel-title">
                             <span ng-hide="editBaseUrlSettings" class="icon icon-chevron-right"></span>
                             <span ng-show="editBaseUrlSettings" class="icon icon-chevron-down"></span>
-                            ThreadFix Base URL
+                            Base URL
                         </h3>
                     </div>
                     <div class="panel-body" ng-show="editBaseUrlSettings">
@@ -622,5 +623,86 @@
                         ng-click="submit(otherForm.$valid)">Save Changes</button>
             </div>
         </tab>
+
+        <tab id="cdsTab" heading="CDS Integration" ng-click="setTab('cds')" active="tab.cds">
+            <div ng-form="configForm" name="cdsForm">
+                <div class="panel panel-default">
+                    <div id="defaultCdsCompIdSettingsPanel" class="panel-heading pointer" style="width:250px"
+                         ng-click="editCdsCompIdSettings = !editCdsCompIdSettings">
+                        <h3 class="panel-title">
+                            <span ng-hide="editCdsCompIdSettings" class="icon icon-chevron-right"></span>
+                            <span ng-show="editCdsCompIdSettings" class="icon icon-chevron-down"></span>
+                            Component Id
+                        </h3>
+                    </div>
+                    <div class="panel-body" ng-show="editCdsCompIdSettings">
+                        <table class="dataTable">
+                             <tr>
+                                 <td style="width:150px" class="no-color">Component Id</td>
+                                 <td class="no-color">
+                                     <input id="compId" type="text" name="compId" class="focus" size="100"
+                                            maxlength="1024" ng-model="astamConfig.cdsCompId"/>
+                                 </td>
+                             </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div id="defaultCdsApiUrlSettingsPanel" class="panel-heading pointer" style="width:250px"
+                         ng-click="editCdsApiUrlSettings = !editCdsApiUrlSettings">
+                        <h3 class="panel-title">
+                            <span ng-hide="editCdsApiUrlSettings" class="icon icon-chevron-right"></span>
+                            <span ng-show="editCdsApiUrlSettings" class="icon icon-chevron-down"></span>
+                            API Base URL
+                        </h3>
+                    </div>
+                    <div class="panel-body" ng-show="editCdsApiUrlSettings">
+                        <table class="even-sized-rows">
+                            <tr>
+                                <td style="width:150px" class="no-color">API Base URL</td>
+                                <td class="no-color">
+                                    <input id="cdsApiUrl" type="text" name="cdsApiBUrl" class="focus" size="60"
+                                           maxlength="1024" ng-model="astamConfig.cdsApiUrl"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div id="editCdsBrokerUrlSettingsPanel" class="panel-heading pointer" style="width:250px"
+                         ng-click="editCdsBrokerUrlSettings = !editCdsBrokerUrlSettings">
+                        <h3 class="panel-title">
+                            <span ng-hide="editCdsBrokerUrlSettings" class="icon icon-chevron-right"></span>
+                            <span ng-show="editCdsBrokerUrlSettings" class="icon icon-chevron-down"></span>
+                            Broker URL
+                        </h3>
+                    </div>
+                    <div class="panel-body" ng-show="editCdsBrokerUrlSettings">
+                        <table class="even-sized-rows">
+                            <tr>
+                                <td style="width:150px" class="no-color">Broker URL</td>
+                                <td class="no-color">
+                                    <input id="cdsBrokerUrl" type="text" name="cdsBrokerUrl" class="focus" size="60"
+                                           maxlength="1024" ng-model="astamConfig.cdsBrokerUrl"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+
+                <button id="submitCds"
+                        ng-class="{ disabled : cdsForm.$invalid }"
+                        class="btn btn-primary save"
+                        ng-mouseenter="cdsForm.$dirty = true"
+                        ng-hide="loading"
+                        ng-click="submitCds(cdsForm.$valid)"
+                       <%-- ng-click="submitCds()"--%>
+                        spring>Save Changes</button>
+            </div>
+        </tab>
+
     </tabset>
 </body>

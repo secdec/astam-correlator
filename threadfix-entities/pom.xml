@@ -14,8 +14,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <groupId>org.apache.maven.plugins</groupId>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                 </configuration>
             </plugin>
             <plugin>
@@ -56,9 +56,9 @@
             <version>${log4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>javax.persistence</groupId>
-            <artifactId>persistence-api</artifactId>
-            <version>${persistence.version}</version>
+            <groupId>org.hibernate.javax.persistence</groupId>
+            <artifactId>hibernate-jpa-2.1-api</artifactId>
+            <version>${jpa-version}</version>
         </dependency>
         <dependency>
             <groupId>javax.validation</groupId>
@@ -86,11 +86,6 @@
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-asl</artifactId>
             <version>${codehaus.jackson.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>joda-time</groupId>
-            <artifactId>joda-time</artifactId>
-            <version>${joda.version}</version>
         </dependency>
 
         <!-- the core, which includes Streaming API, shared low-level abstractions (but NOT data-binding) -->

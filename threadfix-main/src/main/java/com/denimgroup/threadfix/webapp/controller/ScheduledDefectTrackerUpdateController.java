@@ -49,8 +49,8 @@ import java.util.List;
  * Created by zabdisubhan on 8/14/14.
  */
 
-@Controller
-@RequestMapping("/configuration/defecttrackers/scheduledUpdates")
+//@Controller
+//@RequestMapping("/configuration/defecttrackers/scheduledUpdates")
 public class ScheduledDefectTrackerUpdateController {
 
     private final SanitizedLogger log = new SanitizedLogger(ScheduledDefectTrackerUpdateController.class);
@@ -61,7 +61,7 @@ public class ScheduledDefectTrackerUpdateController {
     @Autowired
     private ScheduledDefectTrackerUpdater scheduledDefectTrackerUpdater;
 
-    @RequestMapping(value = "/addUpdate", method = RequestMethod.POST)
+//    @RequestMapping(value = "/addUpdate", method = RequestMethod.POST)
     public @ResponseBody
     RestResponse<List<ScheduledDefectTrackerUpdate>> addScheduledDefectTrackerUpdate(
             @Valid @ModelAttribute ScheduledDefectTrackerUpdate scheduledDefectTrackerUpdate,
@@ -69,7 +69,8 @@ public class ScheduledDefectTrackerUpdateController {
 
         log.info("Start adding scheduled defect tracker update.");
 
-        if (!PermissionUtils.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS, null, null)){
+        if(true){
+//        if (!PermissionUtils.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS, null, null)){
             return RestResponse.failure("You are not allowed to modify scheduled defect tracker updates.");
         }
 
@@ -99,12 +100,13 @@ public class ScheduledDefectTrackerUpdateController {
         }
     }
 
-    @RequestMapping(value = "/update/{scheduledDefectTrackerUpdateId}/delete", method = RequestMethod.POST)
+//    @RequestMapping(value = "/update/{scheduledDefectTrackerUpdateId}/delete", method = RequestMethod.POST)
     public @ResponseBody RestResponse<String> delete(
             @PathVariable("scheduledDefectTrackerUpdateId") int scheduledDefectTrackerUpdateId) {
 
         log.info("Start deleting scheduled defect tracker update");
-        if (!PermissionUtils.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS, null, null)){
+        if(true){
+//        if (!PermissionUtils.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS, null, null)){
             return RestResponse.failure("You are not authorized to delete this scheduled defect tracker update.");
         }
         ScheduledDefectTrackerUpdate scheduledDefectTrackerUpdate = scheduledDefectTrackerUpdateService.loadById(scheduledDefectTrackerUpdateId);

@@ -23,7 +23,7 @@
 	</rule>
 	<rule>
 		<from>/</from>
-		<to>/app/dashboard</to>
+		<to>/app/teams</to>
 	</rule>
 	<rule>
 		<from>/**</from>

@@ -204,8 +204,8 @@ public class ViewModelParser implements EventBasedTokenizer {
         if (!map.containsKey(currentModelName)) {
             map.put(currentModelName, new HashSet<ModelField>());
         }
-
-        map.get(currentModelName).add(new ModelField(propertyType, propertyName));
+        if (propertyType != null && propertyName != null)
+            map.get(currentModelName).add(new ModelField(propertyType, propertyName));
     }
 
     @Override

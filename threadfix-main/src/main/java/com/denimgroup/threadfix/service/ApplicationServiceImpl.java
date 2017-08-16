@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.service;
 
+import com.denimgroup.threadfix.cds.service.AstamPushService;
 import com.denimgroup.threadfix.data.dao.*;
 import com.denimgroup.threadfix.data.entities.*;
 import com.denimgroup.threadfix.data.enums.EventAction;
@@ -83,6 +84,7 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Autowired private ApplicationCriticalityService applicationCriticalityService;
     @Autowired private DefaultDefectProfileServiceImpl defectProfileService;
 	@Autowired private ApplicationVersionService applicationVersionService;
+	@Autowired private AstamPushService astamPushService;
 
     @Nullable
     @Autowired(required = false)
@@ -106,6 +108,8 @@ public class ApplicationServiceImpl implements ApplicationService {
     @Nullable
     @Autowired(required = false)
     private PolicyStatusService policyStatusService;
+
+
 
     @Override
 	public List<Application> loadAllActive() {
@@ -145,12 +149,21 @@ public class ApplicationServiceImpl implements ApplicationService {
 	@Transactional(readOnly = false)
 	public void storeApplication(Application application, EventAction eventAction) {
 		if (application != null) {
+
             // Set default for Application Type is Detect
             if (application.getFrameworkType().equals(FrameworkType.NONE.toString()))
                 application.setFrameworkType(FrameworkType.DETECT.toString());
 			applicationDao.saveOrUpdate(application);
+
+			try{
+				astamPushService.pushAppMngmtToAstam(application);
+			} catch (Exception e){
+				LOG.error("Error while trying to push Application Management Data", e);
+			}
 		}
 	}
+
+
 
 	@Override
 	@Transactional(readOnly = false)
@@ -226,6 +239,7 @@ public class ApplicationServiceImpl implements ApplicationService {
 
 		// Delete Scans & Findings attached to application
 		deleteScans(application);
+
 	}
 
 	private void deleteScans(Application application) {
@@ -624,11 +638,13 @@ public class ApplicationServiceImpl implements ApplicationService {
             canManageWafs = true;
         } else if (application.getOrganization() != null) {
 
-			canManageWafs = permissionService.isAuthorized(Permission.CAN_MANAGE_WAFS,
-					application.getOrganization().getId(), application.getId());
+//			canManageWafs = permissionService.isAuthorized(Permission.CAN_MANAGE_WAFS,
+//					application.getOrganization().getId(), application.getId());
+			canManageWafs = false;
 			
-			canManageDefectTrackers = permissionService.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS,
-					application.getOrganization().getId(), application.getId());
+//			canManageDefectTrackers = permissionService.isAuthorized(Permission.CAN_MANAGE_DEFECT_TRACKERS,
+//					application.getOrganization().getId(), application.getId());
+			canManageDefectTrackers = false;
 		}
 
         testRepositoryConnections(application, result);

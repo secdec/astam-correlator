@@ -9,7 +9,7 @@
     <%@ include file="../modals/updateDefaultProfileModal.jsp" %>
 
     <div id="helpText">
-        A Defect Tracker is the ThreadFix link that allows the user to bundle and export
+        A Defect Tracker is the link that allows the user to bundle and export
         vulnerabilities from an Application to a Defect Tracker.
     </div>
 
@@ -23,7 +23,8 @@
             <th class="medium first">Name</th>
             <th class="long">URL</th>
             <th>Type</th>
-            <security:authorize ifAnyGranted="ROLE_CAN_MANAGE_DEFECT_TRACKERS">
+            <security:authorize
+                    access="hasRole('ROLE_CAN_MANAGE_DEFECT_TRACKERS')">
                 <th class="centered">Defect Defaults</th>
                 <th class="centered">Edit / Delete</th>
             </security:authorize>
@@ -43,7 +44,8 @@
             <td id="defectTrackerType{{ tracker.name }}">
                 {{ tracker.defectTrackerType.name }}
             </td>
-            <security:authorize ifAnyGranted="ROLE_CAN_MANAGE_DEFECT_TRACKERS">
+            <security:authorize
+                    access="hasRole('ROLE_CAN_MANAGE_DEFECT_TRACKERS')">
                 <td class="centered">
                      <a id="showDefaultProfilesButton{{ tracker.name }}" class="btn" ng-click="showDefaultProfiles(tracker)">Show Default Profiles</a>
                 </td>

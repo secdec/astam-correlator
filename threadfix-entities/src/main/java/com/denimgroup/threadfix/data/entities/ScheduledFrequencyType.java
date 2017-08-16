@@ -30,7 +30,8 @@ package com.denimgroup.threadfix.data.entities;
 
 public enum ScheduledFrequencyType {
     DAILY("Daily"),
-    WEEKLY("Weekly");
+    WEEKLY("Weekly"),
+    RECURRING("Recurring");
 
     private String description;
 

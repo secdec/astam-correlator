@@ -106,6 +106,8 @@ public class ApplicationsController {
     @Autowired(required = false)
     private PolicyService policyService;
 
+    @Autowired
+    private ScheduledGitPollService gitPollService;
 
 	@InitBinder
 	public void initBinder(WebDataBinder dataBinder) {
@@ -139,13 +141,13 @@ public class ApplicationsController {
                 Permission.CAN_UPLOAD_SCANS,
                 Permission.CAN_MODIFY_VULNERABILITIES,
                 Permission.CAN_MANAGE_VULN_FILTERS,
-                Permission.CAN_SUBMIT_DEFECTS,
+//                Permission.CAN_SUBMIT_DEFECTS,
                 Permission.CAN_SUBMIT_COMMENTS,
                 Permission.CAN_GENERATE_REPORTS,
-                Permission.CAN_MANAGE_DEFECT_TRACKERS,
-                Permission.CAN_MANAGE_GRC_TOOLS,
-                Permission.CAN_MANAGE_USERS,
-                Permission.CAN_MANAGE_TAGS);
+//                Permission.CAN_MANAGE_DEFECT_TRACKERS,
+//                Permission.CAN_MANAGE_GRC_TOOLS,
+//                Permission.CAN_MANAGE_TAGS,
+                Permission.CAN_MANAGE_USERS);
 		
 		if (application.getPassword() != null && !"".equals(application.getPassword())) {
 			application.setPassword(Application.TEMP_PASSWORD);
@@ -240,6 +242,15 @@ public class ApplicationsController {
         // versions
         map.put("versions", application.getVersions());
 
+        // monitor
+        if(application.getRepositoryType() != null && application.getRepositoryType().equalsIgnoreCase(SourceCodeRepoType.GIT.getRepoType())) {
+            ScheduledGitPoll poll = gitPollService.loadByApplicationOrDefault(application);
+            map.put("monitor", poll);
+            map.put("frequencyTypes", ScheduledFrequencyType.values());
+            map.put("periodTypes", ScheduledPeriodType.values());
+            map.put("daysInWeek", DayInWeek.getDayInWeekDescriptions());
+        }
+
         // edit form
         map.put("applicationTypes", FrameworkType.values());
         map.put("applicationCriticalityList", applicationCriticalityService.loadAll());
@@ -257,9 +268,9 @@ public class ApplicationsController {
         }
 
         // permissions
-        for (Permission permission : new Permission[]{Permission.CAN_MANAGE_DEFECT_TRACKERS, Permission.CAN_MANAGE_WAFS}) {
-            map.put(permission.getCamelCase(), PermissionUtils.hasGlobalPermission(permission));
-        }
+//        for (Permission permission : new Permission[]{Permission.CAN_MANAGE_DEFECT_TRACKERS, Permission.CAN_MANAGE_WAFS}) {
+//            map.put(permission.getCamelCase(), PermissionUtils.hasGlobalPermission(permission));
+//        }
 
         return success(map);
     }

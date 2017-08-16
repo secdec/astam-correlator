@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.service;
 
 import com.denimgroup.threadfix.DiskUtils;
+import com.denimgroup.threadfix.cds.service.AstamPushService;
 import com.denimgroup.threadfix.data.dao.ApplicationChannelDao;
 import com.denimgroup.threadfix.data.dao.ScanDao;
 import com.denimgroup.threadfix.data.dao.UserDao;
@@ -35,6 +36,7 @@ import com.denimgroup.threadfix.service.merge.FindingMatcher;
 import com.denimgroup.threadfix.service.merge.PermissionsHandler;
 import com.denimgroup.threadfix.service.merge.ScanMerger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -77,6 +79,10 @@ public class ScanMergeServiceImpl implements ScanMergeService {
 	private PermissionsHandler permissionsHandler;
 	@Autowired
 	private DefaultConfigService defaultConfigService;
+
+	// @Lazy
+	// @Autowired
+	// private AstamPushService astamPushService;
 
 	private Pattern scanFileRegex = Pattern.compile("(.*)(scan-file-[0-9]+-[0-9]+)");
 
@@ -186,6 +192,8 @@ public class ScanMergeServiceImpl implements ScanMergeService {
 
 		vulnerabilityFilterService.updateVulnerabilities(scan);
 
+        // astamPushService.pushEntitiesToAstam(scan.getApplication());
+		// astamPushService.pushFindingsToAstam(scan.getApplication().getId());
 		return true;
 	}
 

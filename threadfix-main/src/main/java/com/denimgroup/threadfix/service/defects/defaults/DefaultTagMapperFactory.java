@@ -35,7 +35,7 @@ public class DefaultTagMapperFactory {
 
 		if (exception != null) {
 			STATIC_LOG.error("The tag has not been correctly added. " +
-					"Put the JAR in the lib directory of threadfix under the webapps folder in tomcat.", exception);
+					"Put the JAR in the lib directory under the webapps folder in tomcat.", exception);
 		}
 
 		STATIC_LOG.warn("Failed to load a TagMapper implementation.");

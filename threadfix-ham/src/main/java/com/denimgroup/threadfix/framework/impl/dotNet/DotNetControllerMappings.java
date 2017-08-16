@@ -27,7 +27,8 @@ import com.denimgroup.threadfix.framework.impl.model.ModelField;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.framework.impl.dotNet.Action.action;
@@ -36,7 +37,7 @@ import static com.denimgroup.threadfix.framework.impl.dotNet.Action.action;
  * Created by mac on 6/11/14.
  */
 public class DotNetControllerMappings {
-
+    private String       areaName = null;
     private String       controllerName = null;
     private List<Action> actions        = list();
 
@@ -55,6 +56,18 @@ public class DotNetControllerMappings {
         assert controllerName != null : "You have attempted to access the controller name without setting it.";
         return controllerName;
     }
+
+    public void setAreaName(@Nonnull String areaName) {
+        assert this.areaName == null : "These mappings already have an area name.";
+        this.areaName = areaName;
+    }
+
+    public String getAreaName() {
+        assert areaName != null : "You have attempted to access the area name without setting it.";
+        return areaName;
+    }
+
+    public boolean hasAreaName(){ return areaName != null && !areaName.isEmpty();}
 
     public boolean hasValidMappings() {
         return controllerName != null && !actions.isEmpty();
@@ -96,6 +109,7 @@ public class DotNetControllerMappings {
     @Override
     public String toString() {
         return "DotNetControllerMappings{" +
+                ((areaName != null && !areaName.isEmpty()) ? "areaName='" + areaName + '\''  : "") +
                 "controllerName='" + controllerName + '\'' +
                 ", actions=" + actions +
                 ", filePath='" + filePath + '\'' +

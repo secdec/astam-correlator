@@ -72,26 +72,28 @@
 						<c:out value="${ fn:escapeXml(application.defectTracker.url) }"/></a></em> 
 				</td>				
 			</tr>
-			<tr class="left-align" id="appWafDiv">
-				<td style="padding:5px;">WAF</td>
-				<td ng-non-bindable style="padding:5px;">
-					<spring:url value="/wafs/{wafId}" var="wafUrl">
-						<spring:param name="wafId" value="${ application.waf.id }"/>
-					</spring:url>
-					<security:authorize ifAllGranted="ROLE_CAN_MANAGE_WAFS">
-						<em><a id="wafText"
-							href="${ fn:escapeXml(wafUrl) }">
-							<c:out value="${ application.waf.name }"/>
-						</a></em>
-					</security:authorize>
-					<security:authorize ifNotGranted="ROLE_CAN_MANAGE_WAFS">
-						<em>
-							<c:out value="${ application.waf.name }"/>
-						</em>
-					</security:authorize>
-					<c:out value="${ application.waf.wafType.name }"/>
-				</td>				
-			</tr>
+			<%--<tr class="left-align" id="appWafDiv">--%>
+				<%--<td style="padding:5px;">WAF</td>--%>
+				<%--<td ng-non-bindable style="padding:5px;">--%>
+					<%--<spring:url value="/wafs/{wafId}" var="wafUrl">--%>
+						<%--<spring:param name="wafId" value="${ application.waf.id }"/>--%>
+					<%--</spring:url>--%>
+					<%--<security:authorize--%>
+							<%--access="hasRole('ROLE_CAN_MANAGE_WAFS')">--%>
+						<%--<em><a id="wafText"--%>
+							<%--href="${ fn:escapeXml(wafUrl) }">--%>
+							<%--<c:out value="${ application.waf.name }"/>--%>
+						<%--</a></em>--%>
+					<%--</security:authorize>--%>
+					<%--<security:authorize--%>
+							<%--access="!hasRole('ROLE_CAN_MANAGE_WAFS')">--%>
+						<%--<em>--%>
+							<%--<c:out value="${ application.waf.name }"/>--%>
+						<%--</em>--%>
+					<%--</security:authorize>--%>
+					<%--<c:out value="${ application.waf.wafType.name }"/>--%>
+				<%--</td>				--%>
+			<%--</tr>--%>
             <tr>
                 <td style="padding:5px;">
                     Disable Vulnerability Merging

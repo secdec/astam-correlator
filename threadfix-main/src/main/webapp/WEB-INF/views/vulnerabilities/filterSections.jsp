@@ -86,52 +86,52 @@
 </div>
 
 <!-- Tags. -->
-<div class="accordion-group" ng-show="treeTeam || vulnSearch || complianceActive || trendingActive || snapshotActive || treeApplication">
-    <div class="accordion-heading" ng-click="showTagControls = !showTagControls">
-        <span id="expandTagFilters" class="icon" ng-class="{ 'icon-minus': showTagControls, 'icon-plus': !showTagControls }"></span> Tags
-    </div>
-    <div ng-show="showTagControls" class="filter-group-body">
+<%--<div class="accordion-group" ng-show="treeTeam || vulnSearch || complianceActive || trendingActive || snapshotActive || treeApplication">--%>
+    <%--<div class="accordion-heading" ng-click="showTagControls = !showTagControls">--%>
+        <%--<span id="expandTagFilters" class="icon" ng-class="{ 'icon-minus': showTagControls, 'icon-plus': !showTagControls }"></span> Tags--%>
+    <%--</div>--%>
+    <%--<div ng-show="showTagControls" class="filter-group-body">--%>
 
-        <div class="accordion-inner" ng-hide="treeApplication">
-            Application
-            <a ng-hide="showTagInput" ng-click="showTagInput = !showTagInput">
-                <span id="showTagInput" class="icon" ng-class="{ 'icon-minus': showTagInput, 'icon-plus': !showTagInput }"></span>
-            </a>
-            <br>
-            <input id="tagNameTypeahead"
-                   focus-on="showTagInput"
-                   ng-show="showTagInput"
-                   typeahead="tag as tag.encodedName for tag in tags | filter:$viewValue | limitTo:8"
-                   type="text"
-                   ng-model="newFilteredTag"
-                   typeahead-on-select="addNew(parameters.tags, newFilteredTag.name); newFilteredTag = ''; showTagInput = false"/>
-            <div ng-repeat="filteredTag in parameters.tags" class="break-word-header">
-                <span class="pointer icon icon-minus-sign" ng-click="remove(parameters.tags, $index)"></span>
-                {{ filteredTag.name }}
-            </div>
-        </div>
+        <%--<div class="accordion-inner" ng-hide="treeApplication">--%>
+            <%--Application--%>
+            <%--<a ng-hide="showTagInput" ng-click="showTagInput = !showTagInput">--%>
+                <%--<span id="showTagInput" class="icon" ng-class="{ 'icon-minus': showTagInput, 'icon-plus': !showTagInput }"></span>--%>
+            <%--</a>--%>
+            <%--<br>--%>
+            <%--<input id="tagNameTypeahead"--%>
+                   <%--focus-on="showTagInput"--%>
+                   <%--ng-show="showTagInput"--%>
+                   <%--typeahead="tag as tag.encodedName for tag in tags | filter:$viewValue | limitTo:8"--%>
+                   <%--type="text"--%>
+                   <%--ng-model="newFilteredTag"--%>
+                   <%--typeahead-on-select="addNew(parameters.tags, newFilteredTag.name); newFilteredTag = ''; showTagInput = false"/>--%>
+            <%--<div ng-repeat="filteredTag in parameters.tags" class="break-word-header">--%>
+                <%--<span class="pointer icon icon-minus-sign" ng-click="remove(parameters.tags, $index)"></span>--%>
+                <%--{{ filteredTag.name }}--%>
+            <%--</div>--%>
+        <%--</div>--%>
 
-        <div class="accordion-inner" ng-hide="complianceActive || trendingActive || (reportId && reportId == Portfolio_Report_Id)">
-            Vulnerability
-            <a ng-hide="showVulnTagInput" ng-click="showVulnTagInput = !showVulnTagInput">
-                <span id="showVulnTagInput" class="icon" ng-class="{ 'icon-minus': showVulnTagInput, 'icon-plus': !showVulnTagInput }"></span>
-            </a>
-            <br>
-            <input id="vulnTagNameTypeahead"
-                   focus-on="showVulnTagInput"
-                   ng-show="showVulnTagInput"
-                   typeahead="tag.name for tag in vulnTags | filter:$viewValue | limitTo:8"
-                   type="text"
-                   ng-model="newFilteredVulnTag.name"
-                   typeahead-on-select="addNew(parameters.vulnTags, newFilteredVulnTag.name); newFilteredVulnTag = {}; showVulnTagInput = false"/>
-            <div ng-repeat="filteredTag in parameters.vulnTags" class="break-word-header">
-                <span class="pointer icon icon-minus-sign" ng-click="remove(parameters.vulnTags, $index)"></span>
-                {{ filteredTag.name }}
-            </div>
-        </div>
+        <%--<div class="accordion-inner" ng-hide="complianceActive || trendingActive || (reportId && reportId == Portfolio_Report_Id)">--%>
+            <%--Vulnerability--%>
+            <%--<a ng-hide="showVulnTagInput" ng-click="showVulnTagInput = !showVulnTagInput">--%>
+                <%--<span id="showVulnTagInput" class="icon" ng-class="{ 'icon-minus': showVulnTagInput, 'icon-plus': !showVulnTagInput }"></span>--%>
+            <%--</a>--%>
+            <%--<br>--%>
+            <%--<input id="vulnTagNameTypeahead"--%>
+                   <%--focus-on="showVulnTagInput"--%>
+                   <%--ng-show="showVulnTagInput"--%>
+                   <%--typeahead="tag.name for tag in vulnTags | filter:$viewValue | limitTo:8"--%>
+                   <%--type="text"--%>
+                   <%--ng-model="newFilteredVulnTag.name"--%>
+                   <%--typeahead-on-select="addNew(parameters.vulnTags, newFilteredVulnTag.name); newFilteredVulnTag = {}; showVulnTagInput = false"/>--%>
+            <%--<div ng-repeat="filteredTag in parameters.vulnTags" class="break-word-header">--%>
+                <%--<span class="pointer icon icon-minus-sign" ng-click="remove(parameters.vulnTags, $index)"></span>--%>
+                <%--{{ filteredTag.name }}--%>
+            <%--</div>--%>
+        <%--</div>--%>
 
-    </div>
-</div>
+    <%--</div>--%>
+<%--</div>--%>
 
 <!-- Scanner and # Merged controls -->
 <div class="accordion-group" ng-show="treeTeam || vulnSearch || treeApplication">
@@ -218,11 +218,11 @@
             Severity
             <br>
             <div>
-                <input type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.severities.critical" id="showCritical"/><span generic-severity="Critical" class="break-word-header"></span><br>
-                <input type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.severities.high" id="showHigh"/><span generic-severity="High" class="break-word-header"></span><br>
-                <input type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.severities.medium" id="showMedium"/><span generic-severity="Medium" class="break-word-header"></span><br>
-                <input type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.severities.low" id="showLow"/><span generic-severity="Low" class="break-word-header"></span><br>
-                <input type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.severities.info" id="showInfo"/><span generic-severity="Info" class="break-word-header"></span>
+                <input type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.severities.critical" id="showCritical"/>Critical<%--<span generic-severity="Critical" class="break-word-header"></span>--%><br>
+                <input type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.severities.high" id="showHigh"/>High<%--<span generic-severity="High" class="break-word-header"></span>--%><br>
+                <input type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.severities.medium" id="showMedium"/>Medium<%--<span generic-severity="Medium" class="break-word-header"></span>--%><br>
+                <input type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.severities.low" id="showLow"/>Low<%--<span generic-severity="Low" class="break-word-header"></span>--%><br>
+                <input type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.severities.info" id="showInfo"/>Info<%--<span generic-severity="Info" class="break-word-header"></span>--%>
             </div>
         </div>
 
@@ -252,16 +252,16 @@
             </div>
         </div>
 
-        <div class="accordion-inner" ng-show="treeTeam || vulnSearch || treeApplication">
-            Defect
-            <br>
-            <div>
-                <input id="showDefectPresent" type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.showDefectPresent"/>Present<br>
-                <input id="showDefectNotPresent" type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.showDefectNotPresent"/>Not Present<br>
-                <input id="showDefectOpen" type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.showDefectOpen"/>Open<br>
-                <input id="showDefectClosed" type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.showDefectClosed"/>Closed<br>
-            </div>
-        </div>
+        <%--<div class="accordion-inner" ng-show="treeTeam || vulnSearch || treeApplication">--%>
+            <%--Defect--%>
+            <%--<br>--%>
+            <%--<div>--%>
+                <%--<input id="showDefectPresent" type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.showDefectPresent"/>Present<br>--%>
+                <%--<input id="showDefectNotPresent" type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.showDefectNotPresent"/>Not Present<br>--%>
+                <%--<input id="showDefectOpen" type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.showDefectOpen"/>Open<br>--%>
+                <%--<input id="showDefectClosed" type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.showDefectClosed"/>Closed<br>--%>
+            <%--</div>--%>
+        <%--</div>--%>
 
         <div class="accordion-inner" ng-show="treeTeam || vulnSearch || treeApplication">
             Remediation
@@ -285,24 +285,24 @@
             <div>
                 <input id="showCommentPresent" type="checkbox" class="btn" ng-change="refresh()" ng-model="parameters.showCommentPresent"/>Present<br>
             </div>
-            <div>
-                Tags
-                <a ng-hide="showCommentTagInput" ng-click="showCommentTagInput = !showCommentTagInput">
-                    <span id="showCommentTagInput" class="icon" ng-class="{ 'icon-minus': showCommentTagInput, 'icon-plus': !showCommentTagInput }"></span>
-                </a>
-                <br>
-                <input id="commentTagNameTypeahead"
-                       focus-on="showCommentTagInput"
-                       ng-show="showCommentTagInput"
-                       typeahead="tag as tag.name for tag in commentTags | filter:$viewValue | limitTo:8"
-                       type="text"
-                       ng-model="newFilteredCommentTag"
-                       typeahead-on-select="addNewObject(parameters.commentTags, newFilteredCommentTag); newFilteredCommentTag = undefined; showCommentTagInput = false"/>
-                <div ng-repeat="filteredTag in parameters.commentTags" class="break-word-header">
-                    <span class="pointer icon icon-minus-sign" ng-click="remove(parameters.commentTags, $index)"></span>
-                    {{ filteredTag.name }}
-                </div>
-            </div>
+            <%--<div>--%>
+                <%--Tags--%>
+                <%--<a ng-hide="showCommentTagInput" ng-click="showCommentTagInput = !showCommentTagInput">--%>
+                    <%--<span id="showCommentTagInput" class="icon" ng-class="{ 'icon-minus': showCommentTagInput, 'icon-plus': !showCommentTagInput }"></span>--%>
+                <%--</a>--%>
+                <%--<br>--%>
+                <%--<input id="commentTagNameTypeahead"--%>
+                       <%--focus-on="showCommentTagInput"--%>
+                       <%--ng-show="showCommentTagInput"--%>
+                       <%--typeahead="tag as tag.name for tag in commentTags | filter:$viewValue | limitTo:8"--%>
+                       <%--type="text"--%>
+                       <%--ng-model="newFilteredCommentTag"--%>
+                       <%--typeahead-on-select="addNewObject(parameters.commentTags, newFilteredCommentTag); newFilteredCommentTag = undefined; showCommentTagInput = false"/>--%>
+                <%--<div ng-repeat="filteredTag in parameters.commentTags" class="break-word-header">--%>
+                    <%--<span class="pointer icon icon-minus-sign" ng-click="remove(parameters.commentTags, $index)"></span>--%>
+                    <%--{{ filteredTag.name }}--%>
+                <%--</div>--%>
+            <%--</div>--%>
 
         </div>
     </div>
@@ -486,7 +486,7 @@
 </div>
 
 <!-- Export buttons -->
-<security:authorize ifAnyGranted="ROLE_CAN_GENERATE_REPORTS">
+<security:authorize access="hasRole('ROLE_CAN_GENERATE_REPORTS')">
     <div class="accordion-group" ng-show="treeTeam || vulnSearch || treeApplication || reportId === 3 || reportId === 11 || reportId === 13">
         <div class="accordion-heading" style="text-align:center">
             <a id="exportCSVButton" ng-click="exportCSV(reportId, DISA_STIG)" class="btn">Export CSV</a>

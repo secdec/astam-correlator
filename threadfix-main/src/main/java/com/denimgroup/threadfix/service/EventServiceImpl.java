@@ -281,7 +281,8 @@ public class EventServiceImpl extends AbstractGenericObjectService<Event> implem
     }
 
     private void updatePolicyLink(List<Event> events) {
-        boolean canManagePolicy = EnterpriseTest.isEnterprise() && PermissionUtils.hasGlobalPermission(Permission.CAN_MANAGE_POLICIES);
+//        boolean canManagePolicy = EnterpriseTest.isEnterprise() && PermissionUtils.hasGlobalPermission(Permission.CAN_MANAGE_POLICIES);
+        boolean canManagePolicy = false;
         for (Event event: events) {
             event.setCanManagePolicy(canManagePolicy);
         }

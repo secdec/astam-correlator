@@ -41,16 +41,16 @@
                             <a id="teamModalButton" href="#" ng-click="openEditModal()">Edit / Delete</a>
                         </li>
                     </c:if>
-                    <c:if test="${ canManageVulnFilters }">
-                        <li>
-                            <spring:url value="{orgId}/filters" var="filterUrl">
-                                <spring:param name="orgId" value="${ organization.id }"/>
-                            </spring:url>
-                            <a ng-non-bindable id="editfiltersButton1" href="<c:out value='${ filterUrl }'/>" data-toggle="modal">
-                                Customize ThreadFix Vulnerability Types and Severities
-                            </a>
-                        </li>
-                    </c:if>
+                    <%--<c:if test="${ canManageVulnFilters }">--%>
+                        <%--<li>--%>
+                            <%--<spring:url value="{orgId}/filters" var="filterUrl">--%>
+                                <%--<spring:param name="orgId" value="${ organization.id }"/>--%>
+                            <%--</spring:url>--%>
+                            <%--<a ng-non-bindable id="editfiltersButton1" href="<c:out value='${ filterUrl }'/>" data-toggle="modal">--%>
+                                <%--Customize ThreadFix Vulnerability Types and Severities--%>
+                            <%--</a>--%>
+                        <%--</li>--%>
+                    <%--</c:if>--%>
                     <c:if test="${ (canManageTeams || canManageUsers) && isEnterprise }">
                         <li><a id="userListModelButton" href="#" ng-click="showUsers()">View Permissible Users</a></li>
                     </c:if>
@@ -61,13 +61,13 @@
 
     <%@ include file="/WEB-INF/views/successMessage.jspf" %>
 
-    <div class="container-fluid">
-        <div class="row-fluid">
-            <c:set var="csrfToken" value="${ emptyUrl }" scope="request"/>
-            <jsp:include page="${ config.teamTopLeft.jspFilePath }"/>
-            <jsp:include page="${ config.teamTopRight.jspFilePath }"/>
-        </div>
-    </div>
+    <%--<div class="container-fluid">--%>
+        <%--<div class="row-fluid">--%>
+            <%--<c:set var="csrfToken" value="${ emptyUrl }" scope="request"/>--%>
+            <%--<jsp:include page="${ config.teamTopLeft.jspFilePath }"/>--%>
+            <%--<jsp:include page="${ config.teamTopRight.jspFilePath }"/>--%>
+        <%--</div>--%>
+    <%--</div>--%>
 
     <tabset style="margin-top:10px;">
         <tab heading="{{ countApps }} Applications" active="showAppsTab" id="applicationsTab">

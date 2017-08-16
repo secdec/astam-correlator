@@ -31,17 +31,17 @@
                         <li><a class="pointer" id="viewApplicationModalButton" ng-click="viewApplicationDetail()">Details	</a></li>
                     </c:if>
 
-                    <c:if test="${ canManageVulnFilters }">
-                        <spring:url value="/organizations/{orgId}/applications/{appId}/filters" var="vulnFiltersUrl">
-                            <spring:param name="orgId" value="${ application.organization.id }"/>
-                            <spring:param name="appId" value="${ application.id }"/>
-                        </spring:url>
-                        <li>
-                            <a class="pointer" id="editVulnerabilityFiltersButton" href="<c:out value="${ vulnFiltersUrl }"/>" data-toggle="modal">
-                                Customize ThreadFix Vulnerability Types and Severities
-                            </a>
-                        </li>
-                    </c:if>
+                    <%--<c:if test="${ canManageVulnFilters }">--%>
+                        <%--<spring:url value="/organizations/{orgId}/applications/{appId}/filters" var="vulnFiltersUrl">--%>
+                            <%--<spring:param name="orgId" value="${ application.organization.id }"/>--%>
+                            <%--<spring:param name="appId" value="${ application.id }"/>--%>
+                        <%--</spring:url>--%>
+                        <%--<li>--%>
+                            <%--<a class="pointer" id="editVulnerabilityFiltersButton" href="<c:out value="${ vulnFiltersUrl }"/>" data-toggle="modal">--%>
+                                <%--Customize ThreadFix Vulnerability Types and Severities--%>
+                            <%--</a>--%>
+                        <%--</li>--%>
+                    <%--</c:if>--%>
 
                     <c:if test="${ (canManageApplications || canManageUsers) && isEnterprise}">
                         <li><a class="pointer" id="userListModelButton" ng-click="showUsers()">View Permissible Users</a></li>
@@ -68,7 +68,10 @@
                     <c:if test="${ !canManageApplications }">
                         <li><a class="pointer" id="viewVersionModalButton" ng-click="manageVersions()">View Versions</a></li>
                     </c:if>
-
+                    <%--TODO Verify access permissions for this--%>
+                    <c:if test="${ canManageApplications }">
+                        <li><a class="pointer" id="viewMonitorModalButton" ng-click="manageMonitor()">Manage Repository Monitor</a></li>
+                    </c:if>
                 </ul>
             </div>
         </c:if>

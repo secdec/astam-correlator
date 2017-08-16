@@ -94,4 +94,6 @@ public interface FindingDao extends GenericObjectDao<Finding> {
     List<Finding> retrieveByGenericSeverityAndChannelType(GenericSeverity genericSeverity, ChannelType channelType);
 
     List<Finding> getUnmappedFindings();
+
+	List<Finding> retrieveFindingsWithHAMEndpointByAppId(Integer appId);
 }

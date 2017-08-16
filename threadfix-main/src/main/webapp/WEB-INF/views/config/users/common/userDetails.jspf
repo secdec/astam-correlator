@@ -60,8 +60,7 @@
         </div>
     </c:if>
 
-    <security:authorize ifAllGranted="ROLE_ENTERPRISE">
-
+    <security:authorize access="hasRole('ROLE_ENTERPRISE')">
         <div class="form-group margin-top">
             <label for="roleSelect">Global Role</label>
             <select id="roleSelect" name="globalRole.id" ng-model="currentUser.globalRole.id">
@@ -89,15 +88,15 @@
                 class="btn btn-primary"
                 ng-hide="loading"
                 ng-click="submitUpdate(form.$valid)">Save Changes</button>
-        <security:authorize ifNotGranted="ROLE_ENTERPRISE">
+        <security:authorize access="!hasRole('ROLE_ENTERPRISE')">
             <a id="deleteUserLink" ng-show="currentUser" class="btn btn-danger" ng-click="deleteUser()">Delete User</a>
         </security:authorize>
     </div>
 
     <br/>
 
-    <security:authorize ifAllGranted="ROLE_ENTERPRISE">
-        <security:authorize ifAllGranted="ROLE_CAN_MANAGE_API_KEYS">
+    <security:authorize access="hasRole('ROLE_ENTERPRISE')">
+        <security:authorize access="hasRole('ROLE_CAN_MANAGE_API_KEYS')">
             <div id="apiKeys">
 
                 <h4>

@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.framework.engine.cleaner;
 
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.framework.engine.partial.PartialMapping;
+import com.denimgroup.threadfix.framework.impl.django.DjangoPathCleaner;
 import com.denimgroup.threadfix.framework.impl.dotNetWebForm.WebFormsPathCleaner;
 import com.denimgroup.threadfix.framework.impl.jsp.JSPPathCleaner;
 import com.denimgroup.threadfix.framework.impl.rails.RailsPathCleaner;
@@ -54,7 +55,9 @@ public class PathCleanerFactory {
 		} else if (frameworkType == FrameworkType.STRUTS) {
 			returnCleaner = new StrutsPathCleaner(partialMappings);
         } else if (frameworkType == FrameworkType.RAILS) {
-            returnCleaner = new RailsPathCleaner(partialMappings);
+			returnCleaner = new RailsPathCleaner(partialMappings);
+		} else if (frameworkType == FrameworkType.PYTHON) {
+			returnCleaner = new DjangoPathCleaner(partialMappings);
 		} else {
 			returnCleaner = new DefaultPathCleaner(partialMappings);
 		}

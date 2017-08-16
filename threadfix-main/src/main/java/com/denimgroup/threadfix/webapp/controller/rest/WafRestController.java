@@ -42,8 +42,8 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.remote.response.RestResponse.*;
 
-@RestController
-@RequestMapping("/rest/wafs")
+//@RestController
+//@RequestMapping("/rest/wafs")
 public class WafRestController extends TFRestController {
 	
 	public static final String CREATION_FAILED = "New WAF creation failed.";
@@ -59,7 +59,7 @@ public class WafRestController extends TFRestController {
 
 	// TODO figure out if there is an easier way to make Spring respond to both
 	@JsonView(AllViews.RestViewWafs2_1.class)
-	@RequestMapping(headers="Accept=application/json", value="", method=RequestMethod.GET)
+//	@RequestMapping(headers="Accept=application/json", value="", method=RequestMethod.GET)
 	public Object wafIndexNoSlash(HttpServletRequest request) {
 		return wafIndex(request);
 	}
@@ -69,14 +69,14 @@ public class WafRestController extends TFRestController {
      * @return
      */
 	@JsonView(AllViews.RestViewWafs2_1.class)
-	@RequestMapping(headers="Accept=application/json", value="/", method=RequestMethod.GET)
+//	@RequestMapping(headers="Accept=application/json", value="/", method=RequestMethod.GET)
 	public Object wafIndex(HttpServletRequest request) {
 		LOG.info("Received REST request for WAFs");
 
-		Result<String> keyCheck = checkKey(request, RestMethod.WAF_LIST, -1, -1);
-		if (!keyCheck.success()) {
-			return resultError(keyCheck);
-		}
+//		Result<String> keyCheck = checkKey(request, RestMethod.WAF_LIST, -1, -1);
+//		if (!keyCheck.success()) {
+//			return resultError(keyCheck);
+//		}
 		
 		List<Waf> wafs = wafService.loadAll();
 		
@@ -95,7 +95,7 @@ public class WafRestController extends TFRestController {
      * @return
      */
 	@JsonView(AllViews.RestViewWaf2_1.class)
-	@RequestMapping(headers="Accept=application/json", value="/{wafId}", method=RequestMethod.GET)
+//	@RequestMapping(headers="Accept=application/json", value="/{wafId}", method=RequestMethod.GET)
 	public Object wafDetail(HttpServletRequest request,
 			@PathVariable("wafId") String wafId) {
 		int wafIdInt = 0;
@@ -113,10 +113,10 @@ public class WafRestController extends TFRestController {
 
 		LOG.info("Received REST request for WAF with ID = " + wafId + ".");
 
-		Result<String> keyCheck = checkKey(request, RestMethod.WAF_DETAIL, -1, -1);
-		if (!keyCheck.success()) {
-			return resultError(keyCheck);
-		}
+//		Result<String> keyCheck = checkKey(request, RestMethod.WAF_DETAIL, -1, -1);
+//		if (!keyCheck.success()) {
+//			return resultError(keyCheck);
+//		}
 
 		Waf waf = wafService.loadWaf(wafIdInt);
 		if (waf == null) {
@@ -133,7 +133,7 @@ public class WafRestController extends TFRestController {
      * @return
      */
 	@JsonView(AllViews.RestViewWaf2_1.class)
-	@RequestMapping(headers="Accept=application/json", value="/lookup", method=RequestMethod.GET)
+//	@RequestMapping(headers="Accept=application/json", value="/lookup", method=RequestMethod.GET)
 	public Object wafLookup(HttpServletRequest request) {
 		
 		if (request.getParameter("name") == null) {
@@ -142,10 +142,10 @@ public class WafRestController extends TFRestController {
 			LOG.info("Received REST request for WAF with a missing name parameter.");
 		}
 
-		Result<String> keyCheck = checkKey(request, RestMethod.WAF_LOOKUP, -1, -1);
-		if (!keyCheck.success()) {
-			return resultError(keyCheck);
-		}
+//		Result<String> keyCheck = checkKey(request, RestMethod.WAF_LOOKUP, -1, -1);
+//		if (!keyCheck.success()) {
+//			return resultError(keyCheck);
+//		}
 		
 		if (request.getParameter("name") == null) {
 			return failure(LOOKUP_FAILED);
@@ -164,16 +164,16 @@ public class WafRestController extends TFRestController {
 	 * Returns the current set of rules from the WAF, generating new ones if none are present.
 	 */
 	@JsonView(AllViews.RestViewWaf2_1.class)
-	@RequestMapping(headers="Accept=application/json", value="/{wafId}/rules/app/{appId}", method=RequestMethod.GET)
+//	@RequestMapping(headers="Accept=application/json", value="/{wafId}/rules/app/{appId}", method=RequestMethod.GET)
 	public RestResponse<String> getRules(HttpServletRequest request,
 			@PathVariable("wafId") int wafId,
             @PathVariable("appId") int wafAppId) {
 		LOG.info("Received REST request for rules from WAF with ID = " + wafId + ".");
 
-		Result<String> keyCheck = checkKey(request, RestMethod.WAF_RULES, -1, -1);
-		if (!keyCheck.success()) {
-			return resultError(keyCheck);
-		}
+//		Result<String> keyCheck = checkKey(request, RestMethod.WAF_RULES, -1, -1);
+//		if (!keyCheck.success()) {
+//			return resultError(keyCheck);
+//		}
 		
 		Waf waf = wafService.loadWaf(wafId);
 		
@@ -216,14 +216,14 @@ public class WafRestController extends TFRestController {
 	}
 
 	@JsonView(AllViews.RestViewWaf2_1.class)
-	@RequestMapping(headers="Accept=application/json", value="/new", method=RequestMethod.POST)
+//	@RequestMapping(headers="Accept=application/json", value="/new", method=RequestMethod.POST)
 	public Object newWaf(HttpServletRequest request) {
 		LOG.info("Received REST request for a new WAF.");
 		
-		Result<String> keyCheck = checkKey(request, RestMethod.WAF_NEW, -1, -1);
-		if (!keyCheck.success()) {
-			return resultError(keyCheck);
-		}
+//		Result<String> keyCheck = checkKey(request, RestMethod.WAF_NEW, -1, -1);
+//		if (!keyCheck.success()) {
+//			return resultError(keyCheck);
+//		}
 		
 		String name = request.getParameter("name");
 		String type = request.getParameter("type");
@@ -243,7 +243,7 @@ public class WafRestController extends TFRestController {
         Waf existingWaf = wafService.loadWaf(name);
 
         if (existingWaf != null) {
-            return failure("ThreadFix already has a WAF with the name " + name);
+            return failure("Application already has a WAF with the name " + name);
         }
 		
 		if (!name.trim().isEmpty() && name.length() < Waf.NAME_LENGTH) {
@@ -261,15 +261,15 @@ public class WafRestController extends TFRestController {
 	}
 
 	@JsonView(AllViews.RestViewWaf2_1.class)
-	@RequestMapping(headers="Accept=application/json", value="/{wafId}/uploadLog", method=RequestMethod.POST)
+//	@RequestMapping(headers="Accept=application/json", value="/{wafId}/uploadLog", method=RequestMethod.POST)
 	public RestResponse uploadWafLog(HttpServletRequest request,
 			@PathVariable("wafId") int wafId, @RequestParam("file") MultipartFile file) {
 		LOG.info("Received REST request for a new WAF.");
 
-		Result<String> keyCheck = checkKey(request, RestMethod.WAF_LOG, -1, -1);
-		if (!keyCheck.success()) {
-			return resultError(keyCheck);
-		}
+//		Result<String> keyCheck = checkKey(request, RestMethod.WAF_LOG, -1, -1);
+//		if (!keyCheck.success()) {
+//			return resultError(keyCheck);
+//		}
 		
 		Waf waf = wafService.loadWaf(wafId);
 		

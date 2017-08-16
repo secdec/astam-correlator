@@ -46,9 +46,14 @@ threadfixModule.factory('customSeverityService', function() {
     service.genericSeverities = [];
 
     service.setSeverities = function(genericSeverities) {
-        genericSeverities.forEach(function(severity) {
-            service.map[severity.name] = severity.displayName;
-        });
+        service.map["Info"] = "Info";
+        service.map["Low"] = "Low";
+        service.map["Medium"] = "Medium";
+        service.map["High"] = "High";
+        service.map["Critical"] = "Critical";
+        // genericSeverities.forEach(function(severity) {
+        //     service.map[severity.name] = severity.displayName;
+        // });
 
         service.genericSeverities = genericSeverities;
 

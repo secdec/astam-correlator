@@ -50,7 +50,7 @@ public class CacheBustServiceImpl implements CacheBustService {
         List<String> notCachedJs = list();
 
         if (reports == null || reports.isEmpty()) {
-            throw new IllegalStateException("Unable to load any reports. ThreadFix needs the default reports.");
+            throw new IllegalStateException("Unable to load any reports. Default reports are needed.");
         }
 
         for (Report report : reports) {

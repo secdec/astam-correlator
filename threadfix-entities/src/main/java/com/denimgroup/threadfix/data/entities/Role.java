@@ -362,8 +362,8 @@ public class Role extends AuditableEntity {
 		if (getCanGenerateReports())
 			permissions.add(Permission.CAN_GENERATE_REPORTS);
 
-		if (getCanGenerateWafRules())
-			permissions.add(Permission.CAN_GENERATE_WAF_RULES);
+//		if (getCanGenerateWafRules())
+//			permissions.add(Permission.CAN_GENERATE_WAF_RULES);
 
 		if (getCanManageScanAgents())
 			permissions.add(Permission.CAN_MANAGE_SCAN_AGENTS);
@@ -374,11 +374,11 @@ public class Role extends AuditableEntity {
 		if (getCanManageApplications())
 			permissions.add(Permission.CAN_MANAGE_APPLICATIONS);
 
-		if (getCanManageDefectTrackers())
-			permissions.add(Permission.CAN_MANAGE_DEFECT_TRACKERS);
+//		if (getCanManageDefectTrackers())
+//			permissions.add(Permission.CAN_MANAGE_DEFECT_TRACKERS);
 
-		if (getCanManageGrcTools())
-			permissions.add(Permission.CAN_MANAGE_GRC_TOOLS);
+//		if (getCanManageGrcTools())
+//			permissions.add(Permission.CAN_MANAGE_GRC_TOOLS);
 
 		if (getCanManageRemoteProviders())
 			permissions.add(Permission.CAN_MANAGE_REMOTE_PROVIDERS);
@@ -395,8 +395,8 @@ public class Role extends AuditableEntity {
 		if (getCanManageSystemSettings())
 			permissions.add(Permission.CAN_MANAGE_SYSTEM_SETTINGS);
 
-		if (getCanManageWafs())
-			permissions.add(Permission.CAN_MANAGE_WAFS);
+//		if (getCanManageWafs())
+//			permissions.add(Permission.CAN_MANAGE_WAFS);
 
 		if (getCanModifyVulnerabilities())
 			permissions.add(Permission.CAN_MODIFY_VULNERABILITIES);
@@ -416,8 +416,8 @@ public class Role extends AuditableEntity {
 		if (getEnterprise())
 			permissions.add(Permission.ENTERPRISE);
 
-        if (getCanManageTags() != null && getCanManageTags())
-            permissions.add(Permission.CAN_MANAGE_TAGS);
+//        if (getCanManageTags() != null && getCanManageTags())
+//            permissions.add(Permission.CAN_MANAGE_TAGS);
 
         if (getCanSubmitComments() != null && getCanSubmitComments())
             permissions.add(Permission.CAN_SUBMIT_COMMENTS);
@@ -428,14 +428,14 @@ public class Role extends AuditableEntity {
         if (getCanManageScanResultFilters() != null && getCanManageScanResultFilters())
             permissions.add(Permission.CAN_MANAGE_SCAN_RESULT_FILTERS);
 
-        if (getCanManageCustomCweText() != null && getCanManageCustomCweText())
-            permissions.add(Permission.CAN_MANAGE_CUSTOM_CWE_TEXT);
+//        if (getCanManageCustomCweText() != null && getCanManageCustomCweText())
+//            permissions.add(Permission.CAN_MANAGE_CUSTOM_CWE_TEXT);
 
         if (getCanManageEmailReports() != null && getCanManageEmailReports())
             permissions.add(Permission.CAN_MANAGE_EMAIL_REPORTS);
 
-        if (getCanManagePolicies() != null && getCanManagePolicies())
-            permissions.add(Permission.CAN_MANAGE_POLICIES);
+//        if (getCanManagePolicies() != null && getCanManagePolicies())
+//            permissions.add(Permission.CAN_MANAGE_POLICIES);
 
 		return permissions;
 	}

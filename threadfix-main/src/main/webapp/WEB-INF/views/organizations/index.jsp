@@ -16,9 +16,9 @@
 
     <div ng-controller="ApplicationsIndexController" ng-init="successMessage = '<c:out value="${ successMessage }"/>'">
 
-        <security:authorize ifNotGranted="ROLE_CAN_MANAGE_TEAMS">
+        <security:authorize access="!hasRole('ROLE_CAN_MANAGE_TEAMS')">
             <div ng-show="teams && teams.length === 0" class="alert alert-error">
-                You don't have permission to access any ThreadFix applications or to create one for yourself.
+                You don't have permission to access any applications or to create one for yourself.
                 Contact your administrator to get help.
             </div>
         </security:authorize>

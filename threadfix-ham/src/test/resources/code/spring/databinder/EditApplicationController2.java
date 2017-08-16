@@ -180,8 +180,8 @@ public class EditApplicationController {
         }
 
         if (result.hasErrors()) {
-            permissionService.addPermissions(model, orgId, appId, Permission.CAN_MANAGE_DEFECT_TRACKERS,
-                    Permission.CAN_MANAGE_WAFS);
+//            permissionService.addPermissions(model, orgId, appId, Permission.CAN_MANAGE_DEFECT_TRACKERS,
+//                    Permission.CAN_MANAGE_WAFS);
 
             if (application.getWaf() != null && application.getWaf().getId() == null) {
                 application.setWaf(null);
@@ -192,11 +192,11 @@ public class EditApplicationController {
                 application.setDefectTracker(null);
             }
             model.addAttribute("applicationTypes", FrameworkType.values());
-            model.addAttribute("canSetDefectTracker", permissionService.isAuthorized(
-                    Permission.CAN_MANAGE_DEFECT_TRACKERS, orgId, appId));
+//            model.addAttribute("canSetDefectTracker", permissionService.isAuthorized(
+//                    Permission.CAN_MANAGE_DEFECT_TRACKERS, orgId, appId));
 
-            model.addAttribute("canSetWaf", permissionService.isAuthorized(
-                    Permission.CAN_MANAGE_WAFS, orgId, appId));
+//            model.addAttribute("canSetWaf", permissionService.isAuthorized(
+//                    Permission.CAN_MANAGE_WAFS, orgId, appId));
 
             model.addAttribute("contentPage", "applications/forms/editApplicationForm.jsp");
             return "ajaxFailureHarness";
@@ -215,7 +215,7 @@ public class EditApplicationController {
                     Permission.CAN_SUBMIT_DEFECTS,
 //                    Permission.CAN_VIEW_JOB_STATUSES,
                     Permission.CAN_GENERATE_REPORTS,
-                    Permission.CAN_MANAGE_DEFECT_TRACKERS,
+//                    Permission.CAN_MANAGE_DEFECT_TRACKERS,
                     Permission.CAN_MANAGE_USERS);
 
             model.addAttribute("application", application);
@@ -303,14 +303,14 @@ public class EditApplicationController {
         }
 
         if (result.hasErrors()) {
-            permissionService.addPermissions(model, orgId, appId, Permission.CAN_MANAGE_DEFECT_TRACKERS,
-                    Permission.CAN_MANAGE_WAFS);
+//            permissionService.addPermissions(model, orgId, appId, Permission.CAN_MANAGE_DEFECT_TRACKERS,
+//                    Permission.CAN_MANAGE_WAFS);
 
-            model.addAttribute("canSetDefectTracker", permissionService.isAuthorized(
-                    Permission.CAN_MANAGE_DEFECT_TRACKERS, orgId, appId));
+//            model.addAttribute("canSetDefectTracker", permissionService.isAuthorized(
+//                    Permission.CAN_MANAGE_DEFECT_TRACKERS, orgId, appId));
 
-            model.addAttribute("canSetWaf", permissionService.isAuthorized(
-                    Permission.CAN_MANAGE_WAFS, orgId, appId));
+//            model.addAttribute("canSetWaf", permissionService.isAuthorized(
+//                    Permission.CAN_MANAGE_WAFS, orgId, appId));
 
             model.addAttribute("contentPage", "applications/forms/addDTForm.jsp");
             return "ajaxFailureHarness";

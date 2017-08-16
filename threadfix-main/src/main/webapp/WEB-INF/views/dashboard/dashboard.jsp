@@ -18,7 +18,7 @@
 	<spring:url value="/teams" var="teamsUrl"/>
 	
 	<c:if test="${ empty teams }">
-		<security:authorize ifAnyGranted="ROLE_CAN_MANAGE_TEAMS">
+		<security:authorize access="hasRole('ROLE_CAN_MANAGE_TEAMS')">
 		    <div class="alert" ng-show="!dismissNoTeamsFound">
 			    <button type="button" class="close" ng-click="dismissNoTeamsFound = true">&times;</button>
 			    <strong>No teams found!</strong> To upload scans, first you need to create teams and applications.  
@@ -28,16 +28,16 @@
 	  	 	</div>
 	  	</security:authorize>
   	 	
-		<security:authorize ifNotGranted="ROLE_READ_ACCESS">
+		<security:authorize access="!hasRole('ROLE_READ_ACCESS')">
 			<div class="alert alert-error">
-				You don't have permission to access any ThreadFix applications or to create one for yourself. 
+				You don't have permission to access any applications or to create one for yourself.
 				Contact your administrator to get help.
 			</div>
 		</security:authorize>
 	</c:if>
 
 	<c:if test="${ expirationNotification < 30  && expirationNotification > 15}">
-		<security:authorize ifAnyGranted="ROLE_CAN_MANAGE_SYSTEM_SETTINGS">
+		<security:authorize access="hasRole('ROLE_CAN_MANAGE_SYSTEM_SETTINGS')">
 			<div class="alert alert-warning" ng-show="!dismissExpirationNotification">
 				<button type="button" class="close" ng-click="dismissExpirationNotification = true">&times;</button>
 				Your license will expire in ${ expirationNotification } days.
@@ -45,7 +45,7 @@
 		</security:authorize>
 	</c:if>
 	<c:if test="${ expirationNotification < 15 }">
-		<security:authorize ifAnyGranted="ROLE_CAN_MANAGE_SYSTEM_SETTINGS">
+		<security:authorize access="hasRole('ROLE_CAN_MANAGE_SYSTEM_SETTINGS')">
 			<div class="alert alert-danger" ng-show="!dismissExpirationNotification">
 				<button type="button" class="close" ng-click="dismissExpirationNotification = true">&times;</button>
 				Your license will expire in ${ expirationNotification } days. Please contact Denim Group.
@@ -56,7 +56,8 @@
     <div ng-controller="DashboardController" class="container-fluid">
 
         <c:if test="${ not empty teams }">
-            <security:authorize ifAnyGranted="ROLE_READ_ACCESS, ROLE_CAN_GENERATE_REPORTS">
+            <security:authorize
+					access="hasAnyRole('ROLE_READ_ACCESS','ROLE_CAN_GENERATE_REPORTS')">
 				<div class="row-fluid">
 					<c:set var="csrfToken" value="${ emptyUrl }" scope="request"/>
                     <jsp:include page="${ config.dashboardTopLeft.jspFilePath }"/>

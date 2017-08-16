@@ -43,4 +43,6 @@ public interface RepositoryService {
     File getWorkTree(Application application);
 
     void handleException(Exception e, Application application, BindingResult result);
+
+    String getCurrentRevision(Application application);
 }

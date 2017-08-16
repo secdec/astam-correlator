@@ -10,16 +10,18 @@ myAppModule.controller('SystemSettingsController', function ($scope, $window, $m
             success(function(data) {
 
                 if (data.success) {
+                    console.log("data:" + data.object)
                     $scope.object = data.object.defaultConfiguration;
                     $scope.roleList = data.object.roleList;
                     $scope.applicationCount = data.object.applicationCount;
                     $scope.licenseCount = data.object.licenseCount;
                     $scope.licenseExpirationDate = data.object.licenseExpirationDate;
-                    $scope.dashboardReports = data.object.dashboardReports;
+                    // $scope.dashboardReports = data.object.dashboardReports;
                     $scope.applicationReports = data.object.applicationReports;
                     $scope.teamReports = data.object.teamReports;
                     $scope.exportFieldDisplayNames = data.object.exportFieldDisplayNames;
                     $scope.exportFields = data.object.exportFields;
+                    $scope.astamConfig = data.object.astamConfig;
 
                     $scope.canImportLDAPGroups = data.object.canImportLDAPGroups;
 
@@ -110,6 +112,39 @@ myAppModule.controller('SystemSettingsController', function ($scope, $window, $m
                     $scope.errorMessage = "Failure. HTTP status was " + status;
                 });
         }
+    };
+
+    $scope.submitCds = function () {
+        var url = tfEncoder.encode('/configuration/settings/astam');
+
+            $scope.loading = true;
+
+            $http.post(url, $scope.astamConfig).
+            success(function(data) {
+                $scope.loading = false;
+
+                if (data.success) {
+                    $scope.successMessage = "Configuration was saved successfully.";
+                    $scope.errorMessage = null;
+                    $scope.astamConfig = data.object;
+                    window.scrollTo(0, 0);
+                } else {
+                    $scope.errorMessage = "Failure: " + data.message;
+                    $scope.successMessage = null;
+
+                    if (data.errorMap) {
+                        for (var index in data.errorMap) {
+                            if (data.errorMap.hasOwnProperty(index)) {
+                                $scope.object[index + "_error"] = data.errorMap[index];
+                            }
+                        }
+                    }
+                }
+            }).
+            error(function(data, status) {
+                $scope.loading = false;
+                $scope.errorMessage = "Failure. HTTP status was " + status;
+            });
     };
 
     $scope.ok = function (valid) {

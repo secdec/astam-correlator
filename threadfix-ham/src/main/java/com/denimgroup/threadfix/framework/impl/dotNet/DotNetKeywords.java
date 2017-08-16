@@ -32,21 +32,27 @@ final class DotNetKeywords {
 
     public static final String
             PUBLIC = "public",
+            AREA = "Area",
             CLASS = "class",
             ROUTE_CONFIG = "RouteConfig",
+            STARTUP = "Startup",
+            CONFIGURE ="Configure",
             REGISTER_ROUTES = "RegisterRoutes",
             ROUTE_COLLECTION = "RouteCollection",
+            IAPPLICATION_BUILDER = "IApplicationBuilder",
             MAP_ROUTE = "MapRoute",
             NAMESPACE = "namespace",
             URL = "url",
             NAME = "name",
             DEFAULTS = "defaults",
+            TEMPLATE = "template",
             NEW = "new",
             CONTROLLER = "controller",
             ACTION = "action",
             ID = "id",
             SYSTEM_HTTP_APPLICATION = "System.Web.HttpApplication",
             ACTION_RESULT = "ActionResult",
+            IACTION_RESULT = "IActionResult",
             VIEW_RESULT = "ViewResult",
             HTTP_MESSAGE_RESPONSE = "HttpResponseMessage";
 

@@ -41,8 +41,8 @@ import com.denimgroup.threadfix.service.LogParserService;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.service.WafService;
 
-@Controller
-@RequestMapping("/wafs/{wafId}/upload")
+//@Controller
+//@RequestMapping("/wafs/{wafId}/upload")
 @PreAuthorize("hasRole('ROLE_CAN_MANAGE_WAFS')")
 public class UploadWafLogController {
 
@@ -59,12 +59,12 @@ public class UploadWafLogController {
 	
 	public UploadWafLogController(){}
 
-	@RequestMapping(method = RequestMethod.GET)
+//	@RequestMapping(method = RequestMethod.GET)
 	public String uploadIndex() {
 		return "wafs/upload/form";
 	}
 
-	@RequestMapping(method = RequestMethod.POST)
+//	@RequestMapping(method = RequestMethod.POST)
 	public String uploadSubmit(@PathVariable("wafId") int wafId, @RequestParam("file") MultipartFile file, 
 			ModelMap model){
 		

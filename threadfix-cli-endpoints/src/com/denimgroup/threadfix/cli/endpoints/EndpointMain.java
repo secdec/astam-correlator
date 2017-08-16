@@ -24,6 +24,7 @@
 
 package com.denimgroup.threadfix.cli.endpoints;
 
+import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
@@ -42,13 +43,14 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.data.interfaces.Endpoint.PrintFormat.JSON;
 
 public class EndpointMain {
-
+    private static final String FRAMEWORK_COMMAND = "-framework=";
     enum Logging {
         ON, OFF
     }
 
-    static Logging              logging     = Logging.OFF;
+    static Logging logging = Logging.OFF;
     static Endpoint.PrintFormat printFormat = Endpoint.PrintFormat.DYNAMIC;
+    static FrameworkType framework = FrameworkType.DETECT;
 
     public static void main(String[] args) {
         if (checkArguments(args)) {
@@ -68,19 +70,23 @@ public class EndpointMain {
 
         if (rootFile.exists() && rootFile.isDirectory()) {
 
-            List<String> strings = list(args);
+            List<String> arguments = list(args);
 
-            strings.remove(0);
+            arguments.remove(0);
 
-            for (String string : strings) {
-                if (string.equals("-debug")) {
+            for (String arg : arguments) {
+                if (arg.equals("-debug")) {
                     logging = Logging.ON;
-                } else if (string.equals("-lint")) {
+                } else if (arg.equals("-lint")) {
                     printFormat = Endpoint.PrintFormat.LINT;
-                } else if (string.equals("-json")) {
+                } else if (arg.equals("-json")) {
                     printFormat = JSON;
+                } else if (arg.contains(FRAMEWORK_COMMAND)) {
+                    String frameworkName = arg.substring(arg.indexOf(
+                            FRAMEWORK_COMMAND) + FRAMEWORK_COMMAND.length(), arg.length());
+                    framework = FrameworkType.getFrameworkType(frameworkName);
                 } else {
-                    System.out.println("Received unsupported option " + string + ", valid arguments are -lint and -debug");
+                    System.out.println("Received unsupported option " + arg + ", valid arguments are -lint and -debug");
                     return false;
                 }
             }
@@ -99,18 +105,19 @@ public class EndpointMain {
     }
 
     private static void listEndpoints(File rootFile) {
-
         List<Endpoint> endpoints = list();
 
-        EndpointDatabase database = EndpointDatabaseFactory.getDatabase(rootFile);
+        EndpointDatabase database = (framework.equals(FrameworkType.DETECT)) ?
+                EndpointDatabaseFactory.getDatabase(rootFile) :
+                EndpointDatabaseFactory.getDatabase(rootFile, framework);
 
         if (database != null) {
             endpoints = database.generateEndpoints();
         }
 
-		Collections.sort(endpoints);
-		
-		if (endpoints.isEmpty()) {
+        Collections.sort(endpoints);
+
+        if (endpoints.isEmpty()) {
             System.out.println("No endpoints were found.");
 
         } else if (printFormat == JSON) {
@@ -124,10 +131,10 @@ public class EndpointMain {
                 throw new RuntimeException(e);
             }
         } else {
-			for (Endpoint endpoint : endpoints) {
-				System.out.println(endpoint.getCSVLine(printFormat));
-			}
-		}
+            for (Endpoint endpoint : endpoints) {
+                System.out.println(endpoint.getCSVLine(printFormat));
+            }
+        }
 
         if (printFormat != JSON) {
             System.out.println("To enable logging include the -debug argument");
