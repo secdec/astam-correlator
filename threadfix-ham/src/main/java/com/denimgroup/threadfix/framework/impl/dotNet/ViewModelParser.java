@@ -84,9 +84,9 @@ public class ViewModelParser implements EventBasedTokenizer {
             braceLevel--;
         }
 
-        LOG.debug("type = " + type + ", line = " + lineNumber + ", stringValue = " + stringValue);
-        LOG.debug("phase = " + currentPhase + ", state = " + classState);
-        LOG.debug("braceLevel is " + braceLevel);
+//        LOG.debug("type = " + type + ", line = " + lineNumber + ", stringValue = " + stringValue);
+//        LOG.debug("phase = " + currentPhase + ", state = " + classState);
+//        LOG.debug("braceLevel is " + braceLevel);
 
         switch (currentPhase) {
             case START:
@@ -105,7 +105,7 @@ public class ViewModelParser implements EventBasedTokenizer {
                 break;
         }
 
-        LOG.debug("");
+//        LOG.debug("");
     }
 
     String currentModelName;
@@ -147,7 +147,7 @@ public class ViewModelParser implements EventBasedTokenizer {
                     methodBraceLevel = braceLevel;
                 } else if ('{' == type) {
                     classState = ClassState.IN_PROPERTY;
-                    LOG.debug("Setting classBraceLevel to " + (braceLevel - 1));
+//                    LOG.debug("Setting classBraceLevel to " + (braceLevel - 1));
                     classBraceLevel = braceLevel - 1;
                 } else if ('[' == type) {
                     classState = ClassState.ATTRIBUTE;

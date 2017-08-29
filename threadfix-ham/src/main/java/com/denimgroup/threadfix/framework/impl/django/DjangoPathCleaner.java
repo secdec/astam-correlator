@@ -35,12 +35,12 @@ public class DjangoPathCleaner extends DefaultPathCleaner {
 
     public static File buildPath(String root, String input) {
         StringBuilder builder = new StringBuilder(64);
-        builder.append(root).append("\\").append(input);
+        builder.append(root).append(File.separator).append(input);
         File file = new File(builder.toString());
         return file;
     }
 
     public static String cleanStringFromCode(String input) {
-        return input == null? "" : input.replace('.', '\\');
+        return input == null? "" : input.replace('.',File.separatorChar);
     }
 }
