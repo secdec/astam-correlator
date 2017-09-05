@@ -23,11 +23,11 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -53,6 +53,11 @@ public class StrutsEndpoint extends AbstractEndpoint {
     @Override
     public Set<String> getParameters() {
         return parameters;
+    }
+
+    @Override
+    public ModelFieldSet getParametersWithType() {
+        return null;
     }
 
     @Nonnull

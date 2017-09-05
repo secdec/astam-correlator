@@ -23,10 +23,10 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;

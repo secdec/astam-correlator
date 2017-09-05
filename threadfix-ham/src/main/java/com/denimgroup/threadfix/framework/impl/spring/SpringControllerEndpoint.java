@@ -24,20 +24,20 @@
 package com.denimgroup.threadfix.framework.impl.spring;
 
 import com.denimgroup.threadfix.data.entities.AuthenticationRequired;
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
-import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
 import com.denimgroup.threadfix.framework.util.RegexUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
-import static com.denimgroup.threadfix.CollectionUtils.list;
-import static com.denimgroup.threadfix.CollectionUtils.set;
-import static com.denimgroup.threadfix.CollectionUtils.setFrom;
+import static com.denimgroup.threadfix.CollectionUtils.*;
 
 public class SpringControllerEndpoint extends AbstractEndpoint {
 	
@@ -149,6 +149,11 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 	public Set<String> getParameters() {
 		return parameters;
 	}
+
+    @Override
+    public ModelFieldSet getParametersWithType() {
+        return null;
+    }
 
     @Nonnull
     public String getCleanedFilePath() {

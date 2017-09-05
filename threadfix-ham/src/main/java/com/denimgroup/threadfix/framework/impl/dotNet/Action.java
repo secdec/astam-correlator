@@ -23,7 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
+import com.denimgroup.threadfix.data.entities.ModelField;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;

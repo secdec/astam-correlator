@@ -21,8 +21,10 @@
 //     Contributor(s): Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-package com.denimgroup.threadfix.framework.impl.model;
+package com.denimgroup.threadfix.util;
 
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;

@@ -23,21 +23,23 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.util.java;
 
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
-import com.denimgroup.threadfix.framework.impl.model.FieldSetLookupUtils;
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
-import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
+import com.denimgroup.threadfix.util.FieldSetLookupUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import java.io.File;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
-import static com.denimgroup.threadfix.framework.impl.model.FieldSetLookupUtils.addSuperClassFieldsToModels;
+import static com.denimgroup.threadfix.util.FieldSetLookupUtils.addSuperClassFieldsToModels;
 
 public class EntityMappings {
 
