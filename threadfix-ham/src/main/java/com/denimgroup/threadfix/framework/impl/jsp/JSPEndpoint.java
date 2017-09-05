@@ -23,16 +23,17 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.jsp;
 
+import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.engine.CodePoint;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static com.denimgroup.threadfix.CollectionUtils.list;
-import static com.denimgroup.threadfix.CollectionUtils.map;
-import static com.denimgroup.threadfix.CollectionUtils.set;
+import static com.denimgroup.threadfix.CollectionUtils.*;
 
 class JSPEndpoint extends AbstractEndpoint {
 
@@ -117,7 +118,12 @@ class JSPEndpoint extends AbstractEndpoint {
 	public Set<String> getParameters() {
 		return parameters;
 	}
-	
+
+	@Override
+	public ModelFieldSet getParametersWithType() {
+		return null;
+	}
+
 	@Nonnull
     @Override
 	public String getUrlPath() {

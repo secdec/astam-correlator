@@ -21,15 +21,12 @@
 //     Contributor(s): Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-package com.denimgroup.threadfix.framework.impl.model;
+package com.denimgroup.threadfix.data.entities;
 
 import javax.annotation.Nonnull;
-
 import java.util.*;
 
-import static com.denimgroup.threadfix.CollectionUtils.list;
-import static com.denimgroup.threadfix.CollectionUtils.map;
-import static com.denimgroup.threadfix.CollectionUtils.set;
+import static com.denimgroup.threadfix.CollectionUtils.*;
 
 public class ModelFieldSet implements Iterable<ModelField> {
 
@@ -61,6 +58,7 @@ public class ModelFieldSet implements Iterable<ModelField> {
     public boolean contains(String paramName) {
         return getField(paramName) != null;
     }
+
 
     @Nonnull
     public ModelFieldSet add(ModelField field) {
@@ -99,6 +97,10 @@ public class ModelFieldSet implements Iterable<ModelField> {
     @Nonnull
     @Override
     public Iterator<ModelField> iterator() {
-		return fieldSet.iterator();
-	}
+        return fieldSet.iterator();
+    }
+
+    public boolean isEmpty(){
+        return fieldSet.isEmpty();
+    }
 }

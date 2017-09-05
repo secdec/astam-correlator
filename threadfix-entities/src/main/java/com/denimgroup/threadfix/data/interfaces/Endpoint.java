@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.data.interfaces;
 
 import com.denimgroup.threadfix.data.entities.AuthenticationRequired;
+import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 
 import javax.annotation.Nonnull;
 import java.util.List;
@@ -31,8 +32,13 @@ import java.util.Set;
 
 public interface Endpoint extends Comparable<Endpoint> {
 
+
     @Nonnull
 	Set<String> getParameters();
+
+    //TODO: update languages/frameworks, then refactor and replace Set<String> getParameters() with return type ParameterDataSet.
+    //@Nonnull
+    ModelFieldSet getParametersWithType();
 
     @Nonnull
 	Set<String> getHttpMethods();
@@ -49,11 +55,11 @@ public interface Endpoint extends Comparable<Endpoint> {
 
     @Nonnull
 	String getCSVLine(PrintFormat... formats);
-	
+
 	int getStartingLineNumber();
-	
+
 	int getLineNumberForParameter(String parameter);
-	
+
 	boolean matchesLineNumber(int lineNumber);
 
     @Nonnull
@@ -63,7 +69,9 @@ public interface Endpoint extends Comparable<Endpoint> {
     public AuthenticationRequired getAuthenticationRequired();
 
     public static class Info {
-        Set<String> parameters, httpMethods;
+        Set<String>  parameters, httpMethods;
+
+        ModelFieldSet parametersWithType;
 
         String urlPath, filePath, csvLine;
 
@@ -72,6 +80,7 @@ public interface Endpoint extends Comparable<Endpoint> {
         public static Info fromEndpoint(Endpoint endpoint) {
             Info info = new Info();
             info.parameters = endpoint.getParameters();
+            info.parametersWithType = endpoint.getParametersWithType();
             info.httpMethods = endpoint.getHttpMethods();
             info.urlPath = endpoint.getUrlPath();
             info.filePath = endpoint.getFilePath();
@@ -80,9 +89,11 @@ public interface Endpoint extends Comparable<Endpoint> {
             return info;
         }
 
-        public Set<String> getParameters() {
+      public Set<String> getParameters() {
             return parameters;
         }
+
+        public ModelFieldSet getParametersWithType(){ return parametersWithType;}
 
         public Set<String> getHttpMethods() {
             return httpMethods;

@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 
 import javax.annotation.Nonnull;
@@ -63,6 +64,11 @@ public class RailsEndpoint extends AbstractEndpoint {
     @Override
     public Set<String> getParameters() {
         return parameters;
+    }
+
+    @Override
+    public ModelFieldSet getParametersWithType() {
+        return null;
     }
 
     @Nonnull
