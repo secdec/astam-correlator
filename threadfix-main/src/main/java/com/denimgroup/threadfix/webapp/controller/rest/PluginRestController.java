@@ -39,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -132,9 +133,16 @@ public class PluginRestController extends TFRestController {
 			LOG.warn(message);
 			return RestResponse.failure(message);
 		}
-		
-		EndpointGenerator generator =
-				EndpointDatabaseFactory.getDatabase(getProjectConfig(application));
+
+		ProjectConfig projectConfig = getProjectConfig(application);
+
+		if(projectConfig == null){
+		    String message = "Couldn't find source code configuration for application";
+		    LOG.warn(message);
+		    return RestResponse.failure(message);
+        }
+		EndpointGenerator generator = EndpointDatabaseFactory.getDatabase(projectConfig);
+
 		
 		if (generator != null) {
             List<Endpoint> endpoints = generator.generateEndpoints();
@@ -146,17 +154,36 @@ public class PluginRestController extends TFRestController {
 		}
 	}
 
-    public ProjectConfig getProjectConfig(Application application) {
 
-        RepositoryService repositoryService = repositoryServiceFactory.getRepositoryService(application);
+    public ProjectConfig getProjectConfig(Application application) {
+        File sourceCodeFolder = getSourceCode(application);
+
+        if(sourceCodeFolder == null){
+            LOG.warn("SourceCodeFolder not found.");
+            return null;
+        }
 
         return new ProjectConfig(application.getFrameworkTypeEnum(),
                 application.getSourceCodeAccessLevelEnum(),
-                repositoryService.getWorkTree(application),
+                sourceCodeFolder,
                 application.getProjectRoot()
         );
     }
-	
+
+    private File getSourceCode(Application application){
+        if(application.getRepositoryFolder() != null && !application.getRepositoryFolder().isEmpty()){
+            return new File(application.getRepositoryFolder());
+        }
+
+        RepositoryService repositoryService = repositoryServiceFactory.getRepositoryService(application);
+        if (repositoryService != null){
+            return repositoryService.getWorkTree(application);
+        }
+
+        LOG.warn("SourceCode not found.");
+        return null;
+    }
+
 	private Application.Info[] getApplicationInfo(List<Application> applications) {
 		List<Application.Info> infoList = list();
 
