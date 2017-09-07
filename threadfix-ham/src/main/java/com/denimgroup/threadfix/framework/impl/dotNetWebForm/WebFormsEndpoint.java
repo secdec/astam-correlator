@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -139,13 +140,18 @@ public class WebFormsEndpoint extends AbstractEndpoint {
             }
 
             if (!foundNormalParameter) {
-                map.put(parameter, list(0));
+                map.put(cleanViewParam(parameter), list(0));
             }
         }
 
         for (List<Integer> integers : map.values()) {
             Collections.sort(integers);
         }
+    }
+
+    private static String cleanViewParam(String param){
+        if(StringUtils.isBlank(param) || !param.contains("$")) return null;
+        return param.substring(param.lastIndexOf('$') + 1, param.length());
     }
 
     @Nonnull

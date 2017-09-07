@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.map;
-import static com.denimgroup.threadfix.CollectionUtils.set;
 
 /**
  * Created by mac on 6/26/14.
@@ -60,7 +59,6 @@ class Action {
                          @Nonnull Set<String> attributes,
                          @Nonnull Integer lineNumber,
                          @Nonnull Integer endLineNumber,
-                         @Nonnull Map<String, ParameterDataType> parameters,
                          @Nonnull Set<ModelField> parametersWithTypes) {
         Action action = new Action();
         action.name = name;
@@ -68,7 +66,6 @@ class Action {
         action.lineNumber = lineNumber;
         action.parametersWithTypes = parametersWithTypes;
         action.endLineNumber = endLineNumber;
-        action.parameters = parameters;
 
         for (ModelField field : parametersWithTypes) {
             if (field.getType().equals("Include")) {

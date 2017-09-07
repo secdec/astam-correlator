@@ -7,7 +7,9 @@ public enum ParameterDataType {
     STRING("String"),
     INTEGER("Integer"),
     BOOLEAN("Boolean"),
-    LOCAL_DATE("LocalDate");
+    DECIMAL("Decimal"),
+    LOCAL_DATE("LocalDate"),
+    DATE_TIME("DateTime");
 
     ParameterDataType(String displayName){ this.displayName = displayName;}
 
@@ -26,11 +28,15 @@ public enum ParameterDataType {
             case "string":
                 type = STRING;
                 break;
+            case "bool":
             case "boolean":
                 type = BOOLEAN;
                 break;
             case "localdate":
                 type = LOCAL_DATE;
+                break;
+            case "datetime":
+                type = DATE_TIME;
                 break;
             default:
                 type = STRING;

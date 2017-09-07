@@ -24,12 +24,10 @@
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -80,9 +78,8 @@ public class DotNetControllerMappings {
                           @Nonnull Set<String> attributes,
                           @Nonnull Integer lineNumber,
                           @Nonnull Integer endLineNumber,
-                          @Nonnull Map<String, ParameterDataType> parameters,
                           @Nonnull Set<ModelField> parametersWithTypes) {
-        actions.add(action(action, attributes, lineNumber, endLineNumber, parameters, parametersWithTypes));
+        actions.add(action(action, attributes, lineNumber, endLineNumber, parametersWithTypes));
     }
 
     @Nonnull
