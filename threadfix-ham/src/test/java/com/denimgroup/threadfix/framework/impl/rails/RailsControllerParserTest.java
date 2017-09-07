@@ -113,7 +113,7 @@ public class RailsControllerParserTest {
                         assertTrue("Controller.method[:param] not found: "
                                     + ctrlName.concat(".").concat(testMethodName)
                                     + "[" + testParam +  "]",
-                                rcm.getMethodParams().contains(testParam));
+                                rcm.getMethodParams().keySet().contains(testParam));
                     }
                     break;
                 }

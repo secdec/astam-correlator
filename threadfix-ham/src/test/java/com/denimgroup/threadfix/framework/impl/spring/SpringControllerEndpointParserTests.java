@@ -118,18 +118,18 @@ public class SpringControllerEndpointParserTests {
     @Test
     public void testModelBindingRecognition() {
         for (Endpoint endpoint : parseEndpoints("ProjectsController.java", "ticketline-spring")) {
-            assertTrue("Couldn't find name in " + endpoint.getUrlPath(), endpoint.getParameters().contains("name"));
-            assertTrue("Couldn't find description in " + endpoint.getUrlPath(), endpoint.getParameters().contains("description"));
+            assertTrue("Couldn't find name in " + endpoint.getUrlPath(), endpoint.getParameters().keySet().contains("name"));
+            assertTrue("Couldn't find description in " + endpoint.getUrlPath(), endpoint.getParameters().keySet().contains("description"));
         }
     }
 
     @Test
     public void testRequestParamParsing() {
         for (Endpoint endpoint : parseEndpoints("ParamsController.java", "mvc-calculator")) {
-            assertTrue("Found no parameters for method " + endpoint.getUrlPath(), endpoint.getParameters().size() > 0);
-            assertTrue("Endpoint param was " + endpoint.getParameters().iterator().next() +
+            assertTrue("Found no parameters for method " + endpoint.getUrlPath(), endpoint.getParameters().keySet().size() > 0);
+            assertTrue("Endpoint param was " + endpoint.getParameters().keySet().iterator().next() +
                     " instead of integer for method " + endpoint.getUrlPath(),
-                    endpoint.getParameters().iterator().next().equals("integer"));
+                    endpoint.getParameters().keySet().iterator().next().equals("integer"));
         }
     }
 

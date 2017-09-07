@@ -24,14 +24,17 @@
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.Map;
 import java.util.Set;
 
+import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.CollectionUtils.set;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.*;
 
@@ -85,7 +88,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
             methodBraceLevel = 0, storedParen = 0, methodLineNumber = 0;
     boolean shouldContinue = true;
     String  lastString     = null, methodName = null, twoStringsAgo = null;
-    Set<String> currentParameters = set();
+    Map<String, ParameterDataType> currentParameters = map();
     Set<ModelField> parametersWithTypes = set();
 
     @Override
@@ -236,7 +239,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                             methodName, currentAttributes, methodLineNumber,
                             lineNumber, currentParameters, parametersWithTypes);
                     currentAttributes = set();
-                    currentParameters = set();
+                    currentParameters = map();
                     parametersWithTypes = set();
                     methodName = null;
                     currentState = State.BODY;

@@ -28,10 +28,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.swing.JMenuItem;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.remote.PluginClient;
 import org.apache.log4j.Logger;
@@ -107,10 +109,10 @@ public abstract class EndpointsAction extends JMenuItem {
 
                 nodes.add(urlPath);
 
-                Set<String> params = endpoint.getParameters();
+                Map<String, ParameterDataType> params = endpoint.getParameters();
 
                 if (!params.isEmpty()) {
-                    for(String parameter : params){
+                    for(String parameter : params.keySet()){
                         nodes.add(urlPath + "?" + parameter + "=true");
                     }
                 }

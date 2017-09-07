@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsController;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 /**
  * Created by sgerick on 5/5/2015.
@@ -94,7 +96,7 @@ public class RailsEndpointMappings implements EndpointGenerator {
             String urlPath = railsRoute.getUrl();
             Collection<String> httpMethods = railsRoute.getHttpMethods();
             String filePath = "";
-            Collection<String> parameters = list();
+            Map<String, ParameterDataType> parameters = map();
 
             RailsController railsController = getController(railsRoute);
             if (railsController != null) {
@@ -102,7 +104,6 @@ public class RailsEndpointMappings implements EndpointGenerator {
                 filePath = getRelativePath(f);
                 parameters = railsController.getParameters();
                 mappings.add(new RailsEndpoint(filePath, urlPath, httpMethods, parameters));
-//              mappings.add(new RailsEndpoint(urlPath + ".html.erb", urlPath, httpMethods, parameters));
             }
         }
         return mappings;

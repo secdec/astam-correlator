@@ -72,7 +72,7 @@ public abstract class EndpointsButton extends JButton {
                                 endpointPath = endpointPath.replaceAll(GENERIC_INT_SEGMENT, "1");
                                 nodes.add(endpointPath);
 
-                                for (String parameter : endpoint.getParameters()) {
+                                for (String parameter : endpoint.getParameters().keySet()) {
                                     nodes.add(endpointPath + "?" + parameter + "=true");
                                 }
                             }

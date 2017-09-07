@@ -23,10 +23,12 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.ResourceManager;
 import org.junit.Test;
 
 import java.util.Collection;
+import java.util.Map;
 
 /**
  * Created by mac on 8/27/14.
@@ -67,12 +69,12 @@ public class ViewModelParsingTests {
     public void testDirectorySpidering() {
         DotNetModelMappings mappings = getDotNetModelMappings();
 
-        Collection<String> parameters = mappings.getPossibleParametersForModelType("Course").getPossibleParameters();
+        Map<String, ParameterDataType> parameters = mappings.getPossibleParametersForModelType("Course").getPossibleParameters();
         int courseFieldSize = parameters.size();
 
         assert courseFieldSize > 0 : "Got 0 fields for Course.";
 
-        assert parameters.contains("Title") : "Fields didn't contain 'Title'";
+        assert parameters.keySet().contains("Title") : "Fields didn't contain 'Title'";
     }
 
     private DotNetModelMappings getDotNetModelMappings() {
@@ -83,14 +85,14 @@ public class ViewModelParsingTests {
     public void testFieldSpidering() {
         DotNetModelMappings mappings = getDotNetModelMappings();
 
-        Collection<String> parameters = mappings.getPossibleParametersForModelType("Course").getPossibleParameters();
+        Map<String, ParameterDataType> parameters = mappings.getPossibleParametersForModelType("Course").getPossibleParameters();
         int courseFieldSize = parameters.size();
 
         assert courseFieldSize > 0 : "Got 0 fields for Course.";
 
         System.out.println("Got parameters " + parameters);
 
-        assert parameters.contains("Department.Name") : "Fields didn't contain 'Department.Name'";
+        assert parameters.keySet().contains("Department.Name") : "Fields didn't contain 'Department.Name'";
     }
 
     @Test
@@ -128,15 +130,15 @@ public class ViewModelParsingTests {
     public void testMultiValueProperty() {
         DotNetModelMappings mappings = getDotNetModelMappings();
 
-        Collection<String> parameters = mappings.getPossibleParametersForModelType("Student").getPossibleParameters();
+        Map<String, ParameterDataType> parameters = mappings.getPossibleParametersForModelType("Student").getPossibleParameters();
         int courseFieldSize = parameters.size();
 
         assert courseFieldSize > 0 : "Got 0 fields for Course.";
 
         System.out.println("Got parameters " + parameters);
 
-        assert !parameters.contains("Enrollments.EnrollmentID") : "Enrollments.EnrollmentID was found. This is impossible to bind to.";
+        assert !parameters.keySet().contains("Enrollments.EnrollmentID") : "Enrollments.EnrollmentID was found. This is impossible to bind to.";
 
-        assert parameters.contains("Enrollments[0].EnrollmentID") : "Enrollments[0].EnrollmentID";
+        assert parameters.keySet().contains("Enrollments[0].EnrollmentID") : "Enrollments[0].EnrollmentID";
     }
 }

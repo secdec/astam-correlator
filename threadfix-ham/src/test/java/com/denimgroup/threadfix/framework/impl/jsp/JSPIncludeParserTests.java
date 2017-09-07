@@ -79,7 +79,7 @@ public class JSPIncludeParserTests {
             // footer.jsp and init.jsp don't have debug, but all the others should.
             if (!endpoint.getFilePath().equals("/root/footer.jsp") && !endpoint.getFilePath().equals("/root/init.jsp"))
                 assertTrue("Endpoint " + endpoint.getFilePath() + " didn't have the debug parameter",
-                    endpoint.getParameters().contains("debug"));
+                    endpoint.getParameters().keySet().contains("debug"));
         }
     }
 	
