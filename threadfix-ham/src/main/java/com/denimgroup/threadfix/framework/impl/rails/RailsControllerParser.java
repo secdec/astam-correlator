@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsController;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsControllerMethod;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
@@ -212,16 +213,16 @@ public class RailsControllerParser implements EventBasedTokenizer {
                 for (String p : modelMap.get(stringValue)) {
                     String param = stringValue.concat(".").concat(p);
                     if (currentCtrlMethod.getMethodParams() == null
-                            || !currentCtrlMethod.getMethodParams().contains(param)) {
-                        currentCtrlMethod.addMethodParam(param);
+                            || !currentCtrlMethod.getMethodParams().keySet().contains(param)) {
+                        currentCtrlMethod.addMethodParam(param, ParameterDataType.STRING);
                     }
                 }
                 return;
             }
         }
         if (currentCtrlMethod.getMethodParams() == null
-                || !currentCtrlMethod.getMethodParams().contains(stringValue)) {
-            currentCtrlMethod.addMethodParam(stringValue);
+                || !currentCtrlMethod.getMethodParams().keySet().contains(stringValue)) {
+            currentCtrlMethod.addMethodParam(stringValue, ParameterDataType.STRING);
         }
     }
 

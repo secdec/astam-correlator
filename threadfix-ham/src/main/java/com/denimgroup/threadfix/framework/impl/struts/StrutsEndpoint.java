@@ -23,12 +23,13 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
-import com.denimgroup.threadfix.data.entities.ModelFieldSet;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.setFrom;
@@ -39,25 +40,20 @@ public class StrutsEndpoint extends AbstractEndpoint {
     private String urlPath;
 
     private Set<String> methods;
-    private Set<String> parameters;
+    private Map<String, ParameterDataType> parameters;
 
     public StrutsEndpoint(String filePath, String urlPath,
-                          Collection<String> methods, Collection<String> parameters) {
+                          Collection<String> methods, Map<String, ParameterDataType> parameters) {
         this.filePath = filePath;
         this.urlPath = urlPath;
         this.methods = setFrom(methods);
-        this.parameters = setFrom(parameters);
+        this.parameters = parameters;
     }
 
     @Nonnull
     @Override
-    public Set<String> getParameters() {
+    public Map<String, ParameterDataType> getParameters() {
         return parameters;
-    }
-
-    @Override
-    public ModelFieldSet getParametersWithType() {
-        return null;
     }
 
     @Nonnull

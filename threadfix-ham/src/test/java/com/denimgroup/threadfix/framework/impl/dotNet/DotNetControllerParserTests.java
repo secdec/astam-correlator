@@ -160,7 +160,7 @@ public class DotNetControllerParserTests {
 
         assert targetAction != null : "Edit action was null. Can't continue.";
 
-        assert targetAction.parameters.contains("id") : "Parameters didn't contain id.";
+        assert targetAction.parameters.keySet().contains("id") : "Parameters didn't contain id.";
     }
 
     @Test
@@ -171,7 +171,7 @@ public class DotNetControllerParserTests {
 
         assert targetAction != null : "Edit action was null. Can't continue.";
 
-        assert targetAction.parameters.contains("ID") : "Parameters didn't contain id.";
+        assert targetAction.parameters.keySet().contains("ID") : "Parameters didn't contain id.";
     }
 
     @Test
@@ -181,7 +181,7 @@ public class DotNetControllerParserTests {
         assert mappings.getActions().size() == 1 :
                 "Had " + mappings.getActions().size() + " actions, should have had 1.";
 
-        Set<String> parameters = mappings.getActions().get(0).parameters;
+        Set<String> parameters = mappings.getActions().get(0).parameters.keySet();
 
         assert parameters.contains("id") :
                 "Parameters didn't contain id but should have: " + parameters;

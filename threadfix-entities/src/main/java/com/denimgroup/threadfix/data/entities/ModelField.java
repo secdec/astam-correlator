@@ -23,8 +23,6 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.data.entities;
 
-import com.denimgroup.threadfix.data.enums.ModelFieldType;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -33,12 +31,8 @@ public class ModelField {
 	@Nonnull
 	private final String fieldType, parameterKey;
 
-	@Nonnull
-	private final ModelFieldType dataType;
-
 	public ModelField(@Nonnull String fieldType, @Nonnull String methodName) {
 		this.fieldType = fieldType;
-		this.dataType = ModelFieldType.getType(fieldType);
 		this.parameterKey = getParameterKey(methodName);
 	}
 
@@ -55,11 +49,6 @@ public class ModelField {
 		return propertyName;
 	}
 
-
-	@Nonnull
-	public ModelFieldType getDataType(){ return dataType;}
-
-	//TODO: refactor code that uses this. Replace String with enum ModelFieldType.
 	@Nonnull
 	public String getType() {
 		return fieldType;
@@ -70,7 +59,6 @@ public class ModelField {
 		return parameterKey;
 	}
 
-	//TODO: Look into this
 	public boolean isPrimitiveType() {
 		return "Integer".equals(fieldType) || "String".equals(fieldType) || "int".equals(fieldType);
 	}

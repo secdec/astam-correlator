@@ -23,6 +23,8 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.data.entities;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
+
 import javax.annotation.Nonnull;
 import java.util.*;
 
@@ -77,12 +79,12 @@ public class ModelFieldSet implements Iterable<ModelField> {
     }
 
     @Nonnull
-    public Collection<String> getPossibleParameters() {
-        List<String> strings = list();
+    public Map<String, ParameterDataType> getPossibleParameters() {
+        Map<String, ParameterDataType> parameters = map();
         for (ModelField field : fieldSet) {
-            strings.add(field.getParameterKey());
+            parameters.put(field.getParameterKey(), ParameterDataType.getType(field.getType()));
         }
-        return strings;
+        return parameters;
     }
 
     @Override

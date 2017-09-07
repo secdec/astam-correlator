@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.struts;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
@@ -40,6 +41,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class StrutsEndpointMappings implements EndpointGenerator {
 
@@ -132,7 +134,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 String filePath = FilePathUtils.getRelativePath(actionFile, rootDirectory);
                 Set<ModelField> fieldMappings = entityMappings.getPossibleParametersForModelType(modelName).getFieldSet();
                 List<String> httpMethods = list();
-                List<String> parameters = list();
+                Map<String, ParameterDataType> parameters = map();
 
                 String urlPath = sbUrl.toString();
 
@@ -140,7 +142,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                     for (String ep : entityParser.getMethods()) {
                         urlPath = sbUrl.toString();
                         httpMethods = list();
-                        parameters = list();
+                        parameters = map();
                         if ("execute".equals(ep)) {
                             urlPath = urlPath.replace("!*", "");
                             urlPath = urlPath.replace("*", "");
@@ -150,7 +152,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                             urlPath = urlPath.replace("*", ep);
                             httpMethods.add("POST");
                             for (ModelField mf : fieldMappings) {
-                                parameters.add(mf.getParameterKey());
+                                parameters.put(mf.getParameterKey(), ParameterDataType.getType(mf.getType()));
                             }
                             endpoints.add(new StrutsEndpoint(filePath, urlPath, httpMethods, parameters));
                         }
@@ -158,7 +160,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 } else {
                     httpMethods.add("POST");
                     for (ModelField mf : fieldMappings) {
-                        parameters.add(mf.getParameterKey());
+                        parameters.put(mf.getParameterKey(), ParameterDataType.getType(mf.getType()));
                     }
                     endpoints.add(new StrutsEndpoint(filePath, urlPath, httpMethods, parameters));
                 }

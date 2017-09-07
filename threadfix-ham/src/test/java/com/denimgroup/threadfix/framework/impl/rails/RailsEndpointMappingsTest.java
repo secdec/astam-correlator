@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.TestConstants;
 import org.junit.Test;
@@ -30,6 +31,7 @@ import org.junit.Test;
 import java.io.File;
 import java.util.*;
 
+import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.CollectionUtils.set;
 
 /**
@@ -56,7 +58,11 @@ public class RailsEndpointMappingsTest {
                 "/app/controllers/password_resets_controller.rb",   // filePath
                 "/forgot_password",                                 // urlPath
                 set("GET"),
-                set("confirm_password", "email", "token", "password", "user")
+                map("confirm_password", ParameterDataType.STRING,
+                        "email", ParameterDataType.STRING,
+                        "token", ParameterDataType.STRING,
+                        "password", ParameterDataType.STRING,
+                        "user", ParameterDataType.STRING)
             );
 
         confirmEndpointExistsIn(testEndpoint, endpoints);
@@ -68,13 +74,13 @@ public class RailsEndpointMappingsTest {
         String filePath = testEndpoint.getFilePath();
         String urlPath = testEndpoint.getUrlPath();
         Set<String> httpMethods = testEndpoint.getHttpMethods();
-        Set<String> parameters = testEndpoint.getParameters();
+        Map<String, ParameterDataType> parameters = testEndpoint.getParameters();
 
         for (Endpoint endpoint : endpoints) {
             if (filePath.equals(endpoint.getFilePath())
                     && urlPath.equals(endpoint.getUrlPath())
                     && endpoint.getHttpMethods().containsAll(httpMethods)
-                    && endpoint.getParameters().containsAll(parameters) ) {
+                    && endpoint.getParameters().keySet().containsAll(parameters.keySet())) {
                 endpointFound = true;
                 break;
             }

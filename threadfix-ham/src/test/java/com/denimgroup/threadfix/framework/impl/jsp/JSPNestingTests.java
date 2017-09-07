@@ -38,7 +38,7 @@ public class JSPNestingTests {
 
         for (Endpoint endpoint : mappings) {
             assertTrue("param1 was missing from " + endpoint.getFilePath(),
-                    endpoint.getParameters().contains("param1"));
+                    endpoint.getParameters().keySet().contains("param1"));
         }
     }
 
@@ -49,7 +49,7 @@ public class JSPNestingTests {
 
         for (Endpoint endpoint : mappings) {
             assertTrue("param1 was missing from " + endpoint.getFilePath(),
-                    endpoint.getParameters().contains("test"));
+                    endpoint.getParameters().keySet().contains("test"));
         }
     }
 

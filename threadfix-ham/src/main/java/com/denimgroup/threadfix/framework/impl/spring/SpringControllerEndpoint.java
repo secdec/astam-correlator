@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.framework.impl.spring;
 import com.denimgroup.threadfix.data.entities.AuthenticationRequired;
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.ModelFieldSet;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.util.RegexUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
@@ -34,6 +35,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
@@ -47,7 +49,9 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 	@Nonnull
     private final String rawFilePath, rawUrlPath;
 	@Nonnull
-    private final Set<String> methods, parameters, pathParameters;
+    private final Set<String> methods, pathParameters;
+	@Nonnull
+    private final Map<String, ParameterDataType> parameters;
 	private final int startLineNumber, endLineNumber;
 	
 	@Nullable
@@ -65,7 +69,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     public SpringControllerEndpoint(@Nonnull String filePath,
                                     @Nonnull String urlPath,
                                     @Nonnull Collection<String> methods,
-                                    @Nonnull Collection<String> parameters,
+                                    @Nonnull Map<String, ParameterDataType> parameters,
                                     @Nonnull Collection<String> pathParameters,
                                     int startLineNumber,
                                     int endLineNumber,
@@ -78,7 +82,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 
         this.modelObject = modelObject;
 
-        this.parameters = setFrom(parameters);
+        this.parameters = parameters;
         this.pathParameters = setFrom(pathParameters);
         this.methods = getCleanedSet(methods);
     }
@@ -93,7 +97,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
                                  @Nullable SpringDataBinderParser globalDataBinderParser) {
         if (modelObject != null) {
             ModelFieldSet fields = entityMappings.getPossibleParametersForModelType(modelObject);
-            parameters.addAll(fields.getPossibleParameters());
+            parameters.putAll(fields.getPossibleParameters());
         }
 
         Set<String> allowedParams = null, disallowedParams = null;
@@ -117,13 +121,15 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         }
 
         if (disallowedParams != null) {
-            parameters.removeAll(disallowedParams);
+            parameters.keySet().removeAll(disallowedParams);
         }
         if (allowedParams != null) {
-            parameters.retainAll(allowedParams);
+            parameters.keySet().retainAll(allowedParams);
         }
 
-        parameters.addAll(pathParameters);
+        for (String param : pathParameters) {
+            parameters.put(param, ParameterDataType.STRING);
+        }
     }
 
     @Nonnull
@@ -146,14 +152,9 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 	
 	@Nonnull
     @Override
-	public Set<String> getParameters() {
+	public Map<String, ParameterDataType> getParameters() {
 		return parameters;
 	}
-
-    @Override
-    public ModelFieldSet getParametersWithType() {
-        return null;
-    }
 
     @Nonnull
     public String getCleanedFilePath() {

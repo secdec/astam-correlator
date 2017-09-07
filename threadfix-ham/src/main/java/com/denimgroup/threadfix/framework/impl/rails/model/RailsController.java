@@ -23,10 +23,14 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails.model;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
+
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 /**
  * Created by sgerick on 4/30/2015.
@@ -71,11 +75,11 @@ public class RailsController {
         this.controllerMethods.add(controllerMethod);
     }
 
-    public List<String> getParameters() {
-        List<String> p = list();
+    public Map<String, ParameterDataType> getParameters() {
+        Map<String, ParameterDataType> p = map();
         for (RailsControllerMethod rcm : controllerMethods) {
             if (rcm.getMethodParams() != null)
-                p.addAll(rcm.getMethodParams());
+                p.putAll(rcm.getMethodParams());
         }
         return p;
     }

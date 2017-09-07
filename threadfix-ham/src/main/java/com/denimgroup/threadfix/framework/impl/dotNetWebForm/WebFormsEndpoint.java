@@ -23,7 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
-import com.denimgroup.threadfix.data.entities.ModelFieldSet;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
@@ -156,13 +156,13 @@ public class WebFormsEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Set<String> getParameters() {
-        return map.keySet();
-    }
+    public Map<String, ParameterDataType> getParameters() {
+        Map<String, ParameterDataType> parameterMap = map();
 
-    @Override
-    public ModelFieldSet getParametersWithType() {
-        return null;
+        for (String param : map.keySet())
+            parameterMap.put(param, ParameterDataType.STRING);
+
+        return parameterMap;
     }
 
     @Nonnull

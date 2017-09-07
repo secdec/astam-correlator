@@ -111,12 +111,12 @@ public class SpringDataBinderTests {
             endpoint.setDataBinderParser(dataBinderParser);
             endpoint.expandParameters(threadfixMappings, null);
 
-            for (String parameter : endpoint.getParameters()) {
+            for (String parameter : endpoint.getParameters().keySet()) {
                 assertTrue(parameter + " wasn't included in set. Endpoint: " + endpoint,
                         acceptableParameters.contains(parameter));
             }
-            assertTrue("Parameters didn't include appId", endpoint.getParameters().contains("appId"));
-            assertTrue("Parameters didn't include orgId", endpoint.getParameters().contains("orgId"));
+            assertTrue("Parameters didn't include appId", endpoint.getParameters().keySet().contains("appId"));
+            assertTrue("Parameters didn't include orgId", endpoint.getParameters().keySet().contains("orgId"));
         }
     }
 }

@@ -18,6 +18,8 @@
 
 package com.denimgroup.threadfix.framework.impl.django;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
+
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +33,7 @@ public class DjangoRoute {
     private String url;
     private String viewPath;
     private List<String> httpMethods = list();
-    private List<String> parameters = list();
+    private Map<String, ParameterDataType> parameters = map();
 
     public DjangoRoute(String url, String viewPath) {
         this.url = url;
@@ -50,7 +52,7 @@ public class DjangoRoute {
         return httpMethods;
     }
 
-    public List<String> getParameters() {
+    public Map<String, ParameterDataType> getParameters() {
         return parameters;
     }
 
@@ -58,7 +60,7 @@ public class DjangoRoute {
         httpMethods.add(httpMethod);
     }
 
-    public void addParameter(String parameter) {
-        parameters.add(parameter);
+    public void addParameter(String parameter, ParameterDataType dataType) {
+        parameters.put(parameter, dataType);
     }
 }

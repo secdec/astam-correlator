@@ -18,6 +18,7 @@
 
 package com.denimgroup.threadfix.framework.impl.django;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
@@ -87,7 +88,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             String filePath = route.getViewPath();
 
             Collection<String> httpMethods = route.getHttpMethods();
-            Collection<String> parameters = route.getParameters();
+            Map<String, ParameterDataType> parameters = route.getParameters();
             mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters));
         }
         return mappings;

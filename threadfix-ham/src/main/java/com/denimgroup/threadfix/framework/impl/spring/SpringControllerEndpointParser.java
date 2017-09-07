@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.spring;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
@@ -32,10 +33,12 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 // TODO recognize String variables
 // TODO support * values:
@@ -60,8 +63,9 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
     private List<String>
             classMethods  = list(),
             methodMethods = list(),
-            currentParameters = list(),
             currentPathParameters = list();
+    @Nonnull
+    private Map<String, ParameterDataType> currentParameters = map();
 
     private static final String
             VALUE           = "value",
@@ -174,7 +178,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                     if (isPathParameter) {
                         currentPathParameters.add(stringValue);
                     } else {
-                        currentParameters.add(stringValue);
+                        currentParameters.put(stringValue, ParameterDataType.STRING);
                     }
                     setState(SignatureState.START);
                 } else if ("value".equals(stringValue)) {
@@ -192,7 +196,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 break;
             case VALUE:
                 if (type == DOUBLE_QUOTE) {
-                    currentParameters.add(stringValue);
+                    currentParameters.put(stringValue, ParameterDataType.STRING);
                     setState(SignatureState.START);
                 } else if (type != EQUALS) {
                     setState(SignatureState.GET_VARIABLE_NAME);
@@ -201,7 +205,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             case GET_VARIABLE_NAME:
                 if (openParenCount == -1) { // this means we're not in an annotation
                     if (type == COMMA || type == CLOSE_PAREN) {
-                        currentParameters.add(lastValue);
+                        currentParameters.put(lastValue, ParameterDataType.STRING);
                         setState(SignatureState.START);
                     } else {
                         lastValue = stringValue;
@@ -406,7 +410,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
         methodMethods = list();
         startLineNumber = -1;
         curlyBraceCount = 0;
-        currentParameters = list();
+        currentParameters = map();
         currentPathParameters = list();
         currentModelObject = null;
     }

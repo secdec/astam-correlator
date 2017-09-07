@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.TestConstants;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
@@ -31,6 +32,7 @@ import org.junit.Test;
 
 import java.io.File;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.denimgroup.threadfix.framework.impl.dotNetWebForm.WebFormUtilities.getSampleProjects;
@@ -47,8 +49,8 @@ public class WebFormsEndpointGeneratorTests {
         List<Endpoint> endpoints = endpointGenerator.generateEndpoints();
         assert !endpoints.isEmpty() : "Got empty endpoints for " + TestConstants.WEB_FORMS_SAMPLE;
 
-        Set<String> parameters = endpoints.get(0).getParameters();
-        assert parameters.contains("newitem") :
+        Map<String, ParameterDataType> parameters = endpoints.get(0).getParameters();
+        assert parameters.keySet().contains("newitem") :
             "Parameters didn't contain newitem: " + parameters;
     }
 
