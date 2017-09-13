@@ -54,8 +54,7 @@ public class RailsControllerParser implements EventBasedTokenizer {
 
     private Deque<String> tokenQueue;
     private boolean _continue;
-
-    private Map<String, List<String>> modelMap;
+    private Map<String, Map<String, ParameterDataType>> modelMap;
     private List<RailsController> railsControllers;
 
     private RailsController currentRailsController;
@@ -208,13 +207,15 @@ public class RailsControllerParser implements EventBasedTokenizer {
 
     private void addMethodParam(String stringValue) {
         for (String s : tokenQueue) {   //  .new .create, Model.attr1, Model.attr2
-            if ((s.endsWith(".new") || s.endsWith(".create"))
+            if (s != null && stringValue != null && (s.endsWith(".new") || s.endsWith(".create"))
                     && s.toLowerCase().startsWith(stringValue)) {
-                for (String p : modelMap.get(stringValue)) {
-                    String param = stringValue.concat(".").concat(p);
+                Map<String, ParameterDataType> modelParams = modelMap.get(stringValue);
+                if(modelParams == null ) return;
+                for (Map.Entry<String, ParameterDataType>  p : modelParams.entrySet()) {
+                    String param = stringValue.concat(".").concat(p.getKey());
                     if (currentCtrlMethod.getMethodParams() == null
                             || !currentCtrlMethod.getMethodParams().keySet().contains(param)) {
-                        currentCtrlMethod.addMethodParam(param, ParameterDataType.STRING);
+                        currentCtrlMethod.addMethodParam(param, findTypeFromMatch(param));
                     }
                 }
                 return;
@@ -222,8 +223,31 @@ public class RailsControllerParser implements EventBasedTokenizer {
         }
         if (currentCtrlMethod.getMethodParams() == null
                 || !currentCtrlMethod.getMethodParams().keySet().contains(stringValue)) {
-            currentCtrlMethod.addMethodParam(stringValue, ParameterDataType.STRING);
+            currentCtrlMethod.addMethodParam(stringValue, findTypeFromMatch(stringValue));
         }
+    }
+
+    private ParameterDataType findTypeFromMatch(String parameterName){
+        String controllerName = currentRailsController.getControllerName().toLowerCase();
+        String modelName = controllerName.substring(0, controllerName.length() - 1 );
+        ParameterDataType paramType = ParameterDataType.STRING;
+
+        if(modelMap.containsKey(modelName)){
+            Map<String, ParameterDataType> modelParamMap = modelMap.get(modelName);
+
+            if(modelParamMap.containsKey(parameterName)){
+                return modelParamMap.get(parameterName);
+            }
+
+            if(parameterName.contains(".")){
+                String shortParam = parameterName.substring(parameterName.indexOf(".") + 1, parameterName.length());
+                if(modelParamMap.containsKey(shortParam)){
+                    return modelParamMap.get(shortParam);
+                }
+            }
+        }
+
+        return paramType;
     }
 
 }

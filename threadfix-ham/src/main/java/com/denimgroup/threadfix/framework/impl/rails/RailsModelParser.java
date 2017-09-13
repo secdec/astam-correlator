@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -31,10 +32,12 @@ import org.apache.commons.io.FileUtils;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.StreamTokenizer;
-import java.util.*;
+import java.util.Collection;
+import java.util.Map;
 
-import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.data.enums.ParameterDataType.INTEGER;
+import static com.denimgroup.threadfix.data.enums.ParameterDataType.STRING;
 
 /**
  * Created by sgerick on 4/23/2015.
@@ -44,12 +47,13 @@ public class RailsModelParser implements EventBasedTokenizer {
     private static final SanitizedLogger LOG = new SanitizedLogger("RailsParser");
 
     private enum ModelState {
-        INIT, CLASS, ATTR_ACCESSOR
+        INIT, CLASS, ATTR_ACCESSOR, VALIDATES
     }
 
-    private Map<String, List<String>> models = map();
+    private Map<String, Map<String, ParameterDataType>> models = map();
     private String modelName = "";
-    private List<String> modelAttributes = list();
+    //private List<String> modelAttributes = list();
+    private Map<String, ParameterDataType> modelAttribs = map();
 
     private ModelState currentModelState = ModelState.INIT;
 
@@ -69,10 +73,11 @@ public class RailsModelParser implements EventBasedTokenizer {
         RailsModelParser parser = new RailsModelParser();
         for (File rubyFile : rubyFiles) {
             parser.modelName = "";
-            parser.modelAttributes = new ArrayList<String>();
+           // parser.modelAttributes = new ArrayList<String>();
+            parser.modelAttribs = map();
             EventBasedTokenizerRunner.runRails(rubyFile, parser);
             if (!parser.modelName.isEmpty()) {
-                parser.models.put(parser.modelName, parser.modelAttributes);
+                parser.models.put(parser.modelName, parser.modelAttribs);
             }
         }
 
@@ -104,6 +109,9 @@ public class RailsModelParser implements EventBasedTokenizer {
             case ATTR_ACCESSOR:
                 processAttrAccessible(type, stringValue, charValue);
                 break;
+            case VALIDATES:
+                processValidation(type, stringValue, charValue);
+                break;
         }
 
         if (stringValue != null) {
@@ -117,6 +125,8 @@ public class RailsModelParser implements EventBasedTokenizer {
             } else if (s.equals("attr_accessor")) {
                 currentModelState = ModelState.ATTR_ACCESSOR;
 
+            } else if (s.equals("validates")){
+                currentModelState = ModelState.VALIDATES;
             }
         }
     }
@@ -133,7 +143,8 @@ public class RailsModelParser implements EventBasedTokenizer {
         if (type == StreamTokenizer.TT_WORD && stringValue.startsWith(":")
                                             && stringValue.length() > 1) {
             stringValue = stringValue.substring(1);
-            modelAttributes.add(stringValue);
+            //modelAttributes.add(stringValue);
+            modelAttribs.put(stringValue, STRING);
             return;
         } else if (",".equals(charValue)) {
             return;
@@ -141,6 +152,75 @@ public class RailsModelParser implements EventBasedTokenizer {
             currentModelState = ModelState.INIT;
             return;
         }
+    }
+
+    private enum ValidationState { START, FIELD, NUMERICALITY, OPEN_BRACKET, ONLY_INTEGER ,END}
+
+    private ValidationState currValidationState = ValidationState.START;
+    private String fieldName = null;
+
+    private void processValidation(int type, String stringValue, String charValue){
+
+        if(type == 44){
+            return;
+        }
+
+        switch (currValidationState){
+            case START:
+                if (type == StreamTokenizer.TT_WORD && stringValue.startsWith(":")
+                        && stringValue.length() > 1) {
+                    fieldName = stringValue.substring(1);
+                    currValidationState = ValidationState.FIELD;
+                }
+
+                break;
+            case FIELD: // the parser will break here if validates is multiline
+                if(type == StreamTokenizer.TT_WORD && stringValue.equals("numericality:")) {
+                    currValidationState = ValidationState.NUMERICALITY;
+                }
+                //TODO: exit validation if end of statement. this can be multiline
+
+                break;
+            case NUMERICALITY:
+                if(type == StreamTokenizer.TT_WORD && (stringValue.equals("true") || stringValue.equals("false"))){
+                    ParameterDataType dataType = stringValue.equals("true") ? INTEGER : STRING;
+                    modelAttribs.put(fieldName, dataType);
+                    currValidationState = ValidationState.END;
+
+                } else if (type == 123){
+                    currValidationState = ValidationState.OPEN_BRACKET;
+                } else {
+                    currValidationState = ValidationState.END;
+                }
+
+                break;
+            case OPEN_BRACKET:
+                if (type == StreamTokenizer.TT_WORD && stringValue.equals("only_integer:")){
+                    currValidationState = ValidationState.ONLY_INTEGER;
+                } else if (type == 125){
+                    currValidationState = ValidationState.END;
+                }
+
+                break;
+            case ONLY_INTEGER:
+                if(type == StreamTokenizer.TT_WORD && stringValue.length() > 1){
+                    ParameterDataType dataType = stringValue.equals("true") ? INTEGER : STRING;
+                    modelAttribs.put(fieldName, dataType);
+                    currValidationState = ValidationState.END;
+                } else if (type == 125){
+                    currValidationState = ValidationState.END;
+                }
+
+                break;
+            case END:
+                fieldName = null;
+                currValidationState = ValidationState.START;
+                currentModelState = ModelState.INIT;
+               break;
+
+        }
+
+
     }
 
 }
