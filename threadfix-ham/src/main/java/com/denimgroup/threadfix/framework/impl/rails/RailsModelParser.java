@@ -53,7 +53,7 @@ public class RailsModelParser implements EventBasedTokenizer {
     private Map<String, Map<String, ParameterDataType>> models = map();
     private String modelName = "";
     //private List<String> modelAttributes = list();
-    private Map<String, ParameterDataType> modelAttribs = map();
+    private Map<String, ParameterDataType> modelAttributes = map();
 
     private ModelState currentModelState = ModelState.INIT;
 
@@ -73,11 +73,10 @@ public class RailsModelParser implements EventBasedTokenizer {
         RailsModelParser parser = new RailsModelParser();
         for (File rubyFile : rubyFiles) {
             parser.modelName = "";
-           // parser.modelAttributes = new ArrayList<String>();
-            parser.modelAttribs = map();
-            EventBasedTokenizerRunner.runRails(rubyFile, parser);
+            parser.modelAttributes = map();
+            EventBasedTokenizerRunner.runRails(rubyFile, true, parser);
             if (!parser.modelName.isEmpty()) {
-                parser.models.put(parser.modelName, parser.modelAttribs);
+                parser.models.put(parser.modelName, parser.modelAttributes);
             }
         }
 
@@ -141,10 +140,9 @@ public class RailsModelParser implements EventBasedTokenizer {
 
     private void processAttrAccessible(int type, String stringValue, String charValue) {
         if (type == StreamTokenizer.TT_WORD && stringValue.startsWith(":")
-                                            && stringValue.length() > 1) {
+                && stringValue.length() > 1) {
             stringValue = stringValue.substring(1);
-            //modelAttributes.add(stringValue);
-            modelAttribs.put(stringValue, STRING);
+            modelAttributes.put(stringValue, STRING);
             return;
         } else if (",".equals(charValue)) {
             return;
@@ -156,14 +154,25 @@ public class RailsModelParser implements EventBasedTokenizer {
 
     private enum ValidationState { START, FIELD, NUMERICALITY, OPEN_BRACKET, ONLY_INTEGER ,END}
 
+    private static String
+            NUMERICALITY = "numericality:",
+            VALIDATES = "validates",
+            TRUE = "true",
+            FALSE = "false",
+            ONLY_INTEGER = "only_integer:";
+
+
     private ValidationState currValidationState = ValidationState.START;
     private String fieldName = null;
+    private String oneStringAgo = null;
+    private int oneTypeAgo;
 
     private void processValidation(int type, String stringValue, String charValue){
 
-        if(type == 44){
-            return;
+        if(type == StreamTokenizer.TT_EOL && oneTypeAgo == StreamTokenizer.TT_EOL){
+            currValidationState = ValidationState.END;
         }
+
 
         switch (currValidationState){
             case START:
@@ -174,17 +183,21 @@ public class RailsModelParser implements EventBasedTokenizer {
                 }
 
                 break;
-            case FIELD: // the parser will break here if validates is multiline
-                if(type == StreamTokenizer.TT_WORD && stringValue.equals("numericality:")) {
+            case FIELD:
+                if(type == StreamTokenizer.TT_WORD && NUMERICALITY.equals(stringValue)) {
                     currValidationState = ValidationState.NUMERICALITY;
-                }
-                //TODO: exit validation if end of statement. this can be multiline
+                } else if ((type == StreamTokenizer.TT_WORD && VALIDATES.equals(stringValue))){
+                currValidationState = ValidationState.END;
+            }
 
                 break;
             case NUMERICALITY:
-                if(type == StreamTokenizer.TT_WORD && (stringValue.equals("true") || stringValue.equals("false"))){
-                    ParameterDataType dataType = stringValue.equals("true") ? INTEGER : STRING;
-                    modelAttribs.put(fieldName, dataType);
+                if(type == StreamTokenizer.TT_WORD && NUMERICALITY.equals(oneStringAgo)
+                        && (TRUE.equals(stringValue) || FALSE.equals(stringValue))){
+
+                    //if numericality in this case is set to true, the type can be an integer or float
+                    ParameterDataType dataType = TRUE.equals(stringValue) ? INTEGER : STRING;
+                    modelAttributes.put(fieldName, dataType);
                     currValidationState = ValidationState.END;
 
                 } else if (type == 123){
@@ -195,7 +208,7 @@ public class RailsModelParser implements EventBasedTokenizer {
 
                 break;
             case OPEN_BRACKET:
-                if (type == StreamTokenizer.TT_WORD && stringValue.equals("only_integer:")){
+                if (type == StreamTokenizer.TT_WORD && ONLY_INTEGER.equals(stringValue)){
                     currValidationState = ValidationState.ONLY_INTEGER;
                 } else if (type == 125){
                     currValidationState = ValidationState.END;
@@ -203,9 +216,10 @@ public class RailsModelParser implements EventBasedTokenizer {
 
                 break;
             case ONLY_INTEGER:
-                if(type == StreamTokenizer.TT_WORD && stringValue.length() > 1){
-                    ParameterDataType dataType = stringValue.equals("true") ? INTEGER : STRING;
-                    modelAttribs.put(fieldName, dataType);
+                if(type == StreamTokenizer.TT_WORD && ONLY_INTEGER.equals(oneStringAgo)){
+
+                    ParameterDataType dataType = TRUE.equals(stringValue) ? INTEGER : STRING;
+                    modelAttributes.put(fieldName, dataType);
                     currValidationState = ValidationState.END;
                 } else if (type == 125){
                     currValidationState = ValidationState.END;
@@ -214,12 +228,21 @@ public class RailsModelParser implements EventBasedTokenizer {
                 break;
             case END:
                 fieldName = null;
+                oneStringAgo = null;
+                oneTypeAgo = 0;
                 currValidationState = ValidationState.START;
                 currentModelState = ModelState.INIT;
-               break;
+                break;
 
         }
 
+        if(currValidationState != ValidationState.END) {
+            if (type == StreamTokenizer.TT_WORD) {
+                oneStringAgo = stringValue;
+            }
+
+            oneTypeAgo = type;
+        }
 
     }
 

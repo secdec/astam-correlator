@@ -109,7 +109,7 @@ public class EventBasedTokenizerRunner {
 		}
 	}
 
-    public static void runRails(@Nullable File file, @Nonnull EventBasedTokenizer... eventBasedTokenizers ) {
+    public static void runRails(@Nullable File file,boolean eolEnabled, @Nonnull EventBasedTokenizer... eventBasedTokenizers ) {
         if (file != null && file.exists() && file.isFile()) {
 
             Reader reader = null;
@@ -118,7 +118,7 @@ public class EventBasedTokenizerRunner {
                 reader = new InputStreamReader(new FileInputStream(file), "UTF-8");
 
                 StreamTokenizer tokenizer = new StreamTokenizer(reader);
-                tokenizer.eolIsSignificant(false);
+                tokenizer.eolIsSignificant(eolEnabled);
                 tokenizer.wordChars(':',':');
                 tokenizer.wordChars('_','_');
                 tokenizer.quoteChar('/');

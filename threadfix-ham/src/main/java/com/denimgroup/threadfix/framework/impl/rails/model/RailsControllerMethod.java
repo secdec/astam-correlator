@@ -25,10 +25,8 @@ package com.denimgroup.threadfix.framework.impl.rails.model;
 
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 
-import java.util.List;
 import java.util.Map;
 
-import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
 /**
@@ -51,6 +49,8 @@ public class RailsControllerMethod {
     }
 
     public void addMethodParam(String methodParam, ParameterDataType dataType) {
+        if (methodParam == null) return;
+
         if (this.methodParams == null)
             this.methodParams = map();
         this.methodParams.put(methodParam, dataType);

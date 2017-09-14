@@ -32,6 +32,7 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -88,7 +89,7 @@ public class RailsControllerParser implements EventBasedTokenizer {
             parser.currentCtrlMethod = null;
             parser.currentParamName = null;
 
-            EventBasedTokenizerRunner.runRails(rubyFile, parser);
+            EventBasedTokenizerRunner.runRails(rubyFile, false, parser);
 
             if (parser.currentRailsController != null
                     && parser.currentCtrlMethod != null
@@ -221,28 +222,44 @@ public class RailsControllerParser implements EventBasedTokenizer {
                 return;
             }
         }
-        if (currentCtrlMethod.getMethodParams() == null
-                || !currentCtrlMethod.getMethodParams().keySet().contains(stringValue)) {
+        if (currentCtrlMethod != null && (currentCtrlMethod.getMethodParams() == null
+                || !currentCtrlMethod.getMethodParams().keySet().contains(stringValue))) {
             currentCtrlMethod.addMethodParam(stringValue, findTypeFromMatch(stringValue));
         }
     }
 
     private ParameterDataType findTypeFromMatch(String parameterName){
-        String controllerName = currentRailsController.getControllerName().toLowerCase();
-        String modelName = controllerName.substring(0, controllerName.length() - 1 );
         ParameterDataType paramType = ParameterDataType.STRING;
+        String controllerName = currentRailsController.getControllerName().toLowerCase();
+        String modelName = null;
 
-        if(modelMap.containsKey(modelName)){
+        if (controllerName.endsWith("s")){
+            modelName = controllerName.substring(0, controllerName.length() - 1 );
+        }
+
+        if(modelName != null && modelMap.containsKey(modelName)){
             Map<String, ParameterDataType> modelParamMap = modelMap.get(modelName);
 
             if(modelParamMap.containsKey(parameterName)){
                 return modelParamMap.get(parameterName);
             }
 
-            if(parameterName.contains(".")){
-                String shortParam = parameterName.substring(parameterName.indexOf(".") + 1, parameterName.length());
-                if(modelParamMap.containsKey(shortParam)){
-                    return modelParamMap.get(shortParam);
+           if(StringUtils.contains(parameterName, ".")){
+                parameterName = parameterName.substring(parameterName.indexOf(".") + 1, parameterName.length());
+                if(modelParamMap.containsKey(parameterName)){
+                    return modelParamMap.get(parameterName);
+                }
+            }
+        }
+
+        //check if the param is an attribute of another model
+        if(StringUtils.contains(parameterName, ".")){
+            modelName = parameterName.substring(0, parameterName.indexOf("."));
+            if(modelMap.containsKey(modelName)){
+                Map<String, ParameterDataType> modelParamMap = modelMap.get(modelName);
+                parameterName = parameterName.substring(parameterName.indexOf(".") + 1, parameterName.length());
+                if(modelParamMap.containsKey(parameterName)){
+                    return modelParamMap.get(parameterName);
                 }
             }
         }
