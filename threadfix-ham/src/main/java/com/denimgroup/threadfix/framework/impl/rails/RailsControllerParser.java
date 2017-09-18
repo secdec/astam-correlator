@@ -32,6 +32,7 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -54,8 +55,7 @@ public class RailsControllerParser implements EventBasedTokenizer {
 
     private Deque<String> tokenQueue;
     private boolean _continue;
-
-    private Map<String, List<String>> modelMap;
+    private Map<String, Map<String, ParameterDataType>> modelMap;
     private List<RailsController> railsControllers;
 
     private RailsController currentRailsController;
@@ -89,7 +89,7 @@ public class RailsControllerParser implements EventBasedTokenizer {
             parser.currentCtrlMethod = null;
             parser.currentParamName = null;
 
-            EventBasedTokenizerRunner.runRails(rubyFile, parser);
+            EventBasedTokenizerRunner.runRails(rubyFile, false, parser);
 
             if (parser.currentRailsController != null
                     && parser.currentCtrlMethod != null
@@ -208,22 +208,63 @@ public class RailsControllerParser implements EventBasedTokenizer {
 
     private void addMethodParam(String stringValue) {
         for (String s : tokenQueue) {   //  .new .create, Model.attr1, Model.attr2
-            if ((s.endsWith(".new") || s.endsWith(".create"))
+            if (s != null && stringValue != null && (s.endsWith(".new") || s.endsWith(".create"))
                     && s.toLowerCase().startsWith(stringValue)) {
-                for (String p : modelMap.get(stringValue)) {
-                    String param = stringValue.concat(".").concat(p);
+                Map<String, ParameterDataType> modelParams = modelMap.get(stringValue);
+                if(modelParams == null ) return;
+                for (Map.Entry<String, ParameterDataType>  p : modelParams.entrySet()) {
+                    String param = stringValue.concat(".").concat(p.getKey());
                     if (currentCtrlMethod.getMethodParams() == null
                             || !currentCtrlMethod.getMethodParams().keySet().contains(param)) {
-                        currentCtrlMethod.addMethodParam(param, ParameterDataType.STRING);
+                        currentCtrlMethod.addMethodParam(param, findTypeFromMatch(param));
                     }
                 }
                 return;
             }
         }
-        if (currentCtrlMethod.getMethodParams() == null
-                || !currentCtrlMethod.getMethodParams().keySet().contains(stringValue)) {
-            currentCtrlMethod.addMethodParam(stringValue, ParameterDataType.STRING);
+        if (currentCtrlMethod != null && (currentCtrlMethod.getMethodParams() == null
+                || !currentCtrlMethod.getMethodParams().keySet().contains(stringValue))) {
+            currentCtrlMethod.addMethodParam(stringValue, findTypeFromMatch(stringValue));
         }
+    }
+
+    private ParameterDataType findTypeFromMatch(String parameterName){
+        ParameterDataType paramType = ParameterDataType.STRING;
+        String controllerName = currentRailsController.getControllerName().toLowerCase();
+        String modelName = null;
+
+        if (controllerName.endsWith("s")){
+            modelName = controllerName.substring(0, controllerName.length() - 1 );
+        }
+
+        if(modelName != null && modelMap.containsKey(modelName)){
+            Map<String, ParameterDataType> modelParamMap = modelMap.get(modelName);
+
+            if(modelParamMap.containsKey(parameterName)){
+                return modelParamMap.get(parameterName);
+            }
+
+           if(StringUtils.contains(parameterName, ".")){
+                parameterName = parameterName.substring(parameterName.indexOf(".") + 1, parameterName.length());
+                if(modelParamMap.containsKey(parameterName)){
+                    return modelParamMap.get(parameterName);
+                }
+            }
+        }
+
+        //check if the param is an attribute of another model
+        if(StringUtils.contains(parameterName, ".")){
+            modelName = parameterName.substring(0, parameterName.indexOf("."));
+            if(modelMap.containsKey(modelName)){
+                Map<String, ParameterDataType> modelParamMap = modelMap.get(modelName);
+                parameterName = parameterName.substring(parameterName.indexOf(".") + 1, parameterName.length());
+                if(modelParamMap.containsKey(parameterName)){
+                    return modelParamMap.get(parameterName);
+                }
+            }
+        }
+
+        return paramType;
     }
 
 }

@@ -32,8 +32,10 @@ import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.io.StreamTokenizer;
+import java.util.Map;
+import java.util.Stack;
 
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
@@ -56,7 +58,7 @@ public class RailsRoutesParser implements EventBasedTokenizer {
         }
 
         RailsRoutesParser parser = new RailsRoutesParser();
-        EventBasedTokenizerRunner.runRails(file, parser);
+        EventBasedTokenizerRunner.runRails(file, false, parser);
         return parser.mappings;
     }
 
