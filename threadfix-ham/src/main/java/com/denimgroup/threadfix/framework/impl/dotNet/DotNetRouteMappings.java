@@ -81,6 +81,11 @@ public class DotNetRouteMappings {
     }
 
 
+    public void importFrom(DotNetRouteMappings otherMappings)
+    {
+        routes.addAll(otherMappings.routes);
+    }
+
 
     public void addRoute(String name, String url,String area, String controller, String action, String parameter) {
         ConcreteRoute defaultRoute = controller != null && action != null ?
@@ -91,6 +96,7 @@ public class DotNetRouteMappings {
 
     public MapRoute getMatchingMapRoute(boolean hasAreaInMappings, String controllerName){
         if(routes.size() == 1) return routes.get(0);
+        if(routes.size() == 0) return null;
 
         MapRoute mapRoute = null;
         for(MapRoute route : routes){

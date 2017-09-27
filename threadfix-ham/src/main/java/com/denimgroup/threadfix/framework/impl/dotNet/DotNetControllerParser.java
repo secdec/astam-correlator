@@ -65,8 +65,11 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     }
 
     @Override
+//    public boolean shouldContinue() {
+//        return shouldContinue;
+//    }
     public boolean shouldContinue() {
-        return shouldContinue;
+        return true;
     }
 
     enum State {

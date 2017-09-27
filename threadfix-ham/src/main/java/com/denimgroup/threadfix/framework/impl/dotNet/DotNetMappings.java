@@ -68,6 +68,8 @@ public class DotNetMappings implements EndpointGenerator {
 
         List<ViewModelParser> modelParsers = list();
 
+        routeMappings = new DotNetRouteMappings();
+
         for (File file : cSharpFiles) {
             if (file != null && file.exists() && file.isFile() &&
                     file.getAbsolutePath().contains(rootDirectory.getAbsolutePath())) {
@@ -78,8 +80,8 @@ public class DotNetMappings implements EndpointGenerator {
                 EventBasedTokenizerRunner.run(file, endpointParser, routesParser, modelParser);
 
                 if (routesParser.hasValidMappings()) {
-                    assert routeMappings == null; // if the project has 2 routes files we want to know about it
-                    routeMappings = routesParser.mappings;
+                    //assert routeMappings == null; // if the project has 2 routes files we want to know about it
+                    routeMappings.importFrom(routesParser.mappings);
                 }
 
                 if (endpointParser.hasValidControllerMappings()) {

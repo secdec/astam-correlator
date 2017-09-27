@@ -75,9 +75,18 @@ public class EventBasedTokenizerRunner {
                 if (!javaComments)
                     tokenizer.ordinaryChar('/');
 
+                if (file.getName().contains("GenericUrlRouteProvider"))
+                {
+                    log.debug("GenericUrlRouteProvider");
+                }
+
                 // stop only if all of the tokenizers return false from shouldContinue();
                 boolean keepGoing = true;
 				while (tokenizer.nextToken() != StreamTokenizer.TT_EOF && keepGoing) {
+
+                    if (tokenizer.sval != null && (tokenizer.sval.contains("MapRoute") || tokenizer.sval.contains("RouteConfig"))) {
+                        log.debug("MapRoute or RouteConfig");
+                    }
 
                     log(tokenizer);
 

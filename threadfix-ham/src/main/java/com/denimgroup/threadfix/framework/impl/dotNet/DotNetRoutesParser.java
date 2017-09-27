@@ -66,7 +66,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
     }
 
     enum Phase {
-        IDENTIFICATION, IN_CLASS, IN_METHOD
+        IDENTIFICATION, IN_CLASS, IN_MAP_ROUTE_METHOD
     }
 
     Phase               currentPhase               = Phase.IDENTIFICATION;
@@ -75,6 +75,16 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
     MapRouteState       currentMapRouteState       = MapRouteState.START;
 
     int parenCount = 0;
+
+    private boolean isClassDecoratorKeyword(String keyword)
+    {
+        return keyword != null &&
+                (keyword.equals(PARTIAL) ||
+                 keyword.equals(PUBLIC) ||
+                 keyword.equals(PRIVATE) ||
+                 keyword.equals(INTERNAL) ||
+                 keyword.equals(PROTECTED));
+    }
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
@@ -101,42 +111,36 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
             case IN_CLASS:
                 processClass(type, stringValue);
                 break;
-            case IN_METHOD:
-                processMethod(type, stringValue);
+            case IN_MAP_ROUTE_METHOD:
+                processMapRouteCall(type, stringValue);
         }
 
     }
 
     enum IdentificationState {
-        START, PUBLIC, CLASS, ROUTE_CONFIG, STARTUP, COLON,
+        START, CLASS_DECORATOR, CLASS, ROUTE_CONFIG, STARTUP, COLON,
     }
     private void processIdentification(String stringValue) {
         log(currentIdentificationState);
         switch (currentIdentificationState) {
             case START:
-                if (PUBLIC.equals(stringValue)) {
-                    currentIdentificationState = IdentificationState.PUBLIC;
+                if (isClassDecoratorKeyword(stringValue)) {
+                    currentIdentificationState = IdentificationState.CLASS_DECORATOR;
                 } else if (":".equals(stringValue)) {
                     currentIdentificationState = IdentificationState.COLON;
                 }
                 break;
-            case PUBLIC:
-                currentIdentificationState = CLASS.equals(stringValue) ?
-                        IdentificationState.CLASS :
-                        IdentificationState.START;
-                break;
-            case CLASS:
-                if(ROUTE_CONFIG.equals(stringValue))
-                    currentIdentificationState = IdentificationState.ROUTE_CONFIG;
-                else if(STARTUP.equals(stringValue))
-                    currentIdentificationState = IdentificationState.STARTUP;
-                else
+            default:
+                if (isClassDecoratorKeyword(stringValue)) {
+                    currentIdentificationState = IdentificationState.CLASS_DECORATOR;
+                } else if (CLASS.equals(stringValue)) {
                     currentIdentificationState = IdentificationState.CLASS;
+                } else {
+                    currentIdentificationState = IdentificationState.START;
+                }
                 break;
-            case ROUTE_CONFIG:
-                currentPhase = Phase.IN_CLASS;
-                break;
-            case STARTUP:
+
+            case CLASS:
                 currentPhase = Phase.IN_CLASS;
                 break;
             case COLON:
@@ -152,7 +156,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
     int currentParenCount = -1;
     String variableName = null; // this is the name of the RouteCollection variable
     enum ClassBodyState {
-        START, METHOD_SIGNATURE, ROUTE_COLLECTION,IAPPLICATION_BUILDER, METHOD_BODY, MAP_ROUTE
+        START, METHOD_ACCESS_DECLARATION, METHOD_SIGNATURE, ROUTE_COLLECTION, IAPPLICATION_BUILDER, IROUTE_BUILDER, METHOD_BODY, MAP_ROUTE
     }
 
     private void processClass(int type, String stringValue) {
@@ -160,20 +164,27 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
 
         switch (currentClassBodyState) {
             case START:
-                if (REGISTER_ROUTES.equals(stringValue)) {
+                if (isClassDecoratorKeyword(stringValue))
+                    currentClassBodyState = ClassBodyState.METHOD_ACCESS_DECLARATION;
+                break;
+
+            case METHOD_ACCESS_DECLARATION:
+                if (type == ';' || type == '{') {
+                    currentClassBodyState = ClassBodyState.START;
+                } else if (type == '(') {
+                    parenCount++;
                     currentClassBodyState = ClassBodyState.METHOD_SIGNATURE;
-                    currentParenCount = parenCount;
-                } else if(CONFIGURE.equals(stringValue)){
-                    currentClassBodyState = ClassBodyState.METHOD_SIGNATURE;
-                    currentParenCount = parenCount;
                 }
                 break;
+
             case METHOD_SIGNATURE:
                 if (ROUTE_COLLECTION.equals(stringValue)) {
                     currentClassBodyState = ClassBodyState.ROUTE_COLLECTION;
                 } else if(IAPPLICATION_BUILDER.equals(stringValue)){
                     currentClassBodyState = ClassBodyState.IAPPLICATION_BUILDER;
                 }
+                else if (IROUTE_BUILDER.equals(stringValue))
+                    currentClassBodyState = ClassBodyState.IROUTE_BUILDER;
 
                 if (type == ')' && currentParenCount == parenCount) {
                     if (variableName == null) {
@@ -188,6 +199,10 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 currentClassBodyState = ClassBodyState.METHOD_SIGNATURE;
                 break;
             case IAPPLICATION_BUILDER:
+                variableName = stringValue;
+                currentClassBodyState = ClassBodyState.METHOD_SIGNATURE;
+                break;
+            case IROUTE_BUILDER:
                 variableName = stringValue;
                 currentClassBodyState = ClassBodyState.METHOD_SIGNATURE;
                 break;
@@ -208,7 +223,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 log("Paren current: " + currentParenCount);
 
                 currentClassBodyState = ClassBodyState.METHOD_BODY;
-                currentPhase = Phase.IN_METHOD;
+                currentPhase = Phase.IN_MAP_ROUTE_METHOD;
 
                 break;
 
@@ -224,7 +239,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
             parameterName = null,
             parameterValue = null;
     // TODO split this up
-    enum MapRouteState { // these states are to be used with the IN_METHOD Phase
+    enum MapRouteState { // these states are to be used with the IN_MAP_ROUTE_METHOD Phase
         START, URL, URL_COLON, NAME, NAME_COLON, DEFAULTS,
         DEFAULTS_COLON, DEFAULTS_NEW, DEFAULTS_OBJECT, DEFAULTS_AREA, DEFAULTS_AREA_EQUALS, DEFAULTS_CONTROLLER, DEFAULTS_CONTROLLER_EQUALS,
         DEFAULTS_ACTION, DEFAULTS_ACTION_EQUALS, DEFAULTS_PARAM, DEFAULTS_PARAM_EQUALS, TEMPLATE, TEMPLATE_COLON
@@ -232,7 +247,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
 
     int commaCount = 0;
 
-    private void processMethod(int type, String stringValue) {
+    private void processMapRouteCall(int type, String stringValue) {
         log(currentMapRouteState);
 
         if (type == ',') {
