@@ -172,7 +172,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 if (type == ';' || type == '{') {
                     currentClassBodyState = ClassBodyState.START;
                 } else if (type == '(') {
-                    parenCount++;
+                    currentParenCount++;
                     currentClassBodyState = ClassBodyState.METHOD_SIGNATURE;
                 }
                 break;
