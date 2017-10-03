@@ -111,8 +111,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         for (Object aspxCsFile : aspxCsFiles) {
             if (aspxCsFile instanceof File) {
                 File file = (File) aspxCsFile;
-                if (file.isFile() && (file.getName().equals("web.config") ||
-                                file.getName().equals("Web.config"))) {
+                if (file.isFile() && (file.getName().toLowerCase().equals("web.config"))) {
                     if (file.getAbsolutePath().length() < shortestPathLength) {
                         shortestPathLength = file.getAbsolutePath().length();
                         returnFile = file.getParentFile();

@@ -37,11 +37,11 @@ public class FileExtensionFileFilter implements IOFileFilter {
 	
 	@Override
 	public boolean accept(@Nonnull File file) {
-		return file.getName().endsWith(fileExtension);
+		return file.getName().toLowerCase().endsWith(fileExtension.toLowerCase());
 	}
 
 	@Override
 	public boolean accept(File dir, @Nonnull String name) {
-		return name.endsWith(fileExtension);
+		return name.toLowerCase().endsWith(fileExtension.toLowerCase());
 	}
 }
