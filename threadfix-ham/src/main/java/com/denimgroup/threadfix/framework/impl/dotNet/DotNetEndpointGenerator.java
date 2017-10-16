@@ -76,14 +76,6 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
             LOG.error("No mappings found for project. Exiting.");
             return; // can't do anything without routes
         }
-        else {
-            LOG.info("Found " + dotNetRouteMappings.routes.size() + " MVC route format strings: ");
-        }
-
-        for (int i = 0; i < dotNetRouteMappings.routes.size(); i++) {
-            DotNetRouteMappings.MapRoute route = dotNetRouteMappings.routes.get(i);
-            LOG.info("[" + i + "]: " + route.url);
-        }
 
         for (DotNetControllerMappings mappings : dotNetControllerMappings) {
             if (mappings.getControllerName() == null) {

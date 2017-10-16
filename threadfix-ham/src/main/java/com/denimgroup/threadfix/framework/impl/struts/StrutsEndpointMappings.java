@@ -102,6 +102,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         endpoints = list();
         for (StrutsPackage strutsPackage : strutsPackages) {
             String namespace = strutsPackage.getNamespace();
+            if (namespace == null)
+                namespace = "/";
 
             if(strutsPackage.getActions().isEmpty()) {
                 continue;
@@ -111,7 +113,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 StringBuilder sbUrl = new StringBuilder(namespace);
                 String actionName = strutsAction.getName();
 
-                if(!namespace.contentEquals("/")) {
+                if(!namespace.contentEquals("/") || !namespace.endsWith("/")) {
                     sbUrl.append("/");
                 }
 
