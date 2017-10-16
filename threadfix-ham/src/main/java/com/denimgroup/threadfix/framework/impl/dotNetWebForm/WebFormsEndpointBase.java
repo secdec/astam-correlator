@@ -32,12 +32,12 @@ import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.*;
 
-/**
- * Created by mac on 9/4/14.
+/*
+ * Represents endpoints without any resource name, such as /some/path/.
  */
-public class WebFormsEndpoint extends AbstractEndpoint {
+abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
-    private static final SanitizedLogger LOG = new SanitizedLogger(WebFormsEndpoint.class);
+    private static final SanitizedLogger LOG = new SanitizedLogger(WebFormsEndpointBase.class);
 
     final AspxParser   aspxParser;
     final AspxCsParser aspxCsParser;
@@ -48,9 +48,9 @@ public class WebFormsEndpoint extends AbstractEndpoint {
     Map<String, List<Integer>> map = map();
     private Set<String> httpMethods;
 
-    public WebFormsEndpoint(File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
+    public WebFormsEndpointBase(File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
         if (!checkArguments(aspxParser.aspName, aspxCsParser.aspName)) {
-            throw new IllegalArgumentException("Invalid aspx mappings pairs passed to WebFormsEndpoint constructor: " +
+            throw new IllegalArgumentException("Invalid aspx mappings pairs passed to WebFormsEndpointBase constructor: " +
                     aspxParser.aspName + " and " + aspxCsParser.aspName);
         }
 
@@ -90,14 +90,14 @@ public class WebFormsEndpoint extends AbstractEndpoint {
         return calculateRelativePath(aspxFilePath, aspxRootPath);
     }
 
-    private String calculateUrlPath() {
+    protected String calculateUrlPath() {
         String aspxFilePath = aspxParser.file.getAbsolutePath();
         String aspxRootPath = aspxRoot.getAbsolutePath();
 
         return calculateRelativePath(aspxFilePath, aspxRootPath);
     }
 
-    private String calculateRelativePath(String aspxFilePath, String aspxRootPath) {
+    final protected String calculateRelativePath(String aspxFilePath, String aspxRootPath) {
         if (aspxFilePath.startsWith(aspxRootPath)) {
             return aspxFilePath.substring(aspxRootPath.length());
         } else {
@@ -149,46 +149,46 @@ public class WebFormsEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    protected List<String> getLintLine() {
+    final protected List<String> getLintLine() {
         return list(getCSVLine(PrintFormat.DYNAMIC));
     }
 
     @Nonnull
     @Override
-    public Set<String> getParameters() {
+    final public Set<String> getParameters() {
         return map.keySet();
     }
 
     @Nonnull
     @Override
-    public Set<String> getHttpMethods() {
+    final public Set<String> getHttpMethods() {
         return httpMethods;
     }
 
     @Nonnull
     @Override
-    public String getUrlPath() {
+    final public String getUrlPath() {
         return urlPath;
     }
 
     @Nonnull
     @Override
-    public String getFilePath() {
+    final public String getFilePath() {
         return filePath;
     }
 
     @Override
-    public int getStartingLineNumber() {
+    final public int getStartingLineNumber() {
         return 0;
     }
 
     @Override
-    public int getLineNumberForParameter(String parameter) {
+    final public int getLineNumberForParameter(String parameter) {
         return map.containsKey(parameter) ? map.get(parameter).get(0) : -1;
     }
 
     @Override
-    public boolean matchesLineNumber(int lineNumber) {
+    final public boolean matchesLineNumber(int lineNumber) {
         return true;
     }
 }

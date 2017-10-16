@@ -40,7 +40,8 @@ import static com.denimgroup.threadfix.framework.util.RegexUtils.getRegexResult;
 public class WebFormsParameterParser implements ParameterParser {
 
     Pattern dotTextPattern = Pattern.compile("([a-zA-Z_][_a-zA-Z0-9]+).Text"),
-            requestPattern = Pattern.compile("Request\\[\"([^\"]+)\"\\]");
+            requestPattern = Pattern.compile("Request\\[\"([^\"]+)\"\\]"),
+            requestQueryStringPattern = Pattern.compile("Request.QueryString\\[\"([^\"]+)\"\\]");
 
     @Nullable
     @Override
@@ -73,10 +74,17 @@ public class WebFormsParameterParser implements ParameterParser {
             line = line.substring(line.indexOf('='));
         }
 
-        String regexResult = getRegexResult(line, dotTextPattern);
+        String regexResult = null;
+        regexResult = getRegexResult(line, dotTextPattern);
 
-        return regexResult == null ?
-                getRegexResult(line, requestPattern) :
-                regexResult;
+        if (regexResult == null) {
+            regexResult = getRegexResult(line, requestPattern);
+        }
+
+        if (regexResult == null) {
+            regexResult = getRegexResult(line, requestQueryStringPattern);
+        }
+
+        return regexResult;
     }
 }

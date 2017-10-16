@@ -63,6 +63,16 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
         endpoints = endpointGenerator.generateEndpoints();
 
+        log.info("Found ".concat(String.valueOf(endpoints.size())).concat(" endpoints:"));
+        for (int i = 0; i < endpoints.size(); i++) {
+            String msg = "[" +
+                                String.valueOf(i) +
+                                "]: " +
+                                endpoints.get(i).getUrlPath();
+
+            log.info(msg);
+        }
+
 		this.frameworkType = frameworkType;
 		this.pathCleaner = pathCleaner;
 
@@ -241,11 +251,11 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
         if (key == null)
             return set();
 
-        String keyForwardSlash = key.replace("\\","/");
+        String keyForwardSlash = key.replace("\\","/").toLowerCase();
 
         for (Map.Entry<String,Set<Endpoint>> entry: map.entrySet()) {
-            String keyEntry = entry.getKey();
-            String keyEntryForwardSlash = keyEntry.replace("\\","/");
+            String keyEntry = entry.getKey().toLowerCase();
+            String keyEntryForwardSlash = keyEntry.replace("\\","/").toLowerCase();
 
             if ((keyEntry.isEmpty() && !key.isEmpty())
                     || (key.isEmpty() && !keyEntry.isEmpty()))
