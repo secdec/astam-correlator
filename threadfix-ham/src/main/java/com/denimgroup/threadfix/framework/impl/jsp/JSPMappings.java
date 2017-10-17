@@ -114,8 +114,9 @@ public class JSPMappings implements EndpointGenerator {
                 for (File welcomeFile : welcomeFileLocations) {
                     String relativePath = FilePathUtils.getRelativePath(welcomeFile, jspRoot);
                     String endpointPath = relativePath.substring(0, relativePath.length() - welcomeFile.getName().length());
-                    JSPEndpoint welcomeEndpoint = new JSPEndpoint(welcomeFile.getAbsolutePath(), endpointPath, set("GET"), new HashMap<Integer, List<String>>());
+                    JSPEndpoint welcomeEndpoint = new JSPEndpoint(welcomeFile.getAbsolutePath(), endpointPath, set("GET"), JSPParameterParser.parse(welcomeFile));
                     endpoints.add(welcomeEndpoint);
+                    jspEndpointMap.put(welcomeFile.getAbsolutePath(), welcomeEndpoint);
                 }
 
                 LOG.info("Found " + xmlConfiguration.getServletMappings().size() + " servlet mappings in web.xml.");
@@ -133,6 +134,7 @@ public class JSPMappings implements EndpointGenerator {
 			        for (String pattern : urlPatterns) {
 			            JSPEndpoint endpoint = new JSPEndpoint(servlet.getFilePath(), pattern, set("GET", "POST"), servlet.getParameters());
 			            endpoints.add(endpoint);
+			            jspEndpointMap.put(servlet.getFilePath(), endpoint);
                     }
                 }
             }

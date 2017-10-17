@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.jsp;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +10,6 @@ public class JSPServlet {
     private String className;
     private String filePath;
 
-    //  TODO - Parameter parsing
     private Map<Integer, List<String>> parameters = new HashMap<Integer, List<String>>();
 
     public JSPServlet(String packageName, String className, String filePath) {
@@ -17,6 +17,24 @@ public class JSPServlet {
         this.className = className;
         this.filePath = filePath;
     }
+
+    public JSPServlet(String packageName, String className, String filePath, Map<Integer, List<String>> parameters) {
+        this(packageName, className, filePath);
+        if (parameters != null) {
+            this.parameters = parameters;
+        }
+    }
+
+
+    public void addParameter(int lineNumber, String parameterName) {
+        if (!parameters.containsKey(lineNumber)) {
+            parameters.put(lineNumber, new ArrayList<String>());
+        }
+
+        List<String> knownParameters = parameters.get(lineNumber);
+        knownParameters.add(parameterName);
+    }
+
 
     public String getFilePath() {
         return filePath;
