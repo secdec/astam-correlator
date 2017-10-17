@@ -32,6 +32,8 @@ import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.TrueFileFilter;
+
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -46,7 +48,9 @@ import static com.denimgroup.threadfix.CollectionUtils.set;
 public class JSPMappings implements EndpointGenerator {
 	
 	private static final SanitizedLogger LOG = new SanitizedLogger("JSPMappings");
-	
+
+	private JSPWebXmlConfiguration xmlConfiguration;
+
 	private final Map<String, Set<String>> includeMap = map();
 	private final Map<String, JSPEndpoint> jspEndpointMap = map();
 	private final List<Endpoint> endpoints = list();
@@ -61,6 +65,14 @@ public class JSPMappings implements EndpointGenerator {
 			this.projectRoot = rootFile;
 
             projectDirectory = new ProjectDirectory(rootFile);
+
+            File webXmlFile = findWebXmlFile(rootFile);
+            if (webXmlFile != null) {
+                JSPWebXmlParser webXmlParser = new JSPWebXmlParser(webXmlFile);
+                xmlConfiguration = webXmlParser.getConfiguration();
+            }
+
+            JSPServletParser servletParser = new JSPServletParser(rootFile);
 			
 			String jspRootString = CommonPathFinder.findOrParseProjectRootFromDirectory(rootFile, "jsp");
 
@@ -83,6 +95,48 @@ public class JSPMappings implements EndpointGenerator {
 
             addParametersFromIncludedFiles();
 
+			if (xmlConfiguration != null) {
+
+                LOG.info("Found " + xmlConfiguration.getWelcomeFileList().size() + " welcome files in web.xml.");
+
+                List<File> welcomeFileLocations = list();
+                for (File discoveredFile : FileUtils.listFiles(jspRoot, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+                    String fileName = discoveredFile.getName();
+                    for (String welcomeFileName : xmlConfiguration.getWelcomeFileList()) {
+                        if (fileName.equalsIgnoreCase(welcomeFileName)) {
+                            welcomeFileLocations.add(discoveredFile);
+                            break;
+                        }
+                    }
+                }
+
+                //  TODO - Iterate through welcome file locations and generate the exposed endpoint path for implicit access
+                for (File welcomeFile : welcomeFileLocations) {
+                    String relativePath = FilePathUtils.getRelativePath(welcomeFile, jspRoot);
+                    String endpointPath = relativePath.substring(0, relativePath.length() - welcomeFile.getName().length());
+                    JSPEndpoint welcomeEndpoint = new JSPEndpoint(welcomeFile.getAbsolutePath(), endpointPath, set("GET"), new HashMap<Integer, List<String>>());
+                    endpoints.add(welcomeEndpoint);
+                }
+
+                LOG.info("Found " + xmlConfiguration.getServletMappings().size() + " servlet mappings in web.xml.");
+			    for (JSPWebXmlServletMapping mapping : xmlConfiguration.getServletMappings()) {
+			        List<String> urlPatterns = mapping.getUrlPatterns();
+
+			        String servletClass = mapping.getMappedServlet().getServletClass();
+
+			        JSPServlet servlet = servletParser.findServletByAbsoluteName(servletClass);
+			        if (servlet == null) {
+			            LOG.info("Couldn't find Java file for servlet with class name " + servletClass);
+			            continue;
+                    }
+
+			        for (String pattern : urlPatterns) {
+			            JSPEndpoint endpoint = new JSPEndpoint(servlet.getFilePath(), pattern, set("GET", "POST"), servlet.getParameters());
+			            endpoints.add(endpoint);
+                    }
+                }
+            }
+
 		} else {
             LOG.error("Root file didn't exist. Exiting.");
 
@@ -91,6 +145,38 @@ public class JSPMappings implements EndpointGenerator {
 			jspRoot = null;
 		}
 	}
+
+	File findWebXmlFile(File startingDirectory) {
+	    File result = null;
+	    if (!startingDirectory.isDirectory()) {
+            return result;
+        }
+
+        long largestFileSize = -1;
+
+        for (File file : startingDirectory.listFiles()) {
+            if (file.isFile()) {
+                if (file.getName().equalsIgnoreCase("web.xml")) {
+                    long fileSize = file.length();
+                    if (fileSize > largestFileSize) {
+                        result = file;
+                        largestFileSize = fileSize;
+                    }
+                }
+            } else {
+                File subFile = findWebXmlFile(file);
+                if (subFile != null) {
+                    long fileSize = subFile.length();
+                    if (fileSize > largestFileSize) {
+                        result = subFile;
+                        largestFileSize = fileSize;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
 	
     void parseFile(File file) {
 
