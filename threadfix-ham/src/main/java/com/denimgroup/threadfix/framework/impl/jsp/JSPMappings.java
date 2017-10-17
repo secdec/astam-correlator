@@ -96,47 +96,9 @@ public class JSPMappings implements EndpointGenerator {
             addParametersFromIncludedFiles();
 
 			if (xmlConfiguration != null) {
-
-                LOG.info("Found " + xmlConfiguration.getWelcomeFileList().size() + " welcome files in web.xml.");
-
-                List<File> welcomeFileLocations = list();
-                for (File discoveredFile : FileUtils.listFiles(jspRoot, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
-                    String fileName = discoveredFile.getName();
-                    for (String welcomeFileName : xmlConfiguration.getWelcomeFileList()) {
-                        if (fileName.equalsIgnoreCase(welcomeFileName)) {
-                            welcomeFileLocations.add(discoveredFile);
-                            break;
-                        }
-                    }
-                }
-
-                //  TODO - Iterate through welcome file locations and generate the exposed endpoint path for implicit access
-                for (File welcomeFile : welcomeFileLocations) {
-                    String relativePath = FilePathUtils.getRelativePath(welcomeFile, jspRoot);
-                    String endpointPath = relativePath.substring(0, relativePath.length() - welcomeFile.getName().length());
-                    JSPEndpoint welcomeEndpoint = new JSPEndpoint(welcomeFile.getAbsolutePath(), endpointPath, set("GET"), JSPParameterParser.parse(welcomeFile));
-                    endpoints.add(welcomeEndpoint);
-                    jspEndpointMap.put(welcomeFile.getAbsolutePath(), welcomeEndpoint);
-                }
-
-                LOG.info("Found " + xmlConfiguration.getServletMappings().size() + " servlet mappings in web.xml.");
-			    for (JSPWebXmlServletMapping mapping : xmlConfiguration.getServletMappings()) {
-			        List<String> urlPatterns = mapping.getUrlPatterns();
-
-			        String servletClass = mapping.getMappedServlet().getServletClass();
-
-			        JSPServlet servlet = servletParser.findServletByAbsoluteName(servletClass);
-			        if (servlet == null) {
-			            LOG.info("Couldn't find Java file for servlet with class name " + servletClass);
-			            continue;
-                    }
-
-			        for (String pattern : urlPatterns) {
-			            JSPEndpoint endpoint = new JSPEndpoint(servlet.getFilePath(), pattern, set("GET", "POST"), servlet.getParameters());
-			            endpoints.add(endpoint);
-			            jspEndpointMap.put(servlet.getFilePath(), endpoint);
-                    }
-                }
+                loadWebXmlWelcomeFiles();
+                loadAnnotatedServlets(servletParser);
+                loadWebXmlServletMappings(servletParser);
             }
 
 		} else {
@@ -147,6 +109,63 @@ public class JSPMappings implements EndpointGenerator {
 			jspRoot = null;
 		}
 	}
+
+	void loadWebXmlWelcomeFiles() {
+        List<File> welcomeFileLocations = list();
+        for (File discoveredFile : FileUtils.listFiles(jspRoot, TrueFileFilter.INSTANCE, TrueFileFilter.INSTANCE)) {
+            String fileName = discoveredFile.getName();
+            for (String welcomeFileName : xmlConfiguration.getWelcomeFileList()) {
+                if (fileName.equalsIgnoreCase(welcomeFileName)) {
+                    welcomeFileLocations.add(discoveredFile);
+                    break;
+                }
+            }
+        }
+
+        for (File welcomeFile : welcomeFileLocations) {
+            String relativePath = getRelativePath(welcomeFile.getAbsolutePath());
+            String endpointPath = relativePath.substring(0, relativePath.length() - welcomeFile.getName().length());
+            JSPEndpoint welcomeEndpoint = new JSPEndpoint(relativePath, endpointPath, set("GET"), JSPParameterParser.parse(welcomeFile));
+            endpoints.add(welcomeEndpoint);
+            jspEndpointMap.put(relativePath, welcomeEndpoint);
+        }
+    }
+
+    void loadAnnotatedServlets(JSPServletParser servletParser) {
+        //  Add endpoints from servlets mapped via @WebServlet
+        for (JSPServlet servlet : servletParser.getServlets()) {
+            String relativeFilePath = getRelativePath(servlet.getFilePath());
+
+            for (String endpointString : servlet.getAnnotatedEndpointBindings()) {
+                JSPEndpoint newEndpoint = new JSPEndpoint(relativeFilePath, endpointString, set("GET", "POST"), servlet.getParameters());
+                endpoints.add(newEndpoint);
+                jspEndpointMap.put(relativeFilePath, newEndpoint);
+            }
+        }
+    }
+
+    void loadWebXmlServletMappings(JSPServletParser servletParser) {
+        LOG.info("Found " + xmlConfiguration.getServletMappings().size() + " servlet mappings in web.xml.");
+        for (JSPWebXmlServletMapping mapping : xmlConfiguration.getServletMappings()) {
+            List<String> urlPatterns = mapping.getUrlPatterns();
+
+            String servletClass = mapping.getMappedServlet().getServletClass();
+
+            JSPServlet servlet = servletParser.findServletByAbsoluteName(servletClass);
+            if (servlet == null) {
+                LOG.info("Couldn't find Java file for servlet with class name " + servletClass);
+                continue;
+            }
+
+            String relativeFilePath = getRelativePath(servlet.getFilePath());
+
+            for (String pattern : urlPatterns) {
+                JSPEndpoint endpoint = new JSPEndpoint(relativeFilePath, pattern, set("GET", "POST"), servlet.getParameters());
+                endpoints.add(endpoint);
+                jspEndpointMap.put(relativeFilePath, endpoint);
+            }
+        }
+    }
 
 	File findWebXmlFile(File startingDirectory) {
 	    File result = null;

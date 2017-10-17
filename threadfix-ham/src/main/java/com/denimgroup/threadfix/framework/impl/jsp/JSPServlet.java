@@ -5,10 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.denimgroup.threadfix.CollectionUtils.list;
+
 public class JSPServlet {
     private String packageName;
     private String className;
     private String filePath;
+    private List<String> annotatedEndpointBindings = list();
 
     private Map<Integer, List<String>> parameters = new HashMap<Integer, List<String>>();
 
@@ -36,6 +39,10 @@ public class JSPServlet {
     }
 
 
+    public void addAnnotationBinding(String endpoint) {
+        annotatedEndpointBindings.add(endpoint);
+    }
+
     public String getFilePath() {
         return filePath;
     }
@@ -50,6 +57,10 @@ public class JSPServlet {
 
     public String getAbsoluteName() {
         return packageName + "." + className;
+    }
+
+    public List<String> getAnnotatedEndpointBindings() {
+        return annotatedEndpointBindings;
     }
 
     public Map<Integer, List<String>> getParameters() {

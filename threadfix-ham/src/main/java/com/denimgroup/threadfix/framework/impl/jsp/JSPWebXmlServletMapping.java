@@ -1,6 +1,9 @@
 package com.denimgroup.threadfix.framework.impl.jsp;
 
+import java.util.ArrayList;
 import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class JSPWebXmlServletMapping {
 
@@ -26,7 +29,9 @@ public class JSPWebXmlServletMapping {
     }
 
     public List<String> getUrlPatterns() {
-        return urlPatterns;
+        List<String> result = list();
+        result.addAll(urlPatterns);
+        return result;
     }
 
     //  TODO - Servlets can have multiple URL bindings, when mapping a finding need to iterate through bindings and find best match

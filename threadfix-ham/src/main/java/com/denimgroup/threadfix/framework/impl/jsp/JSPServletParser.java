@@ -18,13 +18,36 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class JSPServletParser {
 
+    public static boolean isServlet(File file) {
+        if (!file.isFile())
+            return false;
+
+        String fileContents;
+        try {
+            fileContents = FileUtils.readFileToString(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return servletPattern.matcher(fileContents).find();
+    }
+
     private static final SanitizedLogger LOG = new SanitizedLogger("JSPServletParser");
 
     private List<JSPServlet> enumeratedServlets = list();
 
+    private static Pattern servletPattern = Pattern.compile("extends\\s+HttpServlet");
     private static Pattern packageNamePattern = Pattern.compile("package\\s+([^;]+);");
     private static Pattern accessServletRequestPattern = Pattern.compile("(\\w+)\\.getParameter\\(\"([^\"]+)\"\\)");
     private static Pattern declareServletRequestPattern = Pattern.compile("\\(\\s*HttpServletRequest\\s*(\\w+),");
+
+    //  ie @WebServlet(urlPatterns = {"/abc", "/def"}) or @WebServlet(value = "/abc")
+    private static Pattern annotatedWebServletManyUrlTypedPattern = Pattern.compile("urlPatterns\\s*=\\s*\\{([^\\}]+)\\}");
+
+    //  ie @WebServlet({"/abc, "/def"}) or @WebServlet("/abc")
+    private static Pattern annotatedWebServletSingleUrlTypedPattern = Pattern.compile("value\\s*=\\s*([^,]+)");
+
 
     JSPServletParser(File rootDirectory) {
         loadServletsFromDirectory(rootDirectory);
@@ -36,6 +59,9 @@ public class JSPServletParser {
 
         Collection<File> files = FileUtils.listFiles(directory, new String[] { "java" }, true);
         for (File file : files) {
+
+            if (!isServlet(file))
+                continue;
 
             String servletName = file.getName();
             servletName = servletName.replace(".java", "");
@@ -51,6 +77,7 @@ public class JSPServletParser {
 
             String packageName = parsePackageName(fileContents);
             Map<Integer, List<String>> queryParameters = parseParameters(fileContents);
+            List<String> annotatedEndpoints = parseAnnotatedEndpoints(fileContents);
 
             if (packageName == null) {
                 LOG.debug("Couldn't detect package name for servlet at " + file.getAbsolutePath() + ", skipping that servlet");
@@ -58,6 +85,10 @@ public class JSPServletParser {
             }
 
             JSPServlet newServlet = new JSPServlet(packageName, servletName, file.getAbsolutePath(), queryParameters);
+            for (String annotation : annotatedEndpoints) {
+                newServlet.addAnnotationBinding(annotation);
+            }
+
             enumeratedServlets.add(newServlet);
         }
     }
@@ -105,6 +136,143 @@ public class JSPServletParser {
         }
 
         return parameters;
+    }
+
+    List<String> parseAnnotatedEndpoints(String fileContents) {
+        String atWebServlet = "@WebServlet";
+
+        StringBuilder annotationParts = new StringBuilder();
+
+        String[] lines = fileContents.split("\n");
+
+        List<String> servletAnnotationParameters = new ArrayList<String>();
+
+        boolean isMatchingAnnotation = false;
+        boolean matchStartsThisLine;
+        int numParens = 0;
+
+        for (String line : lines) {
+            matchStartsThisLine = false;
+
+            if (!isMatchingAnnotation) {
+                if (!line.contains(atWebServlet)) {
+                    continue;
+                }
+                else {
+                    matchStartsThisLine = true;
+                    isMatchingAnnotation = true;
+                }
+            }
+
+            int i;
+
+            if (matchStartsThisLine) {
+                i = line.indexOf(atWebServlet) + atWebServlet.length();
+            } else {
+                i = 0;
+            }
+
+            for (; isMatchingAnnotation && i < line.length(); i++) {
+
+                char c = line.charAt(i);
+
+                if (c == ')') {
+                    numParens--;
+                }
+
+                if (c == '(') {
+                    if (numParens++ == 0)
+                        continue;
+                }
+
+                if (c == '\n') {
+                    continue;
+                }
+
+                if (numParens <= 0) {
+                    isMatchingAnnotation = false;
+
+                    servletAnnotationParameters.add(annotationParts.toString());
+                    annotationParts = new StringBuilder();
+
+                } else {
+                    annotationParts.append(c);
+                }
+            }
+        }
+
+        if (servletAnnotationParameters.size() > 1) {
+            LOG.debug("Detected more than one @WebServlet annotation, only using the first one");
+        } else if (servletAnnotationParameters.size() == 0) {
+            return list();
+        }
+
+        List<String> mappedUrls = list();
+
+        String params = servletAnnotationParameters.get(0).trim();
+
+        //  Multi-URL implicit parameter notation @WebServlet({ "/a", "/b"})
+        if (params.startsWith("{") && params.endsWith("}")) {
+            params = params.replaceAll("\\{", "").replaceAll("\\}", "");
+
+            String[] paramParts = params.split(",");
+            for (String part : paramParts) {
+                part = part.trim();
+                if (part.startsWith("\"")) {
+                    part = part.substring(1);
+                }
+                if (part.endsWith("\"")) {
+                    part = part.substring(0, part.length() - 1);
+                }
+
+                mappedUrls.add(part);
+            }
+        }
+        //  Single-URL implicit parameter notation @WebServlet("/a")
+        else if (params.startsWith("\"") && params.endsWith("\"")) {
+            mappedUrls.add(params.substring(1, params.length() - 1));
+        }
+        //  Multi-URL named parameter notation @WebServlet(urlPatterns={"/a", "/b"})
+        else if (params.contains("urlPatterns")) {
+            Matcher multiUrlNamedMatcher = annotatedWebServletManyUrlTypedPattern.matcher(params);
+            if (!multiUrlNamedMatcher.find()) {
+                LOG.debug("Couldn't match urlPatterns parameter against @WebServlet");
+            } else {
+                String urlPatternsValueText = multiUrlNamedMatcher.group(1);
+                String[] patternsParts = urlPatternsValueText.split(",");
+
+                for (String part : patternsParts) {
+                    part = part.trim();
+                    if (part.startsWith("\"")) {
+                        part = part.substring(1);
+                    }
+                    if (part.endsWith("\"")) {
+                        part = part.substring(0, part.length() - 1);
+                    }
+
+                    mappedUrls.add(part);
+                }
+            }
+        }
+        //  Single-URL named parameter notation @WebServlet(value="/a")
+        else if (params.contains("value")) {
+            Matcher singleUrlNamedMatcher = annotatedWebServletSingleUrlTypedPattern.matcher(params);
+            if (!singleUrlNamedMatcher.find()) {
+                LOG.debug("Couldn't match value parameter against @WebServlet");
+            } else {
+                if (params.startsWith("\"")) {
+                    params = params.substring(1);
+                }
+                if (params.endsWith("\"")) {
+                    params = params.substring(params.length() - 1);
+                }
+
+                mappedUrls.add(params);
+            }
+        }
+
+        return mappedUrls;
+
     }
 
     public List<JSPServlet> getServlets() {
