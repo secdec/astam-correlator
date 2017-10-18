@@ -51,6 +51,16 @@ public class StrutsEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
+    public int compareRelevance(String endpoint) {
+        if (urlPath.equalsIgnoreCase(endpoint)) {
+            return 100;
+        } else {
+            return -1;
+        }
+    }
+
+    @Nonnull
+    @Override
     public Set<String> getParameters() {
         return parameters;
     }

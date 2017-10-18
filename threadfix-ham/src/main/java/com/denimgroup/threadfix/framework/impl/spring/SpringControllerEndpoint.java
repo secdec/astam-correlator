@@ -143,8 +143,17 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 		
 		return returnSet;
 	}
-	
-	@Nonnull
+
+    @Override
+    public int compareRelevance(String endpoint) {
+        if (getUrlPath().equalsIgnoreCase(endpoint)) {
+            return 100;
+        } else {
+            return -1;
+        }
+    }
+
+    @Nonnull
     @Override
 	public Set<String> getParameters() {
 		return parameters;

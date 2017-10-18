@@ -149,6 +149,16 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
     @Nonnull
     @Override
+    public int compareRelevance(String endpoint) {
+        if (urlPath.equalsIgnoreCase(endpoint)) {
+            return 100;
+        } else {
+            return -1;
+        }
+    }
+
+    @Nonnull
+    @Override
     final protected List<String> getLintLine() {
         return list(getCSVLine(PrintFormat.DYNAMIC));
     }

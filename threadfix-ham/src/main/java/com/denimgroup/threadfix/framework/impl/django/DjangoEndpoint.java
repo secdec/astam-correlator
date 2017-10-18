@@ -48,6 +48,15 @@ public class DjangoEndpoint extends AbstractEndpoint {
             this.parameters = setFrom(parameters);
     }
 
+    @Override
+    public int compareRelevance(String endpoint) {
+        if (endpoint.equalsIgnoreCase(urlPath)) {
+            return 100;
+        } else {
+            return -1;
+        }
+    }
+
     @Nonnull
     @Override
     public Set<String> getParameters() {

@@ -117,15 +117,20 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 	@Override
 	public Endpoint findBestMatch(@Nonnull EndpointQuery query) {
 
-		Endpoint returnEndpoint = null;
+		Endpoint bestEndpoint = null;
+		int bestEndpointRelevance = -1;
 
 		Set<Endpoint> endpoints = findAllMatches(query);
 
-		if (!endpoints.isEmpty()) {
-			returnEndpoint = endpoints.iterator().next();
-		}
+		for (Endpoint currentEndpoint : endpoints) {
+            int relevance = currentEndpoint.compareRelevance(query.getDynamicPath());
+            if (relevance > bestEndpointRelevance) {
+                bestEndpoint = currentEndpoint;
+                bestEndpointRelevance = relevance;
+            }
+        }
 
-		return returnEndpoint;
+		return bestEndpoint;
 	}
 
 	@Nonnull
@@ -206,6 +211,8 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
             resultingSet.addAll(fromCodePoints);
         }
 
+        resultingSet.addAll(findElligableEndpoints(query.getDynamicPath()));
+
 		return resultingSet;
 	}
 
@@ -277,6 +284,16 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 			return set();
 		}
 	}
+
+	private Set<Endpoint> findElligableEndpoints(String endpointPath) {
+	    Set<Endpoint> result = set();
+	    for (Endpoint endpoint : endpoints) {
+	        if (endpoint.compareRelevance(endpointPath) > 0) {
+                result.add(endpoint);
+            }
+        }
+        return result;
+    }
 
 	@Nonnull
     @Override

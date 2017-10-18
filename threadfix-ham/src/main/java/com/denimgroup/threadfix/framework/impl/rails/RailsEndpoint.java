@@ -53,6 +53,15 @@ public class RailsEndpoint extends AbstractEndpoint {
             this.parameters = setFrom(parameters);
     }
 
+    @Override
+    public int compareRelevance(String endpoint) {
+        if (urlPath.equalsIgnoreCase(endpoint)) {
+            return 100;
+        } else {
+            return -1;
+        }
+    }
+
     @Nonnull
     @Override
     protected List<String> getLintLine() {

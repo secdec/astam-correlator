@@ -29,6 +29,8 @@ import com.denimgroup.threadfix.framework.engine.CodePoint;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
@@ -62,6 +64,48 @@ class JSPEndpoint extends AbstractEndpoint {
         }
 
 		this.paramToLineMap = getParamToLineMap(parameterMap);
+	}
+
+	@Override
+	public int compareRelevance(String checkedPath) {
+
+		if (checkedPath.startsWith(dynamicPath)) {
+			return dynamicPath.length();
+		}
+
+		String[] pathParts = checkedPath.split("/");
+		String[] endpointParts = dynamicPath.split("/");
+
+		int relevance = 0;
+		int numMatchedParts = 0;
+
+		for (int i = 0; i < pathParts.length && i < endpointParts.length; i++) {
+			String currentPathPart = pathParts[i];
+			String currentEndpointPart = endpointParts[i];
+			String currentEndpointPartFormat;
+
+			if (i == endpointParts.length - 1) {
+				currentEndpointPartFormat = currentEndpointPart.replace("*", ".*");
+			} else {
+				currentEndpointPartFormat = currentEndpointPart.replace("*", "[^/]*");
+			}
+
+			if (currentPathPart.equalsIgnoreCase(currentEndpointPart)) {
+				relevance += currentEndpointPart.length();
+				++numMatchedParts;
+			} else {
+
+				Matcher partMatcher = Pattern.compile(currentEndpointPartFormat).matcher(currentPathPart);
+				if (!partMatcher.find()) {
+					break;
+				} else {
+					relevance += currentEndpointPart.length();
+					++numMatchedParts;
+				}
+			}
+		}
+
+		return relevance + numMatchedParts * 100;
 	}
 
 	@Nonnull
