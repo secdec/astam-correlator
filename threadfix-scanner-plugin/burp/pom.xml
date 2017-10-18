@@ -25,6 +25,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>net.portswigger.burp.extender</groupId>
+            <artifactId>burp-extender-api</artifactId>
+            <version>1.7.22</version>
+        </dependency>
+        <dependency>
             <groupId>com.denimgroup.threadfix</groupId>
             <artifactId>threadfix-cli</artifactId>
             <version>${project.version}</version>
@@ -44,6 +49,11 @@
             <artifactId>dependency-check-maven</artifactId>
             <version>${dependencycheck.version}</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
         </dependency>
     </dependencies>
     <profiles>

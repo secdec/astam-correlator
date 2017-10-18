@@ -26,16 +26,10 @@ package burp.custombutton;
 
 import burp.IBurpExtenderCallbacks;
 import burp.dialog.ConfigurationDialogs;
-import burp.dialog.SourceDialog;
-import burp.dialog.UrlDialog;
 import burp.extention.RestUtils;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 
-import javax.swing.*;
 import java.awt.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
 
 public class RemoteEndpointsButton extends EndpointsButton {
 
@@ -45,7 +39,7 @@ public class RemoteEndpointsButton extends EndpointsButton {
 
     @Override
     protected String getButtonText() {
-        return "Import Endpoints From ThreadFix";
+        return "Import and Scan Endpoints From ThreadFix";
     }
 
     @Override
@@ -54,7 +48,7 @@ public class RemoteEndpointsButton extends EndpointsButton {
     }
 
     @Override
-    protected String getCompletedMessage() { return "The endpoints were successfully imported from ThreadFix."; }
+    protected String getCompletedMessage() { return "The endpoints were successfully imported from ThreadFix. Starting scan.."; }
 
     @Override
     protected ConfigurationDialogs.DialogMode getDialogMode() {
