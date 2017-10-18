@@ -147,13 +147,66 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
         }
     }
 
-    @Nonnull
     @Override
-    public int compareRelevance(String endpoint) {
-        if (urlPath.equalsIgnoreCase(endpoint)) {
-            return 100;
+    public int compareRelevance(String checkedPath) {
+        if (checkedPath.startsWith(urlPath)) {
+            return urlPath.length() + 100 * urlPath.split("/").length;
+        }
+
+        String thisUrl = urlPath;
+        if (checkedPath.startsWith("/")) {
+            checkedPath = checkedPath.substring(1);
+        }
+
+        if (thisUrl.startsWith("/")) {
+            thisUrl = thisUrl.substring(1);
+        }
+
+        String[] checkedPathParts = checkedPath.split("/");
+        String[] thisUrlParts = thisUrl.split("/");
+
+        int numMatchedParts = 0;
+        int relevance = 0;
+
+        for (int i = 0; i < checkedPathParts.length && i < thisUrlParts.length; i++) {
+
+            String currentCheckedPart = checkedPathParts[i];
+            String currentThisPart = thisUrlParts[i];
+
+            if (currentCheckedPart.equalsIgnoreCase(currentThisPart)) {
+                relevance += currentCheckedPart.length();
+                numMatchedParts++;
+            } else if (currentCheckedPart.startsWith("{") && currentCheckedPart.endsWith("}")) {
+                relevance += currentThisPart.length();
+                numMatchedParts++;
+            }
+        }
+
+        if (relevance == 0) {
+            relevance = compareWeakRelevance(checkedPath);
+        }
+
+        return relevance + numMatchedParts * 100;
+    }
+
+    //  Weak comparison by checking for urlPath anywhere in the endpoint. Used for matching
+    //      against parametric URLs.
+    //  This is a very SIMPLISTIC approach that should be replaced with something more reliable,
+    //      or at least use some sort of threshold value
+    int compareWeakRelevance(String checkedPath) {
+        String thisRelativeUrl = urlPath;
+        if (thisRelativeUrl.startsWith("/")) {
+            thisRelativeUrl = thisRelativeUrl.substring(1);
+        }
+
+        if (thisRelativeUrl.endsWith("/")) {
+            thisRelativeUrl = thisRelativeUrl.substring(0, thisRelativeUrl.length() - 1);
+        }
+
+        if (checkedPath.toLowerCase().contains(thisRelativeUrl.toLowerCase())) {
+            return thisRelativeUrl.length() / 2;
         } else {
-            return -1;
+            return 0;
         }
     }
 

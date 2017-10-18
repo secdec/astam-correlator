@@ -211,7 +211,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
             resultingSet.addAll(fromCodePoints);
         }
 
-        resultingSet.addAll(findElligableEndpoints(query.getDynamicPath()));
+        resultingSet.addAll(findEligibleEndpoints(query.getDynamicPath()));
 
 		return resultingSet;
 	}
@@ -285,7 +285,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 		}
 	}
 
-	private Set<Endpoint> findElligableEndpoints(String endpointPath) {
+	private Set<Endpoint> findEligibleEndpoints(String endpointPath) {
 	    Set<Endpoint> result = set();
 	    for (Endpoint endpoint : endpoints) {
 	        if (endpoint.compareRelevance(endpointPath) > 0) {

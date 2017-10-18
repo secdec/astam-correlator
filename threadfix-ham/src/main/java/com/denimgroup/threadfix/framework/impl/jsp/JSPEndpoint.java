@@ -70,7 +70,7 @@ class JSPEndpoint extends AbstractEndpoint {
 	public int compareRelevance(String checkedPath) {
 
 		if (checkedPath.startsWith(dynamicPath)) {
-			return dynamicPath.length();
+			return dynamicPath.length() + 100 * dynamicPath.split("/").length;
 		}
 
 		String[] pathParts = checkedPath.split("/");
