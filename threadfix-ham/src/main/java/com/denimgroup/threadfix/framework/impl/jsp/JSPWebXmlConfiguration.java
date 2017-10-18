@@ -16,6 +16,7 @@ public class JSPWebXmlConfiguration {
 
     private List<String> welcomeFileList = list();
     private List<JSPWebXmlServlet> servlets = list();
+    private List<JSPWebXmlJspServlet> jspServlets = list();
     private List<JSPWebXmlServletMapping> servletMappings = list();
 
     public JSPWebXmlConfiguration() {
@@ -37,6 +38,10 @@ public class JSPWebXmlConfiguration {
         servlets.add(servlet);
     }
 
+    public void addServlet(JSPWebXmlJspServlet jspServlet) {
+        jspServlets.add(jspServlet);
+    }
+
     public void addServletMapping(JSPWebXmlServletMapping servletMapping) {
         servletMappings.add(servletMapping);
     }
@@ -45,20 +50,45 @@ public class JSPWebXmlConfiguration {
         return welcomeFileList;
     }
 
-    public List<JSPWebXmlServlet> getServlets() {
+    public List<JSPWebXmlServlet> getClassServlets() {
         return servlets;
     }
 
-    public List<JSPWebXmlServletMapping> getServletMappings() {
+    public List<JSPWebXmlJspServlet> getJspServlets() { return jspServlets; }
+
+    public List<JSPWebXmlServletMapping> getAllServletMappings() {
         return servletMappings;
+    }
+
+    public List<JSPWebXmlServletMapping> getServletMappings(JSPServletMappingType mappingType) {
+        List<JSPWebXmlServletMapping> classServletMappings = list();
+
+        for (JSPWebXmlServletMapping mapping : servletMappings) {
+            if (mapping.getMappingType() == mappingType) {
+                classServletMappings.add(mapping);
+            }
+        }
+
+        return classServletMappings;
     }
 
 
 
-    public JSPWebXmlServlet findServletByName(String name) {
+
+    public JSPWebXmlServlet findClassServletByName(String name) {
         for (JSPWebXmlServlet servlet : servlets) {
             if (servlet.getServletName().equalsIgnoreCase(name)) {
                 return servlet;
+            }
+        }
+
+        return null;
+    }
+
+    public JSPWebXmlJspServlet findJspServletByName(String name) {
+        for (JSPWebXmlJspServlet jspServlet : jspServlets) {
+            if (jspServlet.getServletName().equalsIgnoreCase(name)) {
+                return jspServlet;
             }
         }
 

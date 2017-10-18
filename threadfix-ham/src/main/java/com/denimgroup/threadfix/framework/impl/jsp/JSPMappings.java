@@ -123,7 +123,7 @@ public class JSPMappings implements EndpointGenerator {
         }
 
         for (File welcomeFile : welcomeFileLocations) {
-            String relativePath = getRelativePath(welcomeFile.getAbsolutePath());
+            String relativePath = FilePathUtils.getRelativePath(welcomeFile.getAbsolutePath(), jspRoot);
             String endpointPath = relativePath.substring(0, relativePath.length() - welcomeFile.getName().length());
             JSPEndpoint welcomeEndpoint = new JSPEndpoint(relativePath, endpointPath, set("GET"), JSPParameterParser.parse(welcomeFile));
             endpoints.add(welcomeEndpoint);
@@ -145,24 +145,42 @@ public class JSPMappings implements EndpointGenerator {
     }
 
     void loadWebXmlServletMappings(JSPServletParser servletParser) {
-        LOG.info("Found " + xmlConfiguration.getServletMappings().size() + " servlet mappings in web.xml.");
-        for (JSPWebXmlServletMapping mapping : xmlConfiguration.getServletMappings()) {
+        LOG.info("Found " + xmlConfiguration.getAllServletMappings().size() + " servlet mappings in web.xml.");
+        for (JSPWebXmlServletMapping mapping : xmlConfiguration.getAllServletMappings()) {
             List<String> urlPatterns = mapping.getUrlPatterns();
+            String filePath = null;
+            Map<Integer, List<String>> parameters = null;
 
-            String servletClass = mapping.getMappedServlet().getServletClass();
+            switch (mapping.getMappingType()) {
+                case MAP_CLASS_SERVLET:
+                    String servletClass = mapping.getMappedClassServlet().getServletClass();
 
-            JSPServlet servlet = servletParser.findServletByAbsoluteName(servletClass);
-            if (servlet == null) {
-                LOG.info("Couldn't find Java file for servlet with class name " + servletClass);
-                continue;
+                    JSPServlet servlet = servletParser.findServletByAbsoluteName(servletClass);
+                    if (servlet == null) {
+                        LOG.info("Couldn't find Java file for servlet with class name " + servletClass);
+                        continue;
+                    }
+
+                    filePath = getRelativePath(servlet.getFilePath());
+                    parameters = servlet.getParameters();
+                    break;
+
+                case MAP_JSP_SERVLET:
+                    JSPWebXmlJspServlet jspServlet = mapping.getMappedJspServlet();
+                    filePath = getFullRelativeWebPath(jspServlet.getFilePath());
+                    parameters = JSPParameterParser.parse(new File(jspServlet.getFilePath()));
+                    break;
+
+                default:
+                    continue;
             }
 
-            String relativeFilePath = getRelativePath(servlet.getFilePath());
+
 
             for (String pattern : urlPatterns) {
-                JSPEndpoint endpoint = new JSPEndpoint(relativeFilePath, pattern, set("GET", "POST"), servlet.getParameters());
+                JSPEndpoint endpoint = new JSPEndpoint(filePath, pattern, set("GET", "POST"), parameters);
                 endpoints.add(endpoint);
-                jspEndpointMap.put(relativeFilePath, endpoint);
+                jspEndpointMap.put(filePath, endpoint);
             }
         }
     }
@@ -314,6 +332,23 @@ public class JSPMappings implements EndpointGenerator {
 	public String getRelativePath(String dataFlowLocation) {
 		return FilePathUtils.getRelativePath(dataFlowLocation, projectRoot);
 	}
+
+	//  Gets the path of the given web file path relative to the project path, where the web file path
+    //      is relative to the WebContent root instead of project root
+	String getFullRelativeWebPath(String localRelativePath) {
+	    String fullPath = jspRoot.getAbsolutePath();
+	    if (fullPath.charAt(fullPath.length() - 1) == '/') {
+	        fullPath = fullPath.substring(0, fullPath.length() - 1);
+        }
+
+        if (localRelativePath.length() > 0 && localRelativePath.charAt(0) == '/') {
+	        localRelativePath = localRelativePath.substring(1);
+        }
+
+        fullPath += "/" + localRelativePath;
+
+	    return getRelativePath(fullPath);
+    }
 
 	@Nonnull
     @Override

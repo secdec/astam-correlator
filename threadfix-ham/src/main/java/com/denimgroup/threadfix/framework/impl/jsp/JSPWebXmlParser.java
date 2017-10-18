@@ -96,7 +96,10 @@ public class JSPWebXmlParser {
     private void populateServlets(JSPWebXmlConfiguration config, NodeList servletNodes) {
         for (int i = 0; i < servletNodes.getLength(); i++) {
             String servletName = null,
-                    servletClass = null;
+                    servletClass = null,
+                    servletJsp = null;
+
+            JSPServletMappingType servletType = JSPServletMappingType.UNKNOWN;
 
             Node servletNode = servletNodes.item(i);
             Node childNode = servletNode.getFirstChild();
@@ -104,17 +107,31 @@ public class JSPWebXmlParser {
 
                 String nodeName = childNode.getNodeName();
 
-                if (nodeName.equals("servlet-name")) {
+                if (nodeName.equalsIgnoreCase("servlet-name")) {
                     servletName = childNode.getTextContent();
-                } else if (nodeName.equals("servlet-class")) {
+                } else if (nodeName.equalsIgnoreCase("servlet-class")) {
                     servletClass = childNode.getTextContent();
+                    servletType = JSPServletMappingType.MAP_CLASS_SERVLET;
+                } else if (nodeName.equalsIgnoreCase("jsp-file")) {
+                    servletJsp = childNode.getTextContent();
+                    servletType = JSPServletMappingType.MAP_JSP_SERVLET;
                 }
 
                 childNode = childNode.getNextSibling();
             }
 
-            JSPWebXmlServlet newServlet = new JSPWebXmlServlet(servletName, servletClass);
-            config.addServlet(newServlet);
+            switch (servletType) {
+                case MAP_CLASS_SERVLET:
+                    JSPWebXmlServlet newServlet = new JSPWebXmlServlet(servletName, servletClass);
+                    config.addServlet(newServlet);
+                    break;
+
+                case MAP_JSP_SERVLET:
+                    JSPWebXmlJspServlet newJspServlet = new JSPWebXmlJspServlet(servletName, servletJsp);
+                    config.addServlet(newJspServlet);
+                    break;
+            }
+
         }
     }
 
@@ -144,12 +161,17 @@ public class JSPWebXmlParser {
     }
 
     private void bindServletMappings(JSPWebXmlConfiguration config) {
-        for (JSPWebXmlServletMapping mapping : config.getServletMappings()) {
-            JSPWebXmlServlet servlet = config.findServletByName(mapping.getServletName());
+
+        for (JSPWebXmlServletMapping mapping : config.getAllServletMappings()) {
+            JSPWebXmlServlet servlet = config.findClassServletByName(mapping.getServletName());
+            JSPWebXmlJspServlet jspServlet = config.findJspServletByName(mapping.getServletName());
+
             if (servlet != null) {
                 mapping.setMappedServlet(servlet);
+            } else if (jspServlet != null) {
+                mapping.setMappedServlet(jspServlet);
             } else {
-                LOG.info("Couldn't find servlet with the name ".concat(mapping.getServletName()));
+                LOG.info("Couldn't find servlet with the name " + mapping.getServletName());
             }
         }
     }

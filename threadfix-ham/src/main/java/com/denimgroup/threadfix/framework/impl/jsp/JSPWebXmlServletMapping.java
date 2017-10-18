@@ -5,11 +5,19 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
+enum JSPServletMappingType {
+    UNKNOWN,
+    MAP_CLASS_SERVLET,
+    MAP_JSP_SERVLET
+}
+
 public class JSPWebXmlServletMapping {
 
     private String servletName;
     private List<String> urlPatterns;
-    private JSPWebXmlServlet mappedServlet;
+    private Object mappedServlet;
+
+    JSPServletMappingType mappingType = JSPServletMappingType.UNKNOWN;
 
     public JSPWebXmlServletMapping(String servletName, List<String> urlPatterns) {
         this.servletName = servletName;
@@ -18,10 +26,32 @@ public class JSPWebXmlServletMapping {
 
     public void setMappedServlet(JSPWebXmlServlet servlet) {
         mappedServlet = servlet;
+        mappingType = JSPServletMappingType.MAP_CLASS_SERVLET;
     }
 
-    public JSPWebXmlServlet getMappedServlet() {
-        return mappedServlet;
+    public void setMappedServlet(JSPWebXmlJspServlet jspServlet) {
+        mappedServlet = jspServlet;
+        mappingType = JSPServletMappingType.MAP_JSP_SERVLET;
+    }
+
+    public JSPWebXmlServlet getMappedClassServlet() {
+        if (mappingType != JSPServletMappingType.MAP_CLASS_SERVLET || mappedServlet == null) {
+            return null;
+        }
+
+        return (JSPWebXmlServlet)mappedServlet;
+    }
+
+    public JSPWebXmlJspServlet getMappedJspServlet() {
+        if (mappingType != JSPServletMappingType.MAP_JSP_SERVLET || mappedServlet == null) {
+            return null;
+        }
+
+        return (JSPWebXmlJspServlet)mappedServlet;
+    }
+
+    public JSPServletMappingType getMappingType() {
+        return mappingType;
     }
 
     public String getServletName() {
