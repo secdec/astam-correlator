@@ -40,7 +40,8 @@ public class BurpPropertiesManager extends PropertiesManager {
             THREADFIX_URL_KEY = "threadfix.url",
             APP_ID_KEY = "threadfix.application-id",
             TARGET_URL_KEY = "threadfix.target-url",
-            SOURCE_FOLDER_KEY = "threadfix.source-folder";
+            SOURCE_FOLDER_KEY = "threadfix.source-folder",
+            CONFIG_FILE_KEY = "threadfix.config-file";
 
     private static final Map<String, String> defaultPropertyValues = new HashMap<String, String>();
     static {
@@ -150,5 +151,13 @@ public class BurpPropertiesManager extends PropertiesManager {
 
     public void setSourceFolder(String newSourceFolder) {
         setPropertyValue(SOURCE_FOLDER_KEY, newSourceFolder);
+    }
+
+    public String getConfigFile() {
+        return getPropertyValue(CONFIG_FILE_KEY);
+    }
+
+    public void setConfigFile(String newConfigFile) {
+        setPropertyValue(CONFIG_FILE_KEY, newConfigFile);
     }
 }

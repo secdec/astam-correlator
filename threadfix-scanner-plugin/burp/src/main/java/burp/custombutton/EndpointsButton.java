@@ -56,6 +56,7 @@ public abstract class EndpointsButton extends JButton {
     public static final String GENERIC_INT_SEGMENT = "\\{id\\}";
 
     public EndpointsButton(final Component view, final IBurpExtenderCallbacks callbacks) {
+
         setText(getButtonText());
 
         addActionListener(new java.awt.event.ActionListener() {
@@ -118,7 +119,10 @@ public abstract class EndpointsButton extends JButton {
     }
 
     private void sendToScanner(IBurpExtenderCallbacks callbacks) {
-        callbacks.loadConfigFromJson(getBurpConfigAsString());
+        String configFileLocation = BurpPropertiesManager.getBurpPropertiesManager().getConfigFile();
+        if (configFileLocation != null ) {
+            callbacks.loadConfigFromJson(getBurpConfigAsString());
+        }
         IHttpRequestResponse[] responses = callbacks.getSiteMap(BurpPropertiesManager.getBurpPropertiesManager().getTargetUrl());
         for (IHttpRequestResponse response : responses) {
             IHttpService service = response.getHttpService();
@@ -130,7 +134,7 @@ public abstract class EndpointsButton extends JButton {
     private String getBurpConfigAsString() {
         try {
             JSONParser parser = new JSONParser();
-            JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(BurpPropertiesManager.getBurpPropertiesManager().getSourceFolder() + File.separator + "burp.json"));
+            JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(BurpPropertiesManager.getBurpPropertiesManager().getConfigFile()));
 
             return jsonObject.toJSONString();
         } catch (ParseException e) {
