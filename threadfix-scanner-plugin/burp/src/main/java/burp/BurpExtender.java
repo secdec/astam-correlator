@@ -48,7 +48,6 @@ import java.util.Map;
  */
 public class BurpExtender implements IBurpExtender, ITab
 {
-    private BurpPropertiesManager burpPropertiesManager;
     private IBurpExtenderCallbacks callbacks;
     private IExtensionHelpers helpers;
     private JTabbedPane tabbedPane;
@@ -58,6 +57,7 @@ public class BurpExtender implements IBurpExtender, ITab
     private Map<String, String> applicationMap = new HashMap<>();
     private JComboBox applicationComboBox;
     private JTextField sourceFolderField;
+    private JTextField configFileField;
     private JTextField targetUrlField;
 
     //
@@ -70,7 +70,7 @@ public class BurpExtender implements IBurpExtender, ITab
         // keep a reference to our callbacks object
         this.callbacks = callbacks;
 
-        burpPropertiesManager = BurpPropertiesManager.generateBurpPropertiesManager(callbacks);
+        BurpPropertiesManager.generateBurpPropertiesManager(callbacks);
 
         // obtain an extension helpers object
         helpers = callbacks.getHelpers();
@@ -138,7 +138,7 @@ public class BurpExtender implements IBurpExtender, ITab
                 if (tabIsShowing) {
                     loadOptionsProperties();
                 } else {
-                    burpPropertiesManager.saveProperties();
+                    BurpPropertiesManager.getBurpPropertiesManager().saveProperties();
                 }
             }
         });
@@ -186,6 +186,26 @@ public class BurpExtender implements IBurpExtender, ITab
         sourcePanelSeparatorConstraints.anchor = GridBagConstraints.NORTH;
         optionsPanel.add(sourcePanelSeparator, sourcePanelSeparatorConstraints);
 
+        JPanel configPanel = buildConfigPanel();
+        GridBagConstraints configPanelConstraints = new GridBagConstraints();
+        configPanelConstraints.gridx = 0;
+        configPanelConstraints.gridy = yPosition++;
+        configPanelConstraints.ipadx = 5;
+        configPanelConstraints.ipady = 5;
+        configPanelConstraints.insets = optionsPanelInsets;
+        configPanelConstraints.anchor = GridBagConstraints.NORTHWEST;
+        optionsPanel.add(configPanel, configPanelConstraints);
+
+        JSeparator configPanelSeparator = new JSeparator(JSeparator.HORIZONTAL);
+        callbacks.customizeUiComponent(configPanelSeparator);
+        GridBagConstraints configPanelSeparatorConstraints = new GridBagConstraints();
+        configPanelSeparatorConstraints.gridx = 0;
+        configPanelSeparatorConstraints.gridy = yPosition++;
+        configPanelSeparatorConstraints.insets = optionsPanelInsets;
+        configPanelSeparatorConstraints.fill = GridBagConstraints.HORIZONTAL;
+        configPanelSeparatorConstraints.anchor = GridBagConstraints.NORTH;
+        optionsPanel.add(configPanelSeparator, configPanelSeparatorConstraints);
+
         JPanel targetPanel = buildTargetPanel();
         GridBagConstraints targetPanelConstraints = new GridBagConstraints();
         targetPanelConstraints.gridx = 0;
@@ -219,7 +239,7 @@ public class BurpExtender implements IBurpExtender, ITab
             public void actionPerformed(ActionEvent e) {
                 String applicationName = (String) applicationComboBox.getSelectedItem();
                 String applicationId = applicationMap.get(applicationName);
-                burpPropertiesManager.setPropertyValue(BurpPropertiesManager.APP_ID_KEY, applicationId);
+                BurpPropertiesManager.getBurpPropertiesManager().setPropertyValue(BurpPropertiesManager.APP_ID_KEY, applicationId);
             }
         };
 
@@ -264,12 +284,45 @@ public class BurpExtender implements IBurpExtender, ITab
                 chooser.setAcceptAllFileFilterUsed(false);
                 if (chooser.showOpenDialog(sourcePanel) == JFileChooser.APPROVE_OPTION) {
                     sourceFolderField.setText(chooser.getSelectedFile().getAbsolutePath());
+                    BurpPropertiesManager.getBurpPropertiesManager().setSourceFolder(sourceFolderField.getText());
                 }
             }
         });
         sourceFolderField = addTextFieldToGridBagLayout("Location of source code folder:", sourcePanel, yPosition++, BurpPropertiesManager.SOURCE_FOLDER_KEY, sourceFolderBrowseButton);
 
         return sourcePanel;
+    }
+
+    private JPanel buildConfigPanel() {
+        final JPanel configPanel = new JPanel();
+        configPanel.setLayout(new GridBagLayout());
+        int yPosition = 0;
+
+        final JLabel configPanelTitle = addPanelTitleToGridBagLayout("Burp Configuration File", configPanel, yPosition++);
+        final JLabel configPanelDescription = addPanelDescriptionToGridBagLayout("This setting lets you configure the location of your Burp configuration file.", configPanel, yPosition++);
+
+        final JButton configFileBrowseButton = new JButton("Select file ...");
+        configFileBrowseButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(java.awt.event.ActionEvent e) {
+                JFileChooser chooser = new JFileChooser();
+                String currentDirectory = configFileField.getText();
+                if ((currentDirectory == null) || (currentDirectory.trim().equals(""))) {
+                    currentDirectory = System.getProperty("user.home");
+                }
+                chooser.setCurrentDirectory(new java.io.File(currentDirectory));
+                chooser.setDialogTitle("Please select the burp configuration file");
+                chooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+                chooser.setAcceptAllFileFilterUsed(false);
+                if (chooser.showOpenDialog(configPanel) == JFileChooser.APPROVE_OPTION) {
+                    configFileField.setText(chooser.getSelectedFile().getAbsolutePath());
+                    BurpPropertiesManager.getBurpPropertiesManager().setConfigFile(configFileField.getText());
+                }
+            }
+        });
+        configFileField = addTextFieldToGridBagLayout("Location of configuration file :", configPanel, yPosition++, BurpPropertiesManager.CONFIG_FILE_KEY, configFileBrowseButton);
+
+        return configPanel;
     }
 
     private JPanel buildTargetPanel() {
@@ -317,7 +370,7 @@ public class BurpExtender implements IBurpExtender, ITab
         }
 
         protected void update() {
-            burpPropertiesManager.setPropertyValue(propertyName, jTextField.getText().trim());
+            BurpPropertiesManager.getBurpPropertiesManager().setPropertyValue(propertyName, jTextField.getText().trim());
             if (runnable != null) {
                 runnable.run();
             }
@@ -353,10 +406,12 @@ public class BurpExtender implements IBurpExtender, ITab
     }
 
     private void loadOptionsProperties() {
+        BurpPropertiesManager burpPropertiesManager = BurpPropertiesManager.getBurpPropertiesManager();
         urlField.setText(burpPropertiesManager.getUrl());
         keyField.setText(burpPropertiesManager.getKey());
         updateApplicationComboBox(applicationMap, apiErrorLabel, applicationComboBox);
         sourceFolderField.setText(burpPropertiesManager.getSourceFolder());
+        configFileField.setText(burpPropertiesManager.getConfigFile());
         targetUrlField.setText(burpPropertiesManager.getTargetUrl());
     }
 
@@ -381,7 +436,7 @@ public class BurpExtender implements IBurpExtender, ITab
             failureMessage = "Failed while trying to get a list of applications from ThreadFix.";
         }
 
-        String currentAppId = burpPropertiesManager.getAppId();
+        String currentAppId = BurpPropertiesManager.getBurpPropertiesManager().getAppId();
         applicationComboBox.removeAllItems();
         if (failedToConnect) {
             apiErrorLabel.setText(failureMessage);

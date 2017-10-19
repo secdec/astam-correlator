@@ -447,9 +447,9 @@
     },
     "spider":{
         "application_login":{
-            "mode":"prompt",
-            "password":"password",
-            "username":"username@email.com"
+            "mode":"automatic",
+            "password":"",
+            "username":""
         },
         "crawler":{
             "check_robots_text":true,
