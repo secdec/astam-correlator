@@ -67,6 +67,10 @@ public abstract class EndpointsButton extends JButton {
                 java.util.List<String> nodes = new ArrayList<>();
 
                 if (configured) {
+                    if (BurpPropertiesManager.getBurpPropertiesManager().getConfigFile() != null ) {
+                        callbacks.loadConfigFromJson(getBurpConfigAsString());
+                    }
+
                     Endpoint.Info[] endpoints = getEndpoints();
 
                     if (endpoints.length == 0) {
@@ -119,10 +123,6 @@ public abstract class EndpointsButton extends JButton {
     }
 
     private void sendToScanner(IBurpExtenderCallbacks callbacks) {
-        String configFileLocation = BurpPropertiesManager.getBurpPropertiesManager().getConfigFile();
-        if (configFileLocation != null ) {
-            callbacks.loadConfigFromJson(getBurpConfigAsString());
-        }
         IHttpRequestResponse[] responses = callbacks.getSiteMap(BurpPropertiesManager.getBurpPropertiesManager().getTargetUrl());
         for (IHttpRequestResponse response : responses) {
             IHttpService service = response.getHttpService();
