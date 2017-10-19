@@ -43,6 +43,9 @@ public interface Endpoint extends Comparable<Endpoint> {
     @Nonnull
 	String getFilePath();
 
+    @Nonnull
+    int compareRelevance(String endpoint);
+
     enum PrintFormat {
         DYNAMIC, STATIC, LINT, JSON
     }

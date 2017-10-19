@@ -69,15 +69,19 @@ class JSPEndpoint extends AbstractEndpoint {
 	@Override
 	public int compareRelevance(String checkedPath) {
 
-		if (checkedPath.startsWith(dynamicPath)) {
-			return dynamicPath.length() + 100 * dynamicPath.split("/").length;
+		int relevance = super.compareRelevance(checkedPath);
+
+		if (relevance > 0) {
+			return relevance;
+		} else {
+			relevance = 0;
 		}
 
 		String[] pathParts = checkedPath.split("/");
 		String[] endpointParts = dynamicPath.split("/");
 
-		int relevance = 0;
 		int numMatchedParts = 0;
+		boolean isWildCard = dynamicPath.contains("*");
 
 		for (int i = 0; i < pathParts.length && i < endpointParts.length; i++) {
 			String currentPathPart = pathParts[i];
@@ -97,7 +101,7 @@ class JSPEndpoint extends AbstractEndpoint {
 
 				Matcher partMatcher = Pattern.compile(currentEndpointPartFormat).matcher(currentPathPart);
 				if (!partMatcher.find()) {
-					break;
+					return 0;
 				} else {
 					relevance += currentEndpointPart.length();
 					++numMatchedParts;

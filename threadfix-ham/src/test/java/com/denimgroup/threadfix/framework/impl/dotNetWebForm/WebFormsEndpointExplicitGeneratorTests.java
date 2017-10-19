@@ -38,7 +38,7 @@ import static com.denimgroup.threadfix.framework.impl.dotNetWebForm.WebFormUtili
 /**
  * Created by mac on 9/4/14.
  */
-public class WebFormsEndpointGeneratorTests {
+public class WebFormsEndpointExplicitGeneratorTests {
 
     @Test
     public void testBasic() {

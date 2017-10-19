@@ -179,35 +179,12 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
             } else if (currentCheckedPart.startsWith("{") && currentCheckedPart.endsWith("}")) {
                 relevance += currentThisPart.length();
                 numMatchedParts++;
+            } else {
+                return 0;
             }
         }
 
-        if (relevance == 0) {
-            relevance = compareWeakRelevance(checkedPath);
-        }
-
         return relevance + numMatchedParts * 100;
-    }
-
-    //  Weak comparison by checking for urlPath anywhere in the endpoint. Used for matching
-    //      against parametric URLs.
-    //  This is a very SIMPLISTIC approach that should be replaced with something more reliable,
-    //      or at least use some sort of threshold value
-    int compareWeakRelevance(String checkedPath) {
-        String thisRelativeUrl = urlPath;
-        if (thisRelativeUrl.startsWith("/")) {
-            thisRelativeUrl = thisRelativeUrl.substring(1);
-        }
-
-        if (thisRelativeUrl.endsWith("/")) {
-            thisRelativeUrl = thisRelativeUrl.substring(0, thisRelativeUrl.length() - 1);
-        }
-
-        if (checkedPath.toLowerCase().contains(thisRelativeUrl.toLowerCase())) {
-            return thisRelativeUrl.length() / 2;
-        } else {
-            return 0;
-        }
     }
 
     @Nonnull

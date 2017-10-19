@@ -55,8 +55,17 @@ public abstract class AbstractEndpoint implements Endpoint {
 		
 		return returnValue;
 	}
-	
-	// TODO finalize this
+
+    @Override
+    public int compareRelevance(String endpoint) {
+        if (this.getUrlPath().equalsIgnoreCase(endpoint)) {
+            return 1000;
+        } else {
+            return -1;
+        }
+    }
+
+    // TODO finalize this
 	@Nonnull
     @Override
 	public String getCSVLine(PrintFormat... formats) {

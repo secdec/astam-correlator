@@ -120,17 +120,23 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 		Endpoint bestEndpoint = null;
 		int bestEndpointRelevance = -1;
 
+		String dynamicPath = pathCleaner.cleanDynamicPath(query.getDynamicPath());
+
 		Set<Endpoint> endpoints = findAllMatches(query);
 
 		for (Endpoint currentEndpoint : endpoints) {
-            int relevance = currentEndpoint.compareRelevance(query.getDynamicPath());
+            int relevance = currentEndpoint.compareRelevance(dynamicPath);
             if (relevance > bestEndpointRelevance) {
                 bestEndpoint = currentEndpoint;
                 bestEndpointRelevance = relevance;
             }
         }
 
-		return bestEndpoint;
+        if (bestEndpointRelevance > 0) {
+            return bestEndpoint;
+        } else {
+		    return null;
+        }
 	}
 
 	@Nonnull
@@ -211,7 +217,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
             resultingSet.addAll(fromCodePoints);
         }
 
-        resultingSet.addAll(findEligibleEndpoints(query.getDynamicPath()));
+        resultingSet.addAll(findEligibleEndpoints(pathCleaner.cleanDynamicPath(query.getDynamicPath())));
 
 		return resultingSet;
 	}

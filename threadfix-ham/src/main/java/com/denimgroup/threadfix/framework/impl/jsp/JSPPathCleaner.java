@@ -37,7 +37,8 @@ public class JSPPathCleaner extends DefaultPathCleaner {
 
     public JSPPathCleaner(List<PartialMapping> partialMappings) {
         super(CommonPathFinder.findOrParseProjectRoot(partialMappings, ".jsp"),
-                CommonPathFinder.findOrParseUrlPath(partialMappings, ".jsp"));
+                  "");
+        //        CommonPathFinder.findOrParseUrlPath(partialMappings, ".jsp"));
     }
 
     public JSPPathCleaner(String staticRoot, String dynamicRoot) {
