@@ -28,6 +28,7 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.impl.model.ModelField;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
+import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
@@ -49,9 +50,13 @@ public class StrutsEndpointMappings implements EndpointGenerator {
     private File rootDirectory;
     private Collection<File> javaFiles;
     private List<StrutsPackage> strutsPackages;
-    private String strutsActionExtension;
+    private String[] strutsActionExtensions;
     private EntityMappings entityMappings;
     private List<Endpoint> endpoints;
+    private StrutsConfigurationProperties configurationProperties;
+    private String actionSuffixConvention = "Controller";
+    private String strutsMapperClass = "PrefixBasedActionMapper";
+    private String prefixMappingValue; // Used when strutsMapperClass is PrefixBasedActionMapper
 
     public StrutsEndpointMappings(@Nonnull File rootDirectory) {
         this.rootDirectory = rootDirectory;
@@ -81,14 +86,30 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 break;
         }
 
-        strutsActionExtension = StrutsPropertiesParser.getStrutsProperties(strutsPropertiesFile)
-                .getProperty("struts.action.extension","action");
-        if (strutsActionExtension == null)
-            strutsActionExtension = "";
-        strutsActionExtension = strutsActionExtension.trim();
-        if (strutsActionExtension.length() > 0
-                && !strutsActionExtension.startsWith(".")) {
-            strutsActionExtension = "." + strutsActionExtension;
+        Collection<File> javaFiles = FileUtils.listFiles(rootDirectory, new String[] { "java" }, true);
+        for (File javaFile : javaFiles) {
+            StrutsClass parsedClass = new StrutsClassParser(javaFile).getResultClass();
+        }
+
+        configurationProperties = new StrutsConfigurationProperties();
+        if (strutsConfigFile != null)
+            configurationProperties.loadFromStrutsXml(strutsConfigFile);
+        if (strutsPropertiesFile != null)
+            configurationProperties.loadFromStrutsProperties(strutsPropertiesFile);
+
+        String strutsActionExtensionValue = configurationProperties.get("struts.action.extension","action");
+        if (strutsActionExtensionValue == null)
+            strutsActionExtensionValue = "";
+        strutsActionExtensionValue = strutsActionExtensionValue.trim();
+
+        strutsActionExtensions = strutsActionExtensionValue.split(",");
+
+        for (int i = 0; i < strutsActionExtensions.length; i++) {
+            String extension = strutsActionExtensions[i];
+            if (extension.length() > 0 && !extension.startsWith(".")) {
+                extension = "." + extension;
+            }
+            strutsActionExtensions[i] = extension;
         }
 
         StrutsXmlParser strutsXmlParser = new StrutsXmlParser(configFiles);
@@ -110,59 +131,67 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             }
 
             for (StrutsAction strutsAction : strutsPackage.getActions()) {
-                StringBuilder sbUrl = new StringBuilder(namespace);
-                String actionName = strutsAction.getName();
 
-                if(!namespace.contentEquals("/") || !namespace.endsWith("/")) {
-                    sbUrl.append("/");
-                }
+                for (String actionExtension : strutsActionExtensions) {
 
-                sbUrl.append( actionName );
-                sbUrl.append( strutsActionExtension );
+                    StringBuilder sbUrl = new StringBuilder(namespace);
+                    String actionName = strutsAction.getName();
 
-                if (strutsAction.getActClass() == null)
-                    continue;
+                    if (!namespace.contentEquals("/") || !namespace.endsWith("/")) {
+                        sbUrl.append("/");
+                    }
 
-                File actionFile = getJavaFileByName(strutsAction.getActClass());
-                if (actionFile == null || actionFile.getName() == null) {
-                    continue;
-                }
+                    if (actionName.startsWith("/")) {
+                        actionName = actionName.substring(1);
+                    }
 
-                String modelName = actionFile.getName().substring(0, actionFile.getName().lastIndexOf(".java"));
+                    sbUrl.append(actionName);
+                    sbUrl.append(actionExtension);
 
-                EntityParser entityParser = EntityParser.parse(actionFile);
-                String filePath = FilePathUtils.getRelativePath(actionFile, rootDirectory);
-                Set<ModelField> fieldMappings = entityMappings.getPossibleParametersForModelType(modelName).getFieldSet();
-                List<String> httpMethods = list();
-                List<String> parameters = list();
+                    if (strutsAction.getActClass() == null)
+                        break;
 
-                String urlPath = sbUrl.toString();
+                    File actionFile = getJavaFileByName(strutsAction.getActClass());
+                    if (actionFile == null || actionFile.getName() == null) {
+                        break;
+                    }
 
-                if (urlPath.contains("*")) { // wildcard
-                    for (String ep : entityParser.getMethods()) {
-                        urlPath = sbUrl.toString();
-                        httpMethods = list();
-                        parameters = list();
-                        if ("execute".equals(ep)) {
-                            urlPath = urlPath.replace("!*", "");
-                            urlPath = urlPath.replace("*", "");
-                            httpMethods.add("GET");
-                            endpoints.add(new StrutsEndpoint(filePath, urlPath, httpMethods, parameters));
-                        } else {
-                            urlPath = urlPath.replace("*", ep);
-                            httpMethods.add("POST");
-                            for (ModelField mf : fieldMappings) {
-                                parameters.add(mf.getParameterKey());
+                    String modelName = actionFile.getName().substring(0, actionFile.getName().lastIndexOf(".java"));
+
+                    EntityParser entityParser = EntityParser.parse(actionFile);
+                    String filePath = FilePathUtils.getRelativePath(actionFile, rootDirectory);
+                    Set<ModelField> fieldMappings = entityMappings.getPossibleParametersForModelType(modelName).getFieldSet();
+                    List<String> httpMethods = list();
+                    List<String> parameters = list();
+
+                    String urlPath = sbUrl.toString();
+
+                    if (urlPath.contains("*")) { // wildcard
+                        for (String ep : entityParser.getMethods()) {
+                            urlPath = sbUrl.toString();
+                            httpMethods = list();
+                            parameters = list();
+                            if ("execute".equals(ep)) {
+                                urlPath = urlPath.replace("!*", "");
+                                urlPath = urlPath.replace("*", "");
+                                httpMethods.add("GET");
+                                endpoints.add(new StrutsEndpoint(filePath, urlPath, httpMethods, parameters));
+                            } else {
+                                urlPath = urlPath.replace("*", ep);
+                                httpMethods.add("POST");
+                                for (ModelField mf : fieldMappings) {
+                                    parameters.add(mf.getParameterKey());
+                                }
+                                endpoints.add(new StrutsEndpoint(filePath, urlPath, httpMethods, parameters));
                             }
-                            endpoints.add(new StrutsEndpoint(filePath, urlPath, httpMethods, parameters));
                         }
+                    } else {
+                        httpMethods.add("POST");
+                        for (ModelField mf : fieldMappings) {
+                            parameters.add(mf.getParameterKey());
+                        }
+                        endpoints.add(new StrutsEndpoint(filePath, urlPath, httpMethods, parameters));
                     }
-                } else {
-                    httpMethods.add("POST");
-                    for (ModelField mf : fieldMappings) {
-                        parameters.add(mf.getParameterKey());
-                    }
-                    endpoints.add(new StrutsEndpoint(filePath, urlPath, httpMethods, parameters));
                 }
             }
         }
