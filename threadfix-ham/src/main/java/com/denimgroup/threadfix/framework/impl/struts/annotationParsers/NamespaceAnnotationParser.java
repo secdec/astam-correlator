@@ -33,6 +33,7 @@ public class NamespaceAnnotationParser extends AbstractAnnotationParser {
     @Override
     protected void onParsingEnded(int type, int lineNumber, String stringValue) {
         pendingNamespaces.add(currentNamespace);
+        parsedNamespaces.add(currentNamespace);
         currentNamespace = null;
     }
 
@@ -43,7 +44,6 @@ public class NamespaceAnnotationParser extends AbstractAnnotationParser {
             annotation.setTargetType(targetType);
         }
 
-        parsedNamespaces.addAll(pendingNamespaces);
         pendingNamespaces.clear();
     }
 

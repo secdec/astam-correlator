@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.struts.annotationParsers;
 
+import com.denimgroup.threadfix.framework.impl.struts.CodeStringUtil;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.Annotation;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ResultAnnotation;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -8,8 +9,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
@@ -39,6 +38,7 @@ public class ResultAnnotationParser extends AbstractAnnotationParser {
 
     @Override
     protected void onParsingEnded(int type, int lineNumber, String stringValue) {
+        processedAnnotations.add(currentAnnotation);
         pendingAnnotations.add(currentAnnotation);
         currentAnnotation = null;
     }
@@ -50,7 +50,6 @@ public class ResultAnnotationParser extends AbstractAnnotationParser {
             annotation.setTargetType(targetType);
         }
 
-        processedAnnotations.addAll(pendingAnnotations);
         pendingAnnotations.clear();
     }
 
@@ -99,6 +98,17 @@ public class ResultAnnotationParser extends AbstractAnnotationParser {
     }
 
     Map<String, String> parseResultParameters(String text) {
+        Map<String, String> params = new HashMap<String, String>();
+        String[] split = CodeStringUtil.splitByComma(text);
+        for (int i = 0; i < split.length - 1; i += 2) {
+            String current = split[i];
+            String next = split[i + 1];
+            params.put(current, next);
+        }
+        return params;
+    }
+
+    Map<String, String> parseResultParameters1(String text) {
 
         Map<String, String> params = new HashMap<String, String>();
 

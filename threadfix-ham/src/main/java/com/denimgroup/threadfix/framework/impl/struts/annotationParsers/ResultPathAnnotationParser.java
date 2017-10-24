@@ -32,6 +32,7 @@ public class ResultPathAnnotationParser extends AbstractAnnotationParser {
     @Override
     protected void onParsingEnded(int type, int lineNumber, String stringValue) {
         pendingAnnotations.add(currentAnnotation);
+        processedAnnotations.add(currentAnnotation);
         currentAnnotation = null;
     }
 
@@ -42,7 +43,6 @@ public class ResultPathAnnotationParser extends AbstractAnnotationParser {
             annotation.setTargetType(targetType);
         }
 
-        processedAnnotations.addAll(pendingAnnotations);
         pendingAnnotations.clear();
     }
 

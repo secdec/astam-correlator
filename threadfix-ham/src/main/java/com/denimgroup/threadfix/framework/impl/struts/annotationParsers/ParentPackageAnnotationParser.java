@@ -33,6 +33,7 @@ public class ParentPackageAnnotationParser extends AbstractAnnotationParser {
 
     @Override
     protected void onParsingEnded(int type, int lineNumber, String stringValue) {
+        processedAnnotations.add(currentAnnotation);
         pendingAnnotations.add(currentAnnotation);
         currentAnnotation = null;
     }
@@ -44,7 +45,6 @@ public class ParentPackageAnnotationParser extends AbstractAnnotationParser {
             annotation.setTargetType(targetType);
         }
 
-        processedAnnotations.addAll(pendingAnnotations);
         pendingAnnotations.clear();
     }
 
