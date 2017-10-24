@@ -6,12 +6,21 @@ public abstract class Annotation {
 
     String annotationTargetName;
     TargetType annotationTargetType = TargetType.UNKNOWN;
+    int codeLine = -1;
 
 
     public enum TargetType {
         UNKNOWN,
         CLASS,
         METHOD
+    }
+
+    final public void setCodeLine(int line) {
+        codeLine = line;
+    }
+
+    final public int getCodeLine() {
+        return codeLine;
     }
 
     final public void setTargetName(String methodOrClassName) {
@@ -29,9 +38,4 @@ public abstract class Annotation {
     final public TargetType getTargetType() {
         return annotationTargetType;
     }
-
-    public boolean validate() {
-        return annotationTargetType != TargetType.UNKNOWN && annotationTargetName != null;
-    }
-
 }

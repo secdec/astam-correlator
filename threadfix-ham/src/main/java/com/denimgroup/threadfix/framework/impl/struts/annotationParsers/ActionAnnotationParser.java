@@ -33,6 +33,7 @@ public class ActionAnnotationParser extends AbstractAnnotationParser {
     @Override
     protected void onAnnotationFound(int type, int lineNumber, String stringValue) {
         currentAnnotation = new ActionAnnotation();
+        currentAnnotation.setCodeLine(lineNumber);
     }
 
     @Override
@@ -43,7 +44,7 @@ public class ActionAnnotationParser extends AbstractAnnotationParser {
     }
 
     @Override
-    protected void onAnnotationTargetFound(String targetName, Annotation.TargetType targetType) {
+    protected void onAnnotationTargetFound(String targetName, Annotation.TargetType targetType, int lineNumber) {
 
         for (ActionAnnotation annotation : pendingAnnotations) {
             annotation.setTargetName(targetName);
@@ -54,14 +55,14 @@ public class ActionAnnotationParser extends AbstractAnnotationParser {
     }
 
     @Override
-    protected void onAnnotationParameter(String value, int parameterIndex) {
+    protected void onAnnotationParameter(String value, int parameterIndex, int lineNumber) {
         switch (parameterIndex) {
             case 0: // value
                 currentAnnotation.setBoundUrl(value);
                 break;
 
             case 1: // results
-                parseActionResults(value);
+                parseActionResults(value, lineNumber);
                 break;
 
             case 2: // interceptorRefs
@@ -81,13 +82,13 @@ public class ActionAnnotationParser extends AbstractAnnotationParser {
     }
 
     @Override
-    protected void onNamedAnnotationParameter(String name, String value) {
+    protected void onNamedAnnotationParameter(String name, String value, int lineNumber) {
         if (name.equals("value")) {
             currentAnnotation.setBoundUrl(value);
         } else if (name.equals("params")) {
             parseActionParams(value);
         } else if (name.equals("results")) {
-            parseActionResults(value);
+            parseActionResults(value, lineNumber);
         } else if (name.equals("className")) {
             currentAnnotation.setExplicitClassName(value);
         }
@@ -101,7 +102,7 @@ public class ActionAnnotationParser extends AbstractAnnotationParser {
         }
     }
 
-    private void parseActionResults(String resultsString) {
+    private void parseActionResults(String resultsString, int lineNumber) {
         String[] resultAnnotationStrings = CodeStringUtil.splitByComma(resultsString);
 
         for (String annotationString : resultAnnotationStrings) {
@@ -121,6 +122,7 @@ public class ActionAnnotationParser extends AbstractAnnotationParser {
                 }
 
                 for (Annotation resultAnnotation : parser.getAnnotations()) {
+                    resultAnnotation.setCodeLine(lineNumber);
                     currentAnnotation.addResult((ResultAnnotation)resultAnnotation);
                 }
             } catch (IOException e) {

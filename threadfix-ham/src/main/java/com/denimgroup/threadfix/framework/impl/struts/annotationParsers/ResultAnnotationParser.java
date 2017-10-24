@@ -34,6 +34,7 @@ public class ResultAnnotationParser extends AbstractAnnotationParser {
     @Override
     protected void onAnnotationFound(int type, int lineNumber, String stringValue) {
         currentAnnotation = new ResultAnnotation();
+        currentAnnotation.setCodeLine(lineNumber);
     }
 
     @Override
@@ -44,7 +45,7 @@ public class ResultAnnotationParser extends AbstractAnnotationParser {
     }
 
     @Override
-    protected void onAnnotationTargetFound(String targetName, Annotation.TargetType targetType) {
+    protected void onAnnotationTargetFound(String targetName, Annotation.TargetType targetType, int lineNumber) {
         for (ResultAnnotation annotation : pendingAnnotations) {
             annotation.setTargetName(targetName);
             annotation.setTargetType(targetType);
@@ -54,7 +55,7 @@ public class ResultAnnotationParser extends AbstractAnnotationParser {
     }
 
     @Override
-    protected void onAnnotationParameter(String value, int parameterIndex) {
+    protected void onAnnotationParameter(String value, int parameterIndex, int lineNumber) {
         switch (parameterIndex) {
             case 0:
                 //  Result name
@@ -82,7 +83,7 @@ public class ResultAnnotationParser extends AbstractAnnotationParser {
     }
 
     @Override
-    protected void onNamedAnnotationParameter(String name, String value) {
+    protected void onNamedAnnotationParameter(String name, String value, int lineNumber) {
         if (name.equals("name")) {
             currentAnnotation.setResultName(value);
         } else if (name.equals("location")) {

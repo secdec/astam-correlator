@@ -84,10 +84,6 @@ public class EventBasedTokenizerRunner {
                 boolean keepGoing = true;
 				while (tokenizer.nextToken() != StreamTokenizer.TT_EOF && keepGoing) {
 
-                    if (tokenizer.sval != null && (tokenizer.sval.contains("MapRoute") || tokenizer.sval.contains("RouteConfig"))) {
-                        log.debug("MapRoute or RouteConfig");
-                    }
-
                     log(tokenizer);
 
                     keepGoing = false;

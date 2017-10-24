@@ -47,4 +47,38 @@ public class ResultAnnotation extends Annotation {
     public Map<String, String> getParameters() {
         return params;
     }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!ResultAnnotation.class.isAssignableFrom(obj.getClass())) {
+            return false;
+        }
+
+        ResultAnnotation other = (ResultAnnotation)obj;
+        if ((this.resultName == null) != (other.resultName == null)) {
+            return false;
+        }
+
+        if (this.codeLine != other.codeLine) {
+            return false;
+        }
+
+        if (this.params.size() != other.params.size()) {
+            return false;
+        }
+
+        for (Map.Entry<String, String> param : params.entrySet()) {
+            if (!other.params.containsKey(param.getKey())) {
+                return false;
+            }
+
+            String otherVal = other.params.get(param.getKey());
+            if (!otherVal.equals(param.getValue())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }

@@ -26,9 +26,9 @@ public abstract class AbstractAnnotationParser implements EventBasedTokenizer {
     protected abstract String getAnnotationName();
     protected abstract void onAnnotationFound(int type, int lineNumber, String stringValue);
     protected abstract void onParsingEnded(int type, int lineNumber, String stringValue);
-    protected abstract void onAnnotationTargetFound(String targetName, Annotation.TargetType targetType);
-    protected abstract void onAnnotationParameter(String value, int parameterIndex);
-    protected abstract void onNamedAnnotationParameter(String name, String value);
+    protected abstract void onAnnotationTargetFound(String targetName, Annotation.TargetType targetType, int lineNumber);
+    protected abstract void onAnnotationParameter(String value, int parameterIndex, int lineNumber);
+    protected abstract void onNamedAnnotationParameter(String name, String value, int lineNumber);
 
 
 
@@ -134,9 +134,9 @@ public abstract class AbstractAnnotationParser implements EventBasedTokenizer {
 
                 if (isEndOfParam) {
                     if (workingParamName != null) {
-                        onNamedAnnotationParameter(workingParamName, workingParamValue);
+                        onNamedAnnotationParameter(workingParamName, workingParamValue, lineNumber);
                     } else {
-                        onAnnotationParameter(workingParamValue, currentAnnotationParamIdx++);
+                        onAnnotationParameter(workingParamValue, currentAnnotationParamIdx++, lineNumber);
                     }
 
                     workingParamValue = "";
@@ -194,7 +194,7 @@ public abstract class AbstractAnnotationParser implements EventBasedTokenizer {
             case IDENTIFICATION:
 
                 if (possibleMethodName != null && type == '(') {
-                    onAnnotationTargetFound(possibleMethodName, Annotation.TargetType.METHOD);
+                    onAnnotationTargetFound(possibleMethodName, Annotation.TargetType.METHOD, lineNumber);
                     possibleMethodName = null;
                     parserPhase = ParsePhase.IDENTIFICATION;
                 } else if (stringValue == null) {
@@ -209,7 +209,7 @@ public abstract class AbstractAnnotationParser implements EventBasedTokenizer {
 
             case NEXT_IS_CLASS_NAME:
                 currentClassName = stringValue;
-                onAnnotationTargetFound(currentClassName, Annotation.TargetType.CLASS);
+                onAnnotationTargetFound(currentClassName, Annotation.TargetType.CLASS, lineNumber);
                 parserPhase = ParsePhase.IDENTIFICATION;
                 findAttachmentState = FindAttachmentState.IDENTIFICATION;
                 break;

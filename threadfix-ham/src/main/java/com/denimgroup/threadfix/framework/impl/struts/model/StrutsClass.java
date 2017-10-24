@@ -21,12 +21,14 @@ public class StrutsClass {
 
     public StrutsClass(String className, String sourceFile) {
         this.className = className;
+        this.sourceFilePath = sourceFile;
     }
 
     private String sourceFilePath;
     private String className;
     private List<String> baseTypes = list();
     private List<Annotation> attachedAnnotations = list();
+    private List<StrutsMethod> methods = list();
 
     public String getName() {
         return className;
@@ -34,6 +36,18 @@ public class StrutsClass {
 
     public String getSourceFile() {
         return sourceFilePath;
+    }
+
+    public Collection<StrutsMethod> getMethods() {
+        return methods;
+    }
+
+    public void addMethod(StrutsMethod method) {
+        methods.add(method);
+    }
+
+    public void addAllMethods(Collection<StrutsMethod> methods) {
+        this.methods.addAll(methods);
     }
 
     public Collection<String> getBaseTypes() {

@@ -27,6 +27,7 @@ public class ResultPathAnnotationParser extends AbstractAnnotationParser {
     @Override
     protected void onAnnotationFound(int type, int lineNumber, String stringValue) {
         currentAnnotation = new ResultPathAnnotation();
+        currentAnnotation.setCodeLine(lineNumber);
     }
 
     @Override
@@ -37,7 +38,7 @@ public class ResultPathAnnotationParser extends AbstractAnnotationParser {
     }
 
     @Override
-    protected void onAnnotationTargetFound(String targetName, Annotation.TargetType targetType) {
+    protected void onAnnotationTargetFound(String targetName, Annotation.TargetType targetType, int lineNumber) {
         for (ResultPathAnnotation annotation : pendingAnnotations) {
             annotation.setTargetName(targetName);
             annotation.setTargetType(targetType);
@@ -47,14 +48,14 @@ public class ResultPathAnnotationParser extends AbstractAnnotationParser {
     }
 
     @Override
-    protected void onAnnotationParameter(String value, int parameterIndex) {
+    protected void onAnnotationParameter(String value, int parameterIndex, int lineNumber) {
         if (parameterIndex == 0) {
             currentAnnotation.setLocation(value);
         }
     }
 
     @Override
-    protected void onNamedAnnotationParameter(String name, String value) {
+    protected void onNamedAnnotationParameter(String name, String value, int lineNumber) {
         if (name.equals("value")) {
             currentAnnotation.setLocation(value);
         }
