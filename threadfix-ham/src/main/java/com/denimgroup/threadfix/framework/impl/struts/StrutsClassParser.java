@@ -1,7 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.struts;
 
 import com.denimgroup.threadfix.framework.impl.struts.annotationParsers.*;
-import com.denimgroup.threadfix.framework.impl.struts.conventions.Convention;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ActionAnnotation;
@@ -23,7 +22,7 @@ public class StrutsClassParser {
     ParentPackageAnnotationParser parentPackageParser = new ParentPackageAnnotationParser();
     ResultAnnotationParser resultParser = new ResultAnnotationParser();
     ResultPathAnnotationParser resultPathParser = new ResultPathAnnotationParser();
-    StrutsClassMethodParser methodParser = new StrutsClassMethodParser();
+    StrutsClassSignatureParser classSigParser = new StrutsClassSignatureParser();
 
 
     StrutsClass resultClass;
@@ -31,14 +30,16 @@ public class StrutsClassParser {
 
     public StrutsClassParser(File file) {
 
-        EventBasedTokenizerRunner.run(file, true, actionParser, namespaceParser, parentPackageParser, resultParser, resultPathParser, methodParser);
+        EventBasedTokenizerRunner.run(file, true, actionParser, namespaceParser, parentPackageParser, resultParser, resultPathParser, classSigParser);
         //EventBasedTokenizerRunner.run(file, true, actionParser);
 
-        String className = methodParser.getParsedClassName();
+        String className = classSigParser.getParsedClassName();
         resultClass = new StrutsClass(className, file.getAbsolutePath());
-        resultClass.addAllMethods(methodParser.getParsedMethods());
+        resultClass.addAllMethods(classSigParser.getParsedMethods());
 
-
+        for (String baseType : classSigParser.getBaseTypes()) {
+            resultClass.addBaseType(baseType);
+        }
 
         List<Annotation> allAnnotations = new ArrayList<Annotation>();
         allAnnotations.addAll(actionParser.getAnnotations());
@@ -72,7 +73,7 @@ public class StrutsClassParser {
 
         //  Generate method map
         Map<String, StrutsMethod> methodNameMap = new HashMap<String, StrutsMethod>();
-        for (StrutsMethod method : methodParser.getParsedMethods()) {
+        for (StrutsMethod method : classSigParser.getParsedMethods()) {
             String methodName = method.getName();
             if (methodNameMap.containsKey(methodName)) {
                 LOG.debug("Multiple methods named " + methodName + " were found in \"" + file.getAbsolutePath() + "\", only the first will be used.");

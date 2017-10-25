@@ -1,11 +1,9 @@
 package com.denimgroup.threadfix.framework.impl.struts.annotationParsers;
 
-import com.denimgroup.threadfix.framework.impl.struts.CodeStringUtil;
+import com.denimgroup.threadfix.framework.impl.struts.CodeParseUtil;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ActionAnnotation;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.Annotation;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ResultAnnotation;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 
 import java.io.*;
 import java.util.Collection;
@@ -95,7 +93,7 @@ public class ActionAnnotationParser extends AbstractAnnotationParser {
     }
 
     private void parseActionParams(String paramsString) {
-        String[] parts = CodeStringUtil.splitByComma(paramsString);
+        String[] parts = CodeParseUtil.splitByComma(paramsString);
         Map<String, String> result = new HashMap<String, String>();
         for (int i = 0; i < parts.length - 1; i += 2) {
             currentAnnotation.addParameter(parts[i], parts[i + 1]);
@@ -103,7 +101,7 @@ public class ActionAnnotationParser extends AbstractAnnotationParser {
     }
 
     private void parseActionResults(String resultsString, int lineNumber) {
-        String[] resultAnnotationStrings = CodeStringUtil.splitByComma(resultsString);
+        String[] resultAnnotationStrings = CodeParseUtil.splitByComma(resultsString);
 
         for (String annotationString : resultAnnotationStrings) {
 

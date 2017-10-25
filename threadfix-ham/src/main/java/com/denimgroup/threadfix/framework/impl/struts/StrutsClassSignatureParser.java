@@ -5,10 +5,11 @@ import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 
 import java.util.*;
 
-public class StrutsClassMethodParser implements EventBasedTokenizer {
+public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
     String parsedClassName;
     List<StrutsMethod> methods = new ArrayList<StrutsMethod>();
+    List<String> baseTypes = new ArrayList<String>();
     boolean skipBuiltIn = true;
     boolean skipNonPublic = true;
     boolean skipConstructors = true;
@@ -42,6 +43,8 @@ public class StrutsClassMethodParser implements EventBasedTokenizer {
         return methods;
     }
 
+    public Collection<String> getBaseTypes() { return baseTypes; }
+
 
     @Override
     public boolean shouldContinue() {
@@ -59,6 +62,14 @@ public class StrutsClassMethodParser implements EventBasedTokenizer {
         switch (parsePhase) {
             case IDENTIFICATION:
                 processIdentificationPhase(type, lineNumber, stringValue);
+                break;
+
+            case PARSE_PACKAGE:
+                processParsePackagePhase(type, lineNumber, stringValue);
+                break;
+
+            case CLASS_BASE_TYPES:
+                processClassBaseTypesPhase(type, lineNumber, stringValue);
                 break;
 
             case NEXT_IS_CLASS_NAME:
@@ -84,14 +95,25 @@ public class StrutsClassMethodParser implements EventBasedTokenizer {
     int numOpenParens = 0;
 
 
-    enum ParsePhase { IDENTIFICATION, NEXT_IS_CLASS_NAME, IN_CLASS }
+    enum ParsePhase { IDENTIFICATION, PARSE_PACKAGE, NEXT_IS_CLASS_NAME, CLASS_BASE_TYPES, IN_CLASS }
     ParsePhase parsePhase = ParsePhase.IDENTIFICATION;
 
 
     void processIdentificationPhase(int type, int lineNumber, String stringValue) {
-        if (parsedClassName == null) {
-            if (stringValue != null && stringValue.equals("class")) {
+        if (stringValue != null) {
+            if (stringValue.equals("class") && parsedClassName == null) {
                 parsePhase = ParsePhase.NEXT_IS_CLASS_NAME;
+            } else if (stringValue.equals("package")) {
+                parsePhase = ParsePhase.PARSE_PACKAGE;
+                workingPackageName = "";
+            } else if (stringValue.equals("implements")) {
+                parseBaseTypesState = ParseBaseTypesState.INTERFACES;
+                parsePhase = ParsePhase.CLASS_BASE_TYPES;
+                workingBaseTypeName = "";
+            } else if (stringValue.equals("extends")) {
+                parseBaseTypesState = ParseBaseTypesState.CLASSES;
+                parsePhase = ParsePhase.CLASS_BASE_TYPES;
+                workingBaseTypeName = "";
             }
         } else {
             if (type == '{') {
@@ -101,6 +123,64 @@ public class StrutsClassMethodParser implements EventBasedTokenizer {
     }
 
 
+
+    String workingPackageName;
+    void processParsePackagePhase(int type, int lineNumber, String stringValue) {
+        if (type == ';') {
+            parsePhase = ParsePhase.IDENTIFICATION;
+        } else {
+            workingPackageName += CodeParseUtil.buildTokenString(type, stringValue);
+        }
+    }
+
+
+    enum ParseBaseTypesState { START, CLASSES, INTERFACES }
+    ParseBaseTypesState parseBaseTypesState = ParseBaseTypesState.START;
+
+    String workingBaseTypeName;
+    void processClassBaseTypesPhase(int type, int lineNumber, String stringValue) {
+        boolean endOfSection = false;
+
+        if (type == '{') {
+            endOfSection = true;
+            parsePhase = ParsePhase.IN_CLASS;
+        } else {
+
+            if (stringValue != null) {
+                if (stringValue.equals("implements")) {
+                    parseBaseTypesState = ParseBaseTypesState.INTERFACES;
+                    endOfSection = true;
+                } else if (stringValue.equals("extends")) {
+                    parseBaseTypesState = ParseBaseTypesState.CLASSES;
+                    endOfSection = true;
+                }
+            }
+
+            if (stringValue == null || (!stringValue.equals("implements") && !stringValue.equals("extends"))) {
+                switch (parseBaseTypesState) {
+                    case START:
+                        break;
+
+                    case CLASSES:
+                        workingBaseTypeName += CodeParseUtil.buildTokenString(type, stringValue);
+                        break;
+
+                    case INTERFACES:
+                        workingBaseTypeName += CodeParseUtil.buildTokenString(type, stringValue);
+                        break;
+                }
+            }
+        }
+
+        if (endOfSection) {
+            if (workingBaseTypeName != null && workingBaseTypeName.length() > 0) {
+                String[] parsedTypes = CodeParseUtil.splitByComma(workingBaseTypeName);
+                baseTypes.addAll(Arrays.asList(parsedTypes));
+            }
+
+            workingBaseTypeName = "";
+        }
+    }
 
 
 
@@ -154,19 +234,10 @@ public class StrutsClassMethodParser implements EventBasedTokenizer {
             case POSSIBLE_METHOD_PARAMS_START:
                 if (type == ')' && numOpenParens == 0) {
                     inClassState = InClassState.POSSIBLE_METHOD_PARAMS_END;
+                    break;
                 }
 
-                if (type > 0) {
-                    possibleMethodParams += Character.toString((char)type);
-                }
-
-                if (stringValue != null) {
-                    possibleMethodParams += stringValue;
-
-                    if (type > 0) {
-                        possibleMethodParams += Character.toString((char)type);
-                    }
-                }
+                possibleMethodParams += CodeParseUtil.buildTokenString(type, stringValue);
 
                 break;
 
@@ -194,7 +265,7 @@ public class StrutsClassMethodParser implements EventBasedTokenizer {
                     StrutsMethod newMethod = new StrutsMethod();
                     newMethod.setName(possibleMethodName);
 
-                    String[] splitParams = CodeStringUtil.splitByComma(possibleMethodParams);
+                    String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
                     for (String param : splitParams) {
                         String[] paramParts = param.split(" ");
                         String paramName = paramParts[paramParts.length - 1];

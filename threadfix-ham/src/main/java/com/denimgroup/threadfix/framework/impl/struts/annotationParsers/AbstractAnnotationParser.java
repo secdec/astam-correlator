@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.struts.annotationParsers;
 
+import com.denimgroup.threadfix.framework.impl.struts.CodeParseUtil;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.Annotation;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -150,26 +151,30 @@ public abstract class AbstractAnnotationParser implements EventBasedTokenizer {
                     return;
                 }
 
-                if (type > 0) {
-                    workingParamValue += Character.toString((char)type);
-                    if (type == '"' && lastToken != '\\') {
-                        isInQuote = true;
-                    }
-                }
+                workingParamValue += CodeParseUtil.buildTokenString(type, stringValue);
 
-                if (stringValue != null) {
-                    workingParamValue += stringValue;
-                }
+                isInQuote = (type == '"' && lastToken != '\\' && stringValue == null);
+
+//                if (type > 0) {
+//                    workingParamValue += Character.toString((char)type);
+//                    if (type == '"' && lastToken != '\\') {
+//                        isInQuote = true;
+//                    }
+//                }
+//
+//                if (stringValue != null) {
+//                    workingParamValue += stringValue;
+//                }
 
                 //  A 'type' supplied with a 'stringValue' is intended to surround the 'stringValue', ie
                 //      if type is `"` and stringValue is `test`, the original string would be `"test"`
-                if (type > 0 && stringValue != null) {
-                    workingParamValue += Character.toString((char)type);
-
-                    if (type == '"' && lastToken != '\\') {
-                        isInQuote = false;
-                    }
-                }
+//                if (type > 0 && stringValue != null) {
+//                    workingParamValue += Character.toString((char)type);
+//
+//                    if (type == '"' && lastToken != '\\') {
+//                        isInQuote = false;
+//                    }
+//                }
 
                 if (type == '=' && workingParamName == null) {
                     workingParamName = trimSpecialChars(workingParamValue);
