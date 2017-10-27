@@ -65,6 +65,8 @@ public class ActionMapperFactory {
                 //  If no mappers manually configured an Convention plugin is enabled, struts Default mapper should
                 //  be set as primary mapper and Convention mapper as backup
                 compositeMapper.addMapper(new DefaultActionMapper());
+                //  This method of incorporating the Convention plugin is questionable, need more research in
+                //      how the Convention plugin determines when to modify mappings
                 compositeMapper.addMapper(new ConventionPluginMapper());
 
 

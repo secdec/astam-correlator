@@ -233,7 +233,7 @@ public class StrutsEndpointMappingsTests {
         assert bestMatch.getHttpMethods().contains("POST") :
                 "Endpoint didn't have HTTP method 'POST', had " + bestMatch.getHttpMethods();
 
-        assert bestMatch.getParameters().contains("bean.userName") :
+        assert bestMatch.getParameters().keySet().contains("bean.userName") :
                 "Endpoint didn't have parameter 'bean.userName', had " + bestMatch.getParameters();
 
     }
@@ -270,7 +270,7 @@ public class StrutsEndpointMappingsTests {
 
         if (parameters != null) {
             for (String parameter : parameters) {
-                assert bestMatch.getParameters().contains(parameter) : "Parameters didn't contain " + parameter;
+                assert bestMatch.getParameters().keySet().contains(parameter) : "Parameters didn't contain " + parameter;
             }
         }
     }

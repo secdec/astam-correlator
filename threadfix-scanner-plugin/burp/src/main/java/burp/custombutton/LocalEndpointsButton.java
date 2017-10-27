@@ -26,19 +26,12 @@ package burp.custombutton;
 
 import burp.IBurpExtenderCallbacks;
 import burp.dialog.ConfigurationDialogs;
-import burp.dialog.SourceDialog;
-import burp.dialog.UrlDialog;
 import burp.extention.BurpPropertiesManager;
-import burp.extention.RestUtils;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 
-import javax.swing.*;
 import java.awt.*;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.*;
 
 public class LocalEndpointsButton extends EndpointsButton {
 
@@ -48,7 +41,7 @@ public class LocalEndpointsButton extends EndpointsButton {
 
     @Override
     protected String getButtonText() {
-        return "Import Endpoints From Source";
+        return "Import and Scan Endpoints From Source";
     }
 
     @Override
@@ -57,7 +50,7 @@ public class LocalEndpointsButton extends EndpointsButton {
     }
 
     @Override
-    protected String getCompletedMessage() { return "The endpoints were successfully generated from source."; }
+    protected String getCompletedMessage() { return "The endpoints were successfully generated from source. Starting scan.."; }
 
     @Override
     protected ConfigurationDialogs.DialogMode getDialogMode() {

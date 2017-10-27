@@ -21,15 +21,14 @@
 //     Contributor(s): Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-package com.denimgroup.threadfix.framework.impl.model;
+package com.denimgroup.threadfix.data.entities;
+
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 
 import javax.annotation.Nonnull;
-
 import java.util.*;
 
-import static com.denimgroup.threadfix.CollectionUtils.list;
-import static com.denimgroup.threadfix.CollectionUtils.map;
-import static com.denimgroup.threadfix.CollectionUtils.set;
+import static com.denimgroup.threadfix.CollectionUtils.*;
 
 public class ModelFieldSet implements Iterable<ModelField> {
 
@@ -62,6 +61,7 @@ public class ModelFieldSet implements Iterable<ModelField> {
         return getField(paramName) != null;
     }
 
+
     @Nonnull
     public ModelFieldSet add(ModelField field) {
         this.fieldSet.add(field);
@@ -79,12 +79,12 @@ public class ModelFieldSet implements Iterable<ModelField> {
     }
 
     @Nonnull
-    public Collection<String> getPossibleParameters() {
-        List<String> strings = list();
+    public Map<String, ParameterDataType> getPossibleParameters() {
+        Map<String, ParameterDataType> parameters = map();
         for (ModelField field : fieldSet) {
-            strings.add(field.getParameterKey());
+            parameters.put(field.getParameterKey(), ParameterDataType.getType(field.getType()));
         }
-        return strings;
+        return parameters;
     }
 
     @Override
@@ -99,6 +99,10 @@ public class ModelFieldSet implements Iterable<ModelField> {
     @Nonnull
     @Override
     public Iterator<ModelField> iterator() {
-		return fieldSet.iterator();
-	}
+        return fieldSet.iterator();
+    }
+
+    public boolean isEmpty(){
+        return fieldSet.isEmpty();
+    }
 }

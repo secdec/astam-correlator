@@ -23,6 +23,8 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
@@ -43,6 +45,7 @@ import java.io.File;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class StrutsEndpointMappings implements EndpointGenerator {
 

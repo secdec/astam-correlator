@@ -1,12 +1,14 @@
 package com.denimgroup.threadfix.framework.impl.struts.model;
 
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
-import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.*;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -33,7 +35,7 @@ public class StrutsClass {
     private List<StrutsMethod> methods = list();
     private List<String> importedPackages = list();
     private String sourcePackage = null;
-    private ModelFieldSet properties = null;
+    private Set<ModelField> properties = null;
 
     public String getName() {
         return className;
@@ -83,7 +85,7 @@ public class StrutsClass {
         this.attachedAnnotations.addAll(annotations);
     }
 
-    public void setProperties(ModelFieldSet properties) {
+    public void setProperties(Set<ModelField> properties) {
         this.properties = properties;
     }
 
@@ -113,7 +115,7 @@ public class StrutsClass {
         return attachedAnnotations;
     }
 
-    public ModelFieldSet getProperties() {
+    public Set<ModelField> getProperties() {
         return properties;
     }
 

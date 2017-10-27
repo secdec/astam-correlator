@@ -23,10 +23,12 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 
 import javax.annotation.Nonnull;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -58,7 +60,7 @@ class DotNetEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Set<String> getParameters() {
+    public Map<String, ParameterDataType> getParameters() {
         return action.parameters;
     }
 

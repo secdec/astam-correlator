@@ -23,10 +23,11 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.ModelFieldSet;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
-import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
@@ -114,11 +115,13 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 }
 
                 boolean shouldReplaceParameterSection = true;
+
                 if(action.parameters != null &&
                         mapRoute.defaultRoute != null &&
-                        action.parameters.contains(mapRoute.defaultRoute.parameter)) {
+                        action.parameters.keySet().contains(mapRoute.defaultRoute.parameter)) {
+
                     String lowerCaseParameterName = mapRoute.defaultRoute.parameter.toLowerCase();
-                    for (String parameter : action.parameters) {
+                    for (String parameter : action.parameters.keySet()) {
                         if (parameter.toLowerCase().equals(lowerCaseParameterName)) {
                             shouldReplaceParameterSection = false;
                             break;
@@ -153,7 +156,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 if (!parameters.getFieldSet().isEmpty()) {
                     action.parameters.remove(field.getParameterKey());
                     for (ModelField possibleParameter : parameters) {
-                        action.parameters.add(possibleParameter.getParameterKey());
+                        action.parameters.put(possibleParameter.getParameterKey(), ParameterDataType.getType(possibleParameter.getType()));
                     }
                 }
             }

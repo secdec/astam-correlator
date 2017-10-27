@@ -23,9 +23,9 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.spring;
 
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.framework.TestConstants;
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
-import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import org.junit.Test;
 

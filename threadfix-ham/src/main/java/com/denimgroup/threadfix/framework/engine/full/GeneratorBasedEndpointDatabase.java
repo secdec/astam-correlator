@@ -97,7 +97,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 			if (endpoint.getParameters().isEmpty()) {
 				addToMap(parameterMap, "null", endpoint);
 			} else {
-				for (String parameter : endpoint.getParameters()) {
+				for (String parameter : endpoint.getParameters().keySet()) {
 					addToMap(parameterMap, parameter, endpoint);
 				}
 			}

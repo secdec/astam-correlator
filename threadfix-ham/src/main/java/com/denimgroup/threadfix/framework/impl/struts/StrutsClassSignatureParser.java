@@ -1,7 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.struts;
 
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
-import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
+import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.sun.org.apache.xpath.internal.operations.Mod;
@@ -14,7 +13,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     List<StrutsMethod> methods = new ArrayList<StrutsMethod>();
     List<String> baseTypes = new ArrayList<String>();
     List<String> imports = new ArrayList<String>();
-    ModelFieldSet parameters = new ModelFieldSet();
+    Set<ModelField> parameters = new HashSet<ModelField>();
     String classPackage;
     boolean skipBuiltIn = true;
     boolean skipNonPublic = true;
@@ -44,7 +43,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
         return methods;
     }
 
-    public ModelFieldSet getParameters() { return parameters; };
+    public Set<ModelField> getParameters() { return parameters; };
 
     public Collection<String> getBaseTypes() { return baseTypes; }
 

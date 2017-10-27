@@ -139,7 +139,7 @@ public class SpringControllerMappingsTests {
 		for (String[] singleEndpoint : paramSets) {
 			assertTrue(singleEndpoint[0] + " should have had the parameter " + singleEndpoint[1] + ", but only had " +
 					mappings.getEndpointsFromUrl(singleEndpoint[0]).iterator().next().getParameters(),
-					mappings.getEndpointsFromUrl(singleEndpoint[0]).iterator().next().getParameters().contains(singleEndpoint[1]));
+					mappings.getEndpointsFromUrl(singleEndpoint[0]).iterator().next().getParameters().keySet().contains(singleEndpoint[1]));
 		}
 	}
 	

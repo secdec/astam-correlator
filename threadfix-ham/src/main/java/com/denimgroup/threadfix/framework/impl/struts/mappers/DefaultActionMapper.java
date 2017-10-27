@@ -1,7 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.struts.mappers;
 
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
-import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.struts.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsWebPack;
@@ -13,13 +13,11 @@ import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityParser;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 //  Resolves struts.xml route/action bindings and forwards unbound queries to direct files in the _webapp_ folder
 
@@ -81,9 +79,9 @@ public class DefaultActionMapper implements ActionMapper {
 
                 String classLocation = strutsAction.getActClassLocation();
                 StrutsClass classForAction = project.findClassByFileLocation(classLocation);
-                ModelFieldSet fieldMappings = classForAction.getProperties();
+                Set<ModelField> fieldMappings = classForAction.getProperties();
                 List<String> httpMethods = list();
-                List<String> parameters = list();
+                Map<String, ParameterDataType> parameters = map();
 
                 String basePath = sbUrl.toString();
 
@@ -95,7 +93,7 @@ public class DefaultActionMapper implements ActionMapper {
                         for (StrutsMethod method : classForAction.getMethods()) {
                             path = sbUrl.toString();
                             httpMethods = list();
-                            parameters = list();
+                            parameters = map();
                             if ("execute".equals(method.getName())) {
                                 path = path.replace("!*", "");
                                 path = path.replace("*", "");
@@ -105,7 +103,7 @@ public class DefaultActionMapper implements ActionMapper {
                                 path = path.replace("*", method.getName());
                                 httpMethods.add("POST");
                                 for (ModelField mf : fieldMappings) {
-                                    parameters.add(mf.getParameterKey());
+                                    parameters.put(mf.getParameterKey(), ParameterDataType.getType(mf.getType()));
                                 }
                                 endpoints.add(new StrutsEndpoint(classLocation, path, httpMethods, parameters));
                             }
@@ -113,7 +111,7 @@ public class DefaultActionMapper implements ActionMapper {
                     } else {
                         httpMethods.add("POST");
                         for (ModelField mf : fieldMappings) {
-                            parameters.add(mf.getParameterKey());
+                            parameters.put(mf.getParameterKey(), ParameterDataType.getType(mf.getType()));
                         }
                         endpoints.add(new StrutsEndpoint(classLocation, path, httpMethods, parameters));
                     }
@@ -124,7 +122,8 @@ public class DefaultActionMapper implements ActionMapper {
 
                     if (filePath != null && primaryWebPack != null) {
                         if (primaryWebPack.contains(filePath)) {
-                            endpoints.add(new StrutsEndpoint(classLocation, PathUtil.combine(basePath, actionName), list("GET"), new ArrayList<String>()));
+                            String exposedContentPath = PathUtil.combine(basePath, actionName); // TODO - This is incorrect
+                            endpoints.add(new StrutsEndpoint(classLocation, exposedContentPath, list("GET"), new HashMap<String, ParameterDataType>()));
                         }
                     }
                 }

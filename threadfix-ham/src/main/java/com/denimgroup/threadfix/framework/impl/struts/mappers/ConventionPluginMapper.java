@@ -1,7 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.struts.mappers;
 
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
-import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.struts.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
@@ -13,6 +13,8 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
@@ -33,22 +35,22 @@ public class ConventionPluginMapper implements ActionMapper {
 
             String rootNamespacePath = buildNamespace(parentNamespace, strutsClass, project);
 
-            ModelFieldSet fields = strutsClass.getProperties();
-            List<String> fieldNames = list();
+            Set<ModelField> fields = strutsClass.getProperties();
+            Map<String, ParameterDataType> parameters = map();
             for (ModelField field : fields) {
-                fieldNames.add(field.getParameterKey());
+                parameters.put(field.getParameterKey(), ParameterDataType.getType(field.getType()));
             }
 
             for (StrutsMethod method : strutsClass.getMethods()) {
                 String methodPath = method.getName();
 
                 String endpointPath = PathUtil.combine(rootNamespacePath, formatCamelCaseToConvention(method.getName(), project));
-                StrutsEndpoint newEndpoint = new StrutsEndpoint(strutsClass.getSourceFile(), endpointPath, list("GET"), fieldNames);
+                StrutsEndpoint newEndpoint = new StrutsEndpoint(strutsClass.getSourceFile(), endpointPath, list("GET"), parameters);
                 endpoints.add(newEndpoint);
 
                 if (methodPath.equalsIgnoreCase("index")) {
                     endpointPath = rootNamespacePath;
-                    newEndpoint = new StrutsEndpoint(strutsClass.getSourceFile(), endpointPath, list("GET"), fieldNames);
+                    newEndpoint = new StrutsEndpoint(strutsClass.getSourceFile(), endpointPath, list("GET"), parameters);
                     endpoints.add(newEndpoint);
                 }
             }

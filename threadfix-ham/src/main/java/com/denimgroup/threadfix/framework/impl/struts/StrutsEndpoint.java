@@ -23,12 +23,13 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,14 +43,14 @@ public class StrutsEndpoint extends AbstractEndpoint {
     private Pattern pathRegex = null;
 
     private Set<String> methods;
-    private Set<String> parameters;
+    private Map<String, ParameterDataType> parameters;
 
     public StrutsEndpoint(String filePath, String urlPath,
-                          Collection<String> methods, Collection<String> parameters) {
+                          Collection<String> methods, Map<String, ParameterDataType> parameters) {
         this.filePath = filePath;
         this.urlPath = urlPath;
         this.methods = setFrom(methods);
-        this.parameters = setFrom(parameters);
+        this.parameters = parameters;
 
         String regexString = "^" + urlPath
                 .replaceAll("\\{.+\\}", "(.+)")
@@ -76,7 +77,7 @@ public class StrutsEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Set<String> getParameters() {
+    public Map<String, ParameterDataType> getParameters() {
         return parameters;
     }
 

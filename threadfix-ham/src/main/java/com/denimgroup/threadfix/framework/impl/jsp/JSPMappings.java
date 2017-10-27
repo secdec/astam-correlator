@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.jsp;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
@@ -266,16 +267,16 @@ public class JSPMappings implements EndpointGenerator {
     void addParametersFromIncludedFiles() {
         for (Map.Entry<String, JSPEndpoint> endpointEntry : jspEndpointMap.entrySet()) {
             if (endpointEntry != null && endpointEntry.getKey() != null) {
-                endpointEntry.getValue().getParameters().addAll(
+                endpointEntry.getValue().getParameters().putAll(
                         getParametersFor(endpointEntry.getKey(),
-                                new HashSet<String>(), new HashSet<String>()));
+                                new HashSet<String>(), new HashMap<String, ParameterDataType>()));
             }
         }
     }
 
     // TODO memoize results
-    Set<String> getParametersFor(String key, Set<String> alreadyVisited,
-                                        Set<String> soFar) {
+    Map<String, ParameterDataType> getParametersFor(String key, Set<String> alreadyVisited,
+                                                    Map<String, ParameterDataType> soFar) {
 
         if (alreadyVisited.contains(key)) {
             return soFar;
@@ -283,14 +284,14 @@ public class JSPMappings implements EndpointGenerator {
 
         alreadyVisited.add(key);
 
-        Set<String> params = set();
+        Map<String, ParameterDataType> params = map();
 
         if (includeMap.get(key) != null) {
             for (String fileKey : includeMap.get(key)) {
                 JSPEndpoint endpoint = jspEndpointMap.get(fileKey);
                 if (endpoint != null) {
-                    params.addAll(endpoint.getParameters());
-                    params.addAll(getParametersFor(fileKey, alreadyVisited, soFar));
+                    params.putAll(endpoint.getParameters());
+                    params.putAll(getParametersFor(fileKey, alreadyVisited, soFar));
                 }
             }
         }

@@ -21,61 +21,62 @@
 //     Contributor(s): Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-package com.denimgroup.threadfix.framework.impl.model;
+package com.denimgroup.threadfix.data.entities;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class ModelField {
 
+	@Nonnull
+	private final String fieldType, parameterKey;
+
 	public ModelField(@Nonnull String fieldType, @Nonnull String methodName) {
 		this.fieldType = fieldType;
-        this.parameterKey = getParameterKey(methodName);
+		this.parameterKey = getParameterKey(methodName);
 	}
-	
+
 	@Nonnull
-    private String getParameterKey(@Nonnull String methodCall) {
+	private String getParameterKey(@Nonnull String methodCall) {
 		String propertyName = methodCall;
-		
+
 		if (methodCall.startsWith("get") && methodCall.length() > 3) {
 			// transform from bean accessor to parameter name
 			propertyName = methodCall.substring(3);
 			propertyName = propertyName.substring(0,1).toLowerCase() + propertyName.substring(1);
 		}
-		
+
 		return propertyName;
 	}
 
 	@Nonnull
-    private final String fieldType, parameterKey;
-
-	@Nonnull
-    public String getType() {
+	public String getType() {
 		return fieldType;
 	}
 
 	@Nonnull
-    public String getParameterKey() {
+	public String getParameterKey() {
 		return parameterKey;
 	}
-	
+
 	public boolean isPrimitiveType() {
 		return "Integer".equals(fieldType) || "String".equals(fieldType) || "int".equals(fieldType);
 	}
-	
+
 	@Nonnull
-    @Override
+	@Override
 	public String toString() {
 		return parameterKey + ":" + fieldType;
 	}
-	
+
 	@Override
 	public int hashCode() {
 		return fieldType.hashCode() * 37 + parameterKey.hashCode();
 	}
-	
+
 	@Override
 	public boolean equals(@Nullable Object object) {
 		return object instanceof ModelField && object.hashCode() == hashCode();
 	}
 }
+

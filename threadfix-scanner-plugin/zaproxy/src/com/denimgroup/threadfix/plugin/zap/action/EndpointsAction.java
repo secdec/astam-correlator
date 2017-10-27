@@ -24,23 +24,20 @@
 
 package com.denimgroup.threadfix.plugin.zap.action;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-
-import javax.swing.JMenuItem;
-
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
-import com.denimgroup.threadfix.remote.PluginClient;
+import com.denimgroup.threadfix.plugin.zap.dialog.ConfigurationDialogs;
+import com.denimgroup.threadfix.plugin.zap.dialog.UrlDialog;
 import org.apache.log4j.Logger;
 import org.parosproxy.paros.extension.ViewDelegate;
 import org.parosproxy.paros.model.Model;
 
-import com.denimgroup.threadfix.plugin.zap.dialog.ConfigurationDialogs;
-import com.denimgroup.threadfix.plugin.zap.dialog.UrlDialog;
-import org.zaproxy.zap.extension.threadfix.ZapPropertiesManager;
+import javax.swing.*;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public abstract class EndpointsAction extends JMenuItem {
 
@@ -107,11 +104,11 @@ public abstract class EndpointsAction extends JMenuItem {
 
                 nodes.add(urlPath);
 
-                Set<String> params = endpoint.getParameters();
+                Map<String, ParameterDataType> params = endpoint.getParameters();
 
                 if (!params.isEmpty()) {
-                    for(String parameter : params){
-                        nodes.add(urlPath + "?" + parameter + "=true");
+                    for(Map.Entry<String, ParameterDataType> parameter : params.entrySet()){
+                        nodes.add(urlPath + "?" + parameter.getKey() + "=" + parameter.getValue());
                     }
                 }
             }

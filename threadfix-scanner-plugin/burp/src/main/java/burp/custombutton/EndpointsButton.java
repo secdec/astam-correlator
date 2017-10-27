@@ -25,15 +25,24 @@
 package burp.custombutton;
 
 import burp.IBurpExtenderCallbacks;
+import burp.IHttpRequestResponse;
+import burp.IHttpService;
 import burp.dialog.ConfigurationDialogs;
 import burp.dialog.UrlDialog;
+import burp.extention.BurpPropertiesManager;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Map;
 
 /**
  * Created with IntelliJ IDEA.
@@ -47,6 +56,7 @@ public abstract class EndpointsButton extends JButton {
     public static final String GENERIC_INT_SEGMENT = "\\{id\\}";
 
     public EndpointsButton(final Component view, final IBurpExtenderCallbacks callbacks) {
+
         setText(getButtonText());
 
         addActionListener(new java.awt.event.ActionListener() {
@@ -57,6 +67,10 @@ public abstract class EndpointsButton extends JButton {
                 java.util.List<String> nodes = new ArrayList<>();
 
                 if (configured) {
+                    if (BurpPropertiesManager.getBurpPropertiesManager().getConfigFile() != null ) {
+                        callbacks.loadConfigFromJson(getBurpConfigAsString());
+                    }
+
                     Endpoint.Info[] endpoints = getEndpoints();
 
                     if (endpoints.length == 0) {
@@ -72,8 +86,8 @@ public abstract class EndpointsButton extends JButton {
                                 endpointPath = endpointPath.replaceAll(GENERIC_INT_SEGMENT, "1");
                                 nodes.add(endpointPath);
 
-                                for (String parameter : endpoint.getParameters()) {
-                                    nodes.add(endpointPath + "?" + parameter + "=true");
+                                for(Map.Entry<String, ParameterDataType> parameter : endpoint.getParameters().entrySet()) {
+                                    nodes.add(endpointPath + "?" + parameter.getKey() + "=" + parameter.getValue());
                                 }
                             }
                         }
@@ -86,7 +100,9 @@ public abstract class EndpointsButton extends JButton {
                                     url = url+"/";
                                 }
                                 for (String node: nodes) {
-                                    callbacks.sendToSpider(new URL(url + node));
+                                    URL nodeUrl = new URL(url + node);
+                                    callbacks.includeInScope(nodeUrl);
+                                    callbacks.sendToSpider(nodeUrl);
                                 }
                                 completed = true;
                             } catch (MalformedURLException e1) {
@@ -100,8 +116,36 @@ public abstract class EndpointsButton extends JButton {
                 if (completed) {
                     JOptionPane.showMessageDialog(view, getCompletedMessage());
                 }
+
+                sendToScanner(callbacks);
             }
         });
+    }
+
+    private void sendToScanner(IBurpExtenderCallbacks callbacks) {
+        IHttpRequestResponse[] responses = callbacks.getSiteMap(BurpPropertiesManager.getBurpPropertiesManager().getTargetUrl());
+        for (IHttpRequestResponse response : responses) {
+            IHttpService service = response.getHttpService();
+            boolean useHttps = service.getProtocol().equalsIgnoreCase("https");
+            callbacks.doActiveScan(service.getHost(), service.getPort(), useHttps, response.getRequest());
+        }
+    }
+
+    private String getBurpConfigAsString() {
+        try {
+            JSONParser parser = new JSONParser();
+            JSONObject jsonObject = (JSONObject) parser.parse(new FileReader(BurpPropertiesManager.getBurpPropertiesManager().getConfigFile()));
+
+            return jsonObject.toJSONString();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return "";
     }
 
     protected abstract String getButtonText();

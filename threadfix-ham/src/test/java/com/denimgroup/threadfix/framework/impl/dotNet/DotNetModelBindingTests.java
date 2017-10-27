@@ -23,7 +23,9 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
+import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.data.enums.InformationSourceType;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.ResourceManager;
 import com.denimgroup.threadfix.framework.TestConstants;
@@ -31,12 +33,13 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointQuery;
 import com.denimgroup.threadfix.framework.engine.full.EndpointQueryBuilder;
-import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
+import org.jboss.logging.Param;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static com.denimgroup.threadfix.framework.impl.dotNet.ContosoUtilities.getContosoLocation;
@@ -71,13 +74,13 @@ public class DotNetModelBindingTests {
 
         assert allMatches.size() == 1 : "No endpoint was found.";
 
-        Set<String> parameters = allMatches.iterator().next().getParameters();
+        Map<String, ParameterDataType> parameters = allMatches.iterator().next().getParameters();
 
-        assert parameters.contains("UserName") :
+        assert parameters.keySet().contains("UserName") :
                 "Endpoint didn't have the UserName parameter.";
-        assert parameters.contains("Password") :
+        assert parameters.keySet().contains("Password") :
                 "Endpoint didn't have the Password parameter.";
-        assert parameters.contains("RememberMe") :
+        assert parameters.keySet().contains("RememberMe") :
                 "Endpoint didn't have the RememberMe parameter.";
     }
 
@@ -99,15 +102,15 @@ public class DotNetModelBindingTests {
 
         assert allMatches.size() == 1 : allMatches.size() + " endpoint(s) found.";
 
-        Set<String> parameters = allMatches.iterator().next().getParameters();
+        Map<String, ParameterDataType> parameters = allMatches.iterator().next().getParameters();
 
         assert parameters.size() == 3 :
                 "Got " + parameters.size() + " parameters instead of 3: " + parameters;
-        assert parameters.contains("LastName") :
+        assert parameters.keySet().contains("LastName") :
                 "Endpoint didn't have the LastName parameter.";
-        assert parameters.contains("FirstMidName") :
+        assert parameters.keySet().contains("FirstMidName") :
                 "Endpoint didn't have the FirstMidName parameter.";
-        assert parameters.contains("EnrollmentDate") :
+        assert parameters.keySet().contains("EnrollmentDate") :
                 "Endpoint didn't have the EnrollmentDate parameter.";
     }
 
@@ -122,11 +125,11 @@ public class DotNetModelBindingTests {
         List<Endpoint> endpoints = generator.generateEndpoints();
         assert endpoints.size() == 1 : endpoints.size() + " endpoints found instead of 1.";
 
-        Set<String> parameters = endpoints.get(0).getParameters();
+        Map<String, ParameterDataType> parameters = endpoints.get(0).getParameters();
 
         System.out.println("Parameters: " + parameters);
 
-        assert parameters.contains("ID") : "ID parameter wasn't found. " +
+        assert parameters.keySet().contains("ID") : "ID parameter wasn't found. " +
                 "It is a valid property of Student because it's in Person and Student extends Person.";
     }
 
@@ -144,10 +147,10 @@ public class DotNetModelBindingTests {
     public void testObjectPropertiesNotIncluded() {
         DotNetModelMappings mappings = new DotNetModelMappings(getContosoLocation());
 
-        Collection<String> enrollmentFields =
+        Map<String, ParameterDataType> enrollmentFields =
                 mappings.getPossibleParametersForModelType("Enrollment").getPossibleParameters();
 
-        assert !enrollmentFields.contains("Student"):
+        assert !enrollmentFields.keySet().contains("Student"):
                 "Student was found in Enrollment even though it's an object type";
     }
 

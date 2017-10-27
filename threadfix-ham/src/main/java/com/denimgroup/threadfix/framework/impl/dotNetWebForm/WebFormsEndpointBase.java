@@ -23,8 +23,10 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -138,7 +140,7 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
             }
 
             if (!foundNormalParameter) {
-                map.put(parameter, list(0));
+                map.put(cleanViewParam(parameter), list(0));
             }
         }
 
@@ -187,6 +189,11 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
         return relevance + numMatchedParts * 100;
     }
 
+    private static String cleanViewParam(String param){
+        if(StringUtils.isBlank(param) || !param.contains("$")) return null;
+        return param.substring(param.lastIndexOf('$') + 1, param.length());
+    }
+
     @Nonnull
     @Override
     final protected List<String> getLintLine() {
@@ -195,8 +202,13 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    final public Set<String> getParameters() {
-        return map.keySet();
+    public Map<String, ParameterDataType> getParameters() {
+        Map<String, ParameterDataType> parameterMap = map();
+
+        for (String param : map.keySet())
+            parameterMap.put(param, ParameterDataType.STRING);
+
+        return parameterMap;
     }
 
     @Nonnull

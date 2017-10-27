@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.jsp;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.engine.CodePoint;
 
@@ -31,10 +32,11 @@ import javax.annotation.Nullable;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import static com.denimgroup.threadfix.CollectionUtils.list;
-import static com.denimgroup.threadfix.CollectionUtils.map;
-import static com.denimgroup.threadfix.CollectionUtils.set;
+import static com.denimgroup.threadfix.CollectionUtils.*;
 
 class JSPEndpoint extends AbstractEndpoint {
 
@@ -42,7 +44,9 @@ class JSPEndpoint extends AbstractEndpoint {
 	private final String dynamicPath, staticPath;
 
     @Nonnull
-	private final Set<String> parameters = set(), methods;
+	private final Map<String, ParameterDataType> parameters = map();
+    @Nonnull
+	private final Set<String> methods;
 
 	@Nonnull
     private final Map<String, Integer> paramToLineMap;
@@ -59,8 +63,10 @@ class JSPEndpoint extends AbstractEndpoint {
 		this.dynamicPath = dynamicPath;
 		this.parameterMap = parameterMap;
 		
-        for (List<String> value : parameterMap.values()) {
-            parameters.addAll(value);
+        for (List<String> values : parameterMap.values()) {
+        	for (String param : values) {
+				parameters.put(param, ParameterDataType.STRING);
+			}
         }
 
 		this.paramToLineMap = getParamToLineMap(parameterMap);
@@ -117,7 +123,7 @@ class JSPEndpoint extends AbstractEndpoint {
 			Map<Integer, List<String>> parameterMap) {
 		Map<String, Integer> paramMap = map();
 		
-		for (String parameter : parameters) {
+		for (String parameter : parameters.keySet()) {
 			paramMap.put(parameter, getFirstLineNumber(parameter, parameterMap));
 		}
 		
@@ -162,10 +168,10 @@ class JSPEndpoint extends AbstractEndpoint {
 
 	@Nonnull
     @Override
-	public Set<String> getParameters() {
+	public Map<String, ParameterDataType> getParameters() {
 		return parameters;
 	}
-	
+
 	@Nonnull
     @Override
 	public String getUrlPath() {

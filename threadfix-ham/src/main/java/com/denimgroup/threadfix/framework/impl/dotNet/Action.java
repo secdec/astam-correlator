@@ -23,13 +23,15 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.Map;
 import java.util.Set;
 
-import static com.denimgroup.threadfix.CollectionUtils.set;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 /**
  * Created by mac on 6/26/14.
@@ -44,7 +46,7 @@ class Action {
     @Nonnull
     Integer     endLineNumber;
     @Nonnull
-    Set<String> parameters = set();
+    Map<String, ParameterDataType> parameters = map();
     @Nonnull
     Set<ModelField> parametersWithTypes;
 
@@ -57,7 +59,6 @@ class Action {
                          @Nonnull Set<String> attributes,
                          @Nonnull Integer lineNumber,
                          @Nonnull Integer endLineNumber,
-                         @Nonnull Set<String> parameters,
                          @Nonnull Set<ModelField> parametersWithTypes) {
         Action action = new Action();
         action.name = name;
@@ -65,15 +66,14 @@ class Action {
         action.lineNumber = lineNumber;
         action.parametersWithTypes = parametersWithTypes;
         action.endLineNumber = endLineNumber;
-        action.parameters = parameters;
 
         for (ModelField field : parametersWithTypes) {
             if (field.getType().equals("Include")) {
                 for (String s : StringUtils.split(field.getParameterKey(), ',')) {
-                    action.parameters.add(s.trim());
+                    action.parameters.put(s.trim(), ParameterDataType.getType(field.getType()));
                 }
             } else {
-                action.parameters.add(field.getParameterKey());
+                action.parameters.put(field.getParameterKey(), ParameterDataType.getType(field.getType()));
             }
         }
 

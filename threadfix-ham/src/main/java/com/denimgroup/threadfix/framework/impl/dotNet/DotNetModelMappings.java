@@ -23,10 +23,10 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
-import com.denimgroup.threadfix.framework.impl.model.FieldSetLookupUtils;
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
-import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
+import com.denimgroup.threadfix.util.FieldSetLookupUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 
@@ -38,7 +38,7 @@ import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
-import static com.denimgroup.threadfix.framework.impl.model.FieldSetLookupUtils.addSuperClassFieldsToModels;
+import static com.denimgroup.threadfix.util.FieldSetLookupUtils.addSuperClassFieldsToModels;
 
 /**
  * Created by mac on 8/27/14.
