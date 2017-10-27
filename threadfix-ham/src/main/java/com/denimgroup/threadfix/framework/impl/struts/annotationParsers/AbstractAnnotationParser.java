@@ -155,27 +155,6 @@ public abstract class AbstractAnnotationParser implements EventBasedTokenizer {
 
                 isInQuote = (type == '"' && lastToken != '\\' && stringValue == null);
 
-//                if (type > 0) {
-//                    workingParamValue += Character.toString((char)type);
-//                    if (type == '"' && lastToken != '\\') {
-//                        isInQuote = true;
-//                    }
-//                }
-//
-//                if (stringValue != null) {
-//                    workingParamValue += stringValue;
-//                }
-
-                //  A 'type' supplied with a 'stringValue' is intended to surround the 'stringValue', ie
-                //      if type is `"` and stringValue is `test`, the original string would be `"test"`
-//                if (type > 0 && stringValue != null) {
-//                    workingParamValue += Character.toString((char)type);
-//
-//                    if (type == '"' && lastToken != '\\') {
-//                        isInQuote = false;
-//                    }
-//                }
-
                 if (type == '=' && workingParamName == null) {
                     workingParamName = trimSpecialChars(workingParamValue);
                     workingParamValue = "";

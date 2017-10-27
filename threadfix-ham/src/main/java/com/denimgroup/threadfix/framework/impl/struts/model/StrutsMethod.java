@@ -52,4 +52,33 @@ public class StrutsMethod {
     public void addAnnotation(Annotation annotation) {
         annotations.add(annotation);
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+
+        if (annotations.size() > 0) {
+            sb.append("@(");
+            for (int i = 0; i < annotations.size(); i++) {
+                Annotation annotation = annotations.get(i);
+                sb.append(annotation.toString());
+                if (i < annotations.size() - 1) {
+                    sb.append(", ");
+                }
+            }
+            sb.append(")\n");
+        }
+
+        sb.append(methodName);
+        sb.append("(");
+        for (int i = 0; i < parameters.size(); i++) {
+            sb.append(parameters.get(i));
+            if (i < parameters.size() - 1) {
+                sb.append(", ");
+            }
+        }
+        sb.append(")");
+
+        return sb.toString();
+    }
 }

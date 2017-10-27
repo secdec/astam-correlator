@@ -36,6 +36,10 @@ public class StrutsClassParser {
         String className = classSigParser.getParsedClassName();
         resultClass = new StrutsClass(className, file.getAbsolutePath());
         resultClass.addAllMethods(classSigParser.getParsedMethods());
+        resultClass.setProperties(classSigParser.getParameters());
+        resultClass.setImportedPackages(classSigParser.getImports());
+        resultClass.setPackage(classSigParser.getClassPackage());
+
 
         for (String baseType : classSigParser.getBaseTypes()) {
             resultClass.addBaseType(baseType);

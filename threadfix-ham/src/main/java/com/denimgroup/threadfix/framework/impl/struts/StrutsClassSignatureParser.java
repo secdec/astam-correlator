@@ -1,7 +1,10 @@
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.framework.impl.model.ModelField;
+import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
+import com.sun.org.apache.xpath.internal.operations.Mod;
 
 import java.util.*;
 
@@ -10,10 +13,12 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     String parsedClassName;
     List<StrutsMethod> methods = new ArrayList<StrutsMethod>();
     List<String> baseTypes = new ArrayList<String>();
+    List<String> imports = new ArrayList<String>();
+    ModelFieldSet parameters = new ModelFieldSet();
+    String classPackage;
     boolean skipBuiltIn = true;
     boolean skipNonPublic = true;
     boolean skipConstructors = true;
-    boolean skipAccessors = true;
 
 
 
@@ -29,10 +34,6 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
         skipConstructors = shouldSkipConstructors;
     }
 
-    public void setSkipAccessors(boolean shouldSkipGetSetMethods) {
-        skipAccessors = shouldSkipGetSetMethods;
-    }
-
 
 
     public String getParsedClassName() {
@@ -43,7 +44,13 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
         return methods;
     }
 
+    public ModelFieldSet getParameters() { return parameters; };
+
     public Collection<String> getBaseTypes() { return baseTypes; }
+
+    public String getClassPackage() { return classPackage;}
+
+    public Collection<String> getImports() { return imports; }
 
 
     @Override
@@ -66,6 +73,10 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
             case PARSE_PACKAGE:
                 processParsePackagePhase(type, lineNumber, stringValue);
+                break;
+
+            case PARSE_IMPORTS:
+                processParseImportsPhase(type, lineNumber, stringValue);
                 break;
 
             case CLASS_BASE_TYPES:
@@ -95,7 +106,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     int numOpenParens = 0;
 
 
-    enum ParsePhase { IDENTIFICATION, PARSE_PACKAGE, NEXT_IS_CLASS_NAME, CLASS_BASE_TYPES, IN_CLASS }
+    enum ParsePhase { IDENTIFICATION, PARSE_PACKAGE, PARSE_IMPORTS, NEXT_IS_CLASS_NAME, CLASS_BASE_TYPES, IN_CLASS }
     ParsePhase parsePhase = ParsePhase.IDENTIFICATION;
 
 
@@ -106,6 +117,9 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
             } else if (stringValue.equals("package")) {
                 parsePhase = ParsePhase.PARSE_PACKAGE;
                 workingPackageName = "";
+            } else if (stringValue.equals("import")) {
+                parsePhase = ParsePhase.PARSE_IMPORTS;
+                workingImportName = "";
             } else if (stringValue.equals("implements")) {
                 parseBaseTypesState = ParseBaseTypesState.INTERFACES;
                 parsePhase = ParsePhase.CLASS_BASE_TYPES;
@@ -127,9 +141,22 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     String workingPackageName;
     void processParsePackagePhase(int type, int lineNumber, String stringValue) {
         if (type == ';') {
+            classPackage = workingPackageName;
             parsePhase = ParsePhase.IDENTIFICATION;
         } else {
             workingPackageName += CodeParseUtil.buildTokenString(type, stringValue);
+        }
+    }
+
+
+    String workingImportName;
+    void processParseImportsPhase(int type, int lineNumber, String stringValue) {
+        if (type == ';') {
+            imports.add(workingImportName);
+            workingImportName = null;
+            parsePhase = ParsePhase.IDENTIFICATION;
+        } else {
+            workingImportName += CodeParseUtil.buildTokenString(type, stringValue);
         }
     }
 
@@ -256,23 +283,32 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                     canParse = false;
                 }
 
-                if (skipAccessors && (possibleMethodName.startsWith("get") || possibleMethodName.startsWith("set"))) {
-                    canParse = false;
-                }
-
                 if (type == '{' && canParse) {
 
-                    StrutsMethod newMethod = new StrutsMethod();
-                    newMethod.setName(possibleMethodName);
+                    if (possibleMethodName.length() > 3 &&
+                            (possibleMethodName.startsWith("get") || possibleMethodName.startsWith("set"))) {
 
-                    String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
-                    for (String param : splitParams) {
-                        String[] paramParts = param.split(" ");
-                        String paramName = paramParts[paramParts.length - 1];
+                        String paramName = possibleMethodName.substring(3);
+                        String paramType = lastString;
+                        if (!parameters.contains(paramName)) {
+                            ModelField field = new ModelField(paramType, paramName);
+                            parameters.add(field);
+                        }
 
-                        newMethod.addParameter(paramName);
+                    } else {
+
+                        StrutsMethod newMethod = new StrutsMethod();
+                        newMethod.setName(possibleMethodName);
+
+                        String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
+                        for (String param : splitParams) {
+                            String[] paramParts = param.split(" ");
+                            String paramName = paramParts[paramParts.length - 1];
+
+                            newMethod.addParameter(paramName);
+                        }
+                        methods.add(newMethod);
                     }
-                    methods.add(newMethod);
                 }
 
                 possibleMethodName = "";

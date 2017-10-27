@@ -37,15 +37,17 @@ public class StrutsAction {
 	private String name;
 	private String method;
 	private String actClass;
+	private String actClassLocation;
 	private Map<String, String> params;
 	private List<StrutsResult> results;
 
 	public StrutsAction() { }
 
-	public StrutsAction(String name, String method, String actClass) {
+	public StrutsAction(String name, String method, String actClass, String actClassLocation) {
 		this.name = name;
 		this.method = method;
 		this.actClass = actClass;
+		this.actClassLocation = actClassLocation;
 	}
 
 	public String getName() {
@@ -70,6 +72,14 @@ public class StrutsAction {
 
 	public void setActClass(String actClass) {
 		this.actClass = actClass;
+	}
+
+	public String getActClassLocation() {
+		return actClassLocation;
+	}
+
+	public void setActClassLocation(String newActClassLocation) {
+		actClassLocation = newActClassLocation;
 	}
 
 	public Map<String, String> getParams() {

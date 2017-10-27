@@ -26,13 +26,15 @@ package com.denimgroup.threadfix.framework.impl.struts;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
-import com.denimgroup.threadfix.framework.impl.model.ModelField;
+import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapper;
+import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapperFactory;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
-import com.denimgroup.threadfix.framework.util.FilePathUtils;
+import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsKnownPlugins;
+import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPluginDetector;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
-import com.denimgroup.threadfix.framework.util.java.EntityParser;
+import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 
@@ -44,19 +46,18 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class StrutsEndpointMappings implements EndpointGenerator {
 
+    static final SanitizedLogger log = new SanitizedLogger(StrutsEndpointMappings.class.getName());
+
     private final String STRUTS_CONFIG_NAME = "struts.xml";
     private final String STRUTS_PROPERTIES_NAME = "struts.properties";
 
     private File rootDirectory;
     private Collection<File> javaFiles;
     private List<StrutsPackage> strutsPackages;
-    private String[] strutsActionExtensions;
     private EntityMappings entityMappings;
     private List<Endpoint> endpoints;
     private StrutsConfigurationProperties configurationProperties;
-    private String actionSuffixConvention = "Controller";
-    private String strutsMapperClass = "PrefixBasedActionMapper";
-    private String prefixMappingValue; // Used when strutsMapperClass is PrefixBasedActionMapper
+    private ActionMapper actionMapper;
 
     public StrutsEndpointMappings(@Nonnull File rootDirectory) {
         this.rootDirectory = rootDirectory;
@@ -76,8 +77,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         String[] configExtensions = {"xml", "properties"};
         Collection configFiles = FileUtils.listFiles(rootDirectory, configExtensions, true);
 
-        for (Iterator iterator = configFiles.iterator(); iterator.hasNext();) {
-            File file = (File) iterator.next();
+        for (Object configFile : configFiles) {
+            File file = (File) configFile;
             if (file.getName().equals(STRUTS_CONFIG_NAME))
                 strutsConfigFile = file;
             if (file.getName().equals(STRUTS_PROPERTIES_NAME))
@@ -87,8 +88,10 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
 
         Collection<File> javaFiles = FileUtils.listFiles(rootDirectory, new String[] { "java" }, true);
+        Collection<StrutsClass> discoveredClasses = list();
         for (File javaFile : javaFiles) {
             StrutsClass parsedClass = new StrutsClassParser(javaFile).getResultClass();
+            discoveredClasses.add(parsedClass);
         }
 
         configurationProperties = new StrutsConfigurationProperties();
@@ -97,105 +100,45 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         if (strutsPropertiesFile != null)
             configurationProperties.loadFromStrutsProperties(strutsPropertiesFile);
 
-        String strutsActionExtensionValue = configurationProperties.get("struts.action.extension","action");
-        if (strutsActionExtensionValue == null)
-            strutsActionExtensionValue = "";
-        strutsActionExtensionValue = strutsActionExtensionValue.trim();
-
-        strutsActionExtensions = strutsActionExtensionValue.split(",");
-
-        for (int i = 0; i < strutsActionExtensions.length; i++) {
-            String extension = strutsActionExtensions[i];
-            if (extension.length() > 0 && !extension.startsWith(".")) {
-                extension = "." + extension;
-            }
-            strutsActionExtensions[i] = extension;
-        }
-
         StrutsXmlParser strutsXmlParser = new StrutsXmlParser(configFiles);
         strutsPackages = strutsXmlParser.parse(strutsConfigFile);
 
-        generateMaps();
+        StrutsProject project = new StrutsProject();
+        project.setConfiguration(configurationProperties);
 
-    }
+        project.addPackages(strutsPackages);
+        project.addClasses(discoveredClasses);
 
-    private void generateMaps() {
-        endpoints = list();
         for (StrutsPackage strutsPackage : strutsPackages) {
-            String namespace = strutsPackage.getNamespace();
-            if (namespace == null)
-                namespace = "/";
+            project.addActions(strutsPackage.getActions());
+        }
 
-            if(strutsPackage.getActions().isEmpty()) {
+        for (StrutsAction action : project.getActions()) {
+            if (action.getActClass() == null) {
                 continue;
             }
-
-            for (StrutsAction strutsAction : strutsPackage.getActions()) {
-
-                for (String actionExtension : strutsActionExtensions) {
-
-                    StringBuilder sbUrl = new StringBuilder(namespace);
-                    String actionName = strutsAction.getName();
-
-                    if (!namespace.contentEquals("/") || !namespace.endsWith("/")) {
-                        sbUrl.append("/");
-                    }
-
-                    if (actionName.startsWith("/")) {
-                        actionName = actionName.substring(1);
-                    }
-
-                    sbUrl.append(actionName);
-                    sbUrl.append(actionExtension);
-
-                    if (strutsAction.getActClass() == null)
-                        break;
-
-                    File actionFile = getJavaFileByName(strutsAction.getActClass());
-                    if (actionFile == null || actionFile.getName() == null) {
-                        break;
-                    }
-
-                    String modelName = actionFile.getName().substring(0, actionFile.getName().lastIndexOf(".java"));
-
-                    EntityParser entityParser = EntityParser.parse(actionFile);
-                    String filePath = FilePathUtils.getRelativePath(actionFile, rootDirectory);
-                    Set<ModelField> fieldMappings = entityMappings.getPossibleParametersForModelType(modelName).getFieldSet();
-                    List<String> httpMethods = list();
-                    List<String> parameters = list();
-
-                    String urlPath = sbUrl.toString();
-
-                    if (urlPath.contains("*")) { // wildcard
-                        for (String ep : entityParser.getMethods()) {
-                            urlPath = sbUrl.toString();
-                            httpMethods = list();
-                            parameters = list();
-                            if ("execute".equals(ep)) {
-                                urlPath = urlPath.replace("!*", "");
-                                urlPath = urlPath.replace("*", "");
-                                httpMethods.add("GET");
-                                endpoints.add(new StrutsEndpoint(filePath, urlPath, httpMethods, parameters));
-                            } else {
-                                urlPath = urlPath.replace("*", ep);
-                                httpMethods.add("POST");
-                                for (ModelField mf : fieldMappings) {
-                                    parameters.add(mf.getParameterKey());
-                                }
-                                endpoints.add(new StrutsEndpoint(filePath, urlPath, httpMethods, parameters));
-                            }
-                        }
-                    } else {
-                        httpMethods.add("POST");
-                        for (ModelField mf : fieldMappings) {
-                            parameters.add(mf.getParameterKey());
-                        }
-                        endpoints.add(new StrutsEndpoint(filePath, urlPath, httpMethods, parameters));
-                    }
-                }
+            StrutsClass classForAction = project.findClassByName(action.getActClass());
+            if (classForAction != null) {
+                action.setActClassLocation(classForAction.getSourceFile());
             }
         }
 
+        StrutsPluginDetector pluginDetector = new StrutsPluginDetector();
+        for (StrutsKnownPlugins plugin : pluginDetector.detectPlugins(rootDirectory)) {
+            log.info("Detected struts plugin: " + plugin);
+            project.addPlugin(plugin);
+        }
+
+        ActionMapperFactory mapperFactory = new ActionMapperFactory(configurationProperties);
+        this.actionMapper = mapperFactory.detectMapper(project);
+
+        generateMaps(project);
+
+    }
+
+    private void generateMaps(StrutsProject project) {
+        endpoints = list();
+        endpoints.addAll(actionMapper.generateEndpoints(project, ""));
     }
 
     private File getJavaFileByName(String fileName) {

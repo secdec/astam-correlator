@@ -30,6 +30,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.setFrom;
 
@@ -37,6 +39,7 @@ public class StrutsEndpoint extends AbstractEndpoint {
 
     private String filePath;
     private String urlPath;
+    private Pattern pathRegex = null;
 
     private Set<String> methods;
     private Set<String> parameters;
@@ -47,13 +50,25 @@ public class StrutsEndpoint extends AbstractEndpoint {
         this.urlPath = urlPath;
         this.methods = setFrom(methods);
         this.parameters = setFrom(parameters);
+
+        String regexString = "^" + urlPath
+                .replaceAll("\\{.+\\}", "(.+)")
+                .replaceAll("/", "\\\\/");
+
+        if (!regexString.endsWith("*")) {
+            regexString += "$";
+        }
+        pathRegex = Pattern.compile(regexString);
     }
 
     @Nonnull
     @Override
     public int compareRelevance(String endpoint) {
+
         if (urlPath.equalsIgnoreCase(endpoint)) {
             return 100;
+        } else if (pathRegex.matcher(endpoint).find()) {
+            return pathRegex.toString().length();
         } else {
             return -1;
         }
