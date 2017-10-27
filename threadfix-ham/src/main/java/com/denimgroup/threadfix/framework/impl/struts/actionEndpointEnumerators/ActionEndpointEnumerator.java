@@ -1,10 +1,11 @@
 package com.denimgroup.threadfix.framework.impl.struts.actionEndpointEnumerators;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class ActionEndpointEnumerator {
-    public String[] getPossibleEndpoints(String baseEndpoint, String[] actionExtensions) {
+    public Collection<String> getPossibleEndpoints(String baseEndpoint, String[] actionExtensions) {
         if (baseEndpoint.endsWith("/")) {
             baseEndpoint = baseEndpoint.substring(0, baseEndpoint.length() - 1);
         }
@@ -16,6 +17,6 @@ public class ActionEndpointEnumerator {
             result.add(baseEndpoint + strutsExtension);
         }
 
-        return result.toArray(new String[result.size()]);
+        return result;
     }
 }

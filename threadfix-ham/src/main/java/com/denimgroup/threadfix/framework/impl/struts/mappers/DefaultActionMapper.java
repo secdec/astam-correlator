@@ -4,17 +4,16 @@ import com.denimgroup.threadfix.framework.impl.model.ModelField;
 import com.denimgroup.threadfix.framework.impl.model.ModelFieldSet;
 import com.denimgroup.threadfix.framework.impl.struts.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
+import com.denimgroup.threadfix.framework.impl.struts.StrutsWebPack;
+import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsKnownPlugins;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;
 import com.denimgroup.threadfix.framework.impl.struts.actionEndpointEnumerators.ActionEndpointEnumerator;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityParser;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -45,6 +44,8 @@ public class DefaultActionMapper implements ActionMapper {
         }
 
         String[] actionExtensions = allActionExtensions.split(",", -1);
+        StrutsWebPack primaryWebPack = project.findWebPack("/");
+
 
 
         List<StrutsEndpoint> endpoints = list();
@@ -87,7 +88,7 @@ public class DefaultActionMapper implements ActionMapper {
                 String basePath = sbUrl.toString();
 
                 ActionEndpointEnumerator endpointEnumerator = new ActionEndpointEnumerator();
-                String[] availablePaths = endpointEnumerator.getPossibleEndpoints(basePath, actionExtensions);
+                Collection<String> availablePaths = endpointEnumerator.getPossibleEndpoints(basePath, actionExtensions);
 
                 for (String path : availablePaths) {
                     if (path.contains("*")) { // wildcard
@@ -117,6 +118,16 @@ public class DefaultActionMapper implements ActionMapper {
                         endpoints.add(new StrutsEndpoint(classLocation, path, httpMethods, parameters));
                     }
                 }
+
+                for (StrutsResult result : strutsAction.getResults()) {
+                    String filePath = result.getValue();
+
+                    if (filePath != null && primaryWebPack != null) {
+                        if (primaryWebPack.contains(filePath)) {
+                            endpoints.add(new StrutsEndpoint(classLocation, PathUtil.combine(basePath, actionName), list("GET"), new ArrayList<String>()));
+                        }
+                    }
+                }
             }
         }
 
@@ -128,9 +139,4 @@ public class DefaultActionMapper implements ActionMapper {
         return list();
     }
 
-
-    StrutsPackage findPackageForEndpoint(String endpoint) {
-        String[] parts = endpoint.split("/");
-        return null;
-    }
 }

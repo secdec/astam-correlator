@@ -4,8 +4,10 @@ import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapper;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
+import com.denimgroup.threadfix.framework.impl.struts.model.StrutsResult;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsKnownPlugins;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,6 +22,7 @@ public class StrutsProject {
     String webInfPath = null;
     StrutsConfigurationProperties config;
     List<StrutsKnownPlugins> plugins = list();
+    List<StrutsWebPack> webPacks = list();
 
     ActionMapper strutsMapper;
 
@@ -52,6 +55,10 @@ public class StrutsProject {
         plugins.add(plugin);
     }
 
+    public void addWebPack(StrutsWebPack webPack) {
+        webPacks.add(webPack);
+    }
+
 
 
     public Collection<StrutsPackage> getPackages() {
@@ -80,6 +87,49 @@ public class StrutsProject {
 
     public Collection<StrutsKnownPlugins> getPlugins() {
         return plugins;
+    }
+
+    public Collection<StrutsWebPack> getWebPacks() {
+        return webPacks;
+    }
+
+    public StrutsWebPack findWebPack(String packRootPathRelativeToWebRoot) {
+        String[] rootPathParts = packRootPathRelativeToWebRoot.split("\\/");
+        StrutsWebPack result = null;
+        for (StrutsWebPack webPack : webPacks) {
+            String packRelativePath = webPack.getRootDirectoryPath().replace(webPath, "");
+            if (!packRelativePath.startsWith("/")) {
+                packRelativePath = "/" + packRelativePath;
+            }
+            String[] packPathParts = packRelativePath.split("\\/");
+            if (rootPathParts.length != packPathParts.length) {
+                continue;
+            }
+
+            boolean isMatch = true;
+            for (int i = 0; i < packPathParts.length; i++) {
+                if (!packPathParts[i].equalsIgnoreCase(rootPathParts[i])) {
+                    isMatch = false;
+                    break;
+                }
+            }
+            if (isMatch) {
+                result = webPack;
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    //  Returns the location of the given web pack relative to the global web content directory
+    public String getWebPackPathRelativeToWebRoot(StrutsWebPack webPack) {
+        String webPackPath = webPack.getRootDirectoryPath();
+        String relativePath = webPackPath.replace("^" + webPackPath, "");
+        if (!relativePath.startsWith("/")) {
+            relativePath = "/" + relativePath;
+        }
+        return relativePath;
     }
 
 
@@ -113,5 +163,19 @@ public class StrutsProject {
             }
         }
         return null;
+    }
+
+
+
+    public Collection<StrutsAction> findActionsForResultFile(String resultFilePath) {
+        List<StrutsAction> actions = list();
+        for (StrutsAction action : actions) {
+            for (StrutsResult result : action.getResults()) {
+                if (resultFilePath.endsWith(result.getValue())) {
+                    actions.add(action);
+                }
+            }
+        }
+        return actions;
     }
 }

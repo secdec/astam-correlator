@@ -129,6 +129,15 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             project.addPlugin(plugin);
         }
 
+        StrutsWebXmlParser webXmlParser = new StrutsWebXmlParser(StrutsWebXmlParser.findWebXml(rootDirectory));
+        project.setWebPath(webXmlParser.getPrimaryWebContentPath());
+        project.setWebInfPath(webXmlParser.getWebInfFolderPath());
+
+        StrutsWebPackBuilder webPackBuilder = new StrutsWebPackBuilder();
+        File webContentRoot = new File(webXmlParser.getPrimaryWebContentPath());
+        StrutsWebPack primaryWebPack = webPackBuilder.generate(webContentRoot);
+        project.addWebPack(primaryWebPack);
+
         ActionMapperFactory mapperFactory = new ActionMapperFactory(configurationProperties);
         this.actionMapper = mapperFactory.detectMapper(project);
 
@@ -141,18 +150,6 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         endpoints.addAll(actionMapper.generateEndpoints(project, ""));
     }
 
-    private File getJavaFileByName(String fileName) {
-        fileName = fileName.replace('.', '/');
-        fileName = fileName.concat(".java");
-        for (File f : javaFiles) {
-            String filePath = f.getPath();
-            if (filePath.contains("\\"))
-                filePath = filePath.replace('\\','/');
-            if (filePath.endsWith(fileName))
-                return f;
-        }
-        return null;
-    }
 
     @Nonnull
     @Override
