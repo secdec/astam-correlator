@@ -23,17 +23,17 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
-import com.denimgroup.threadfix.data.entities.ModelField;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapper;
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapperFactory;
+import com.denimgroup.threadfix.framework.impl.struts.mappers.DefaultActionMapper;
+import com.denimgroup.threadfix.framework.impl.struts.mappers.PrefixBasedActionMapper;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
-import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsKnownPlugins;
+import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPluginDetector;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -109,6 +109,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         StrutsProject project = new StrutsProject();
         project.setConfiguration(configurationProperties);
 
+        //  Add default action mappers
+
         project.addPackages(strutsPackages);
         project.addClasses(discoveredClasses);
 
@@ -127,7 +129,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
 
         StrutsPluginDetector pluginDetector = new StrutsPluginDetector();
-        for (StrutsKnownPlugins plugin : pluginDetector.detectPlugins(rootDirectory)) {
+        for (StrutsPlugin plugin : pluginDetector.detectPlugins(rootDirectory)) {
             log.info("Detected struts plugin: " + plugin);
             project.addPlugin(plugin);
         }
@@ -139,10 +141,17 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         StrutsWebPackBuilder webPackBuilder = new StrutsWebPackBuilder();
         File webContentRoot = new File(webXmlParser.getPrimaryWebContentPath());
         StrutsWebPack primaryWebPack = webPackBuilder.generate(webContentRoot);
+        for (String welcomeFile : webXmlParser.getWelcomeFiles()) {
+            primaryWebPack.addWelcomeFile(welcomeFile);
+        }
         project.addWebPack(primaryWebPack);
 
         ActionMapperFactory mapperFactory = new ActionMapperFactory(configurationProperties);
         this.actionMapper = mapperFactory.detectMapper(project);
+
+        for (StrutsPlugin plugin : project.getPlugins()) {
+            plugin.apply(project);
+        }
 
         generateMaps(project);
 
@@ -150,7 +159,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
     private void generateMaps(StrutsProject project) {
         endpoints = list();
-        endpoints.addAll(actionMapper.generateEndpoints(project, ""));
+        endpoints.addAll(actionMapper.generateEndpoints(project, project.getPackages(), ""));
     }
 
 

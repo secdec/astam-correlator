@@ -11,8 +11,8 @@ public class StrutsConventionPluginDetector implements StrutsPluginDetectorImpl 
     private final String CONVENTION_PLUGIN_KEYWORD = "struts2-convention-plugin";
 
     @Override
-    public StrutsKnownPlugins getPluginType() {
-        return StrutsKnownPlugins.CONVENTION;
+    public StrutsPlugin create() {
+        return new StrutsConventionPlugin();
     }
 
     @Override

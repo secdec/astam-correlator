@@ -69,7 +69,20 @@ public class StrutsXmlParser {
 		} catch (IOException e) {
 			log.error("IOException parsing struts.xml", e);
 		}
-		return handler.strutsPackages;
+
+		List<StrutsPackage> packages = handler.strutsPackages;
+		for (StrutsPackage strutsPackage : packages) {
+			if (strutsPackage.getNamespace() == null) {
+				strutsPackage.setNamespace("/");
+			}
+			for (StrutsAction action : strutsPackage.getActions()) {
+				if (action.getMethod() == null) {
+					action.setMethod("execute");
+				}
+			}
+		}
+
+		return packages;
 	}
 
 

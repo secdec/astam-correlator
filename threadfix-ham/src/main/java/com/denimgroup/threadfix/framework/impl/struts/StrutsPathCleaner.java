@@ -43,7 +43,18 @@ public class StrutsPathCleaner extends DefaultPathCleaner {
 
     @Override
     public String cleanDynamicPath(@Nonnull String urlPath) {
-        String relativeUrlPath = super.cleanDynamicPath(urlPath);
+        String relativeUrlPath = urlPath;
+        if (relativeUrlPath.contains("http")) {
+            relativeUrlPath = super.cleanDynamicPath(urlPath);
+        } else {
+            if (relativeUrlPath.contains("\\")) {
+                relativeUrlPath = relativeUrlPath.replace('\\', '/');
+            }
+
+            if (relativeUrlPath.indexOf("/") != 0) {
+                relativeUrlPath = "/" + relativeUrlPath;
+            }
+        }
 
         String escaped = relativeUrlPath;
 

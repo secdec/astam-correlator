@@ -8,17 +8,17 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class StrutsPluginDetector {
 
-    public Collection<StrutsKnownPlugins> detectPlugins(File projectRoot) {
+    public Collection<StrutsPlugin> detectPlugins(File projectRoot) {
 
         Collection<StrutsPluginDetectorImpl> detectors = list(
                 new StrutsConventionPluginDetector(),
                 new StrutsRestPluginDetector()
         );
 
-        List<StrutsKnownPlugins> plugins = list();
+        List<StrutsPlugin> plugins = list();
         for (StrutsPluginDetectorImpl detector : detectors) {
             if (detector.detect(projectRoot)) {
-                plugins.add(detector.getPluginType());
+                plugins.add(detector.create());
             }
         }
 

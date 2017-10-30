@@ -6,45 +6,44 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 
-//  See https://struts.apache.org/docs/rest-plugin.html
-
 public class StrutsRestPluginDetector implements StrutsPluginDetectorImpl {
-
-    private static final String REST_PLUGIN_KEYWORD = "struts2-rest-plugin";
-
     @Override
-    public StrutsKnownPlugins getPluginType() {
-        return StrutsKnownPlugins.STRUTS2_REST;
+    public StrutsPlugin create() {
+        return new StrutsRestPlugin();
     }
+
+    private final String REST_PLUGIN_KEYWORD = "struts2-rest-plugin";
 
     @Override
     public boolean detect(File projectRoot) {
 
         boolean wasDetected = false;
-        Collection<File> files = FileUtils.listFiles(projectRoot, new String[] { "xml", "jar"}, true);
+
+        Collection<File> files = FileUtils.listFiles(projectRoot, new String[] { "xml", "jar" }, true);
 
         File pomFile = null;
-        File restLibFile = null;
+        File conventionLibFile = null;
 
         for (File file : files) {
             String fileName = file.getName();
-            if (fileName.contains(REST_PLUGIN_KEYWORD)) {
-                restLibFile = file;
-            } else if (fileName.equals("pom.xml")) {
+
+            if (fileName.equals("pom.xml")) {
                 pomFile = file;
+            } else if (fileName.contains(REST_PLUGIN_KEYWORD)) {
+                conventionLibFile = file;
             }
         }
 
-        if (restLibFile != null) {
+        if (conventionLibFile != null) {
             wasDetected = true;
         } else if (pomFile != null) {
-            wasDetected = pomContainsRestPlugin(pomFile);
+            wasDetected = pomContainsConventionPlugin(pomFile);
         }
 
         return wasDetected;
     }
 
-    private boolean pomContainsRestPlugin(File pomFile) {
+    private boolean pomContainsConventionPlugin(File pomFile) {
         try {
             String fileContents = FileUtils.readFileToString(pomFile);
             return fileContents.contains(REST_PLUGIN_KEYWORD);

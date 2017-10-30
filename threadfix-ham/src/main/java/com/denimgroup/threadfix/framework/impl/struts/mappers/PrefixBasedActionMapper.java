@@ -3,13 +3,10 @@ package com.denimgroup.threadfix.framework.impl.struts.mappers;
 import com.denimgroup.threadfix.framework.impl.struts.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsConfigurationProperties;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
-import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsKnownPlugins;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
-import javax.swing.*;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -18,7 +15,7 @@ public class PrefixBasedActionMapper implements ActionMapper {
 
     static SanitizedLogger log = new SanitizedLogger(ActionMapper.class.getName());
 
-    Map<String, ActionMapper> delegateActionMappers;
+    SortedMap<String, ActionMapper> delegateActionMappers;
     StrutsProject project;
     StrutsConfigurationProperties config;
 
@@ -26,7 +23,12 @@ public class PrefixBasedActionMapper implements ActionMapper {
         this.project = project;
         this.config = project.getConfig();
 
-        delegateActionMappers = new HashMap<String, ActionMapper>();
+        delegateActionMappers = new TreeMap<String, ActionMapper>(new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return o2.length() - o1.length();
+            }
+        });
 
         String allMappings = config.get("struts.mapper.prefixMapping");
 
@@ -63,7 +65,7 @@ public class PrefixBasedActionMapper implements ActionMapper {
     }
 
     @Override
-    public List<StrutsEndpoint> generateEndpoints(StrutsProject project, String namespace) {
+    public List<StrutsEndpoint> generateEndpoints(StrutsProject project, Collection<StrutsPackage> packages, String namespace) {
 
         List<StrutsEndpoint> endpoints = list();
 
@@ -73,20 +75,31 @@ public class PrefixBasedActionMapper implements ActionMapper {
 
             String combinedNamespace = PathUtil.combine(namespace, mapperNamespace);
 
-            Collection<StrutsEndpoint> mapperEndpoints = mapper.generateEndpoints(project, combinedNamespace);
-            if (mapperEndpoints != null)
-                endpoints.addAll(mapperEndpoints);
+            List<StrutsPackage> packagesForMapper = list();
+            for (StrutsPackage strutsPackage : packages) {
+                if (strutsPackage.getNamespace().startsWith(combinedNamespace)) {
+                    packagesForMapper.add(strutsPackage);
+                }
+            }
+
+            Collection<StrutsEndpoint> mapperEndpoints = mapper.generateEndpoints(project, packagesForMapper, namespace);
+            if (mapperEndpoints != null) {
+                //  Ignore endpoints handled by previous (more specific) mappers
+                for (StrutsEndpoint detectedEndpoint : mapperEndpoints) {
+                    boolean isNew = true;
+                    for (StrutsEndpoint existingEndpoint : endpoints) {
+                        if (existingEndpoint.getUrlPath().equals(detectedEndpoint.getUrlPath())) {
+                            isNew = false;
+                            break;
+                        }
+                    }
+                    if (isNew) {
+                        endpoints.add(detectedEndpoint);
+                    }
+                }
+            }
         }
 
         return endpoints;
-    }
-
-    @Override
-    public Collection<StrutsKnownPlugins> getRequiredPlugins() {
-        List<StrutsKnownPlugins> plugins = list();
-        for (ActionMapper mapping : delegateActionMappers.values()) {
-            plugins.addAll(mapping.getRequiredPlugins());
-        }
-        return plugins;
     }
 }

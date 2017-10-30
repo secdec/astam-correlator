@@ -35,6 +35,7 @@ public class StrutsPackage {
 	private String namespace;
 	private String pkgExtends;
 	private List<StrutsAction> actions;
+	private StrutsClass sourceClass;
 
 	public String getName() {
 		return name;
@@ -72,6 +73,14 @@ public class StrutsPackage {
 		if (actions == null)
 			actions = list();
 		actions.add(action);
+	}
+
+	public StrutsClass getSourceClass() {
+		return sourceClass;
+	}
+
+	public void setSourceClass(StrutsClass sourceClass) {
+		this.sourceClass = sourceClass;
 	}
 
 	@Override

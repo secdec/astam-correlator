@@ -5,9 +5,9 @@ import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsResult;
-import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsKnownPlugins;
+import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 
-import java.io.File;
+import javax.swing.*;
 import java.util.Collection;
 import java.util.List;
 
@@ -21,10 +21,8 @@ public class StrutsProject {
     String webPath = null;
     String webInfPath = null;
     StrutsConfigurationProperties config;
-    List<StrutsKnownPlugins> plugins = list();
+    List<StrutsPlugin> plugins = list();
     List<StrutsWebPack> webPacks = list();
-
-    ActionMapper strutsMapper;
 
 
     public void addPackages(Collection<StrutsPackage> packages) {
@@ -51,13 +49,14 @@ public class StrutsProject {
         this.config = config;
     }
 
-    public void addPlugin(StrutsKnownPlugins plugin) {
+    public void addPlugin(StrutsPlugin plugin) {
         plugins.add(plugin);
     }
 
     public void addWebPack(StrutsWebPack webPack) {
         webPacks.add(webPack);
     }
+
 
 
 
@@ -85,13 +84,23 @@ public class StrutsProject {
         return config;
     }
 
-    public Collection<StrutsKnownPlugins> getPlugins() {
+    public Collection<StrutsPlugin> getPlugins() {
         return plugins;
     }
 
     public Collection<StrutsWebPack> getWebPacks() {
         return webPacks;
     }
+
+    public boolean hasPlugin(Class cls) {
+        for (StrutsPlugin plugin : plugins) {
+            if (plugin.getClass() == cls) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     public StrutsWebPack findWebPack(String packRootPathRelativeToWebRoot) {
         String[] rootPathParts = packRootPathRelativeToWebRoot.split("\\/");

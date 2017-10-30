@@ -1,16 +1,18 @@
-package com.denimgroup.threadfix.framework.impl.struts.mappers;
+package com.denimgroup.threadfix.framework.impl.struts.plugins;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.struts.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
-import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsKnownPlugins;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
+import com.denimgroup.threadfix.framework.impl.struts.model.*;
+import com.denimgroup.threadfix.framework.impl.struts.model.annotations.Annotation;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.NamespaceAnnotation;
+import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ParentPackageAnnotation;
+import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ResultAnnotation;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
+import java.text.CollationElementIterator;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -19,53 +21,75 @@ import java.util.Set;
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
-public class ConventionPluginMapper implements ActionMapper {
+public class StrutsConventionPlugin implements StrutsPlugin {
 
-
-    static final SanitizedLogger log = new SanitizedLogger(ConventionPluginMapper.class.getName());
+    static final SanitizedLogger log = new SanitizedLogger(StrutsConventionPlugin.class.getName());
 
     @Override
-    public List<StrutsEndpoint> generateEndpoints(StrutsProject project, String parentNamespace) {
-
-        List<StrutsEndpoint> endpoints = list();
+    public void apply(StrutsProject project) {
+        List<StrutsPackage> newPackages = list();
 
         String[] actionSuffixes = getActionSuffixes(project);
 
         for (StrutsClass strutsClass : project.getClasses()) {
 
-            String rootNamespacePath = buildNamespace(parentNamespace, strutsClass, project);
+            String rootNamespacePath = buildNamespace("/", strutsClass, project);
+
+            String className = strutsClass.getName();
+            boolean hasSuffix = false;
+            for (String suffix : actionSuffixes) {
+                if (className.endsWith(suffix)) {
+                    hasSuffix = true;
+                    break;
+                }
+            }
+            if (!hasSuffix) {
+                continue;
+            }
+
+            String cleanClassName = strutsClass.getCleanName(actionSuffixes);
+
+            StrutsPackage newPackage = new StrutsPackage();
+            newPackage.setName(cleanClassName);
+            newPackage.setNamespace(rootNamespacePath);
+            ParentPackageAnnotation parentPackage = strutsClass.getFirstAnnotation(ParentPackageAnnotation.class);
+            if (parentPackage != null) {
+                newPackage.setPkgExtends(parentPackage.getPackageName());
+            }
+
+            newPackage.setSourceClass(strutsClass);
 
             Set<ModelField> fields = strutsClass.getProperties();
-            Map<String, ParameterDataType> parameters = map();
+            Map<String, String> parameters = map();
             for (ModelField field : fields) {
-                parameters.put(field.getParameterKey(), ParameterDataType.getType(field.getType()));
+                parameters.put(field.getParameterKey(), field.getType());
             }
 
             for (StrutsMethod method : strutsClass.getMethods()) {
-                String methodPath = method.getName();
+                String endpointPath = formatCamelCaseToConvention(method.getName(), project);
+                StrutsAction action = new StrutsAction(endpointPath, method.getName(), strutsClass.getName(), strutsClass.getSourceFile());
+                action.setParams(parameters);
 
-                String endpointPath = PathUtil.combine(rootNamespacePath, formatCamelCaseToConvention(method.getName(), project));
-                StrutsEndpoint newEndpoint = new StrutsEndpoint(strutsClass.getSourceFile(), endpointPath, list("GET"), parameters);
-                endpoints.add(newEndpoint);
-
-                if (methodPath.equalsIgnoreCase("index")) {
-                    endpointPath = rootNamespacePath;
-                    newEndpoint = new StrutsEndpoint(strutsClass.getSourceFile(), endpointPath, list("GET"), parameters);
-                    endpoints.add(newEndpoint);
+                Collection<Annotation> annotations = method.getAnnotations();
+                for (Annotation annotation : annotations) {
+                    if (annotation.getClass() == ResultAnnotation.class) {
+                        ResultAnnotation resultAnnotation = (ResultAnnotation)annotation;
+                        StrutsResult result = new StrutsResult(resultAnnotation.getResultName(), resultAnnotation.getResultType(), resultAnnotation.getResultLocation());
+                        action.addResult(result);
+                    }
                 }
+
+                newPackage.addAction(action);
             }
+
+            newPackages.add(newPackage);
         }
 
-        return endpoints;
-    }
-
-    @Override
-    public Collection<StrutsKnownPlugins> getRequiredPlugins() {
-        return list(StrutsKnownPlugins.CONVENTION);
+        project.addPackages(newPackages);
     }
 
     private static String[] getActionSuffixes(StrutsProject project) {
-        return project.getConfig().get("struts.convention.action.suffix", "Action").split(",");
+        return project.getConfig().get("struts.convention.action.suffix", "Action,Controller").split(",");
     }
 
     public static String buildNamespace(String parentNamespace, StrutsClass forClass, StrutsProject forProject) {

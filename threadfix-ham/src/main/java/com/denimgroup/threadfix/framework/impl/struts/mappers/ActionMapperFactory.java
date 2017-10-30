@@ -1,11 +1,9 @@
 package com.denimgroup.threadfix.framework.impl.struts.mappers;
 
 import com.denimgroup.threadfix.framework.impl.struts.StrutsConfigurationProperties;
-import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsKnownPlugins;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;
+import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsRestPlugin;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
-
-import java.util.Collection;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
@@ -48,35 +46,15 @@ public class ActionMapperFactory {
 
     public ActionMapper detectMapper(StrutsProject project) {
         ActionMapper result = null;
-        Collection<StrutsKnownPlugins> availablePlugins = project.getPlugins();
 
         if (isMapperConfigured()) {
             String mapperName = config.get("struts.mapper.class");
 
             result = findMapper(mapperName, project);
-        }
+        } else {
 
-        if (result == null){
-
-            if (availablePlugins.contains(StrutsKnownPlugins.CONVENTION)) {
-
-                CompositeActionMapper compositeMapper = new CompositeActionMapper();
-
-                //  If no mappers manually configured an Convention plugin is enabled, struts Default mapper should
-                //  be set as primary mapper and Convention mapper as backup
-                compositeMapper.addMapper(new DefaultActionMapper());
-                //  This method of incorporating the Convention plugin is questionable, need more research in
-                //      how the Convention plugin determines when to modify mappings
-                compositeMapper.addMapper(new ConventionPluginMapper());
-
-
-
-                if (availablePlugins.contains(StrutsKnownPlugins.STRUTS2_REST)) {
-                    compositeMapper.addMapper(new RestPluginActionMapper());
-                }
-
-                result = compositeMapper;
-
+            if (project.hasPlugin(StrutsRestPlugin.class)) {
+                result = new CompositeActionMapper(list(new DefaultActionMapper(), new RestPluginActionMapper()));
             } else {
                 log.debug("No mapper configuration detected, using DefaultActionMapper");
                 result = new DefaultActionMapper();
