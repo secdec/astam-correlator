@@ -64,7 +64,7 @@ public class CompositeActionMapper implements ActionMapper {
                 for (StrutsEndpoint endpoint : subEndpoints) {
                     boolean isNew = true;
                     for (StrutsEndpoint existingEndpoint : endpoints) {
-                        if (existingEndpoint.getUrlPath().equals(existingEndpoint.getUrlPath())) {
+                        if (endpoint.getUrlPath().equals(existingEndpoint.getUrlPath())) {
                             isNew = false;
                             break;
                         }

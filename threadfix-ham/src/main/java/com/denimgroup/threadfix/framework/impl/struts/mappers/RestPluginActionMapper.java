@@ -105,8 +105,13 @@ public class RestPluginActionMapper implements ActionMapper {
                 }
 
                 for (String possibleName : possibleMethodNames) {
+                    if (possibleName.endsWith("/")) {
+                        possibleName = possibleName.substring(0, possibleName.length() - 1);
+                    }
                     for (String extension : actionExtensions) {
-                        String url = PathUtil.combine(rootEndpoint, possibleName);
+                        String url = rootEndpoint;
+                        if (possibleName.length() > 0)
+                            url = PathUtil.combine(url, possibleName);
                         if (extension.length() > 0)
                             url += "." + extension;
                         StrutsEndpoint endpoint = new StrutsEndpoint(action.getActClassLocation(), url, list(httpMethod), params);

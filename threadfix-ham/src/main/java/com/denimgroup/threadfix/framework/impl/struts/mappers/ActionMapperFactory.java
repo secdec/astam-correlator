@@ -71,8 +71,6 @@ public class ActionMapperFactory {
             return null;
         }
 
-        //  TODO - There's gotta' be a better way to do this
-
         if (mapperName.equalsIgnoreCase("composite")
                 || mapperName.equalsIgnoreCase("org.apache.struts2.dispatcher.mapper.CompositeActionMapper")) {
 
@@ -95,12 +93,6 @@ public class ActionMapperFactory {
                 || mapperName.equalsIgnoreCase("org.apache.struts2.rest.RestActionMapper")) {
 
             result = new RestPluginActionMapper();
-
-        }
-        else if (mapperName.equalsIgnoreCase("restful2")
-                || mapperName.equalsIgnoreCase("org.apache.struts2.dispatcher.mapper.Restful2ActionMapper")) {
-
-            result = new Restful2ActionMapper();
 
         }
 

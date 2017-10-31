@@ -22,16 +22,6 @@ public class DefaultActionMapper implements ActionMapper {
     @Override
     public List<StrutsEndpoint> generateEndpoints(StrutsProject project, Collection<StrutsPackage> packages, String namespace) {
 
-        String allowedActionNames;
-        String allowedMethodNames;
-        String defaultActionName;
-        String defaultMethodName;
-
-        defaultActionName = project.getConfig().get("struts.default.action.name");
-        defaultMethodName = project.getConfig().get("struts.default.method.name");
-        allowedActionNames = project.getConfig().get("struts.allowed.action.names");
-        allowedMethodNames = project.getConfig().get("struts.allowed.method.names");
-
         String allActionExtensions = project.getConfig().get("struts.action.extension", "action,");
 
         String[] actionExtensions = allActionExtensions.split(",", -1);
@@ -143,14 +133,15 @@ public class DefaultActionMapper implements ActionMapper {
                     }
                 }
 
+                //  Map actions to their results if they don't specify a target method/class on their own
                 Collection<StrutsResult> results = strutsAction.getResults();
                 if (results != null && classForAction == null) {
                     for (StrutsResult result : results) {
                         String filePath = result.getValue();
 
-                        if (filePath != null && primaryWebPack != null) {
+                        if (filePath != null) {
                             if (primaryWebPack.contains(filePath)) {
-                                String exposedContentPath = PathUtil.combine(basePath, actionName); // TODO - This is incorrect
+                                String exposedContentPath = PathUtil.combine(basePath, actionName);
                                 endpoints.add(new StrutsEndpoint(classLocation, exposedContentPath, list("GET"), new HashMap<String, ParameterDataType>()));
                             }
                         }

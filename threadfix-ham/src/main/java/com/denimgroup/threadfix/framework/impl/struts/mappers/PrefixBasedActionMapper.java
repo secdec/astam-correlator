@@ -48,22 +48,6 @@ public class PrefixBasedActionMapper implements ActionMapper {
         }
     }
 
-
-    ActionMapper findBestMapper(String forEndpoint) {
-        int bestMapperLength = -1;
-        ActionMapper relevantMapper = null;
-        for (Map.Entry<String, ActionMapper> mapping : delegateActionMappers.entrySet()) {
-            if (forEndpoint.startsWith(mapping.getKey())) {
-                int endpointLength = mapping.getKey().length();
-                if (endpointLength > bestMapperLength) {
-                    bestMapperLength = endpointLength;
-                    relevantMapper = mapping.getValue();
-                }
-            }
-        }
-        return relevantMapper;
-    }
-
     @Override
     public List<StrutsEndpoint> generateEndpoints(StrutsProject project, Collection<StrutsPackage> packages, String namespace) {
 

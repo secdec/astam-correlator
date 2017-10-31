@@ -31,6 +31,9 @@ public class StrutsConventionPlugin implements StrutsPlugin {
 
         String[] actionSuffixes = getActionSuffixes(project);
 
+        //  Should limit this based on whether the class inherits the necessary types, but since
+        //      there are many possible types for many possible plugins/extensions/etc. it's
+        //      more reliable to keep this unrestricted
         for (StrutsClass strutsClass : project.getClasses()) {
 
             String rootNamespacePath = buildNamespace("/", strutsClass, project);
