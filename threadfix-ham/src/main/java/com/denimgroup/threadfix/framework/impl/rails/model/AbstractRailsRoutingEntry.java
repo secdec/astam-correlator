@@ -63,6 +63,10 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
 
     @Override
     public void setParent(RailsRoutingEntry parent) {
+        if (this.parentEntry == parent) {
+            return;
+        }
+
         if (this.parentEntry != null && this.parentEntry.getChildren().contains(this)) {
             this.parentEntry.removeChildEntry(this);
         }

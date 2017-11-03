@@ -51,6 +51,8 @@ public class RailsAbstractRoutesParser implements EventBasedTokenizer {
     //          OK: get 'endpoint' , \n action: 'something'
     //      Not OK: get 'endpoint' \n , action: 'something'
 
+    //  Whenever conditionalDepth > 0 we ignore route parsing
+    int conditionalDepth = 0;
 
 
     @Override
@@ -73,7 +75,21 @@ public class RailsAbstractRoutesParser implements EventBasedTokenizer {
             }
         }
 
-        if (!isInComment) {
+        if (stringValue != null) {
+            if (stringValue.equalsIgnoreCase("if") && parsePhase == ParsePhase.SEARCH_IDENTIFIER) {
+                conditionalDepth++;
+                return;
+            } else if (conditionalDepth > 0) {
+                if (stringValue.equalsIgnoreCase("do")) {
+                    conditionalDepth++;
+                } else if (stringValue.equalsIgnoreCase("end")) {
+                    conditionalDepth--;
+                }
+                return;
+            }
+        }
+
+        if (!isInComment && conditionalDepth == 0) {
             if ((type == '\'' || type == '"') && stringValue == null) {
                 isInString = !isInString;
             }

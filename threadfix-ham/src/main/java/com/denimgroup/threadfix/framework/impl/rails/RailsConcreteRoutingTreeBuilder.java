@@ -7,14 +7,19 @@ import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor {
 
     Collection<RailsRouter> routers;
 
     RailsRoutingEntry currentEntry;
+    RailsRoutingEntry lastEntry;
     RailsRoutingEntry currentScope;
     RailsAbstractRoutingDescriptor lastDescriptor = null;
+    List<RailsAbstractRoutingDescriptor> descriptorScopeStack = list();
 
     public RailsConcreteRoutingTreeBuilder(@Nonnull Collection<RailsRouter> routers) {
         this.routers = routers;
@@ -31,7 +36,9 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
 
         currentScope = rootConcreteEntry;
         currentEntry = rootConcreteEntry;
+        lastEntry = rootConcreteEntry;
         lastDescriptor = rootAbstractEntry;
+        //descriptorScopeStack.add(rootAbstractEntry);
 
         abstractTree.walkTree(this);
 
@@ -67,7 +74,12 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
                             && descriptor.getParentDescriptor() != lastDescriptor;
 
             if (droppedInScope) {
-                currentScope = currentScope.getParent();
+                RailsAbstractRoutingDescriptor currentAbstractScope = descriptorScopeStack.get(descriptorScopeStack.size() - 1);
+                while (currentAbstractScope != descriptor.getParentDescriptor() && descriptorScopeStack.size() > 0) {
+                    currentScope = currentScope.getParent();
+                    descriptorScopeStack.remove(descriptorScopeStack.size() - 1);
+                    currentAbstractScope = descriptorScopeStack.get(descriptorScopeStack.size() - 1);
+                }
             }
         }
 
@@ -77,7 +89,8 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
 
         boolean raisedScope = lastDescriptor != null && (descriptor.getParentDescriptor() == lastDescriptor);
         if (raisedScope) {
-            currentScope = currentEntry;
+            currentScope = lastEntry;
+            descriptorScopeStack.add(lastDescriptor);
         }
 
         RailsRoutingEntry entry = makeRouteEntry(descriptor.getIdentifier());
@@ -87,6 +100,7 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
         currentEntry = entry;
 
         lastDescriptor = descriptor;
+        lastEntry = currentEntry;
     }
 
     @Override
