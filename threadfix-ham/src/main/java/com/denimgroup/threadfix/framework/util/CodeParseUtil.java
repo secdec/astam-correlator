@@ -1,4 +1,4 @@
-package com.denimgroup.threadfix.framework.impl.struts;
+package com.denimgroup.threadfix.framework.util;
 
 import java.util.Collection;
 import java.util.List;

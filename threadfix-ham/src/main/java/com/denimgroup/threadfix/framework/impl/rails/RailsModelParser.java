@@ -74,7 +74,7 @@ public class RailsModelParser implements EventBasedTokenizer {
         for (File rubyFile : rubyFiles) {
             parser.modelName = "";
             parser.modelAttributes = map();
-            EventBasedTokenizerRunner.runRails(rubyFile, true, parser);
+            EventBasedTokenizerRunner.runRails(rubyFile, true, false, parser);
             if (!parser.modelName.isEmpty()) {
                 parser.models.put(parser.modelName, parser.modelAttributes);
             }

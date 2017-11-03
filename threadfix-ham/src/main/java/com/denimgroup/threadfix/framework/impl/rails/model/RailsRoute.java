@@ -34,7 +34,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 public class RailsRoute {
     private String url;
     private List<String> httpMethods;
-    //private String controller;
+    private String controller;
 
     public RailsRoute() {
     }
@@ -64,12 +64,12 @@ public class RailsRoute {
         }
     }
 
-//    public String getController() {
-//        return controller;
-//    }
-//
-//    public void setController(String controller) {
-//        this.controller = controller;
-//    }
+    public String getController() {
+        return controller;
+    }
+
+    public void setController(String controller) {
+        this.controller = controller;
+    }
 
 }

@@ -28,5 +28,5 @@ package com.denimgroup.threadfix.framework.impl.rails.model;
  */
 public enum ResourceType {
     INIT, GET, POST, PUT, DELETE,
-    RESOURCE, RESOURCES, NAMESPACE, COLLECTION, SCOPE, MEMBER
+    MATCH, RESOURCE, RESOURCES, NAMESPACE, COLLECTION, SCOPE, MEMBER
 }

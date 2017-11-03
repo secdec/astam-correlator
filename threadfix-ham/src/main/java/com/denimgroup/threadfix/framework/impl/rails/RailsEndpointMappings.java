@@ -26,9 +26,9 @@ package com.denimgroup.threadfix.framework.impl.rails;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
-import com.denimgroup.threadfix.framework.impl.rails.model.RailsController;
-import com.denimgroup.threadfix.framework.impl.rails.model.RailsControllerMethod;
+import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoute;
+import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -68,8 +68,14 @@ public class RailsEndpointMappings implements EndpointGenerator {
 
         this.rootDirectory = rootDirectory;
 
-        routeMap = RailsRoutesParser.parse(routesFile);
+        routeMap = OldRailsRoutesParser.parse(routesFile);
         railsControllers = (List<RailsController>) RailsControllerParser.parse(rootDirectory);
+
+        RailsAbstractRoutesParser abstractRoutesParser = new RailsAbstractRoutesParser();
+        EventBasedTokenizerRunner.runRails(routesFile, true, true, abstractRoutesParser);
+
+        RailsConcreteRoutingTreeBuilder treeBuilder = new RailsConcreteRoutingTreeBuilder(list((RailsRouter)new DefaultRailsRouter()));
+        RailsConcreteRoutingTree concreteTree = treeBuilder.buildFrom(abstractRoutesParser.getResultTree());
 
         this.endpoints = generateMappings();
     }
@@ -118,6 +124,15 @@ public class RailsEndpointMappings implements EndpointGenerator {
     }
 
     private RailsController getController(RailsRoute rr) {
+
+        if (rr.getController() != null) {
+            for (RailsController railsController : railsControllers) {
+                if (railsController.getControllerName().equalsIgnoreCase(rr.getController())) {
+                    return railsController;
+                }
+            }
+        }
+
         String[] urlFolders = rr.getUrl().split("/");
         ArrayUtils.reverse(urlFolders);
         for (String urlFolder : urlFolders) {

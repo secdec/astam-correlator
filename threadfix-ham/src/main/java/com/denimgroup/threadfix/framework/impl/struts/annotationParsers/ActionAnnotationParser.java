@@ -1,6 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.struts.annotationParsers;
 
-import com.denimgroup.threadfix.framework.impl.struts.CodeParseUtil;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ActionAnnotation;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.Annotation;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ResultAnnotation;

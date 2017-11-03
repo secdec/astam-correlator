@@ -1,9 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.struts.plugins;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
-import com.denimgroup.threadfix.framework.impl.struts.PathUtil;
-import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
+import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;
 import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.Annotation;
@@ -12,7 +10,6 @@ import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ParentPa
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ResultAnnotation;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
-import java.text.CollationElementIterator;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;

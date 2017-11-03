@@ -27,5 +27,5 @@ package com.denimgroup.threadfix.framework.impl.rails.model;
  * Created by sgerick on 4/9/2015.
  */
 public enum ResourceState {
-    INIT, PATH, ONLY, EXCEPT, DO, END
+    INIT, PATH, ONLY, EXCEPT, DO, END, TO, VIA
 }

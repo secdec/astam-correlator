@@ -2,8 +2,8 @@ package com.denimgroup.threadfix.framework.impl.struts;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
-import com.sun.org.apache.xpath.internal.operations.Mod;
 
 import java.util.*;
 

@@ -1,6 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.struts.mappers;
 
-import com.denimgroup.threadfix.framework.impl.struts.PathUtil;
+import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsConfigurationProperties;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;

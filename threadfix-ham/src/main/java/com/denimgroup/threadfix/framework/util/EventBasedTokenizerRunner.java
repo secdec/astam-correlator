@@ -114,7 +114,7 @@ public class EventBasedTokenizerRunner {
 		}
 	}
 
-    public static void runRails(@Nullable File file,boolean eolEnabled, @Nonnull EventBasedTokenizer... eventBasedTokenizers ) {
+    public static void runRails(@Nullable File file, boolean eolEnabled, boolean commentsEnabled, @Nonnull EventBasedTokenizer... eventBasedTokenizers ) {
         if (file != null && file.exists() && file.isFile()) {
 
             Reader reader = null;
@@ -127,7 +127,8 @@ public class EventBasedTokenizerRunner {
                 tokenizer.wordChars(':',':');
                 tokenizer.wordChars('_','_');
                 tokenizer.quoteChar('/');
-                tokenizer.commentChar('#');
+                if (!commentsEnabled)
+                    tokenizer.commentChar('#');
 
                 // stop only if all of the tokenizers return false from shouldContinue();
                 boolean keepGoing = true;

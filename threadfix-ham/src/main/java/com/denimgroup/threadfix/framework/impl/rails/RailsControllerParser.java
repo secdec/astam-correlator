@@ -89,7 +89,7 @@ public class RailsControllerParser implements EventBasedTokenizer {
             parser.currentCtrlMethod = null;
             parser.currentParamName = null;
 
-            EventBasedTokenizerRunner.runRails(rubyFile, false, parser);
+            EventBasedTokenizerRunner.runRails(rubyFile, false, false, parser);
 
             if (parser.currentRailsController != null
                     && parser.currentCtrlMethod != null

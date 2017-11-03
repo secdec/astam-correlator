@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.setFrom;
 
@@ -41,6 +43,7 @@ public class RailsEndpoint extends AbstractEndpoint {
 
     private String filePath;
     private String urlPath;
+    private Pattern urlPattern;
 
     private Set<String> httpMethods;
     private Map<String, ParameterDataType> parameters;
@@ -53,6 +56,11 @@ public class RailsEndpoint extends AbstractEndpoint {
             this.httpMethods = setFrom(httpMethods);
         if (parameters != null)
             this.parameters = parameters;
+
+        String urlFormat = urlPath;
+        urlFormat = urlFormat.replaceAll("\\{.+\\}", "([^\\/]+)");
+        urlFormat = "^" + urlFormat + "$";
+        urlPattern = Pattern.compile(urlFormat);
     }
 
     @Override
@@ -60,7 +68,12 @@ public class RailsEndpoint extends AbstractEndpoint {
         if (urlPath.equalsIgnoreCase(endpoint)) {
             return 100;
         } else {
-            return -1;
+            Matcher matcher = urlPattern.matcher(endpoint);
+            if (matcher.find()) {
+                return this.urlPath.length();
+            } else {
+                return -1;
+            }
         }
     }
 
