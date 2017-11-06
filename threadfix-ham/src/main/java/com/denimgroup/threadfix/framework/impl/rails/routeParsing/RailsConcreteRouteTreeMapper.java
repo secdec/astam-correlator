@@ -1,6 +1,5 @@
-package com.denimgroup.threadfix.framework.impl.rails;
+package com.denimgroup.threadfix.framework.impl.rails.routeParsing;
 
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoute;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;

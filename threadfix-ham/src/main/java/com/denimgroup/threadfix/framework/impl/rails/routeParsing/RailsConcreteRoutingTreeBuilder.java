@@ -1,6 +1,5 @@
-package com.denimgroup.threadfix.framework.impl.rails;
+package com.denimgroup.threadfix.framework.impl.rails.routeParsing;
 
-import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRouter;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries.DrawEntry;

@@ -46,6 +46,10 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
             for (String concern : valueParts) {
                 concerns.add(stripColons(concern));
             }
+        } else if (name.equalsIgnoreCase("controller")) {
+            controllerName = value;
+        } else if (name.equalsIgnoreCase("path")) {
+            basePath = value;
         }
     }
 

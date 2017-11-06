@@ -1,5 +1,6 @@
-package com.denimgroup.threadfix.framework.impl.rails;
+package com.denimgroup.threadfix.framework.impl.rails.routeParsing;
 
+import com.denimgroup.threadfix.framework.impl.rails.RailsRoutesParser;
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;

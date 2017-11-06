@@ -1,4 +1,4 @@
-package com.denimgroup.threadfix.framework.impl.rails;
+package com.denimgroup.threadfix.framework.impl.rails.routeParsing;
 
 public interface RailsAbstractTreeVisitor {
 

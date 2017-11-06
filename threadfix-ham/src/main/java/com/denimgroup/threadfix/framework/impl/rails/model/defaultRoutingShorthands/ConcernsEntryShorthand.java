@@ -1,6 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands;
 
-import com.denimgroup.threadfix.framework.impl.rails.RailsConcreteRoutingTree;
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRoutingTree;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteShorthand;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries.ConcernEntry;

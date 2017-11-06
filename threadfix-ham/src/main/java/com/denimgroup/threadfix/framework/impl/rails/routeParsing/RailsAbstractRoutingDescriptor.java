@@ -1,7 +1,6 @@
-package com.denimgroup.threadfix.framework.impl.rails;
+package com.denimgroup.threadfix.framework.impl.rails.routeParsing;
 
 import java.util.List;
-import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 

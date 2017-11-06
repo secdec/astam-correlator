@@ -48,6 +48,11 @@ public class ResourceEntry extends AbstractRailsRoutingEntry implements Concerna
             for (String concernName : concernNames) {
                 concerns.add(stripColons(concernName));
             }
+        } else if (name.equalsIgnoreCase("controller")) {
+            controller = value;
+            hasController = true;
+        } else if (name.equalsIgnoreCase("path")) {
+            basePath = value;
         }
     }
 
