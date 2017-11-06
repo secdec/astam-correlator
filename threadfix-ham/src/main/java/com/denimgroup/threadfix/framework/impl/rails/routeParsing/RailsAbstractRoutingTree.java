@@ -51,6 +51,11 @@ public class RailsAbstractRoutingTree {
             public void acceptParameter(RailsAbstractParameter parameter) {
 
             }
+
+            @Override
+            public void acceptInitializerParameter(RailsAbstractParameter parameter) {
+
+            }
         });
 
         return result;
@@ -68,6 +73,13 @@ public class RailsAbstractRoutingTree {
 
             @Override
             public void acceptParameter(RailsAbstractParameter parameter) {
+                if (type.isAssignableFrom(parameter.getClass())) {
+                    result.add((Type) parameter);
+                }
+            }
+
+            @Override
+            public void acceptInitializerParameter(RailsAbstractParameter parameter) {
                 if (type.isAssignableFrom(parameter.getClass())) {
                     result.add((Type) parameter);
                 }

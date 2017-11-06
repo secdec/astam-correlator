@@ -1,6 +1,5 @@
 package com.denimgroup.threadfix.framework.impl.rails.routeParsing;
 
-import com.denimgroup.threadfix.framework.impl.rails.RailsRoutesParser;
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
@@ -16,7 +15,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 //  Conditional statements are IGNORED due to the complexity of their variations
 public class RailsAbstractRoutesParser implements EventBasedTokenizer {
 
-    static final SanitizedLogger LOG = new SanitizedLogger(RailsRoutesParser.class.getName());
+    static final SanitizedLogger LOG = new SanitizedLogger(RailsAbstractRoutesParser.class.getName());
 
 
     RailsAbstractRoutingTree resultTree = new RailsAbstractRoutingTree();

@@ -1,6 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.rails.model;
 
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries.*;
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
 public class DefaultRailsRouter implements RailsRouter {
 
@@ -35,6 +36,8 @@ public class DefaultRailsRouter implements RailsRouter {
             return new ScopeEntry();
         } else if (identifier.equalsIgnoreCase("controller")) {
             return new ControllerEntry();
+        } else if (identifier.equalsIgnoreCase("defaults")) {
+            return new DefaultsEntry();
         } else {
             return new UnknownEntry();
         }

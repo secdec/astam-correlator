@@ -7,6 +7,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 public class RailsAbstractRoutingDescriptor {
 
     List<RailsAbstractParameter> parameters = list();
+    List<RailsAbstractParameter> initializerParameters = list();
 
     String identifier;
     int lineNumber = -1;
@@ -40,6 +41,18 @@ public class RailsAbstractRoutingDescriptor {
 
     public void addParameter(RailsAbstractParameter parameter) {
         this.parameters.add(parameter);
+    }
+
+    public List<RailsAbstractParameter> getInitializerParameters() {
+        return initializerParameters;
+    }
+
+    public void setInitializerParameters(List<RailsAbstractParameter> initializerParameters) {
+        this.initializerParameters = initializerParameters;
+    }
+
+    public void addInitializerParameter(RailsAbstractParameter initializerParameter) {
+        this.initializerParameters.add(initializerParameter);
     }
 
     public void setParentDescriptor(RailsAbstractRoutingDescriptor parentDescriptor) {

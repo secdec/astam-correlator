@@ -4,6 +4,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingE
 import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
 import java.util.Collection;
 
@@ -21,18 +22,9 @@ public class NamespaceEntry extends AbstractRailsRoutingEntry {
     public void onParameter(String name, String value, RouteParameterValueType parameterType) {
         if (name == null) {
             path = value;
+        } else if (name.equalsIgnoreCase("controller")) {
             controllerName = value;
         }
-    }
-
-    @Override
-    public void onBegin(String identifier) {
-
-    }
-
-    @Override
-    public void onEnd() {
-
     }
 
     @Override

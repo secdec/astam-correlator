@@ -51,7 +51,6 @@ public class RailsEndpointMappings implements EndpointGenerator {
     private static final SanitizedLogger LOG = new SanitizedLogger("RailsParser");
 
     private List<Endpoint> endpoints;
-    private Map<String, RailsRoute> routeMap;
     List<RailsController> railsControllers;
 
     private File rootDirectory;
@@ -85,9 +84,8 @@ public class RailsEndpointMappings implements EndpointGenerator {
             RailsController controller = getController(route);
             if (controller != null) {
                 String controllerPath = getRelativePath(controller.getControllerFile());
-                route.setController(controllerPath);
 
-                RailsEndpoint endpoint = new RailsEndpoint(route.getController(), route.getUrl(), route.getHttpMethods(), new HashMap<String, ParameterDataType>());
+                RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethods(), new HashMap<String, ParameterDataType>());
                 endpoints.add(endpoint);
             }
         }

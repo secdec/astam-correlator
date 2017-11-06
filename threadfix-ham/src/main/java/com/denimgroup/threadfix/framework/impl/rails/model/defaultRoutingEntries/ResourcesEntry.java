@@ -3,8 +3,11 @@ package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntrie
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.ConcernsEntryShorthand;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.ConcernsParameterShorthand;
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -40,8 +43,9 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
             basePath = value;
             controllerName = value.split("\\/")[0];
         } else if (name.equalsIgnoreCase("concerns")) {
-            //  Strip braces on either side
-            value = value.substring(1, value.length() - 1);
+            //  Strip brackets on either side
+            if (value.startsWith("["))
+                value = value.substring(1, value.length() - 1);
             String[] valueParts = value.split(",");
             for (String concern : valueParts) {
                 concerns.add(stripColons(concern));
@@ -50,6 +54,67 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
             controllerName = value;
         } else if (name.equalsIgnoreCase("path")) {
             basePath = value;
+        } else if (name.equalsIgnoreCase("path_names")) {
+            String[] pathChanges = value.substring(1, value.length() - 1).split(",");
+            for (int i = 0; i+1 < pathChanges.length; i += 2) {
+                String methodName = pathChanges[i*2 + 0];
+                String newName = pathChanges[i*2 + 1];
+                updateSupportedPaths(methodName, newName);
+            }
+        } else if (name.equalsIgnoreCase("only")) {
+            List<String> allowedPaths = list();
+            if (parameterType == RouteParameterValueType.ARRAY) {
+                String[] paths = value.split(",");
+                allowedPaths.addAll(Arrays.asList(paths));
+            } else {
+                allowedPaths.add(value);
+            }
+            for (int i = 0; i < supportedPaths.size(); i++) {
+                PathHttpMethod httpPath = supportedPaths.get(i);
+                if (!allowedPaths.contains(httpPath.getAction())) {
+                    supportedPaths.remove(httpPath);
+                    --i;
+                    break;
+                }
+            }
+        } else if (name.equalsIgnoreCase("except")) {
+            List<String> removedPaths = list();
+            if (parameterType == RouteParameterValueType.ARRAY) {
+                String[] paths = value.split(",");
+                removedPaths.addAll(Arrays.asList(paths));
+            } else {
+                removedPaths.add(value);
+            }
+            for (int i = 0; i < supportedPaths.size(); i++) {
+                PathHttpMethod httpPath = supportedPaths.get(i);
+                if (removedPaths.contains(httpPath.getAction())) {
+                    supportedPaths.remove(httpPath);
+                    --i;
+                    break;
+                }
+            }
+        }
+    }
+
+    private void updateSupportedPaths(String name, String newPath) {
+        for (PathHttpMethod httpPath : supportedPaths) {
+            if (httpPath.getAction().equalsIgnoreCase(name)) {
+                if (!httpPath.getPath().endsWith(":id")) {
+                    //  If uncontextualized, replace last path with new path
+                    String[] pathParts = httpPath.getPath().split("\\/");
+                    pathParts[pathParts.length - 1] = newPath;
+                    StringBuilder pathBuilder = new StringBuilder();
+                    for (String part : pathParts) {
+                        if (pathBuilder.length() > 0)
+                            pathBuilder.append('/');
+                        pathBuilder.append(part);
+                    }
+                    httpPath.setPath(pathBuilder.toString());
+                } else {
+                    //  If contextualized to an instance, just append to end of URL
+                    httpPath.setPath(PathUtil.combine(httpPath.getPath(), newPath));
+                }
+            }
         }
     }
 
@@ -61,16 +126,6 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
     @Override
     public String getActionMethodName() {
         return null;
-    }
-
-    @Override
-    public void onBegin(String identifier) {
-
-    }
-
-    @Override
-    public void onEnd() {
-
     }
 
     @Override

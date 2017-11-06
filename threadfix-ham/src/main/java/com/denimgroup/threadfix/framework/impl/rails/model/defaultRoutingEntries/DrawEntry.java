@@ -3,11 +3,13 @@ package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntrie
 import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
 import java.util.Collection;
 
 //  Root entry in a routes.rb file
 public class DrawEntry extends AbstractRailsRoutingEntry {
+
     @Override
     public String getPrimaryPath() {
         return "/";

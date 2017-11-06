@@ -1,6 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import javax.annotation.Nonnull;
@@ -56,8 +57,14 @@ public class DirectHttpEntry extends AbstractRailsRoutingEntry {
             mappedEndpoint = value;
         } else if (name.equalsIgnoreCase("to")) {
             String[] controllerParts = value.split("#");
-            controller = controllerParts[0];
-            actionName = controllerParts[1];
+            if (controllerParts.length == 1) {
+                actionName = controllerParts[0];
+            } else if (controllerParts.length == 2) {
+                controller = controllerParts[0];
+                actionName = controllerParts[1];
+            }
+        } else if (name.equalsIgnoreCase("controller")) {
+            controller = value;
         } else if (name.equalsIgnoreCase("constraints")) {
             //  Ignore for now
         } else if (name.equalsIgnoreCase("defaults")) {

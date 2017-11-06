@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.rails.model;
 
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import java.util.Collection;
@@ -11,7 +12,6 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
 
     RailsRoutingEntry parentEntry;
     List<RailsRoutingEntry> children = list();
-    List<RouteCommonParameter> commonParameters = list();
     List<RouteShorthand> shorthands = list();
 
 
@@ -26,7 +26,7 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
     }
 
     @Override
-    public void onInitializerParameter(int index, String value) {
+    public void onInitializerParameter(String name, String value, RouteParameterValueType parameterType) {
 
     }
 
@@ -78,17 +78,6 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
         return parentEntry;
     }
 
-
-    @Override
-    public Collection<RouteCommonParameter> getCommonParameters() {
-        return commonParameters;
-    }
-
-    @Override
-    public void addDecorator(RouteCommonParameter decorator) {
-        commonParameters.add(decorator);
-    }
-
     @Override
     public Collection<RouteShorthand> getShorthands() {
         return shorthands;
@@ -136,11 +125,6 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
         for (RailsRoutingEntry entry : children) {
             target.addChildEntry(entry.cloneEntry());
         }
-    }
-
-    @Override
-    public Collection<RouteCommonParameter> getSupportedDecorators() {
-        return null;
     }
 
     @Override

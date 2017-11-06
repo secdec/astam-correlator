@@ -5,6 +5,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteShorthand;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.ConcernsEntryShorthand;
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
 import java.util.Collection;
 

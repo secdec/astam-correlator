@@ -3,6 +3,7 @@ package com.denimgroup.threadfix.framework.impl.rails.thirdPartyRouters.devise;
 import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
 import java.util.Collection;
 
@@ -12,16 +13,6 @@ public class DeviseScopeEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public void onToken(int type, int lineNumber, String stringValue) {
-
-    }
-
-    @Override
-    public void onBegin(String identifier) {
-
-    }
-
-    @Override
-    public void onEnd() {
 
     }
 

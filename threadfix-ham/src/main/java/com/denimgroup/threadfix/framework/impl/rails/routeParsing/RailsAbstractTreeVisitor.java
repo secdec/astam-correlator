@@ -4,5 +4,6 @@ public interface RailsAbstractTreeVisitor {
 
     void acceptDescriptor(RailsAbstractRoutingDescriptor descriptor);
     void acceptParameter(RailsAbstractParameter parameter);
+    void acceptInitializerParameter(RailsAbstractParameter parameter);
 
 }

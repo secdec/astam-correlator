@@ -4,6 +4,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingE
 import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import javax.annotation.Nonnull;
@@ -28,15 +29,29 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
             endpoint = value;
         } else if (name.equalsIgnoreCase("to")) {
             String[] controllerParts = value.split("#");
-            controller = controllerParts[0];
-            methodName = controllerParts[1];
+            if (controllerParts.length == 1) {
+                methodName = controllerParts[0];
+            } else if (controllerParts.length == 2) {
+                controller = controllerParts[0];
+                methodName = controllerParts[1];
+            }
         } else if (name.equalsIgnoreCase("via")) {
             // Strip brackets
-            value = value.substring(1, value.length() - 1);
+            if (parameterType == RouteParameterValueType.ARRAY) {
+                value = value.substring(1, value.length() - 1);
+            }
             String[] methods = value.split(",");
+            if (methods.length == 1) {
+                if (stripColons(methods[0]).equalsIgnoreCase("all")) {
+                    methods = new String[] { "get", "post", "put", "patch", "delete" };
+                }
+            }
+
             for (String method : methods) {
                 httpMethods.add(stripColons(method).toUpperCase());
             }
+        } else if (name.equalsIgnoreCase("controller")) {
+            controller = value;
         }
     }
 

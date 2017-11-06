@@ -27,8 +27,8 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
     public RailsConcreteRoutingTree buildFrom(RailsAbstractRoutingTree abstractTree) {
         RailsConcreteRoutingTree concreteTree = new RailsConcreteRoutingTree();
 
-        RailsRoutingEntry rootConcreteEntry = new DrawEntry();
         RailsAbstractRoutingDescriptor rootAbstractEntry = abstractTree.getRootDescriptor();
+        RailsRoutingEntry rootConcreteEntry = new DrawEntry();
 
         rootConcreteEntry.onBegin(rootAbstractEntry.getIdentifier());
         concreteTree.setRootEntry(rootConcreteEntry);
@@ -52,7 +52,7 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
         return concreteTree;
     }
 
-    private RailsRoutingEntry makeRouteEntry(String identifier) {
+    private RailsRoutingEntry makeRouteEntry(String identifier, RailsAbstractRoutingDescriptor descriptor) {
         RailsRoutingEntry result = null;
         for (RailsRouter router : routers) {
             result = router.identify(identifier);
@@ -92,7 +92,7 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
             descriptorScopeStack.add(lastDescriptor);
         }
 
-        RailsRoutingEntry entry = makeRouteEntry(descriptor.getIdentifier());
+        RailsRoutingEntry entry = makeRouteEntry(descriptor.getIdentifier(), descriptor);
         entry.onBegin(descriptor.getIdentifier());
         entry.setParent(currentScope);
         currentScope.addChildEntry(entry);
@@ -105,5 +105,10 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
     @Override
     public void acceptParameter(RailsAbstractParameter parameter) {
         currentEntry.onParameter(parameter.getName(), parameter.getValue(), parameter.getParameterType());
+    }
+
+    @Override
+    public void acceptInitializerParameter(RailsAbstractParameter parameter) {
+        currentEntry.onInitializerParameter(parameter.getName(), parameter.getValue(), parameter.getParameterType());
     }
 }

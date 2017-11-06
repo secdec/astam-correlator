@@ -3,13 +3,15 @@ package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntrie
 import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
 import java.util.Collection;
 
-public class UnknownEntry extends AbstractRailsRoutingEntry {
-
-    String identifier;
+//  This class does nothing since default route values are not handled right now
+public class DefaultsEntry extends AbstractRailsRoutingEntry {
+    @Override
+    public String getPrimaryPath() {
+        return null;
+    }
 
     @Override
     public Collection<PathHttpMethod> getSubPaths() {
@@ -28,24 +30,8 @@ public class UnknownEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public RailsRoutingEntry cloneEntry() {
-        UnknownEntry clone = new UnknownEntry();
-        clone.identifier = identifier;
+        DefaultsEntry clone = new DefaultsEntry();
         cloneChildrenInto(clone);
         return clone;
-    }
-
-    @Override
-    public void onBegin(String identifier) {
-        this.identifier = identifier;
-    }
-
-    @Override
-    public String getPrimaryPath() {
-        return null;
-    }
-
-    @Override
-    public String toString() {
-        return identifier + " (unknown entry)";
     }
 }
