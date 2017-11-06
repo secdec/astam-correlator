@@ -965,7 +965,7 @@ public class RailsRoutesParserTest {
         assert(f.exists());
 
         //System.err.println("parsing "+f.getAbsolutePath() );
-        Map<String, RailsRoute> mappings = OldRailsRoutesParser.parse(f);
+        Map<String, RailsRoute> mappings = RailsRoutesParser.run(f);
         //System.err.println( System.lineSeparator() + "Parse done." + System.lineSeparator());
         /* for (String s : mappings) {
             System.err.println(s);
@@ -978,7 +978,7 @@ public class RailsRoutesParserTest {
         File f = ResourceManager.getRailsFile("discource_routes.rb");
         assert(f.exists());
         // System.err.println("parsing "+f.getAbsolutePath() );
-        Map<String, RailsRoute> mappings = OldRailsRoutesParser.parse(f);
+        Map<String, RailsRoute> mappings = RailsRoutesParser.run(f);
         // System.err.println( System.lineSeparator() + "Parse done." + System.lineSeparator());
         // for (String s : mappings) {
         //     System.err.println(s);
@@ -991,7 +991,7 @@ public class RailsRoutesParserTest {
         File f = ResourceManager.getRailsFile("gitlab_routes.rb");
         assert(f.exists());
 //        System.err.println("parsing "+f.getAbsolutePath() );
-        Map<String, RailsRoute> mappings = OldRailsRoutesParser.parse(f);
+        Map<String, RailsRoute> mappings = RailsRoutesParser.run(f);
 //        for (String s : mappings) {
 //            System.err.println(s);
 //        }

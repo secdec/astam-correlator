@@ -11,14 +11,25 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class RailsRoutesParser implements EventBasedTokenizer {
 
     static final SanitizedLogger LOG = new SanitizedLogger(RailsRoutesParser.class.getName());
 
-    public static Collection<RailsRoute> run(File routesFile, Collection<RailsRouter> routers) {
+    public static Map<String, RailsRoute> run(File routesFile) {
+        if (!routesFile.exists()) {
+            LOG.error("File not found. Exiting. " + routesFile.getName());
+            return null;
+        }
+
+        return run(routesFile, list((RailsRouter)new DefaultRailsRouter()));
+    }
+
+    public static Map<String, RailsRoute> run(File routesFile, Collection<RailsRouter> routers) {
         if (!routesFile.exists()) {
             LOG.error("File not found. Exiting. " + routesFile.getName());
             return null;
@@ -26,7 +37,11 @@ public class RailsRoutesParser implements EventBasedTokenizer {
 
         RailsRoutesParser parser = new RailsRoutesParser(routers);
         EventBasedTokenizerRunner.runRails(routesFile, true, false, parser);
-        return parser.getRoutes();
+        Map<String, RailsRoute> map = map();
+        for (RailsRoute route : parser.getRoutes()) {
+            map.put(route.getUrl(), route);
+        }
+        return map;
     }
 
     public RailsRoutesParser(Collection<RailsRouter> routers) {

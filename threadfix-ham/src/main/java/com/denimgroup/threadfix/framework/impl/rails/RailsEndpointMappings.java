@@ -67,7 +67,6 @@ public class RailsEndpointMappings implements EndpointGenerator {
 
         this.rootDirectory = rootDirectory;
 
-        routeMap = OldRailsRoutesParser.parse(routesFile);
         railsControllers = (List<RailsController>) RailsControllerParser.parse(rootDirectory);
 
         RailsAbstractRoutesParser abstractRoutesParser = new RailsAbstractRoutesParser();
