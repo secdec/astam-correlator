@@ -1,9 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.jsp;
 
 import com.denimgroup.threadfix.logging.SanitizedLogger;
-import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
-
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
