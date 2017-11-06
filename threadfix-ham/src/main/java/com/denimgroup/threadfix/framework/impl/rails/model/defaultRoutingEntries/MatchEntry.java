@@ -56,16 +56,6 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public void setControllerName(String controllerName) {
-        controller = controllerName;
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-        methodName = actionMethodName;
-    }
-
-    @Override
     public RailsRoutingEntry cloneEntry() {
         MatchEntry clone = new MatchEntry();
         clone.endpoint = endpoint;

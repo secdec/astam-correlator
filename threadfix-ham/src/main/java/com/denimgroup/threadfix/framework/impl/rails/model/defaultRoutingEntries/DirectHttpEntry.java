@@ -5,7 +5,9 @@ import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
@@ -19,6 +21,7 @@ public class DirectHttpEntry extends AbstractRailsRoutingEntry {
     String controller = null;
     String actionName = null;
     String httpMethod = null;
+    Map<String, String> defaults = new HashMap<String, String>();
 
     @Override
     public String getControllerName() {
@@ -28,16 +31,6 @@ public class DirectHttpEntry extends AbstractRailsRoutingEntry {
     @Override
     public String getActionMethodName() {
         return actionName;
-    }
-
-    @Override
-    public void setControllerName(String controllerName) {
-        controller = controllerName;
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-        actionName = actionMethodName;
     }
 
     @Override
@@ -65,6 +58,30 @@ public class DirectHttpEntry extends AbstractRailsRoutingEntry {
             String[] controllerParts = value.split("#");
             controller = controllerParts[0];
             actionName = controllerParts[1];
+        } else if (name.equalsIgnoreCase("constraints")) {
+            //  Ignore for now
+        } else if (name.equalsIgnoreCase("defaults")) {
+            String[] values = value.substring(1, value.length() - 1).split(",");
+            for (int i = 0; i < values.length; i++) {
+                String[] valueParts = values[i].split(":");
+                String defaultName = valueParts[i];
+                String defaultValue = valueParts[i + 1];
+                defaults.put(defaultName, defaultValue);
+            }
+        } else if (name.equalsIgnoreCase("action")) {
+            actionName = value;
+        } else {
+            if (mappedEndpoint == null) {
+                //  Assume syntax '/endpoint' => 'controller#method' or '/endpoint' => 'method'
+                mappedEndpoint = name;
+                String[] controllerParts = value.split("#");
+                if (controllerParts.length == 1) {
+                    actionName = controllerParts[0];
+                } else if (controllerParts.length == 2) {
+                    controller = controllerParts[0];
+                    actionName = controllerParts[1];
+                }
+            }
         }
     }
 

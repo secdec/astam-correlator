@@ -157,6 +157,7 @@ public class RailsAbstractRoutesParser implements EventBasedTokenizer {
                 RailsAbstractRoutingDescriptor descriptor = new RailsAbstractRoutingDescriptor();
                 descriptor.setIdentifier(stringValue);
                 descriptor.setParentDescriptor(getCurrentScope());
+                descriptor.setLineNumber(lineNumber);
                 currentDescriptor = descriptor;
                 parsePhase = ParsePhase.PARAMETERS;
             }

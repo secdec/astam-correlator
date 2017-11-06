@@ -19,6 +19,7 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
 
     String dataSourceSymbol;
     String basePath;
+    String controllerName = null;
     List<String> concerns = list();
 
     List<PathHttpMethod> supportedPaths = list(
@@ -37,6 +38,7 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
         if (name == null) {
             dataSourceSymbol = value;
             basePath = value;
+            controllerName = value.split("\\/")[0];
         } else if (name.equalsIgnoreCase("concerns")) {
             //  Strip braces on either side
             value = value.substring(1, value.length() - 1);
@@ -49,22 +51,12 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
 
     @Override
     public String getControllerName() {
-        return null;
+        return controllerName;
     }
 
     @Override
     public String getActionMethodName() {
         return null;
-    }
-
-    @Override
-    public void setControllerName(String controllerName) {
-
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-
     }
 
     @Override

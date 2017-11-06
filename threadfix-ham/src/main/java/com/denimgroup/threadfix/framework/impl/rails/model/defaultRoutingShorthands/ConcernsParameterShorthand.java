@@ -24,6 +24,9 @@ public class ConcernsParameterShorthand implements RouteShorthand {
 
         Collection<ConcernEntry> allConcerns = sourceTree.findEntriesOfType(ConcernEntry.class);
         Collection<String> concernNames = ((Concernable)entry).getConcerns();
+        if (concernNames == null) {
+            return entry;
+        }
 
         List<ConcernEntry> neededConcerns = list();
         for (ConcernEntry concern : allConcerns) {

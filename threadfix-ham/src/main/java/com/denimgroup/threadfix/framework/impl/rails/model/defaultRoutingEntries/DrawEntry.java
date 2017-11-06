@@ -29,16 +29,6 @@ public class DrawEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public void setControllerName(String controllerName) {
-
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-
-    }
-
-    @Override
     public RailsRoutingEntry cloneEntry() {
         DrawEntry clone = new DrawEntry();
         cloneChildrenInto(clone);

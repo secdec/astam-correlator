@@ -15,7 +15,7 @@ import java.util.Collection;
 //  and define a base endpoint for sub-routes within it.
 public class ScopeEntry extends AbstractRailsRoutingEntry {
 
-    String endpoint, module;
+    String endpoint = "/", module;
 
     @Override
     public Collection<PathHttpMethod> getSubPaths() {
@@ -30,16 +30,6 @@ public class ScopeEntry extends AbstractRailsRoutingEntry {
     @Override
     public String getActionMethodName() {
         return null;
-    }
-
-    @Override
-    public void setControllerName(String controllerName) {
-
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-
     }
 
     @Override

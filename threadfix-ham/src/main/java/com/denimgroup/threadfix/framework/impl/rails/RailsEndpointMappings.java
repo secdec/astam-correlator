@@ -29,15 +29,14 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoute;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
@@ -77,7 +76,20 @@ public class RailsEndpointMappings implements EndpointGenerator {
         RailsConcreteRoutingTreeBuilder treeBuilder = new RailsConcreteRoutingTreeBuilder(list((RailsRouter)new DefaultRailsRouter()));
         RailsConcreteRoutingTree concreteTree = treeBuilder.buildFrom(abstractRoutesParser.getResultTree());
 
-        this.endpoints = generateMappings();
+        endpoints = list();
+
+        RailsConcreteRouteTreeMapper concreteMapper = new RailsConcreteRouteTreeMapper(concreteTree);
+        Collection<RailsRoute> routes = concreteMapper.getMappings();
+        for (RailsRoute route : routes) {
+            RailsController controller = getController(route);
+            if (controller != null) {
+                String controllerPath = getRelativePath(controller.getControllerFile());
+                route.setController(controllerPath);
+
+                RailsEndpoint endpoint = new RailsEndpoint(route.getController(), route.getUrl(), route.getHttpMethods(), new HashMap<String, ParameterDataType>());
+                endpoints.add(endpoint);
+            }
+        }
     }
 
     @Nonnull
@@ -94,25 +106,6 @@ public class RailsEndpointMappings implements EndpointGenerator {
     @Override
     public Iterator<Endpoint> iterator() {
         return endpoints.iterator();
-    }
-
-    private List<Endpoint> generateMappings() {
-        List<Endpoint> mappings = list();
-        for (RailsRoute railsRoute : routeMap.values()) {
-            String urlPath = railsRoute.getUrl();
-            Collection<String> httpMethods = railsRoute.getHttpMethods();
-            String filePath = "";
-            Map<String, ParameterDataType> parameters = map();
-
-            RailsController railsController = getController(railsRoute);
-            if (railsController != null) {
-                File f = railsController.getControllerFile();
-                filePath = getRelativePath(f);
-                parameters = railsController.getParameters();
-                mappings.add(new RailsEndpoint(filePath, urlPath, httpMethods, parameters));
-            }
-        }
-        return mappings;
     }
 
     public String getRelativePath(File f) {

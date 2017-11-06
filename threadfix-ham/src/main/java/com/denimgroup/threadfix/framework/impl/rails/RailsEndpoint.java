@@ -57,8 +57,12 @@ public class RailsEndpoint extends AbstractEndpoint {
         if (parameters != null)
             this.parameters = parameters;
 
+        String regexCaptureGroupPattern = "([^\\/]+)";
         String urlFormat = urlPath;
-        urlFormat = urlFormat.replaceAll("\\{.+\\}", "([^\\/]+)");
+        urlFormat = urlFormat
+                .replaceAll("\\{.+\\}", regexCaptureGroupPattern)
+                .replaceAll("\\:([\\w\\-_]+)", regexCaptureGroupPattern)
+                .replaceAll("\\*([\\w\\-_]+)", regexCaptureGroupPattern);
         urlFormat = "^" + urlFormat + "$";
         urlPattern = Pattern.compile(urlFormat);
     }

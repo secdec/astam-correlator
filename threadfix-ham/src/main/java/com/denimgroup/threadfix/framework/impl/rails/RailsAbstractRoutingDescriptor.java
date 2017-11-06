@@ -10,6 +10,7 @@ public class RailsAbstractRoutingDescriptor {
     List<RailsAbstractParameter> parameters = list();
 
     String identifier;
+    int lineNumber = -1;
 
     RailsAbstractRoutingDescriptor parentDescriptor;
     List<RailsAbstractRoutingDescriptor> childDescriptors = list();
@@ -20,6 +21,14 @@ public class RailsAbstractRoutingDescriptor {
 
     public String getIdentifier() {
         return identifier;
+    }
+
+    public void setLineNumber(int lineNumber) {
+        this.lineNumber = lineNumber;
+    }
+
+    public int getLineNumber() {
+        return lineNumber;
     }
 
     public List<RailsAbstractParameter> getParameters() {

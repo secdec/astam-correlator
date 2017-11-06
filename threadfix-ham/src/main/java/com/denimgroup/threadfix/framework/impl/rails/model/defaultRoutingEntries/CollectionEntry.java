@@ -38,16 +38,6 @@ public class CollectionEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public void setControllerName(String controllerName) {
-        this.controllerName = controllerName;
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-        this.controllerMethod = actionMethodName;
-    }
-
-    @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
         result.append("collection (");

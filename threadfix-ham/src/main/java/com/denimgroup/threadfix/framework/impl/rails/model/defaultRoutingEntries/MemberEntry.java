@@ -7,6 +7,7 @@ package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntrie
 import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
+import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import java.util.Collection;
@@ -40,13 +41,8 @@ public class MemberEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public void setControllerName(String controllerName) {
-
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-
+    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
+        super.onParameter(name, value, parameterType);
     }
 
     @Override

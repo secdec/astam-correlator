@@ -6,7 +6,9 @@ public class DefaultRailsRouter implements RailsRouter {
 
     @Override
     public RailsRoutingEntry identify(String identifier) {
-        if (identifier.equalsIgnoreCase("get") ||
+        if (identifier.endsWith(".draw")) {
+            return new DrawEntry();
+        } else if (identifier.equalsIgnoreCase("get") ||
                 identifier.equalsIgnoreCase("put") ||
                 identifier.equalsIgnoreCase("post") ||
                 identifier.equalsIgnoreCase("delete")) {
@@ -19,8 +21,6 @@ public class DefaultRailsRouter implements RailsRouter {
             return new MatchEntry();
         } else if (identifier.equalsIgnoreCase("namespace")) {
             return new NamespaceEntry();
-        } else if (identifier.endsWith(".draw")) {
-            return new DrawEntry();
         } else if (identifier.equalsIgnoreCase("collection")) {
             return new CollectionEntry();
         } else if (identifier.equalsIgnoreCase("concern")) {
@@ -33,6 +33,8 @@ public class DefaultRailsRouter implements RailsRouter {
             return new RootEntry();
         } else if (identifier.equalsIgnoreCase("scope")) {
             return new ScopeEntry();
+        } else if (identifier.equalsIgnoreCase("controller")) {
+            return new ControllerEntry();
         } else {
             return new UnknownEntry();
         }

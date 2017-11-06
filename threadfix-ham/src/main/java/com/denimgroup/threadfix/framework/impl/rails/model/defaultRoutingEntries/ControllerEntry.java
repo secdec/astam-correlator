@@ -1,29 +1,14 @@
-package com.denimgroup.threadfix.framework.impl.rails.thirdPartyRouters.devise;
+package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
 import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
+import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
 
 import java.util.Collection;
 
-import static com.denimgroup.threadfix.CollectionUtils.list;
-
-public class DeviseScopeEntry extends AbstractRailsRoutingEntry {
-
-    @Override
-    public void onToken(int type, int lineNumber, String stringValue) {
-
-    }
-
-    @Override
-    public void onBegin(String identifier) {
-
-    }
-
-    @Override
-    public void onEnd() {
-
-    }
+public class ControllerEntry extends AbstractRailsRoutingEntry {
+    String controllerName;
 
     @Override
     public String getPrimaryPath() {
@@ -37,7 +22,7 @@ public class DeviseScopeEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public String getControllerName() {
-        return null;
+        return controllerName;
     }
 
     @Override
@@ -46,7 +31,16 @@ public class DeviseScopeEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
+    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
+        super.onParameter(name, value, parameterType);
+        controllerName = value;
+    }
+
+    @Override
     public RailsRoutingEntry cloneEntry() {
-        return null;
+        ControllerEntry clone = new ControllerEntry();
+        clone.controllerName = controllerName;
+        cloneChildrenInto(clone);
+        return clone;
     }
 }

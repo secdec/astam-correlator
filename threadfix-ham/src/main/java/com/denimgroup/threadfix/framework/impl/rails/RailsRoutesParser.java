@@ -35,7 +35,6 @@ public class RailsRoutesParser implements EventBasedTokenizer {
 
     Collection<RailsRouter> routers;
     Collection<RailsRoute> routes = list();
-    Collection<RailsScope> scopes = list();
 
     public Collection<RailsRoute> getRoutes() {
         return routes;
@@ -201,12 +200,4 @@ public class RailsRoutesParser implements EventBasedTokenizer {
         // TODO
 
     }
-
-    Collection<RailsRoute> buildRoutes(AbstractRailsRoutingEntry entry) {
-        return new ArrayList<RailsRoute>();
-    }
-
-//    RailsScope buildScope(AbstractRailsRoutingScope scope) {
-//        return null;
-//    }
 }

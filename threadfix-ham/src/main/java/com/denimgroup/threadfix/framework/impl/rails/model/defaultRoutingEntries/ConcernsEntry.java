@@ -35,16 +35,6 @@ public class ConcernsEntry extends AbstractRailsRoutingEntry implements Concerna
     }
 
     @Override
-    public void setControllerName(String controllerName) {
-
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-
-    }
-
-    @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
         result.append("concerns [");

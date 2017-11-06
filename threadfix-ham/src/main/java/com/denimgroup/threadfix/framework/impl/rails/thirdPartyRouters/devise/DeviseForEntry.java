@@ -31,16 +31,6 @@ public class DeviseForEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public void setControllerName(String controllerName) {
-
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-
-    }
-
-    @Override
     public RailsRoutingEntry cloneEntry() {
         return null;
     }

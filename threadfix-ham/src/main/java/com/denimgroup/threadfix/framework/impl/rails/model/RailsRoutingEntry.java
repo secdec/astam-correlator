@@ -22,16 +22,28 @@ public interface RailsRoutingEntry {
     String getControllerName();
     String getActionMethodName();
 
-    void setControllerName(String controllerName);
-    void setActionMethodName(String actionMethodName);
-
     Collection<RouteCommonParameter> getSupportedDecorators();
     Collection<RouteCommonParameter> getCommonParameters();
     void addDecorator(RouteCommonParameter decorator);
 
+    /**
+     * @return A set of RouteShorthand implementations that can be used when parsing this route entry.
+     */
     Collection<RouteShorthand> getSupportedShorthands();
+
+
+    /**
+     * @return The RouteShorthands that were actually found on the RailsRoutingEntry.
+     */
     Collection<RouteShorthand> getShorthands();
+
+    /**
+     * @param shorthand The RouteShorthand implementation to be manually added to this RailsRoutingEntry.
+     */
     void addShorthand(RouteShorthand shorthand);
 
+    /**
+     * @return Generates a deep clone of the current entry, duplicating child entries while the clone shares the original parent.
+     */
     RailsRoutingEntry cloneEntry();
 }

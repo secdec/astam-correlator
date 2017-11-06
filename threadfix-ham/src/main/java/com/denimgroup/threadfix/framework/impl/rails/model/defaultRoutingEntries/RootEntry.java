@@ -13,25 +13,17 @@ import java.util.Collection;
 public class RootEntry extends AbstractRailsRoutingEntry {
 
     String path = null;
+    String controllerName = null;
+    String methodName = null;
 
     @Override
     public String getControllerName() {
-        return null;
+        return controllerName;
     }
 
     @Override
     public String getActionMethodName() {
-        return null;
-    }
-
-    @Override
-    public void setControllerName(String controllerName) {
-
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-
+        return methodName;
     }
 
     @Override
@@ -45,7 +37,10 @@ public class RootEntry extends AbstractRailsRoutingEntry {
     @Override
     public void onParameter(String name, String value, RouteParameterValueType parameterType) {
         if (name == null || name.equalsIgnoreCase("to")) {
-            path = value;
+            path = "/";
+            String[] valueParts = value.split("#");
+            controllerName = valueParts[0];
+            methodName = valueParts[1];
         }
     }
 

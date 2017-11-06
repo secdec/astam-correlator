@@ -15,11 +15,13 @@ import java.util.Collection;
 public class NamespaceEntry extends AbstractRailsRoutingEntry {
 
     String path = null;
+    String controllerName = null;
 
     @Override
     public void onParameter(String name, String value, RouteParameterValueType parameterType) {
         if (name == null) {
             path = value;
+            controllerName = value;
         }
     }
 
@@ -45,22 +47,12 @@ public class NamespaceEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public String getControllerName() {
-        return null;
+        return controllerName;
     }
 
     @Override
     public String getActionMethodName() {
         return null;
-    }
-
-    @Override
-    public void setControllerName(String controllerName) {
-
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-
     }
 
     @Override

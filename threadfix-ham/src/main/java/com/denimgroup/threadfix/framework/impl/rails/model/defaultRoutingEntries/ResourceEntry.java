@@ -62,16 +62,6 @@ public class ResourceEntry extends AbstractRailsRoutingEntry implements Concerna
     }
 
     @Override
-    public void setControllerName(String controllerName) {
-
-    }
-
-    @Override
-    public void setActionMethodName(String actionMethodName) {
-
-    }
-
-    @Override
     public void onBegin(String identifier) {
     }
 
