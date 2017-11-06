@@ -50,3 +50,11 @@ RailsRoutingEntry objects are added to the resulting RailsConcreteRoutingTree.
 Adding new tree transformations belongs in pass 3. Implement a RouteShorthand for your transformation type. Modify
 the appropriate RouteEntry types to return your RouteShorthand implementation in their getSupportedShorthands
 method.
+
+---
+
+A RailsRoutingEntry has the following responsibilities:
+- Provide the assigned module name, or the parent module name if available (recursively search parents)
+- Provide the assigned controller name, or the parent controller name if available (recursively search parents)
+- Provide PathHttpMethod objects that have fully-formed endpoints relative to the root, or null if an endpoint
+            isn't relevant for the given route entry type (ie concern)

@@ -38,25 +38,16 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
             return;
         }
 
-        if (entry.getPrimaryPath() == null && (entry.getSubPaths() == null || entry.getSubPaths().size() == 0)) {
+        if (entry.getPrimaryPath() == null && (entry.getPaths() == null || entry.getPaths().size() == 0)) {
             return;
         }
 
-        String controllerName = resolveControllerName(entry);
+        String controllerName = entry.getControllerName();
         if (controllerName == null) {
             return;
         }
 
-        String primaryPath = entry.getPrimaryPath();
-        if (primaryPath != null) {
-            RailsRoute primaryRoute = new RailsRoute();
-            primaryRoute.setUrl(primaryPath);
-            primaryRoute.setController(controllerName);
-            primaryRoute.addHttpMethod("GET");
-            mappedRoutes.add(primaryRoute);
-        }
-
-        Collection<PathHttpMethod> subPaths = entry.getSubPaths();
+        Collection<PathHttpMethod> subPaths = entry.getPaths();
         if (subPaths == null) {
             return;
         }
@@ -64,23 +55,18 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
         for (PathHttpMethod httpMethod : subPaths)
         {
             RailsRoute route = new RailsRoute();
-            route.setController(controllerName);
+            if (httpMethod.getControllerName() != null) {
+                //  Routes declare their controllers but some route entries declare multiple routes
+                //  that may have different controllers. These controllers will be set manually
+                //  within the returned path.
+                route.setController(httpMethod.getControllerName());
+            } else {
+                route.setController(controllerName);
+            }
             route.setUrl(httpMethod.getPath());
             route.addHttpMethod(httpMethod.getMethod());
             mappedRoutes.add(route);
         }
-    }
-
-    private String resolveControllerName(RailsRoutingEntry entry) {
-        String controllerName = entry.getControllerName();
-        while (controllerName == null) {
-            entry = entry.getParent();
-            if (entry == null)
-                break;
-
-            controllerName = entry.getControllerName();
-        }
-        return controllerName;
     }
 
     List<RailsRoute> mergeDuplicates(Collection<RailsRoute> routes) {
@@ -104,10 +90,6 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
         return uniqueRoutes;
     }
 
-
-    private void applyCommonParameters() {
-
-    }
 
     private void applyShorthands() {
         this.routeTree.walkTree(new RailsConcreteTreeVisitor() {

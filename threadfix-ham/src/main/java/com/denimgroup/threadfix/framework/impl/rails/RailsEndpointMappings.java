@@ -82,9 +82,14 @@ public class RailsEndpointMappings implements EndpointGenerator {
         Collection<RailsRoute> routes = concreteMapper.getMappings();
         for (RailsRoute route : routes) {
             RailsController controller = getController(route);
+            String controllerPath;
             if (controller != null) {
-                String controllerPath = getRelativePath(controller.getControllerFile());
+                controllerPath = getRelativePath(controller.getControllerFile());
+            } else {
+                controllerPath = route.getController();
+            }
 
+            if (controllerPath != null) {
                 RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethods(), new HashMap<String, ParameterDataType>());
                 endpoints.add(endpoint);
             }

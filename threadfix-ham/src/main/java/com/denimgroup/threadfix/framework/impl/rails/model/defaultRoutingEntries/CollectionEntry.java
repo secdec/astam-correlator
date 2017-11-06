@@ -1,12 +1,8 @@
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
-import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import java.util.Collection;
-
-import static com.denimgroup.threadfix.CollectionUtils.list;
 
 // http://guides.rubyonrails.org/routing.html#adding-collection-routes
 // https://stackoverflow.com/questions/3028653/difference-between-collection-route-and-member-route-in-ruby-on-rails
@@ -15,27 +11,25 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 //  to the pre-existing ones defined by 'resources'. Collection routes
 //  are relative to collection endpoints and are not added to instance endpoints.
 public class CollectionEntry extends AbstractRailsRoutingEntry {
-    String endpoint;
-    String controllerName, controllerMethod;
 
     @Override
     public String getPrimaryPath() {
-        return makeRelativePathToParent(endpoint);
+        return null;
     }
 
     @Override
-    public Collection<PathHttpMethod> getSubPaths() {
+    public Collection<PathHttpMethod> getPaths() {
         return null;
     }
 
     @Override
     public String getControllerName() {
-        return controllerName;
+        return getParentController();
     }
 
     @Override
-    public String getActionMethodName() {
-        return controllerMethod;
+    public String getModule() {
+        return getParentModule();
     }
 
     @Override
@@ -50,9 +44,6 @@ public class CollectionEntry extends AbstractRailsRoutingEntry {
     @Override
     public RailsRoutingEntry cloneEntry() {
         CollectionEntry clone = new CollectionEntry();
-        clone.controllerMethod = this.controllerMethod;
-        clone.controllerName = this.controllerName;
-        clone.endpoint = this.endpoint;
         cloneChildrenInto(clone);
         return clone;
     }

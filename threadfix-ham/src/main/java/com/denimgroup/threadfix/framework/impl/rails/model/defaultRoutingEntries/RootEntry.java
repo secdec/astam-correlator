@@ -19,12 +19,12 @@ public class RootEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public String getControllerName() {
-        return controllerName;
+        return getParentControllerIfNull(controllerName);
     }
 
     @Override
-    public String getActionMethodName() {
-        return methodName;
+    public String getModule() {
+        return getParentModule();
     }
 
     @Override
@@ -51,7 +51,7 @@ public class RootEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public Collection<PathHttpMethod> getSubPaths() {
+    public Collection<PathHttpMethod> getPaths() {
         return null;
     }
 

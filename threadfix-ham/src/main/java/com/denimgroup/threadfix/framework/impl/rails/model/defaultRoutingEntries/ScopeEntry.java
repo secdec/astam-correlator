@@ -19,18 +19,18 @@ public class ScopeEntry extends AbstractRailsRoutingEntry {
     String endpoint = "/", module;
 
     @Override
-    public Collection<PathHttpMethod> getSubPaths() {
+    public String getModule() {
+        return module;
+    }
+
+    @Override
+    public Collection<PathHttpMethod> getPaths() {
         return null;
     }
 
     @Override
     public String getControllerName() {
-        return null;
-    }
-
-    @Override
-    public String getActionMethodName() {
-        return null;
+        return getParentController();
     }
 
     @Override

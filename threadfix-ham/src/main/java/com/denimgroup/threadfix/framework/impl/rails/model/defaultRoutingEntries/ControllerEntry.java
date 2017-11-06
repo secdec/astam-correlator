@@ -17,18 +17,18 @@ public class ControllerEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public Collection<PathHttpMethod> getSubPaths() {
+    public Collection<PathHttpMethod> getPaths() {
         return null;
     }
 
     @Override
     public String getControllerName() {
-        return controllerName;
+        return getParentControllerIfNull(controllerName);
     }
 
     @Override
-    public String getActionMethodName() {
-        return null;
+    public String getModule() {
+        return getParentModule();
     }
 
     @Override

@@ -11,9 +11,12 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class DeviseScopeEntry extends AbstractRailsRoutingEntry {
 
-    @Override
-    public void onToken(int type, int lineNumber, String stringValue) {
+    String endpoint = null;
+    String moduleName = null;
 
+    @Override
+    public String getModule() {
+        return getParentModuleIfNull(moduleName);
     }
 
     @Override
@@ -22,17 +25,12 @@ public class DeviseScopeEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public Collection<PathHttpMethod> getSubPaths() {
+    public Collection<PathHttpMethod> getPaths() {
         return null;
     }
 
     @Override
     public String getControllerName() {
-        return null;
-    }
-
-    @Override
-    public String getActionMethodName() {
         return null;
     }
 

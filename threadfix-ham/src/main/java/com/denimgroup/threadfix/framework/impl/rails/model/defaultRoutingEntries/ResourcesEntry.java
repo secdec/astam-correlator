@@ -26,14 +26,14 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
     List<String> concerns = list();
 
     List<PathHttpMethod> supportedPaths = list(
-            new PathHttpMethod("", "GET", "index"),
-            new PathHttpMethod("new", "GET", "new"),
-            new PathHttpMethod("", "POST", "create"),
-            new PathHttpMethod(":id", "GET", "show"),
-            new PathHttpMethod(":id/edit", "GET", "edit"),
-            new PathHttpMethod(":id", "PATCH", "update"),
-            new PathHttpMethod(":id", "PUT", "update"),
-            new PathHttpMethod(":id", "DELETE", "destroy")
+            new PathHttpMethod("", "GET", "index", null),
+            new PathHttpMethod("new", "GET", "new", null),
+            new PathHttpMethod("", "POST", "create", null),
+            new PathHttpMethod(":id", "GET", "show", null),
+            new PathHttpMethod(":id/edit", "GET", "edit", null),
+            new PathHttpMethod(":id", "PATCH", "update", null),
+            new PathHttpMethod(":id", "PUT", "update", null),
+            new PathHttpMethod(":id", "DELETE", "destroy", null)
     );
 
     @Override
@@ -120,12 +120,12 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
 
     @Override
     public String getControllerName() {
-        return controllerName;
+        return getParentControllerIfNull(controllerName);
     }
 
     @Override
-    public String getActionMethodName() {
-        return null;
+    public String getModule() {
+        return getParentModule();
     }
 
     @Override
@@ -134,11 +134,11 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
     }
 
     @Override
-    public Collection<PathHttpMethod> getSubPaths() {
+    public Collection<PathHttpMethod> getPaths() {
         List<PathHttpMethod> result = list();
         for (PathHttpMethod path : supportedPaths) {
             String fullPath = makeRelativeSubPath(path.getPath());
-            result.add(new PathHttpMethod(fullPath, path.getMethod(), path.getAction()));
+            result.add(new PathHttpMethod(fullPath, path.getMethod(), path.getAction(), getControllerName()));
         }
         return result;
     }

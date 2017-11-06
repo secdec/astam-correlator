@@ -1,6 +1,5 @@
 package com.denimgroup.threadfix.framework.impl.rails.model;
 
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import java.util.Collection;
@@ -12,7 +11,6 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
 
     RailsRoutingEntry parentEntry;
     List<RailsRoutingEntry> children = list();
-    List<RouteShorthand> shorthands = list();
 
 
     @Override
@@ -78,16 +76,6 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
         return parentEntry;
     }
 
-    @Override
-    public Collection<RouteShorthand> getShorthands() {
-        return shorthands;
-    }
-
-    @Override
-    public void addShorthand(RouteShorthand shorthand) {
-        shorthands.add(shorthand);
-    }
-
     protected String stripColons(String symbol) {
         if (symbol.startsWith(":")) {
             symbol = symbol.substring(1);
@@ -106,18 +94,13 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
         }
     }
 
-    protected List<String> buildParentPaths() {
-        List<String> paths = list();
-        if (parentEntry != null) {
-            for (PathHttpMethod httpPath : parentEntry.getSubPaths()) {
-                paths.add(httpPath.getPath());
-            }
-        }
-        return paths;
-    }
-
     protected String makeRelativePathToParent(String path) {
-        String parentPath = getParent().getPrimaryPath();
+        String parentPath;
+        if (getParent() != null) {
+            parentPath = getParent().getPrimaryPath();
+        } else {
+            parentPath = "/";
+        }
         return PathUtil.combine(parentPath, path);
     }
 
@@ -125,6 +108,46 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
         for (RailsRoutingEntry entry : children) {
             target.addChildEntry(entry.cloneEntry());
         }
+    }
+
+    protected final String getParentControllerIfNull(String controllerName) {
+        if (controllerName != null) {
+            return controllerName;
+        } else {
+            return getParentController();
+        }
+    }
+
+    protected final String getParentController() {
+        String controllerName = null;
+        RailsRoutingEntry currentEntry = getParent();
+        while (currentEntry != null) {
+            controllerName = currentEntry.getControllerName();
+            if (controllerName != null)
+                break;
+            currentEntry = currentEntry.getParent();
+        }
+        return controllerName;
+    }
+
+    protected final String getParentModuleIfNull(String moduleName) {
+        if (moduleName != null) {
+            return moduleName;
+        } else {
+            return getParentModule();
+        }
+    }
+
+    protected final String getParentModule() {
+        String moduleName = null;
+        RailsRoutingEntry currentEntry = getParent();
+        while (currentEntry != null) {
+            moduleName = currentEntry.getModule();
+            if (moduleName != null)
+                break;
+            currentEntry = currentEntry.getParent();
+        }
+        return moduleName;
     }
 
     @Override

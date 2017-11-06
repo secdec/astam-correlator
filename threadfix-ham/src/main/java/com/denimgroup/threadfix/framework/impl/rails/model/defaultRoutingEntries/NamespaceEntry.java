@@ -17,14 +17,23 @@ public class NamespaceEntry extends AbstractRailsRoutingEntry {
 
     String path = null;
     String controllerName = null;
+    String moduleName = null;
 
     @Override
     public void onParameter(String name, String value, RouteParameterValueType parameterType) {
         if (name == null) {
             path = value;
+            moduleName = value;
         } else if (name.equalsIgnoreCase("controller")) {
             controllerName = value;
+        } else if (name.equalsIgnoreCase("module")) {
+            moduleName = value;
         }
+    }
+
+    @Override
+    public String getModule() {
+        return getParentModuleIfNull(moduleName);
     }
 
     @Override
@@ -33,18 +42,13 @@ public class NamespaceEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public Collection<PathHttpMethod> getSubPaths() {
+    public Collection<PathHttpMethod> getPaths() {
         return null;
     }
 
     @Override
     public String getControllerName() {
-        return controllerName;
-    }
-
-    @Override
-    public String getActionMethodName() {
-        return null;
+        return getParentControllerIfNull(controllerName);
     }
 
     @Override

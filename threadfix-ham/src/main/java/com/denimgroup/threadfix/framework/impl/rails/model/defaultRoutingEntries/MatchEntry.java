@@ -4,10 +4,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingE
 import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
-import com.denimgroup.threadfix.framework.util.PathUtil;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 
@@ -20,8 +17,8 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
 
     String endpoint = null;
     String controller = null;
-    String methodName = null;
-    Collection<String> httpMethods = list();
+    String actionName = null;
+    List<String> httpMethods = list();
 
     @Override
     public void onParameter(String name, String value, RouteParameterValueType parameterType) {
@@ -30,10 +27,10 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
         } else if (name.equalsIgnoreCase("to")) {
             String[] controllerParts = value.split("#");
             if (controllerParts.length == 1) {
-                methodName = controllerParts[0];
+                actionName = controllerParts[0];
             } else if (controllerParts.length == 2) {
                 controller = controllerParts[0];
-                methodName = controllerParts[1];
+                actionName = controllerParts[1];
             }
         } else if (name.equalsIgnoreCase("via")) {
             // Strip brackets
@@ -62,12 +59,12 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public String getControllerName() {
-        return controller;
+        return getParentControllerIfNull(controller);
     }
 
     @Override
-    public String getActionMethodName() {
-        return methodName;
+    public String getModule() {
+        return getParentModule();
     }
 
     @Override
@@ -75,17 +72,17 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
         MatchEntry clone = new MatchEntry();
         clone.endpoint = endpoint;
         clone.controller = controller;
-        clone.methodName = methodName;
+        clone.actionName = actionName;
         clone.httpMethods.addAll(httpMethods);
         cloneChildrenInto(clone);
         return clone;
     }
 
     @Override
-    public Collection<PathHttpMethod> getSubPaths() {
+    public Collection<PathHttpMethod> getPaths() {
         List<PathHttpMethod> result = list();
         for (String method : httpMethods) {
-            result.add(new PathHttpMethod(endpoint, method));
+            result.add(new PathHttpMethod(endpoint, method, actionName, controller));
         }
         return result;
     }
@@ -99,8 +96,7 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
         result.append('\'');
         result.append(" to: ");
         result.append(getControllerName());
-        result.append("#");
-        result.append(getActionMethodName());
+        result.append("#<> ");
         result.append("via: [");
         for (String method : httpMethods) {
             result.append(method);

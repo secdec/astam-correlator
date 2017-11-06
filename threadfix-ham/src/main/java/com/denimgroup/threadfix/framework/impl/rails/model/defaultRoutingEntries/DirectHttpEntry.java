@@ -26,12 +26,12 @@ public class DirectHttpEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public String getControllerName() {
-        return controller;
+        return getParentControllerIfNull(controller);
     }
 
     @Override
-    public String getActionMethodName() {
-        return actionName;
+    public String getModule() {
+        return getParentModule();
     }
 
     @Override
@@ -46,8 +46,10 @@ public class DirectHttpEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public Collection<PathHttpMethod> getSubPaths() {
-        return null;
+    public Collection<PathHttpMethod> getPaths() {
+        String relativeEndpoint = makeRelativePathToParent(mappedEndpoint);
+        PathHttpMethod result = new PathHttpMethod(relativeEndpoint, httpMethod, actionName, controller);
+        return list(result);
     }
 
     @Override

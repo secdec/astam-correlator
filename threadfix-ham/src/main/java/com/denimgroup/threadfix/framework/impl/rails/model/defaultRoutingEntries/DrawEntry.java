@@ -12,22 +12,22 @@ public class DrawEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public String getPrimaryPath() {
-        return "/";
+        return null;
     }
 
     @Override
-    public Collection<PathHttpMethod> getSubPaths() {
+    public Collection<PathHttpMethod> getPaths() {
         return null;
     }
 
     @Override
     public String getControllerName() {
-        return null;
+        return getParentController();
     }
 
     @Override
-    public String getActionMethodName() {
-        return null;
+    public String getModule() {
+        return getParentModule();
     }
 
     @Override
