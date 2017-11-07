@@ -86,11 +86,25 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
         return symbol;
     }
 
+    /**
+     * @param controllerDescriptor A string of the format 'controller#action' or 'controller'
+     */
     protected String extractController(String controllerDescriptor) {
         if (!controllerDescriptor.contains("#")) {
             return controllerDescriptor;
         } else {
             return controllerDescriptor.split("#")[0];
+        }
+    }
+
+    /**
+     * @param actionDescriptor A string of the format 'controller#action' or 'action'
+     */
+    protected String extractAction(String actionDescriptor) {
+        if (!actionDescriptor.contains("#")) {
+            return actionDescriptor;
+        } else {
+            return actionDescriptor.split("#")[1];
         }
     }
 

@@ -18,7 +18,7 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
     String endpoint = null;
     String controller = null;
     String actionName = null;
-    List<String> httpMethods = list();
+    List<String> httpMethods = list("GET");
 
     @Override
     public void onParameter(String name, String value, RouteParameterValueType parameterType) {
@@ -33,6 +33,7 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
                 actionName = controllerParts[1];
             }
         } else if (name.equalsIgnoreCase("via")) {
+            httpMethods.clear();
             // Strip brackets
             if (parameterType == RouteParameterValueType.ARRAY) {
                 value = value.substring(1, value.length() - 1);
@@ -49,6 +50,11 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
             }
         } else if (name.equalsIgnoreCase("controller")) {
             controller = value;
+        } else if (endpoint == null && controller == null && actionName == null) {
+            //  Must be an initial parameter of ie '/path' => 'controller#action'
+            endpoint = name;
+            controller = extractController(value);
+            actionName = extractAction(value);
         }
     }
 

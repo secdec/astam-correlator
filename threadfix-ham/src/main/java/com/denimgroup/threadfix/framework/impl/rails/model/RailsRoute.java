@@ -72,4 +72,8 @@ public class RailsRoute {
         this.controller = controller;
     }
 
+    @Override
+    public String toString() {
+        return url + " (" + controller + ")";
+    }
 }

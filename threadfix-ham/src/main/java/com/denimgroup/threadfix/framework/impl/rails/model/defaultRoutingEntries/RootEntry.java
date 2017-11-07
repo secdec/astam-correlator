@@ -7,6 +7,9 @@ import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueTy
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
 import java.util.Collection;
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
 
 // http://guides.rubyonrails.org/routing.html#using-root
 
@@ -52,7 +55,9 @@ public class RootEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public Collection<PathHttpMethod> getPaths() {
-        return null;
+        List<PathHttpMethod> result = list();
+        result.add(new PathHttpMethod(makeRelativePathToParent(path), "GET", methodName, controllerName));
+        return result;
     }
 
     @Override

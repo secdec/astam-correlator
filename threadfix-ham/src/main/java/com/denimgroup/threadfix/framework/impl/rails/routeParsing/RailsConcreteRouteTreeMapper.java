@@ -73,7 +73,7 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
 
             if (mergeModulesIntoControllers) {
                 String modulePath = entry.getModule();
-                route.setController(PathUtil.combine(modulePath, route.getController()));
+                route.setController(PathUtil.combine(modulePath, route.getController(), false));
             }
 
             route.setUrl(httpMethod.getPath());
@@ -91,7 +91,7 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
                 RailsRoute oldRoute = endpointRouteMap.get(path);
                 List<String> oldHttpMethods = oldRoute.getHttpMethods();
                 for (String newMethod : route.getHttpMethods()) {
-                    if (oldHttpMethods.contains(newMethod)) {
+                    if (!oldHttpMethods.contains(newMethod)) {
                         oldHttpMethods.add(newMethod);
                     }
                 }
