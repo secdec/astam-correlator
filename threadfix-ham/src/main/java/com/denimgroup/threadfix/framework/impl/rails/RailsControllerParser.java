@@ -33,6 +33,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import sun.nio.ch.LinuxAsynchronousChannelProvider;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -49,7 +50,7 @@ public class RailsControllerParser implements EventBasedTokenizer {
     private static final SanitizedLogger LOG = new SanitizedLogger("RailsParser");
 
     private enum ControllerState {
-        INIT, CLASS, METHOD, PARAMS
+        INIT, MODULE, CLASS, METHOD, PARAMS
     }
 
 
@@ -57,6 +58,10 @@ public class RailsControllerParser implements EventBasedTokenizer {
     private boolean _continue;
     private Map<String, Map<String, ParameterDataType>> modelMap;
     private List<RailsController> railsControllers;
+    private Stack<String> moduleNameStack = new Stack<String>(); // NOTE - This only ever adds to the stack, there
+                                                                 // are too many scope-block declaration types
+                                                                 // and permutations to properly detect scope open/close
+                                                                 // for detection of module begin/eng
 
     private RailsController currentRailsController;
     private RailsControllerMethod currentCtrlMethod;
@@ -64,7 +69,7 @@ public class RailsControllerParser implements EventBasedTokenizer {
 
     private ControllerState currentCtrlState = ControllerState.INIT;
 
-    public static Collection parse(@Nonnull File rootFile) {
+    public static Collection<RailsController> parse(@Nonnull File rootFile) {
         if (!rootFile.exists() || !rootFile.isDirectory()) {
             LOG.error("Root file not found or is not directory. Exiting.");
             return null;
@@ -107,6 +112,20 @@ public class RailsControllerParser implements EventBasedTokenizer {
         return parser.railsControllers;
     }
 
+    private String buildCurrentModuleName() {
+        if (moduleNameStack.empty()) {
+            return null;
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (String moduleName : moduleNameStack) {
+                if (sb.length() > 0) {
+                    sb.append('/');
+                }
+                sb.append(moduleName);
+            }
+            return sb.toString().replaceAll("::", "\\/");
+        }
+    }
 
     @Override
     public boolean shouldContinue() {
@@ -137,19 +156,27 @@ public class RailsControllerParser implements EventBasedTokenizer {
             case PARAMS:
                 processParams(type, stringValue, charValue);
                 break;
+            case MODULE:
+                processModule(type, stringValue, charValue);
+                break;
         }
+
+
 
 
         if (stringValue != null) {
             String s = stringValue.toLowerCase();
             if (s.equals("private")) {
                 _continue = false;
-
+            } else if (s.equals("module")) {
+                currentCtrlState = ControllerState.MODULE;
             } else if (s.equals("class")) {
                 currentCtrlState = ControllerState.CLASS;
-                if (currentRailsController == null)
+                if (currentRailsController == null) {
                     currentRailsController = new RailsController();
-
+                    currentRailsController.setModuleName(buildCurrentModuleName());
+                    moduleNameStack.clear();
+                }
             } else if (s.equals("def")) {
                 currentCtrlState = ControllerState.METHOD;
                 if (currentCtrlMethod == null)
@@ -163,6 +190,13 @@ public class RailsControllerParser implements EventBasedTokenizer {
                 currentCtrlState = ControllerState.PARAMS;
 
             }
+        }
+    }
+
+    private void processModule(int type, String stringValue, String charValue) {
+        if (type == StreamTokenizer.TT_WORD && stringValue != null) {
+            moduleNameStack.push(stringValue);
+            currentCtrlState = ControllerState.INIT;
         }
     }
 

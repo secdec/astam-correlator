@@ -1,5 +1,8 @@
+
+# Summary
+
 In this folder is an implementation of a 3-pass Rails routes.rb parser. The design intends to separate language
-parsing from the routes.rb APIs. These route APIs include the built-in route-entry types and may include third-party
+parsing from the Rails routing APIs. These route APIs include the built-in route-entry types and may include third-party
 route-entry types. By separating syntax parsing from entry parsing it becomes easier to add support for new
 language features, API features and third-party APIs.
 
@@ -7,6 +10,8 @@ A route-entry refers to a line in routes.rb pertaining to route generation. For 
 'concern', 'concerns', etc. are all route-entry types.
 
 ---
+
+# Parser
 
 The 3 passes consist of:
 1. A state-machine abstract syntax parser generating a call tree with identifier names and parameters
@@ -25,9 +30,10 @@ The 3 passes consist of:
 - RailsRouter and implementations (ie DefaultRailsRouter) identify entries by their identifiers and create an appropriate
         RailsRoutingEntry for that identifier
 
-3. Applying 'shorthand transformations' which modify the routing tree by attaching parameters to certain route entries
-- RouteShorthand and implementations (ie ConcernsEntryShorthand, ConcernsParameterShorthand)
-- RailsRoutingEntry.getSupportedShorthands, etc.
+3. Applying 'shorthand transformations' which modify the routing tree by attaching parameters, and replacing or inserting
+        new route entries.
+- RouteShorthand interface and implementations (ie ConcernsEntryShorthand, ConcernsParameterShorthand)
+- RailsRoutingEntry.getSupportedShorthands
 - RailsConcreteRouteTreeMapper (applies shorthand transformations internally)
 
 (4). The resulting RailsConcreteRoutingTree is ingested by the RailsConcreteRouteTreeMapper to generate the
@@ -37,6 +43,8 @@ The 3 passes consist of:
 - RailsEndpoint
 
 ---
+
+# Extending and Maintenance
 
 Extending or fixing syntax parsing belongs in pass 1, the RailsAbstractRoutesParser.
 
@@ -53,8 +61,27 @@ method.
 
 ---
 
+# API Notes
+
 A RailsRoutingEntry has the following responsibilities:
 - Provide the assigned module name, or the parent module name if available (recursively search parents)
 - Provide the assigned controller name, or the parent controller name if available (recursively search parents)
 - Provide PathHttpMethod objects that have fully-formed endpoints relative to the root, or null if an endpoint
-            isn't relevant for the given route entry type (ie concern)
+            isn't relevant for the given route entry type (ie 'concern')
+
+
+
+Inheriting from the AbstractRailsRoutingEntry provides various helper methods such as getParentModule (recursive),
+makeRelativePathToParent (recursive), and others.
+
+---
+
+# Limitations
+
+This implementation has the following known limitations:
+- Ignores conditional statements
+- Doesn't capture initializer parameters
+- Doesn't handle many of the less-common parameters and shorthand permutations available in the Rails API
+- Requires that RailsRoutingEntry implementations provide complete paths and resolved controller/module names
+        (traversing the tree shouldn't be necessary within the node itself but it simplifies the current
+         implementation)

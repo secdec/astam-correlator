@@ -6,6 +6,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteShorthand;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries.DrawEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries.UnknownEntry;
+import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,9 +19,15 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
 
     RailsConcreteRoutingTree routeTree;
     List<RailsRoute> mappedRoutes = list();
+    boolean mergeModulesIntoControllers;
 
     public RailsConcreteRouteTreeMapper(RailsConcreteRoutingTree routeTree) {
+        this(routeTree, false);
+    }
+
+    public RailsConcreteRouteTreeMapper(RailsConcreteRoutingTree routeTree, boolean mergeModulesIntoControllers) {
         this.routeTree = routeTree;
+        this.mergeModulesIntoControllers = mergeModulesIntoControllers;
 
         this.applyShorthands();
 
@@ -63,6 +70,12 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
             } else {
                 route.setController(controllerName);
             }
+
+            if (mergeModulesIntoControllers) {
+                String modulePath = entry.getModule();
+                route.setController(PathUtil.combine(modulePath, route.getController()));
+            }
+
             route.setUrl(httpMethod.getPath());
             route.addHttpMethod(httpMethod.getMethod());
             mappedRoutes.add(route);

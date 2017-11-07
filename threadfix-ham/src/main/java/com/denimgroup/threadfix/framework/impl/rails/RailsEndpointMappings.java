@@ -32,8 +32,11 @@ import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractR
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRouteTreeMapper;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRoutingTree;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRoutingTreeBuilder;
+import com.denimgroup.threadfix.framework.impl.rails.routerDetection.DeviseRouterDetector;
+import com.denimgroup.threadfix.framework.impl.rails.routerDetection.RouterDetector;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
@@ -73,12 +76,23 @@ public class RailsEndpointMappings implements EndpointGenerator {
         RailsAbstractRoutesParser abstractRoutesParser = new RailsAbstractRoutesParser();
         EventBasedTokenizerRunner.runRails(routesFile, true, true, abstractRoutesParser);
 
-        RailsConcreteRoutingTreeBuilder treeBuilder = new RailsConcreteRoutingTreeBuilder(list((RailsRouter)new DefaultRailsRouter()));
+        List<RailsRouter> routers = list();
+        routers.add(new DefaultRailsRouter());
+        File gemFile = findGemFile(rootDirectory);
+        if (gemFile != null) {
+            RouterDetector routerDetector = new RouterDetector();
+            routers.addAll(routerDetector.detectRouters(gemFile));
+        } else {
+            LOG.debug("Couldn't find gemfile, skipping router detection");
+        }
+
+
+        RailsConcreteRoutingTreeBuilder treeBuilder = new RailsConcreteRoutingTreeBuilder(routers);
         RailsConcreteRoutingTree concreteTree = treeBuilder.buildFrom(abstractRoutesParser.getResultTree());
 
         endpoints = list();
 
-        RailsConcreteRouteTreeMapper concreteMapper = new RailsConcreteRouteTreeMapper(concreteTree);
+        RailsConcreteRouteTreeMapper concreteMapper = new RailsConcreteRouteTreeMapper(concreteTree, true);
         Collection<RailsRoute> routes = concreteMapper.getMappings();
         for (RailsRoute route : routes) {
             RailsController controller = getController(route);
@@ -94,6 +108,43 @@ public class RailsEndpointMappings implements EndpointGenerator {
                 endpoints.add(endpoint);
             }
         }
+    }
+
+    private String formatRouteModuleName(String fullName) {
+        fullName = fullName.replaceAll("::", "/");
+        String[] parts = fullName.split("\\/");
+        StringBuilder sb = new StringBuilder();
+        for (String part : parts) {
+            if (sb.length() > 0) {
+                sb.append('/');
+            }
+
+            StringBuilder partBuilder = new StringBuilder();
+            for (int i = 0; i < part.length(); i++) {
+                char c = part.charAt(i);
+                if (i == part.length() - 1) {
+                    if (Character.isUpperCase(c)) {
+                        c = Character.toLowerCase(c);
+                    }
+                    partBuilder.append(c);
+                    continue;
+                }
+
+                char cn = part.charAt(i+1);
+                if ((Character.isUpperCase(cn) || Character.isDigit(cn)) && Character.isLowerCase(c)) {
+                    partBuilder.append(c);
+                    partBuilder.append('_');
+                } else {
+                    if (Character.isUpperCase(c)) {
+                        c = Character.toLowerCase(c);
+                    }
+                    partBuilder.append(c);
+                }
+            }
+
+            sb.append(partBuilder.toString());
+        }
+        return sb.toString();
     }
 
     @Nonnull
@@ -123,8 +174,26 @@ public class RailsEndpointMappings implements EndpointGenerator {
     private RailsController getController(RailsRoute rr) {
 
         if (rr.getController() != null) {
+            String targetName = rr.getController();
+            boolean definesModule = targetName.contains("/");
+            String modulePath = null;
+            if (definesModule) {
+                int controllerNameIndex = targetName.lastIndexOf('/');
+                modulePath = targetName.substring(0, controllerNameIndex);
+                targetName = targetName.substring(controllerNameIndex + 1);
+            }
+
             for (RailsController railsController : railsControllers) {
-                if (railsController.getControllerName().equalsIgnoreCase(rr.getController())) {
+                String currentName = railsController.getControllerName();
+                if (definesModule) {
+                    String controllerModule = railsController.getModuleName();
+                    if (controllerModule != null) {
+                        controllerModule = formatRouteModuleName(controllerModule);
+                    }
+                    if (currentName.equalsIgnoreCase(targetName) && modulePath.equalsIgnoreCase(controllerModule)) {
+                        return railsController;
+                    }
+                } else if (currentName.equalsIgnoreCase(targetName)) {
                     return railsController;
                 }
             }
@@ -159,5 +228,13 @@ public class RailsEndpointMappings implements EndpointGenerator {
         return null;
     }
 
-
+    private File findGemFile(File rootDirectory) {
+        Collection<File> files = FileUtils.listFiles(rootDirectory, null, true);
+        for (File file : files) {
+            if (file.getName().equalsIgnoreCase("gemfile")) {
+                return file;
+            }
+        }
+        return null;
+    }
 }

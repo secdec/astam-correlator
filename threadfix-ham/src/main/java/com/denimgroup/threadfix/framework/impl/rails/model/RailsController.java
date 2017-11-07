@@ -39,6 +39,7 @@ public class RailsController {
     private File controllerFile;
     private String controllerName;
     private String controllerField;
+    private String moduleName;
     private List<RailsControllerMethod> controllerMethods;
 
 
@@ -59,6 +60,16 @@ public class RailsController {
         this.controllerField = controllerName;
         this.controllerField = this.controllerField.replaceAll("([a-z])([A-Z]+)","$1_$2").toLowerCase();
 
+    }
+
+    public String getModuleName() {
+        return moduleName;
+    }
+
+    public void setModuleName(String moduleName) {
+        if (moduleName != null) {
+            this.moduleName = moduleName.replace("::", "/");
+        }
     }
 
     public String getControllerField() {

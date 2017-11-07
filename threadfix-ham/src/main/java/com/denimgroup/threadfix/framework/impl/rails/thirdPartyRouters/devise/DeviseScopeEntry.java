@@ -31,7 +31,7 @@ public class DeviseScopeEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public String getControllerName() {
-        return null;
+        return getParentController();
     }
 
     @Override
