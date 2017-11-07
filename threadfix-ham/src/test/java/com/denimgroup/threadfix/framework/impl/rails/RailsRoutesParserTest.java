@@ -1,10 +1,18 @@
 package com.denimgroup.threadfix.framework.impl.rails;
 
 import com.denimgroup.threadfix.framework.ResourceManager;
+import com.denimgroup.threadfix.framework.impl.rails.model.DefaultRailsRouter;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoute;
+import com.denimgroup.threadfix.framework.impl.rails.model.RailsRouter;
+import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.*;
+import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertTrue;
@@ -959,13 +967,34 @@ public class RailsRoutesParserTest {
         {"GET", "/{id}"}
     };
 
+    Map<String, RailsRoute> generateMappings(File f) {
+        RailsAbstractRoutesParser abstractParser = new RailsAbstractRoutesParser();
+        EventBasedTokenizerRunner.runRails(f, true, true, abstractParser);
+        RailsAbstractRoutingTree abstractTree = abstractParser.getResultTree();
+
+        List<RailsRouter> routers = new ArrayList<RailsRouter>();
+        routers.add(new DefaultRailsRouter());
+        RailsConcreteRoutingTreeBuilder concreteTreeBuilder = new RailsConcreteRoutingTreeBuilder(routers);
+
+        RailsConcreteRoutingTree routingTree = concreteTreeBuilder.buildFrom(abstractTree);
+        RailsConcreteRouteTreeMapper routeMapper = new RailsConcreteRouteTreeMapper(routingTree);
+        List<RailsRoute> routes = routeMapper.getMappings();
+
+        Map<String, RailsRoute> result = new HashMap<String, RailsRoute>();
+        for (RailsRoute route : routes) {
+            result.put(route.getUrl(), route);
+        }
+        return result;
+    }
+
     @Test
     public void testRailsGoatRoutesParser() {
         File f = ResourceManager.getRailsFile("railsgoat_routes.rb");
         assert(f.exists());
 
         //System.err.println("parsing "+f.getAbsolutePath() );
-        Map<String, RailsRoute> mappings = RailsRoutesParser.run(f);
+        //Map<String, RailsRoute> mappings = RailsRoutesParser.run(f);
+        Map<String, RailsRoute> mappings = generateMappings(f);
         //System.err.println( System.lineSeparator() + "Parse done." + System.lineSeparator());
         /* for (String s : mappings) {
             System.err.println(s);
@@ -978,7 +1007,8 @@ public class RailsRoutesParserTest {
         File f = ResourceManager.getRailsFile("discource_routes.rb");
         assert(f.exists());
         // System.err.println("parsing "+f.getAbsolutePath() );
-        Map<String, RailsRoute> mappings = RailsRoutesParser.run(f);
+        //Map<String, RailsRoute> mappings = RailsRoutesParser.run(f);
+        Map<String, RailsRoute> mappings = generateMappings(f);
         // System.err.println( System.lineSeparator() + "Parse done." + System.lineSeparator());
         // for (String s : mappings) {
         //     System.err.println(s);
@@ -991,7 +1021,8 @@ public class RailsRoutesParserTest {
         File f = ResourceManager.getRailsFile("gitlab_routes.rb");
         assert(f.exists());
 //        System.err.println("parsing "+f.getAbsolutePath() );
-        Map<String, RailsRoute> mappings = RailsRoutesParser.run(f);
+//        Map<String, RailsRoute> mappings = RailsRoutesParser.run(f);
+        Map<String, RailsRoute> mappings = generateMappings(f);
 //        for (String s : mappings) {
 //            System.err.println(s);
 //        }

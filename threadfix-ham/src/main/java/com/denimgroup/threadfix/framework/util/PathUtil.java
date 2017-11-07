@@ -1,7 +1,12 @@
 package com.denimgroup.threadfix.framework.util;
 
 public class PathUtil {
+
     public static String combine(String begin, String end) {
+        return combine(begin, end, true);
+    }
+
+    public static String combine(String begin, String end, boolean prefixWithSlash) {
 
         if (begin == null) {
             begin = "";
@@ -22,7 +27,18 @@ public class PathUtil {
         }
 
         result.append(end);
+        String string = result.toString();
+        //  TODO - Messy, clean this up
+        if (prefixWithSlash) {
+            if (!string.startsWith("/")) {
+                string = "/" + string;
+            }
+        } else {
+            if (string.startsWith("/")) {
+                string = string.substring(1);
+            }
+        }
 
-        return result.toString();
+        return string;
     }
 }
