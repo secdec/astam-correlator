@@ -278,12 +278,14 @@ public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
                 parameterLabel = null;
             }
 
-            if (workingLine.endsWith(":") && stringValue != null) {
+            if (workingLine != null && workingLine.endsWith(":") && stringValue != null) {
                 parameterLabel = workingLine;
                 workingLine = stringValue;
             }
 
-            currentDescriptor.addParameter(makeParameter(parameterLabel, workingLine));
+            if (workingLine != null) {
+                currentDescriptor.addParameter(makeParameter(parameterLabel, workingLine));
+            }
             wasRouteScope = false;
             wasHashParameter = false;
             parameterLabel = null;

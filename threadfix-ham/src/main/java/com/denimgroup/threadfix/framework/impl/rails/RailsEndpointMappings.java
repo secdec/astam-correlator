@@ -71,9 +71,6 @@ public class RailsEndpointMappings implements EndpointGenerator {
 
         railsControllers = (List<RailsController>) RailsControllerParser.parse(rootDirectory);
 
-        RailsAbstractRoutesLexer abstractRoutesParser = new RailsAbstractRoutesLexer();
-        EventBasedTokenizerRunner.runRails(routesFile, true, true, abstractRoutesParser);
-
         List<RailsRouter> routers = list();
         File gemFile = findGemFile(rootDirectory);
         if (gemFile != null) {
@@ -84,14 +81,9 @@ public class RailsEndpointMappings implements EndpointGenerator {
         }
         routers.add(new DefaultRailsRouter()); // Add default after adding custom routers so that default becomes the fallback
 
-
-        RailsConcreteRoutingTreeBuilder treeBuilder = new RailsConcreteRoutingTreeBuilder(routers);
-        RailsConcreteRoutingTree concreteTree = treeBuilder.buildFrom(abstractRoutesParser.getResultTree());
-
         endpoints = list();
 
-        RailsConcreteRouteTreeMapper concreteMapper = new RailsConcreteRouteTreeMapper(concreteTree, true);
-        Collection<RailsRoute> routes = concreteMapper.getMappings();
+        Collection<RailsRoute> routes = RailsRoutesParser.run(routesFile, routers);
         for (RailsRoute route : routes) {
             RailsController controller = getController(route);
             String controllerPath;
