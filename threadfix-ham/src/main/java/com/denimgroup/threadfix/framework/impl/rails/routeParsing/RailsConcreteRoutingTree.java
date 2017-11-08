@@ -4,11 +4,13 @@ import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.ListIterator;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class RailsConcreteRoutingTree {
     RailsRoutingEntry rootEntry;
+    ListIterator<RailsRoutingEntry> currentIterator = null;
 
     public RailsRoutingEntry getRootEntry() {
         return rootEntry;
@@ -19,15 +21,21 @@ public class RailsConcreteRoutingTree {
     }
 
 
-    public void walkTree(RailsConcreteTreeVisitor iterator) {
-        walkTree(rootEntry, iterator);
+    public void walkTree(RailsConcreteTreeVisitor visitor) {
+        currentIterator = null;
+        walkTree(rootEntry, visitor);
     }
 
-    public void walkTree(RailsRoutingEntry startNode, RailsConcreteTreeVisitor iterator) {
-        iterator.visitEntry(startNode);
+    public void walkTree(RailsRoutingEntry startNode, RailsConcreteTreeVisitor visitor) {
+        visitor.visitEntry(startNode, currentIterator);
 
-        for (RailsRoutingEntry node : startNode.getChildren()) {
-            walkTree(node, iterator);
+        List<RailsRoutingEntry> children = startNode.getChildren();
+        ListIterator<RailsRoutingEntry> iterator = children.listIterator();
+
+        while (iterator.hasNext()) {
+            RailsRoutingEntry node = iterator.next();
+            currentIterator = iterator;
+            walkTree(node, visitor);
         }
     }
 
@@ -38,7 +46,7 @@ public class RailsConcreteRoutingTree {
         walkTree(new RailsConcreteTreeVisitor()
         {
             @Override
-            public void visitEntry(RailsRoutingEntry entry) {
+            public void visitEntry(RailsRoutingEntry entry, ListIterator<RailsRoutingEntry> iterator) {
                 if (type.isAssignableFrom(entry.getClass())) {
                     result.add((Type) entry);
                 }

@@ -1,14 +1,18 @@
 package com.denimgroup.threadfix.framework.impl.rails.model;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
+import java.util.List;
 
 public interface RailsRoutingEntry {
 
     void addChildEntry(RailsRoutingEntry child);
     void removeChildEntry(RailsRoutingEntry child);
-    Collection<RailsRoutingEntry> getChildren();
+    List<RailsRoutingEntry> getChildren();
     void setParent(RailsRoutingEntry parent);
     RailsRoutingEntry getParent();
+    void setLineNumber(int codeLine);
+    int getLineNumber();
 
     void onToken(int type, int lineNumber, String stringValue);
     void onParameter(String name, String value, RouteParameterValueType parameterType);
@@ -51,5 +55,6 @@ public interface RailsRoutingEntry {
     /**
      * @return Generates a deep clone of the current entry, duplicating child entries while the clone shares the original parent.
      */
+    @Nonnull
     RailsRoutingEntry cloneEntry();
 }

@@ -4,6 +4,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingE
 import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 //  This class does nothing since default route values are not handled right now
@@ -28,6 +29,8 @@ public class DefaultsEntry extends AbstractRailsRoutingEntry {
         return getParentModule();
     }
 
+
+    @Nonnull
     @Override
     public RailsRoutingEntry cloneEntry() {
         DefaultsEntry clone = new DefaultsEntry();

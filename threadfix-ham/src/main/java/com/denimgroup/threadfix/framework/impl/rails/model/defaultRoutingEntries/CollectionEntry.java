@@ -2,6 +2,7 @@ package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntrie
 
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 // http://guides.rubyonrails.org/routing.html#adding-collection-routes
@@ -41,6 +42,7 @@ public class CollectionEntry extends AbstractRailsRoutingEntry {
         return result.toString();
     }
 
+    @Nonnull
     @Override
     public RailsRoutingEntry cloneEntry() {
         CollectionEntry clone = new CollectionEntry();

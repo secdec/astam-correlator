@@ -5,6 +5,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 
@@ -73,6 +74,7 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
         return getParentModule();
     }
 
+    @Nonnull
     @Override
     public RailsRoutingEntry cloneEntry() {
         MatchEntry clone = new MatchEntry();

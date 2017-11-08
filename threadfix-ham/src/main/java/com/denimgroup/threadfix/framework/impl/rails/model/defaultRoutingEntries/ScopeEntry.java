@@ -6,6 +6,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 // http://guides.rubyonrails.org/routing.html#controller-namespaces-and-routing
@@ -33,6 +34,7 @@ public class ScopeEntry extends AbstractRailsRoutingEntry {
         return getParentController();
     }
 
+    @Nonnull
     @Override
     public RailsRoutingEntry cloneEntry() {
         ScopeEntry clone = new ScopeEntry();

@@ -5,9 +5,12 @@ import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+
+//  See: http://www.rubydoc.info/github/plataformatec/devise/master/ActionDispatch/Routing/Mapper#devise_scope-instance_method
 
 public class DeviseScopeEntry extends AbstractRailsRoutingEntry {
 
@@ -34,6 +37,7 @@ public class DeviseScopeEntry extends AbstractRailsRoutingEntry {
         return getParentController();
     }
 
+    @Nonnull
     @Override
     public RailsRoutingEntry cloneEntry() {
         return null;

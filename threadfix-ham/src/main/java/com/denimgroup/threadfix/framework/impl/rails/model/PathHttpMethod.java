@@ -55,4 +55,9 @@ public class PathHttpMethod {
     public String getControllerName() {
         return controllerName;
     }
+
+    @Override
+    public String toString() {
+        return this.path + " (" + method + ") => '" + controllerName + "#" + action + "'";
+    }
 }

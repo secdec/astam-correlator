@@ -1,11 +1,10 @@
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
-import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.ConcernsEntryShorthand;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.ConcernsParameterShorthand;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -175,6 +174,7 @@ public class ResourceEntry extends AbstractRailsRoutingEntry implements Concerna
         return list((RouteShorthand)new ConcernsParameterShorthand());
     }
 
+    @Nonnull
     @Override
     public RailsRoutingEntry cloneEntry() {
         ResourceEntry clone = new ResourceEntry();

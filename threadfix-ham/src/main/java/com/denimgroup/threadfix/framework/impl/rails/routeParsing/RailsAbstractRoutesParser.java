@@ -290,7 +290,7 @@ public class RailsAbstractRoutesParser implements EventBasedTokenizer {
             }
         }
 
-        if (type == '>' && lastType == '=' && !isInString) {
+        if (type == '>' && lastType == '=' && !isInString && numOpenBrace == 0) {
             wasHashParameter = true;
             if (workingLine.endsWith("=>")) {
                 workingLine = workingLine.substring(0, workingLine.length() - 2);

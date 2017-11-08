@@ -2,8 +2,7 @@ package com.denimgroup.threadfix.framework.impl.rails.model;
 
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
@@ -11,6 +10,7 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
 
     RailsRoutingEntry parentEntry;
     List<RailsRoutingEntry> children = list();
+    int lineNumber = -1;
 
 
     @Override
@@ -39,8 +39,19 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
     }
 
     @Override
+    public void setLineNumber(int codeLine) {
+        lineNumber = codeLine;
+    }
+
+    @Override
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    @Override
     public void addChildEntry(RailsRoutingEntry child) {
         if (!children.contains(child)) {
+
             children.add(child);
         }
         child.setParent(this);
@@ -55,7 +66,7 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
     }
 
     @Override
-    public Collection<RailsRoutingEntry> getChildren() {
+    public List<RailsRoutingEntry> getChildren() {
         return children;
     }
 
@@ -83,7 +94,20 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
         if (symbol.endsWith(":")) {
             symbol = symbol.substring(0, symbol.length() - 1);
         }
-        return symbol;
+        return symbol.trim();
+    }
+
+    protected String cleanCodeString(String codeString) {
+        codeString = codeString.trim();
+        codeString = stripColons(codeString);
+        while (codeString.startsWith("{") || codeString.startsWith("'") || codeString.startsWith("\"")) {
+            codeString = codeString.substring(1);
+        }
+
+        while (codeString.endsWith("}") || codeString.endsWith("'") || codeString.endsWith("\"")) {
+            codeString = codeString.substring(0, codeString.length() - 1);
+        }
+        return codeString;
     }
 
     /**
@@ -162,6 +186,25 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
             currentEntry = currentEntry.getParent();
         }
         return moduleName;
+    }
+
+    protected Map<String, String> parseHashString(String hashString) {
+        Map<String, String> result = new HashMap<String, String>();
+        hashString = hashString.substring(1, hashString.length() - 1);
+        String[] entries;
+        entries = hashString.split(",");
+        for (String entry : entries) {
+            String[] parts;
+            if (entry.contains("=>")) {
+                parts = entry.split("=>");
+            } else {
+                parts = entry.split("\\:");
+            }
+            String key = cleanCodeString(parts[0]);
+            String value = cleanCodeString(parts[1]);
+            result.put(key, value);
+        }
+        return result;
     }
 
     @Override

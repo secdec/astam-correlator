@@ -7,15 +7,15 @@ import com.denimgroup.threadfix.framework.impl.rails.model.RouteShorthand;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries.DrawEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries.UnknownEntry;
 import com.denimgroup.threadfix.framework.util.PathUtil;
+import com.denimgroup.threadfix.logging.SanitizedLogger;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
+
+    static SanitizedLogger LOG = new SanitizedLogger(RailsConcreteRouteTreeMapper.class.getName());
 
     RailsConcreteRoutingTree routeTree;
     List<RailsRoute> mappedRoutes = list();
@@ -40,7 +40,7 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
     }
 
     @Override
-    public void visitEntry(RailsRoutingEntry entry) {
+    public void visitEntry(RailsRoutingEntry entry, ListIterator<RailsRoutingEntry> iterator) {
         if (entry instanceof DrawEntry || entry instanceof UnknownEntry) {
             return;
         }
@@ -83,6 +83,8 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
     }
 
     List<RailsRoute> mergeDuplicates(Collection<RailsRoute> routes) {
+        //  NOTE - This merges routes even if the controller or action names are different! Only
+        //              endpoints are checked!
         List<RailsRoute> uniqueRoutes = list();
         Map<String, RailsRoute> endpointRouteMap = new HashMap<String, RailsRoute>();
         for (RailsRoute route : routes) {
@@ -107,14 +109,39 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
     private void applyShorthands() {
         this.routeTree.walkTree(new RailsConcreteTreeVisitor() {
             @Override
-            public void visitEntry(RailsRoutingEntry entry) {
+            public void visitEntry(RailsRoutingEntry entry, ListIterator<RailsRoutingEntry> iterator) {
                 Collection<RouteShorthand> shorthands = entry.getSupportedShorthands();
                 if (shorthands == null) {
                     return;
                 }
 
+                LOG.debug("Applying shorthands to " + entry.toString() + ", line " + entry.getLineNumber() + " in routes.rb");
+                StringBuilder shorthandNames = new StringBuilder();
                 for (RouteShorthand shorthand : shorthands) {
-                    shorthand.expand(routeTree, entry);
+                    if (shorthandNames.length() > 0) {
+                        shorthandNames.append(", ");
+                    }
+                    shorthandNames.append(shorthand);
+                }
+                LOG.debug("Current shorthands: " + shorthandNames.toString());
+
+                RailsRoutingEntry replacementEntry = entry;
+
+                for (RouteShorthand shorthand : shorthands) {
+                    if (replacementEntry != entry) {
+                        LOG.warn("Route entry has been replaced by a shorthand but another shorthand '" + shorthand.getClass().getName() + "' is being applied afterwards");
+                        continue;
+                    }
+                    LOG.debug("Applying shorthand " + shorthand.getClass().getName());
+                    replacementEntry = shorthand.expand(routeTree, entry);
+                    if (replacementEntry != entry) {
+                        LOG.debug("Current entry was replaced by shorthand " + shorthand.getClass().getName() + " from " + entry.toString() + " to " + replacementEntry.toString());
+                    }
+                }
+
+                if (replacementEntry != entry) {
+                    iterator.set(replacementEntry);
+                    iterator.previous();
                 }
             }
         });

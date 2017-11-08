@@ -6,6 +6,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class RootEntry extends AbstractRailsRoutingEntry {
         return getParentModule();
     }
 
+    @Nonnull
     @Override
     public RailsRoutingEntry cloneEntry() {
         RootEntry clone = new RootEntry();

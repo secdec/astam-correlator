@@ -7,6 +7,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.RouteShorthand;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.ConcernsEntryShorthand;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -55,6 +56,8 @@ public class ConcernsEntry extends AbstractRailsRoutingEntry implements Concerna
         return list((RouteShorthand)new ConcernsEntryShorthand());
     }
 
+
+    @Nonnull
     @Override
     public RailsRoutingEntry cloneEntry() {
         ConcernsEntry clone = new ConcernsEntry();

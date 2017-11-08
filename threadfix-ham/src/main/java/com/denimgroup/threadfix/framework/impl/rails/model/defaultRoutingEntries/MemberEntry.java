@@ -11,6 +11,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueTy
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 //  Member routes are added within a 'resource' or 'resources' scope to make
@@ -46,6 +47,7 @@ public class MemberEntry extends AbstractRailsRoutingEntry {
         super.onParameter(name, value, parameterType);
     }
 
+    @Nonnull
     @Override
     public RailsRoutingEntry cloneEntry() {
         MemberEntry clone = new MemberEntry();

@@ -74,6 +74,12 @@ A RailsRoutingEntry has the following responsibilities:
 Inheriting from the AbstractRailsRoutingEntry provides various helper methods such as getParentModule (recursive),
 makeRelativePathToParent (recursive), and others.
 
+Nontrivial mapping of route entries to their endpoints can be ameliorated by implementing the route entry as
+a data object and implementing a RoutingShorthand to manage the endpoint generation logic. If necessary, a shorthand
+can modify a given object or replace it entirely. A shorthand may modify a RailsRoutingEntry but may not directly
+add or remove entries to it. Entries may only be added and removed by returning a RailsRoutingEntry different from
+the one that was passed to the shorthand, which will replace the original route entry that was passed in.
+
 ---
 
 # Limitations

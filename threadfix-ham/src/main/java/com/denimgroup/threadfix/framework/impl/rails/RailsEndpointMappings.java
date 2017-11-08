@@ -77,7 +77,6 @@ public class RailsEndpointMappings implements EndpointGenerator {
         EventBasedTokenizerRunner.runRails(routesFile, true, true, abstractRoutesParser);
 
         List<RailsRouter> routers = list();
-        routers.add(new DefaultRailsRouter());
         File gemFile = findGemFile(rootDirectory);
         if (gemFile != null) {
             RouterDetector routerDetector = new RouterDetector();
@@ -85,6 +84,7 @@ public class RailsEndpointMappings implements EndpointGenerator {
         } else {
             LOG.debug("Couldn't find gemfile, skipping router detection");
         }
+        routers.add(new DefaultRailsRouter()); // Add default after adding custom routers so that default becomes the fallback
 
 
         RailsConcreteRoutingTreeBuilder treeBuilder = new RailsConcreteRoutingTreeBuilder(routers);
@@ -199,32 +199,38 @@ public class RailsEndpointMappings implements EndpointGenerator {
             }
         }
 
-        String[] urlFolders = rr.getUrl().split("/");
-        ArrayUtils.reverse(urlFolders);
-        for (String urlFolder : urlFolders) {
-            if (urlFolder.isEmpty())
-                continue;
-            for (RailsController railsController : railsControllers) {
-                String controllerField = railsController.getControllerField();
-                if (controllerField.isEmpty())
-                    continue;
-                if (urlFolder.equalsIgnoreCase(controllerField)) {
-                    return railsController;
-                }
-            }
-        }
-        for (String urlFolder : urlFolders) {
-            if (urlFolder.isEmpty())
-                continue;
-            for (RailsController railsController : railsControllers) {
-                for (RailsControllerMethod railsControllerMethod : railsController.getControllerMethods() ) {
-                    String methodName = railsControllerMethod.getMethodName();
-                    if (urlFolder.equalsIgnoreCase(methodName)) {
-                        return railsController;
-                    }
-                }
-            }
-        }
+
+
+        //  Prone to incorrect mapping, disabled for now
+//        String[] urlFolders = rr.getUrl().split("/");
+//        ArrayUtils.reverse(urlFolders);
+//        for (String urlFolder : urlFolders) {
+//            if (urlFolder.isEmpty())
+//                continue;
+//            for (RailsController railsController : railsControllers) {
+//                String controllerField = railsController.getControllerField();
+//                if (controllerField.isEmpty())
+//                    continue;
+//                if (urlFolder.equalsIgnoreCase(controllerField)) {
+//                    return railsController;
+//                }
+//            }
+//        }
+
+        //  Prone to incorrect mapping, disabled for now
+//        for (String urlFolder : urlFolders) {
+//            if (urlFolder.isEmpty())
+//                continue;
+//            for (RailsController railsController : railsControllers) {
+//                for (RailsControllerMethod railsControllerMethod : railsController.getControllerMethods() ) {
+//                    String methodName = railsControllerMethod.getMethodName();
+//                    if (urlFolder.equalsIgnoreCase(methodName)) {
+//                        return railsController;
+//                    }
+//                }
+//            }
+//        }
+
         return null;
     }
 

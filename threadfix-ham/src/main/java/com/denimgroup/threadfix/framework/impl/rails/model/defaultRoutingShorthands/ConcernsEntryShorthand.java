@@ -34,7 +34,6 @@ public class ConcernsEntryShorthand implements RouteShorthand {
             }
         }
 
-        RailsRoutingEntry parent = concernsEntry.getParent();
         RailsRoutingEntry newBase = null;
 
         for (ConcernEntry concern : necessaryConcerns) {
@@ -46,8 +45,6 @@ public class ConcernsEntryShorthand implements RouteShorthand {
                 }
             }
         }
-
-        parent.removeChildEntry(concernsEntry);
 
         return newBase;
     }

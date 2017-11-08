@@ -6,6 +6,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 
 // http://guides.rubyonrails.org/routing.html#controller-namespaces-and-routing
@@ -51,6 +52,7 @@ public class NamespaceEntry extends AbstractRailsRoutingEntry {
         return getParentControllerIfNull(controllerName);
     }
 
+    @Nonnull
     @Override
     public RailsRoutingEntry cloneEntry() {
         NamespaceEntry clone = new NamespaceEntry();

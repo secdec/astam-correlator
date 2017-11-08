@@ -93,6 +93,7 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
         }
 
         RailsRoutingEntry entry = makeRouteEntry(descriptor.getIdentifier(), descriptor);
+        entry.setLineNumber(descriptor.getLineNumber());
         entry.onBegin(descriptor.getIdentifier());
         entry.setParent(currentScope);
         currentScope.addChildEntry(entry);

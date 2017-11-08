@@ -1,13 +1,10 @@
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
-import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -34,6 +31,8 @@ public class DirectHttpEntry extends AbstractRailsRoutingEntry {
         return getParentModule();
     }
 
+
+    @Nonnull
     @Override
     public RailsRoutingEntry cloneEntry() {
         DirectHttpEntry clone = new DirectHttpEntry();
