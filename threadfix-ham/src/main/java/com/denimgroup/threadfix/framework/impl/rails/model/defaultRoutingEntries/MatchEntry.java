@@ -1,7 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
-import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.OnShorthand;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -103,11 +102,6 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
             result.add(new PathHttpMethod(trueEndpoint, method, actionName, controller));
         }
         return result;
-    }
-
-    @Override
-    public Collection<RouteShorthand> getSupportedShorthands() {
-        return list((RouteShorthand)new OnShorthand());
     }
 
     @Override
