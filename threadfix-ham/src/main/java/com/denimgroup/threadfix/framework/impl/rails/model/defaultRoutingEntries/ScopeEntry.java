@@ -17,7 +17,9 @@ import java.util.Collection;
 //  and define a base endpoint for sub-routes within it.
 public class ScopeEntry extends AbstractRailsRoutingEntry {
 
-    String endpoint = "/", module;
+    String endpoint = "/";
+    String module;
+    String controller;
 
     @Override
     public String getModule() {
@@ -31,7 +33,7 @@ public class ScopeEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public String getControllerName() {
-        return getParentController();
+        return getParentControllerIfNull(controller);
     }
 
     @Nonnull
@@ -52,6 +54,8 @@ public class ScopeEntry extends AbstractRailsRoutingEntry {
             module = value;
         } else if (name.equalsIgnoreCase("path")) {
             endpoint = value;
+        } else if (name.equalsIgnoreCase("controller")) {
+            controller = value;
         }
     }
 

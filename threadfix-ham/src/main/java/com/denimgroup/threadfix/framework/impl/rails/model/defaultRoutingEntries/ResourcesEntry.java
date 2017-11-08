@@ -2,6 +2,7 @@ package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntrie
 
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.ConcernsParameterShorthand;
+import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.ManyResourcesShorthand;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import javax.annotation.Nonnull;
@@ -37,9 +38,28 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
     @Override
     public void onParameter(String name, String value, RouteParameterValueType parameterType) {
         if (name == null) {
-            dataSourceSymbol = value;
-            basePath = value;
-            controllerName = value.split("\\/")[0];
+            //  May be a shorthand declaring multiple resource routes at once, if so simply append the
+            //      names and separate with a space and the MultiResourcesShorthand will expand into
+            //      individual resource declarations
+            if (dataSourceSymbol != null) {
+                dataSourceSymbol += " " + value;
+            } else {
+                dataSourceSymbol = value;
+            }
+
+            if (basePath != null) {
+                basePath += " " + value;
+            } else {
+                basePath = value;
+            }
+
+            String parsedControllerName = value.split("\\/")[0];
+
+            if (controllerName != null) {
+                controllerName += " " + parsedControllerName;
+            } else {
+                controllerName = parsedControllerName;
+            }
         } else if (name.equalsIgnoreCase("concerns")) {
             //  Strip brackets on either side
             if (value.startsWith("["))
@@ -171,7 +191,7 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
 
     @Override
     public Collection<RouteShorthand> getSupportedShorthands() {
-        return list((RouteShorthand)new ConcernsParameterShorthand());
+        return list(new ConcernsParameterShorthand(), new ManyResourcesShorthand());
     }
 
     @Nonnull

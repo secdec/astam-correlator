@@ -1,9 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
-import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
-import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
+import com.denimgroup.threadfix.framework.impl.rails.model.*;
+import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.OnShorthand;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -18,7 +16,9 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
 
     String endpoint = null;
     String controller = null;
+    String moduleName = null;
     String actionName = null;
+    boolean anchor = true;
     List<String> httpMethods = list("GET");
 
     @Override
@@ -51,6 +51,12 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
             }
         } else if (name.equalsIgnoreCase("controller")) {
             controller = value;
+        } else if (name.equalsIgnoreCase("action")) {
+            actionName = value;
+        } else if (name.equalsIgnoreCase("module")) {
+            moduleName = value;
+        } else if (name.equalsIgnoreCase("anchor")) {
+            anchor = value.equalsIgnoreCase("true");
         } else if (endpoint == null && controller == null && actionName == null) {
             //  Must be an initial parameter of ie '/path' => 'controller#action'
             endpoint = name;
@@ -89,10 +95,19 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
     @Override
     public Collection<PathHttpMethod> getPaths() {
         List<PathHttpMethod> result = list();
+        String trueEndpoint = endpoint;
+        if (!anchor) {
+            trueEndpoint += "(:any)";
+        }
         for (String method : httpMethods) {
-            result.add(new PathHttpMethod(endpoint, method, actionName, controller));
+            result.add(new PathHttpMethod(trueEndpoint, method, actionName, controller));
         }
         return result;
+    }
+
+    @Override
+    public Collection<RouteShorthand> getSupportedShorthands() {
+        return list((RouteShorthand)new OnShorthand());
     }
 
     @Override

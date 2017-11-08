@@ -29,6 +29,8 @@ public class NamespaceEntry extends AbstractRailsRoutingEntry {
             controllerName = value;
         } else if (name.equalsIgnoreCase("module")) {
             moduleName = value;
+        } else if (name.equalsIgnoreCase("path")) {
+            path = value;
         }
     }
 

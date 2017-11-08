@@ -12,14 +12,13 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 //  See: http://www.rubydoc.info/github/plataformatec/devise/master/ActionDispatch/Routing/Mapper#devise_scope-instance_method
 
+//  Doesn't actually do anything - this is a detail regarding which model type to use, which isn't relevant for
+//  us at the moment.
 public class DeviseScopeEntry extends AbstractRailsRoutingEntry {
-
-    String endpoint = null;
-    String moduleName = null;
 
     @Override
     public String getModule() {
-        return getParentModuleIfNull(moduleName);
+        return getParentModule();
     }
 
     @Override

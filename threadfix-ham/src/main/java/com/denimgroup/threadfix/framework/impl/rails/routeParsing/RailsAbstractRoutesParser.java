@@ -255,7 +255,13 @@ public class RailsAbstractRoutesParser implements EventBasedTokenizer {
                     parameterLabel = null;
                 }
 
-                currentDescriptor.addParameter(makeParameter(parameterLabel, workingLine));
+                if (parameterLabel != null && !parameterLabel.endsWith(":") && !wasHashParameter) {
+                    //  Two values to be treated as separate parameters
+                    currentDescriptor.addParameter(makeParameter(null, parameterLabel));
+                    currentDescriptor.addParameter(makeParameter(null, workingLine));
+                } else {
+                    currentDescriptor.addParameter(makeParameter(parameterLabel, workingLine));
+                }
             }
 
             wasRouteScope = false;
@@ -266,10 +272,15 @@ public class RailsAbstractRoutesParser implements EventBasedTokenizer {
             return;
         }
 
-        if (type == ',' && isEntryScope()) {
+        if ((type == ',' || (stringValue != null && lastString.endsWith(":"))) && isEntryScope()) {
             if (workingLine.length() == 0) {
                 workingLine = parameterLabel;
                 parameterLabel = null;
+            }
+
+            if (workingLine.endsWith(":") && stringValue != null) {
+                parameterLabel = workingLine;
+                workingLine = stringValue;
             }
 
             currentDescriptor.addParameter(makeParameter(parameterLabel, workingLine));
