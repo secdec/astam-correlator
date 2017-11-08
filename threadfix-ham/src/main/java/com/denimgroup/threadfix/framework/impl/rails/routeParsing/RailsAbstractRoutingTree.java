@@ -7,13 +7,13 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class RailsAbstractRoutingTree {
 
-    RailsAbstractRoutingDescriptor rootDescriptor;
+    RailsAbstractRouteEntryDescriptor rootDescriptor;
 
-    public RailsAbstractRoutingDescriptor getRootDescriptor() {
+    public RailsAbstractRouteEntryDescriptor getRootDescriptor() {
         return rootDescriptor;
     }
 
-    public void setRootDescriptor(RailsAbstractRoutingDescriptor rootDescriptor) {
+    public void setRootDescriptor(RailsAbstractRouteEntryDescriptor rootDescriptor) {
         this.rootDescriptor = rootDescriptor;
     }
 
@@ -22,26 +22,26 @@ public class RailsAbstractRoutingTree {
         walkTree(rootDescriptor, iterator);
     }
 
-    public void walkTree(RailsAbstractRoutingDescriptor startNode, RailsAbstractTreeVisitor iterator) {
+    public void walkTree(RailsAbstractRouteEntryDescriptor startNode, RailsAbstractTreeVisitor iterator) {
         iterator.acceptDescriptor(startNode);
 
         for (RailsAbstractParameter parameter : startNode.getParameters()) {
             iterator.acceptParameter(parameter);
         }
 
-        for (RailsAbstractRoutingDescriptor node : startNode.getChildDescriptors()) {
+        for (RailsAbstractRouteEntryDescriptor node : startNode.getChildDescriptors()) {
             walkTree(node, iterator);
         }
     }
 
 
-    public <Type extends RailsAbstractRoutingDescriptor> Collection<Type> findDescriptorsOfType(final Class type) {
+    public <Type extends RailsAbstractRouteEntryDescriptor> Collection<Type> findDescriptorsOfType(final Class type) {
         final List<Type> result = list();
 
         walkTree(new RailsAbstractTreeVisitor()
         {
             @Override
-            public void acceptDescriptor(RailsAbstractRoutingDescriptor descriptor) {
+            public void acceptDescriptor(RailsAbstractRouteEntryDescriptor descriptor) {
                 if (type.isAssignableFrom(descriptor.getClass())) {
                     result.add((Type) descriptor);
                 }
@@ -67,7 +67,7 @@ public class RailsAbstractRoutingTree {
         walkTree(new RailsAbstractTreeVisitor()
         {
             @Override
-            public void acceptDescriptor(RailsAbstractRoutingDescriptor descriptor) {
+            public void acceptDescriptor(RailsAbstractRouteEntryDescriptor descriptor) {
 
             }
 

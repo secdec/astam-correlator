@@ -14,15 +14,14 @@ A route-entry refers to a line in routes.rb pertaining to route generation. For 
 # Parser
 
 The 3 passes consist of:
-1. A state-machine abstract syntax parser generating a call tree with identifier names and parameters
-- RailsAbstractRoutesParser
+1. A basic lexer that gathers and organizes tokens into statements.
+- RailsAbstractRoutesLexer
 - RailsAbstractRoutingTree
-- RailsAbstractRoutingDescriptor
+- RailsAbstractRouteEntryDescriptor
 - RailsAbstractParameter
 - RailsAbstractTreeVisitor
 
-2. Reading and parsing the identifier and parameters of each abstract node into a typed implementation of
-        RailsRoutingEntry by walking the abstract routing tree
+2. Symbol resolution from method/route entry names to objects capable of parsing parameters for their associated symbol.
 - RailsConcreteRoutingTree
 - RailsConcreteRoutingTreeBuilder
 - RailsConcreteTreeVisitor
@@ -46,7 +45,7 @@ The 3 passes consist of:
 
 # Extending and Maintenance
 
-Extending or fixing syntax parsing belongs in pass 1, the RailsAbstractRoutesParser.
+Extending or fixing syntax parsing belongs in pass 1, the RailsAbstractRoutesLexer.
 
 Adding support for new route-entry types belongs in pass 2. Implement a RailsRoutingEntry for your new route-entry type.
 When using RailsConcreteRoutingTreeBuilder, route-entry types are instantiated based on the available RailsRouters.

@@ -28,16 +28,14 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoute;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutesParser;
+import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutesLexer;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRouteTreeMapper;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRoutingTree;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRoutingTreeBuilder;
-import com.denimgroup.threadfix.framework.impl.rails.routerDetection.DeviseRouterDetector;
 import com.denimgroup.threadfix.framework.impl.rails.routerDetection.RouterDetector;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -73,7 +71,7 @@ public class RailsEndpointMappings implements EndpointGenerator {
 
         railsControllers = (List<RailsController>) RailsControllerParser.parse(rootDirectory);
 
-        RailsAbstractRoutesParser abstractRoutesParser = new RailsAbstractRoutesParser();
+        RailsAbstractRoutesLexer abstractRoutesParser = new RailsAbstractRoutesLexer();
         EventBasedTokenizerRunner.runRails(routesFile, true, true, abstractRoutesParser);
 
         List<RailsRouter> routers = list();

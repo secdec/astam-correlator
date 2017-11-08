@@ -4,7 +4,7 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-public class RailsAbstractRoutingDescriptor {
+public class RailsAbstractRouteEntryDescriptor {
 
     List<RailsAbstractParameter> parameters = list();
     List<RailsAbstractParameter> initializerParameters = list();
@@ -12,8 +12,8 @@ public class RailsAbstractRoutingDescriptor {
     String identifier;
     int lineNumber = -1;
 
-    RailsAbstractRoutingDescriptor parentDescriptor;
-    List<RailsAbstractRoutingDescriptor> childDescriptors = list();
+    RailsAbstractRouteEntryDescriptor parentDescriptor;
+    List<RailsAbstractRouteEntryDescriptor> childDescriptors = list();
 
     public void setIdentifier(String identifier) {
         this.identifier = identifier;
@@ -55,7 +55,7 @@ public class RailsAbstractRoutingDescriptor {
         this.initializerParameters.add(initializerParameter);
     }
 
-    public void setParentDescriptor(RailsAbstractRoutingDescriptor parentDescriptor) {
+    public void setParentDescriptor(RailsAbstractRouteEntryDescriptor parentDescriptor) {
         this.parentDescriptor = parentDescriptor;
 
         if (!parentDescriptor.childDescriptors.contains(this)) {
@@ -63,19 +63,19 @@ public class RailsAbstractRoutingDescriptor {
         }
     }
 
-    public RailsAbstractRoutingDescriptor getParentDescriptor() {
+    public RailsAbstractRouteEntryDescriptor getParentDescriptor() {
         return parentDescriptor;
     }
 
-    public List<RailsAbstractRoutingDescriptor> getChildDescriptors() {
+    public List<RailsAbstractRouteEntryDescriptor> getChildDescriptors() {
         return childDescriptors;
     }
 
-    public void setChildDescriptors(List<RailsAbstractRoutingDescriptor> childDescriptors) {
+    public void setChildDescriptors(List<RailsAbstractRouteEntryDescriptor> childDescriptors) {
         this.childDescriptors = childDescriptors;
     }
 
-    public void addChildDescriptor(RailsAbstractRoutingDescriptor descriptor) {
+    public void addChildDescriptor(RailsAbstractRouteEntryDescriptor descriptor) {
         this.childDescriptors.add(descriptor);
         descriptor.parentDescriptor = this;
     }

@@ -13,14 +13,14 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 //  NOTE: This parser is sensitive to newlines since the Rails routing syntax
 //      is also sensitive to newlines
 //  Conditional statements are IGNORED due to the complexity of their variations
-public class RailsAbstractRoutesParser implements EventBasedTokenizer {
+public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
 
-    static final SanitizedLogger LOG = new SanitizedLogger(RailsAbstractRoutesParser.class.getName());
+    static final SanitizedLogger LOG = new SanitizedLogger(RailsAbstractRoutesLexer.class.getName());
 
 
     RailsAbstractRoutingTree resultTree = new RailsAbstractRoutingTree();
-    RailsAbstractRoutingDescriptor currentDescriptor = null;
-    List<RailsAbstractRoutingDescriptor> scopeStack = list();
+    RailsAbstractRouteEntryDescriptor currentDescriptor = null;
+    List<RailsAbstractRouteEntryDescriptor> scopeStack = list();
 
     public RailsAbstractRoutingTree getResultTree() {
         return resultTree;
@@ -122,7 +122,7 @@ public class RailsAbstractRoutesParser implements EventBasedTokenizer {
         lastType = type;
     }
 
-    RailsAbstractRoutingDescriptor getCurrentScope() {
+    RailsAbstractRouteEntryDescriptor getCurrentScope() {
         if (scopeStack.size() == 0) {
             return null;
         } else {
@@ -140,7 +140,7 @@ public class RailsAbstractRoutesParser implements EventBasedTokenizer {
     void processStartRenderPhase(int type, int lineNumber, String stringValue) {
         if (stringValue != null && stringValue.equalsIgnoreCase("do")) {
             parsePhase = ParsePhase.SEARCH_IDENTIFIER;
-            RailsAbstractRoutingDescriptor rootDescriptor = new RailsAbstractRoutingDescriptor();
+            RailsAbstractRouteEntryDescriptor rootDescriptor = new RailsAbstractRouteEntryDescriptor();
             rootDescriptor.setIdentifier(lastString);
             scopeStack.add(rootDescriptor);
             resultTree.setRootDescriptor(rootDescriptor);
@@ -154,7 +154,7 @@ public class RailsAbstractRoutesParser implements EventBasedTokenizer {
                     scopeStack.remove(scopeStack.size() - 1);
                 }
             } else {
-                RailsAbstractRoutingDescriptor descriptor = new RailsAbstractRoutingDescriptor();
+                RailsAbstractRouteEntryDescriptor descriptor = new RailsAbstractRouteEntryDescriptor();
                 descriptor.setIdentifier(stringValue);
                 descriptor.setParentDescriptor(getCurrentScope());
                 descriptor.setLineNumber(lineNumber);

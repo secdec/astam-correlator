@@ -17,8 +17,8 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
     RailsRoutingEntry currentEntry;
     RailsRoutingEntry lastEntry;
     RailsRoutingEntry currentScope;
-    RailsAbstractRoutingDescriptor lastDescriptor = null;
-    List<RailsAbstractRoutingDescriptor> descriptorScopeStack = list();
+    RailsAbstractRouteEntryDescriptor lastDescriptor = null;
+    List<RailsAbstractRouteEntryDescriptor> descriptorScopeStack = list();
 
     public RailsConcreteRoutingTreeBuilder(@Nonnull Collection<RailsRouter> routers) {
         this.routers = routers;
@@ -27,7 +27,7 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
     public RailsConcreteRoutingTree buildFrom(RailsAbstractRoutingTree abstractTree) {
         RailsConcreteRoutingTree concreteTree = new RailsConcreteRoutingTree();
 
-        RailsAbstractRoutingDescriptor rootAbstractEntry = abstractTree.getRootDescriptor();
+        RailsAbstractRouteEntryDescriptor rootAbstractEntry = abstractTree.getRootDescriptor();
         RailsRoutingEntry rootConcreteEntry = new DrawEntry();
 
         rootConcreteEntry.onBegin(rootAbstractEntry.getIdentifier());
@@ -52,7 +52,7 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
         return concreteTree;
     }
 
-    private RailsRoutingEntry makeRouteEntry(String identifier, RailsAbstractRoutingDescriptor descriptor) {
+    private RailsRoutingEntry makeRouteEntry(String identifier, RailsAbstractRouteEntryDescriptor descriptor) {
         RailsRoutingEntry result = null;
         for (RailsRouter router : routers) {
             result = router.identify(identifier);
@@ -62,7 +62,7 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
     }
 
     @Override
-    public void acceptDescriptor(RailsAbstractRoutingDescriptor descriptor) {
+    public void acceptDescriptor(RailsAbstractRouteEntryDescriptor descriptor) {
         if (descriptor == lastDescriptor) {
             return;
         }
@@ -73,7 +73,7 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
                             && descriptor.getParentDescriptor() != lastDescriptor;
 
             if (droppedInScope) {
-                RailsAbstractRoutingDescriptor currentAbstractScope = descriptorScopeStack.get(descriptorScopeStack.size() - 1);
+                RailsAbstractRouteEntryDescriptor currentAbstractScope = descriptorScopeStack.get(descriptorScopeStack.size() - 1);
                 while (currentAbstractScope != descriptor.getParentDescriptor() && descriptorScopeStack.size() > 0) {
                     currentScope = currentScope.getParent();
                     descriptorScopeStack.remove(descriptorScopeStack.size() - 1);

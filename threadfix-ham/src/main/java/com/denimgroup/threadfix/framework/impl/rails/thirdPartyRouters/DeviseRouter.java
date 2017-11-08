@@ -2,7 +2,6 @@ package com.denimgroup.threadfix.framework.impl.rails.thirdPartyRouters;
 
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRouter;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 import com.denimgroup.threadfix.framework.impl.rails.thirdPartyRouters.devise.DeviseForEntry;
 import com.denimgroup.threadfix.framework.impl.rails.thirdPartyRouters.devise.DeviseScopeEntry;
 

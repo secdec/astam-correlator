@@ -1,7 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.rails.thirdPartyRouters.devise;
 
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutingDescriptor;
 
 import javax.annotation.Nonnull;
 import java.util.*;
