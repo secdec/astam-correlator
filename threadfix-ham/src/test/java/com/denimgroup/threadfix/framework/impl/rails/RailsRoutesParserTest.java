@@ -4,7 +4,6 @@ import com.denimgroup.threadfix.framework.ResourceManager;
 import com.denimgroup.threadfix.framework.impl.rails.model.DefaultRailsRouter;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoute;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRouter;
-import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.*;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import org.junit.Test;
@@ -968,7 +967,7 @@ public class RailsRoutesParserTest {
     };
 
     Map<String, RailsRoute> generateMappings(File f) {
-        RailsAbstractRoutesParser abstractParser = new RailsAbstractRoutesParser();
+        RailsAbstractRoutesLexer abstractParser = new RailsAbstractRoutesLexer();
         EventBasedTokenizerRunner.runRails(f, true, true, abstractParser);
         RailsAbstractRoutingTree abstractTree = abstractParser.getResultTree();
 
