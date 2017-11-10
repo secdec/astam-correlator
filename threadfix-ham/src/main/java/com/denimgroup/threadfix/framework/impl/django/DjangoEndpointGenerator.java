@@ -24,13 +24,14 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.StreamTokenizer;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 /**
  * Created by csotomayor on 4/27/2017.
@@ -43,6 +44,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
     private Map<String, DjangoRoute> routeMap;
 
     private File rootDirectory, rootUrlsFile;
+    private List<File> possibleGuessedUrlFiles;
 
     public DjangoEndpointGenerator(@Nonnull File rootDirectory) {
         assert rootDirectory.exists() : "Root file did not exist.";
@@ -51,8 +53,50 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         this.rootDirectory = rootDirectory;
 
         findRootUrlsFile();
-        assert rootUrlsFile.exists() : "Root URL file did not exist";
-        routeMap =  DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", rootUrlsFile);
+        if (rootUrlsFile == null || !rootUrlsFile.exists()) {
+            possibleGuessedUrlFiles = findUrlsByFileName();
+        }
+
+        boolean foundUrlFiles = (rootUrlsFile == null || !rootUrlsFile.exists()) && (possibleGuessedUrlFiles == null || possibleGuessedUrlFiles.size() == 0);
+        assert foundUrlFiles : "Root URL file did not exist";
+
+        PythonCodeCollection classes = PythonSyntaxParser.run(rootDirectory);
+
+        if (rootUrlsFile != null && rootUrlsFile.exists()) {
+            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", classes, rootUrlsFile);
+        } else if (possibleGuessedUrlFiles != null && possibleGuessedUrlFiles.size() > 0) {
+
+            LOG.debug("Found " + possibleGuessedUrlFiles.size() + " possible URL files:");
+            for (File urlFile : possibleGuessedUrlFiles) {
+                LOG.debug("- " + urlFile.getAbsolutePath());
+            }
+
+            routeMap = map();
+            for (File guessedUrlsFile : possibleGuessedUrlFiles) {
+                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", classes, guessedUrlsFile);
+                for (Map.Entry<String, DjangoRoute> url : guessedUrls.entrySet()) {
+                    DjangoRoute existingRoute = routeMap.get(url.getKey());
+                    if (existingRoute != null) {
+                        Collection<String> existingHttpMethods = existingRoute.getHttpMethods();
+                        Map<String, ParameterDataType> existingParams = existingRoute.getParameters();
+                        for (String httpMethod : url.getValue().getHttpMethods()) {
+                            if (!existingHttpMethods.contains(httpMethod)) {
+                                existingHttpMethods.add(httpMethod);
+                            }
+                        }
+                        for (Map.Entry<String, ParameterDataType> param : url.getValue().getParameters().entrySet()) {
+                            if (!existingParams.containsKey(param.getKey())) {
+                                existingParams.put(param.getKey(), param.getValue());
+                            }
+                        }
+                    } else {
+                        routeMap.put(url.getKey(), url.getValue());
+                    }
+                }
+            }
+        } else {
+            routeMap = map();
+        }
 
         this.endpoints = generateMappings();
     }
@@ -69,7 +113,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         if (settingsFile.isDirectory()) {
             for (File file : settingsFile.listFiles()) {
-                EventBasedTokenizerRunner.run(file, urlFileFinder);
+                EventBasedTokenizerRunner.run(file, DjangoTokenizerConfigurator.INSTANCE, urlFileFinder);
                 if (!urlFileFinder.shouldContinue()) break;
             }
         } else {
@@ -78,7 +122,9 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         }
         assert !urlFileFinder.getUrlFile().isEmpty() : "Root URL file setting does not exist.";
 
-        rootUrlsFile = new File(rootDirectory, urlFileFinder.getUrlFile());
+        if (!urlFileFinder.getUrlFile().isEmpty()) {
+            rootUrlsFile = new File(rootDirectory, urlFileFinder.getUrlFile());
+        }
     }
 
     private List<Endpoint> generateMappings() {
@@ -92,6 +138,17 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters));
         }
         return mappings;
+    }
+
+    private List<File> findUrlsByFileName() {
+        List<File> urlFiles = list();
+        Collection<File> projectFiles = FileUtils.listFiles(rootDirectory, new String[] { "py" }, true);
+        for (File file : projectFiles) {
+            if (file.getName().endsWith("urls.py")) {
+                urlFiles.add(file);
+            }
+        }
+        return urlFiles;
     }
 
     @Nonnull

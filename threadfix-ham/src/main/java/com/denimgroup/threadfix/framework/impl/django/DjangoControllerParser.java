@@ -99,7 +99,7 @@ public class DjangoControllerParser implements EventBasedTokenizer {
                 if (METHOD_DEF.equals(stringValue))
                     break;
 
-                if (methodName.equals(stringValue))
+                if (methodName != null && methodName.equals(stringValue))
                     currentMethodState = MethodState.PARAMS;
                 else
                     currentPhase = Phase.PARSING;
