@@ -1,8 +1,5 @@
 package com.denimgroup.threadfix.framework.impl.django;
 
-import com.sun.org.glassfish.gmbal.ManagedOperation;
-import sun.applet.resources.MsgAppletViewer;
-
 import java.io.File;
 import java.util.*;
 
