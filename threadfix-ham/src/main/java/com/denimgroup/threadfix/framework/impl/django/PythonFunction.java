@@ -1,14 +1,16 @@
 package com.denimgroup.threadfix.framework.impl.django;
 
+import java.util.Collection;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class PythonFunction {
-    String methodName;
+    String name;
     PythonClass ownerClass;
     int lineNumber;
     List<String> params = list();
+    List<PythonDecorator> decorators = list();
 
     public PythonFunction() {
 
@@ -27,11 +29,11 @@ public class PythonFunction {
     }
 
     public String getName() {
-        return methodName;
+        return name;
     }
 
-    public void setMethodName(String methodName) {
-        this.methodName = methodName;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setOwnerClass(PythonClass ownerClass) {
@@ -52,5 +54,13 @@ public class PythonFunction {
 
     public void setLineNumber(int lineNumber) {
         this.lineNumber = lineNumber;
+    }
+
+    public Collection<PythonDecorator> getDecorators() {
+        return decorators;
+    }
+
+    public void addDecorator(PythonDecorator decorator) {
+        decorators.add(decorator);
     }
 }

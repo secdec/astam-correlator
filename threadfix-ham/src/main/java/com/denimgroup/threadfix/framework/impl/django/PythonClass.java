@@ -11,6 +11,7 @@ public class PythonClass {
     String name;
     int lineNumber;
     List<PythonFunction> functions = list();
+    List<PythonDecorator> decorators = list();
 
     public Collection<String> getBaseTypes() {
         return baseTypes;
@@ -42,5 +43,13 @@ public class PythonClass {
 
     public int getLineNumber() {
         return lineNumber;
+    }
+
+    public Collection<PythonDecorator> getDecorators() {
+        return decorators;
+    }
+
+    public void addDecorator(PythonDecorator decorator) {
+        decorators.add(decorator);
     }
 }
