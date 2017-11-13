@@ -26,7 +26,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
+import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.setFrom;
 
 /**
@@ -36,6 +38,7 @@ public class DjangoEndpoint extends AbstractEndpoint {
 
     private String filePath;
     private String urlPath;
+    private Pattern urlPattern;
 
     private Set<String> httpMethods;
     private Map<String, ParameterDataType> parameters;
@@ -48,12 +51,32 @@ public class DjangoEndpoint extends AbstractEndpoint {
             this.httpMethods = setFrom(httpMethods);
         if (parameters != null)
             this.parameters = parameters;
+
+        //  Remove named groups, not supported by Java 6
+        String pattern = urlPath;
+        if (pattern.contains("(?P<")) {
+            pattern = pattern.replaceAll("\\(\\?P<\\w+>", "(");
+        }
+
+        //  Django regexes like to have multiple start-string '^' symbols, remove all of them except at the beginning
+        //  of the string (if any)
+        if (pattern.contains("^")) {
+            boolean startsWithUpper = pattern.charAt(0) == '^';
+            pattern = pattern.replaceAll("\\^", "");
+            if (startsWithUpper) {
+                pattern = "^" + pattern;
+            }
+        }
+
+        urlPattern = Pattern.compile(pattern);
     }
 
     @Override
     public int compareRelevance(String endpoint) {
         if (endpoint.equalsIgnoreCase(urlPath)) {
             return 100;
+        } else if (urlPattern.matcher(endpoint).matches()) {
+            return urlPath.length();
         } else {
             return -1;
         }

@@ -249,10 +249,11 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                 if (stringValue!= null && stringValue.startsWith("^")){
                     inRegex = true;
                     String regexValue = stringValue;
-                    if (regexValue.startsWith("^"))
-                        regexValue = regexValue.substring(1);
-                    if (regexValue.endsWith("$"))
-                        regexValue = regexValue.substring(0, regexValue.length() - 1);
+                    //  Route matcher can now use full regex strings
+//                    if (regexValue.startsWith("^"))
+//                        regexValue = regexValue.substring(1);
+//                    if (regexValue.endsWith("$"))
+//                        regexValue = regexValue.substring(0, regexValue.length() - 1);
                     regexBuilder.append(regexValue);
                     currentUrlState = UrlState.VIEWOPTIONS;
                 } /*
