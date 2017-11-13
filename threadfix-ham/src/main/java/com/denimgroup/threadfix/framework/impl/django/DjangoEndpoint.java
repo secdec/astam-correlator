@@ -67,6 +67,13 @@ public class DjangoEndpoint extends AbstractEndpoint {
                 pattern = "^" + pattern;
             }
         }
+        if (pattern.contains("$")) {
+            boolean endsWithDollar = pattern.charAt(pattern.length() - 1) == '$';
+            pattern = pattern.replaceAll("\\$", "");
+            if (endsWithDollar) {
+                pattern += "$";
+            }
+        }
 
         urlPattern = Pattern.compile(pattern);
     }

@@ -1,6 +1,5 @@
 package com.denimgroup.threadfix.framework.impl.django;
 
-import java.io.File;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -8,62 +7,65 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class PythonCodeCollection {
 
-    Map<String, Collection<String>> classMap = map();
-    Map<String, Collection<String>> functionMap = map();
+    Map<String, Collection<PythonClass>> classMap = map();
+    Map<String, Collection<PythonFunction>> functionMap = map();
 
-    private void addToMapCollection(Map<String, Collection<String>> map, String key, String value) {
-        if (!map.containsKey(key)) {
-            map.put(key, new LinkedList<String>());
+    public void addClass(String sourceFilePath, PythonClass pythonClass) {
+        if (!classMap.containsKey(sourceFilePath)) {
+            classMap.put(sourceFilePath, new LinkedList<PythonClass>());
         }
-
-        Collection<String> classes = map.get(key);
-        classes.add(value);
+        Collection<PythonClass> classes = classMap.get(sourceFilePath);
+        classes.add(pythonClass);
     }
 
-    private void addAllToMapCollection(Map<String, Collection<String>> map, String key, Collection<String> value) {
-        if (!map.containsKey(key)) {
-            map.put(key, value);
+    public void addClasses(String sourceFilePath, Collection<PythonClass> classes) {
+        if (!classMap.containsKey(sourceFilePath)) {
+            classMap.put(sourceFilePath, classes);
         } else {
-            Collection<String> existingClassNames = map.get(key);
-            existingClassNames.addAll(value);
+            Collection<PythonClass> existingClasses = classMap.get(sourceFilePath);
+            existingClasses.addAll(classes);
         }
     }
 
-    public void addClass(String sourceFilePath, String className) {
-        addToMapCollection(classMap, sourceFilePath, className);
+    public void addFunction(String sourceFilePath, PythonFunction pythonFunction) {
+        if (!functionMap.containsKey(sourceFilePath)) {
+            functionMap.put(sourceFilePath, new LinkedList<PythonFunction>());
+        }
+        Collection<PythonFunction> classes = functionMap.get(sourceFilePath);
+        classes.add(pythonFunction);
     }
 
-    public void addClasses(String sourceFilePath, Collection<String> classNames) {
-        addAllToMapCollection(classMap, sourceFilePath, classNames);
-    }
-
-    public void addFunction(String sourceFilePath, String functionName) {
-        addToMapCollection(functionMap, sourceFilePath, functionName);
-    }
-
-    public void addFunctions(String sourceFilePath, Collection<String> functionNames) {
-        addAllToMapCollection(functionMap, sourceFilePath, functionNames);
+    public void addFunctions(String sourceFilePath, Collection<PythonFunction> functions) {
+        if (!functionMap.containsKey(sourceFilePath)) {
+            functionMap.put(sourceFilePath, functions);
+        } else {
+            Collection<PythonFunction> existingFunctions = functionMap.get(sourceFilePath);
+            existingFunctions.addAll(functions);
+        }
     }
 
     public String findFileForClass(String className) {
-        for (Map.Entry<String, Collection<String>> entry : classMap.entrySet()) {
-            if (entry.getValue().contains(className)) {
-                return entry.getKey();
+        for (Map.Entry<String, Collection<PythonClass>> entry : classMap.entrySet()) {
+            for (PythonClass pythonClass : entry.getValue()) {
+                if (pythonClass.getName().equals(className))
+                    return entry.getKey();
             }
         }
         return null;
     }
 
     public String findFileForFunction(String functionName) {
-        for (Map.Entry<String, Collection<String>> entry : functionMap.entrySet()) {
-            if (entry.getValue().contains(functionName)) {
-                return entry.getKey();
+        for (Map.Entry<String, Collection<PythonFunction>> entry : functionMap.entrySet()) {
+            for (PythonFunction pythonFunction : entry.getValue()) {
+                if (pythonFunction.getName().equals(functionName)) {
+                    return entry.getKey();
+                }
             }
         }
         return null;
     }
 
-    public Collection<String> findClassesForFile(String absolutePath) {
+    public Collection<PythonClass> findClassesForFile(String absolutePath) {
         if (!classMap.containsKey(absolutePath)) {
             return null;
         } else {
@@ -71,15 +73,15 @@ public class PythonCodeCollection {
         }
     }
 
-    public Collection<String> getAllClasses() {
-        List<String> classNames = list();
-        for (Map.Entry<String, Collection<String>> entry : classMap.entrySet()) {
-            classNames.addAll(entry.getValue());
+    public Collection<PythonClass> getAllClasses() {
+        List<PythonClass> classes = list();
+        for (Map.Entry<String, Collection<PythonClass>> entry : classMap.entrySet()) {
+            classes.addAll(entry.getValue());
         }
-        return classNames;
+        return classes;
     }
 
-    public Collection<String> findFunctionsForFile(String absolutePath) {
+    public Collection<PythonFunction> findFunctionsForFile(String absolutePath) {
         if (!functionMap.containsKey(absolutePath)) {
             return null;
         } else {
@@ -87,12 +89,12 @@ public class PythonCodeCollection {
         }
     }
 
-    public Collection<String> getAllFunctions() {
-        List<String> functionNames = list();
-        for (Map.Entry<String, Collection<String>> entry : functionMap.entrySet()) {
-            functionNames.addAll(entry.getValue());
+    public Collection<PythonFunction> getAllGlobalFunctions() {
+        List<PythonFunction> functions = list();
+        for (Map.Entry<String, Collection<PythonFunction>> entry : functionMap.entrySet()) {
+            functions.addAll(entry.getValue());
         }
-        return functionNames;
+        return functions;
     }
 
     public boolean containsFile(String absolutePath) {
@@ -100,18 +102,20 @@ public class PythonCodeCollection {
     }
 
     public boolean containsClass(String className) {
-        for (Map.Entry<String, Collection<String>> entry : classMap.entrySet()) {
-            if (entry.getValue().contains(className)) {
-                return true;
+        for (Map.Entry<String, Collection<PythonClass>> entry : classMap.entrySet()) {
+            for (PythonClass pythonClass : entry.getValue()) {
+                if (pythonClass.getName().equals(className))
+                    return true;
             }
         }
         return false;
     }
 
-    public boolean containsFunction(String functionName) {
-        for (Map.Entry<String, Collection<String>> entry : functionMap.entrySet()) {
-            if (entry.getValue().contains(functionName)) {
-                return true;
+    public boolean containsGlobalFunction(String functionName) {
+        for (Map.Entry<String, Collection<PythonFunction>> entry : functionMap.entrySet()) {
+            for (PythonFunction pythonFunction : entry.getValue()) {
+                if (pythonFunction.getName().equals(functionName))
+                    return true;
             }
         }
         return false;

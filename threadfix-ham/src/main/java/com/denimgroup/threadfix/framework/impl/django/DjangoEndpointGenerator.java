@@ -60,10 +60,11 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         boolean foundUrlFiles = (rootUrlsFile == null || !rootUrlsFile.exists()) && (possibleGuessedUrlFiles == null || possibleGuessedUrlFiles.size() == 0);
         assert foundUrlFiles : "Root URL file did not exist";
 
-        PythonCodeCollection classes = PythonSyntaxParser.run(rootDirectory);
+        PythonCodeCollection codebase = PythonSyntaxParser.run(rootDirectory);
+        LOG.info("Finished parsing codebase, found " + codebase.getAllClasses().size() + " classes and " + codebase.getAllGlobalFunctions().size() + " global functions");
 
         if (rootUrlsFile != null && rootUrlsFile.exists()) {
-            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", classes, rootUrlsFile);
+            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", codebase, rootUrlsFile);
         } else if (possibleGuessedUrlFiles != null && possibleGuessedUrlFiles.size() > 0) {
 
             LOG.debug("Found " + possibleGuessedUrlFiles.size() + " possible URL files:");
@@ -73,7 +74,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
             routeMap = map();
             for (File guessedUrlsFile : possibleGuessedUrlFiles) {
-                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", classes, guessedUrlsFile);
+                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", codebase, guessedUrlsFile);
                 for (Map.Entry<String, DjangoRoute> url : guessedUrls.entrySet()) {
                     DjangoRoute existingRoute = routeMap.get(url.getKey());
                     if (existingRoute != null) {

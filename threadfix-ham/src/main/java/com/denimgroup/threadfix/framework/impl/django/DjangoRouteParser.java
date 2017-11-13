@@ -311,7 +311,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                             controller = new File(parsedCodebase.findFileForClass(pathToken));
                         } else if (parsedCodebase != null && parsedCodebase.containsClass(methodToken)) {
                             controller = new File(parsedCodebase.findFileForClass(methodToken)); // for the format 'namespace.ClassName'
-                        } else if (parsedCodebase != null && parsedCodebase.containsFunction(methodToken)) {
+                        } else if (parsedCodebase != null && parsedCodebase.containsGlobalFunction(methodToken)) {
                             controller = new File(parsedCodebase.findFileForFunction(methodToken));
                         } else {
                             controller = new File(sourceRoot, viewPath + ".py");
@@ -325,7 +325,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                         File controller = null;
                         if (parsedCodebase.containsClass(viewPath)) {
                             controller = new File(parsedCodebase.findFileForClass(viewPath));
-                        } else if (parsedCodebase.containsFunction(viewPath)) {
+                        } else if (parsedCodebase.containsGlobalFunction(viewPath)) {
                             controller = new File(parsedCodebase.findFileForFunction(viewPath));
                         }
 
@@ -363,6 +363,10 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                     } else {
                         routeMap.putAll(DjangoRouteParser.parse(sourceRoot, PathUtil.combine(rootPath, regexBuilder.toString()), parsedCodebase, importFile));
                     }
+
+                    regexBuilder = new StringBuilder();
+                    viewPath = "";
+                    currentUrlState = UrlState.START;
                 }
                 break;
             case TEMPLATE:
