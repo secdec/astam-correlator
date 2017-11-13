@@ -12,14 +12,6 @@ public class PythonFunction {
     List<String> params = list();
     List<PythonDecorator> decorators = list();
 
-    public PythonFunction() {
-
-    }
-
-    public PythonFunction(PythonClass ownerClass) {
-        this.ownerClass = ownerClass;
-    }
-
     public List<String> getParams() {
         return params;
     }

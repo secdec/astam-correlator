@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.util;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
 
@@ -75,6 +76,11 @@ public class FilePathUtils {
 		}
 		
 		return returnPath;
+	}
+
+	@Nonnull
+	public static String getFolder(@Nonnull File file) {
+		return file.getAbsoluteFile().getParentFile().getAbsolutePath();
 	}
 	
 }

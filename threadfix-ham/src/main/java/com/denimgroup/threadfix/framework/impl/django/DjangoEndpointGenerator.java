@@ -23,6 +23,7 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 
@@ -64,7 +65,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         LOG.info("Finished parsing codebase, found " + codebase.getAllClasses().size() + " classes and " + codebase.getAllGlobalFunctions().size() + " global functions");
 
         if (rootUrlsFile != null && rootUrlsFile.exists()) {
-            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", codebase, rootUrlsFile);
+            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", FilePathUtils.getFolder(rootUrlsFile), codebase, rootUrlsFile);
         } else if (possibleGuessedUrlFiles != null && possibleGuessedUrlFiles.size() > 0) {
 
             LOG.debug("Found " + possibleGuessedUrlFiles.size() + " possible URL files:");
@@ -74,7 +75,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
             routeMap = map();
             for (File guessedUrlsFile : possibleGuessedUrlFiles) {
-                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", codebase, guessedUrlsFile);
+                String folder = FilePathUtils.getFolder(guessedUrlsFile);
+                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", folder, codebase, guessedUrlsFile);
                 for (Map.Entry<String, DjangoRoute> url : guessedUrls.entrySet()) {
                     DjangoRoute existingRoute = routeMap.get(url.getKey());
                     if (existingRoute != null) {

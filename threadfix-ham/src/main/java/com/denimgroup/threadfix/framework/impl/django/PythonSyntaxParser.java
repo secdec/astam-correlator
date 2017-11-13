@@ -48,8 +48,6 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         return true;
     }
 
-    String currentName = null;
-    String currentParams = null;
     PythonClass currentClass = null;
     PythonFunction currentFunction = null;
 
@@ -177,10 +175,11 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         if (stringValue != null) {
             functionEntrySpaceDepth = spaceDepth;
             if (isInClass()) {
-                currentFunction = new PythonFunction(currentClass);
+                currentFunction = new PythonFunction();
+                currentFunction.setOwnerClass(currentClass);
                 currentClass.addFunction(currentFunction);
             } else {
-                currentFunction = new PythonFunction(null);
+                currentFunction = new PythonFunction();
             }
 
             for (PythonDecorator decorator : pendingDecorators) {
