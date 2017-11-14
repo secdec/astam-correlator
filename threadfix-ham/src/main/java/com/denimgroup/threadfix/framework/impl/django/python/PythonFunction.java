@@ -1,4 +1,4 @@
-package com.denimgroup.threadfix.framework.impl.django;
+package com.denimgroup.threadfix.framework.impl.django.python;
 
 import java.util.Collection;
 import java.util.List;

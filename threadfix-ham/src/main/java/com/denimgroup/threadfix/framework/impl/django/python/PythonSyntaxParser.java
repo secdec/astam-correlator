@@ -1,5 +1,6 @@
-package com.denimgroup.threadfix.framework.impl.django;
+package com.denimgroup.threadfix.framework.impl.django.python;
 
+import com.denimgroup.threadfix.framework.impl.django.DjangoTokenizerConfigurator;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -11,9 +12,9 @@ import java.util.Collection;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
-import static com.denimgroup.threadfix.framework.impl.django.PythonSyntaxParser.ParsePhase.DECORATOR_NAME;
-import static com.denimgroup.threadfix.framework.impl.django.PythonSyntaxParser.ParsePhase.DECORATOR_PARAMS;
-import static com.denimgroup.threadfix.framework.impl.django.PythonSyntaxParser.ParsePhase.START;
+import static com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser.ParsePhase.DECORATOR_NAME;
+import static com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser.ParsePhase.DECORATOR_PARAMS;
+import static com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser.ParsePhase.START;
 
 public class PythonSyntaxParser implements EventBasedTokenizer {
 
