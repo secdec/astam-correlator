@@ -53,6 +53,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         assert rootDirectory.exists() : "Root file did not exist.";
         assert rootDirectory.isDirectory() : "Root file was not a directory.";
 
+        long generationStartTime = System.currentTimeMillis();
+
         this.rootDirectory = rootDirectory;
 
         findRootUrlsFile();
@@ -63,8 +65,14 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         boolean foundUrlFiles = (rootUrlsFile == null || !rootUrlsFile.exists()) && (possibleGuessedUrlFiles == null || possibleGuessedUrlFiles.size() == 0);
         assert foundUrlFiles : "Root URL file did not exist";
 
+        LOG.info("Parsing codebase for modules, classes, and functions...");
+        long codeParseStartTime = System.currentTimeMillis();
         PythonCodeCollection codebase = PythonSyntaxParser.run(rootDirectory);
-        LOG.info("Finished parsing codebase, found " + codebase.getClasses().size() + " classes and " + codebase.getFunctions().size() + " functions");
+        long codeParseDuration = System.currentTimeMillis() - codeParseStartTime;
+        LOG.info("Finished parsing codebase in " + codeParseDuration + "ms, found "
+                + codebase.getClasses().size() + " classes, "
+                + codebase.getFunctions().size() + " functions, and "
+                + codebase.getPublicVariables().size() + " public variables");
 
         if (rootUrlsFile != null && rootUrlsFile.exists()) {
             routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", FilePathUtils.getFolder(rootUrlsFile), codebase, rootUrlsFile);
@@ -104,6 +112,9 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         }
 
         this.endpoints = generateMappings();
+
+        long generationDuration = System.currentTimeMillis() - generationStartTime;
+        LOG.info("Finished python endpoint generation in " + generationDuration + "ms");
     }
 
     private void findRootUrlsFile() {

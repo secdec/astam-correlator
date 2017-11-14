@@ -20,6 +20,7 @@ package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonScope;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
 import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
@@ -41,6 +42,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
 
     private PythonCodeCollection parsedCodebase;
     private DjangoRouterFactory routerFactory;
+    PythonModule rootModule;
 
     //alias, path
     private Map<String, String> importPathMap = map();
@@ -58,6 +60,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
         this.parsedCodebase = sourcecode;
         this.sourceFolderPath = sourceFolderPath;
         routerFactory = new DjangoRouterFactory(sourcecode);
+        this.rootModule = sourcecode.findFirstByFilePath(sourceFolderPath, PythonModule.class);
     }
 
     public static Map<String, DjangoRoute> parse(String sourceRoot, String rootPath, String sourceFolderPath, PythonCodeCollection sourcecode, @Nonnull File file) {
@@ -95,7 +98,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
 
     private Map<String, DjangoRouter> namedRouters = map();
 
-    private boolean isRootScope() {
+    private boolean getRootModule() {
         return numOpenParen == 0 && numOpenBracket == 0 && numOpenBrace == 0;
     }
 
@@ -402,11 +405,13 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                     }
 
                     File importFile = new File(PathUtil.combine(sourceRoot, viewFile));
-                    if (importFile.isDirectory()) {
-                        for (File file : importFile.listFiles())
-                            routeMap.putAll(DjangoRouteParser.parse(sourceRoot, PathUtil.combine(rootPath, regexBuilder.toString()), FilePathUtils.getFolder(file), parsedCodebase, file));
-                    } else {
-                        routeMap.putAll(DjangoRouteParser.parse(sourceRoot, PathUtil.combine(rootPath, regexBuilder.toString()), FilePathUtils.getFolder(importFile), parsedCodebase, importFile));
+                    if (importFile.exists()) {
+                        if (importFile.isDirectory()) {
+                            for (File file : importFile.listFiles())
+                                routeMap.putAll(DjangoRouteParser.parse(sourceRoot, PathUtil.combine(rootPath, regexBuilder.toString()), FilePathUtils.getFolder(file), parsedCodebase, file));
+                        } else {
+                            routeMap.putAll(DjangoRouteParser.parse(sourceRoot, PathUtil.combine(rootPath, regexBuilder.toString()), FilePathUtils.getFolder(importFile), parsedCodebase, importFile));
+                        }
                     }
 
                     regexBuilder = new StringBuilder();

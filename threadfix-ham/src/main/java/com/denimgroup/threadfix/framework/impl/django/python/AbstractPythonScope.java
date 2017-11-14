@@ -82,6 +82,7 @@ public abstract class AbstractPythonScope {
         Collection<PythonClass> classes = getChildScopes(PythonClass.class);
         Collection<PythonFunction> functions = getChildScopes(PythonFunction.class);
         Collection<PythonModule> modules = getChildScopes(PythonModule.class);
+        Collection<PythonPublicVariable> variables = getChildScopes(PythonPublicVariable.class);
 
         for (PythonClass pyClass : classes) {
             visitor.visitClass(pyClass);
@@ -96,6 +97,11 @@ public abstract class AbstractPythonScope {
         for (PythonModule pyModule : modules) {
             visitor.visitModule(pyModule);
             pyModule.accept(visitor);
+        }
+
+        for (PythonPublicVariable pyVariable : variables) {
+            visitor.visitPublicVariable(pyVariable);
+            pyVariable.accept(visitor);
         }
     }
 
