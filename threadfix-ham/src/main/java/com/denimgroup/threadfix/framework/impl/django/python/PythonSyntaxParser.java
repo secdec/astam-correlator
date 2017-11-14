@@ -9,6 +9,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -20,28 +21,57 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
     public static PythonCodeCollection run(File rootDirectory) {
         PythonCodeCollection codebase = new PythonCodeCollection();
-        Collection<File> allFiles = FileUtils.listFiles(rootDirectory, new String[] { "py" }, true);
-        for (File file : allFiles) {
-
-            if (FilePathUtils.getRelativePath(file, rootDirectory).contains("build")) {
-                continue;
-            }
-
+        if (rootDirectory.isFile()) {
             PythonSyntaxParser parser = new PythonSyntaxParser();
-            EventBasedTokenizerRunner.run(file, DjangoTokenizerConfigurator.INSTANCE, parser);
-
-            Collection<PythonClass> classes = parser.getClasses();
-            Collection<PythonFunction> globalFunctions = parser.getGlobalFunctions();
-
-            if (classes.size() > 0) {
-                codebase.addClasses(file.getAbsolutePath(), classes);
+            EventBasedTokenizerRunner.run(rootDirectory, DjangoTokenizerConfigurator.INSTANCE, parser);
+            for (PythonFunction pyFunction : parser.getGlobalFunctions()) {
+                pyFunction.setSourceCodePath(rootDirectory.getAbsolutePath());
+                codebase.add(pyFunction);
             }
-
-            if (globalFunctions.size() > 0) {
-                codebase.addFunctions(file.getAbsolutePath(), globalFunctions);
+            for (PythonClass pyClass : parser.getClasses()) {
+                pyClass.setSourceCodePath(rootDirectory.getAbsolutePath());
+                codebase.add(pyClass);
+            }
+        } else {
+            for (AbstractPythonScope scope : recurseCodeDirectory(rootDirectory)) {
+                codebase.add(scope);
             }
         }
         return codebase;
+    }
+
+    private static Collection<AbstractPythonScope> recurseCodeDirectory(File rootDirectory) {
+        List<AbstractPythonScope> result = new LinkedList<AbstractPythonScope>();
+        File[] allFiles = rootDirectory.listFiles();
+        for (File file : allFiles) {
+            if (file.isFile()) {
+                PythonSyntaxParser parser = new PythonSyntaxParser();
+                EventBasedTokenizerRunner.run(file, DjangoTokenizerConfigurator.INSTANCE, parser);
+
+                Collection<PythonClass> classes = parser.getClasses();
+                Collection<PythonFunction> globalFunctions = parser.getGlobalFunctions();
+
+                for (PythonClass pyClass : classes) {
+                    pyClass.setSourceCodePath(file.getAbsolutePath());
+                }
+
+                for (PythonFunction pyFunction : globalFunctions) {
+                    pyFunction.setSourceCodePath(file.getAbsolutePath());
+                }
+
+                result.addAll(classes);
+                result.addAll(globalFunctions);
+            } else {
+                PythonModule module = new PythonModule();
+                module.setSourceCodePath(file.getAbsolutePath());
+                module.setName(file.getName());
+                for (AbstractPythonScope scope : recurseCodeDirectory(file)) {
+                    module.addChildScope(scope);
+                }
+                result.add(module);
+            }
+        }
+        return result;
     }
 
     @Override
@@ -145,7 +175,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         if (stringValue != null) {
             currentClass = new PythonClass();
             currentClass.setName(stringValue);
-            currentClass.setLineNumber(lineNumber);
+            currentClass.setSourceCodeLine(lineNumber);
             classEntrySpaceDepth = spaceDepth;
 
             for (PythonDecorator decorator : pendingDecorators) {
@@ -177,8 +207,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             functionEntrySpaceDepth = spaceDepth;
             if (isInClass()) {
                 currentFunction = new PythonFunction();
-                currentFunction.setOwnerClass(currentClass);
-                currentClass.addFunction(currentFunction);
+                currentFunction.setParentModule(currentClass);
             } else {
                 currentFunction = new PythonFunction();
             }
@@ -190,7 +219,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             pendingDecorators.clear();
 
             currentFunction.setName(stringValue);
-            currentFunction.setLineNumber(lineNumber);
+            currentFunction.setSourceCodeLine(lineNumber);
 
             parsePhase = ParsePhase.FUNCTION_PARAMS;
         }

@@ -5,12 +5,10 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-public class PythonClass {
+public class PythonClass extends AbstractPythonScope {
 
     List<String> baseTypes = list();
     String name;
-    int lineNumber;
-    List<PythonFunction> functions = list();
     List<PythonDecorator> decorators = list();
 
     public Collection<String> getBaseTypes() {
@@ -25,24 +23,9 @@ public class PythonClass {
         this.name = name;
     }
 
+    @Override
     public String getName() {
         return name;
-    }
-
-    public Collection<PythonFunction> getFunctions() {
-        return functions;
-    }
-
-    public void addFunction(PythonFunction function) {
-        functions.add(function);
-    }
-
-    public void setLineNumber(int lineNumber) {
-        this.lineNumber = lineNumber;
-    }
-
-    public int getLineNumber() {
-        return lineNumber;
     }
 
     public Collection<PythonDecorator> getDecorators() {

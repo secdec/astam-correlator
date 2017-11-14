@@ -18,6 +18,7 @@
 
 package com.denimgroup.threadfix.framework.impl.django;
 
+import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonScope;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -355,12 +356,9 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                             viewPath = pathToken;
 
                         File controller;
-                        if (parsedCodebase != null && parsedCodebase.containsClass(pathToken)) {
-                            controller = new File(parsedCodebase.findFileForClass(pathToken));
-                        } else if (parsedCodebase != null && parsedCodebase.containsClass(methodToken)) {
-                            controller = new File(parsedCodebase.findFileForClass(methodToken)); // for the format 'namespace.ClassName'
-                        } else if (parsedCodebase != null && parsedCodebase.containsGlobalFunction(methodToken)) {
-                            controller = new File(parsedCodebase.findFileForFunction(methodToken));
+                        AbstractPythonScope pythonController = parsedCodebase.findByFullName(pathToken);
+                        if (pythonController != null) {
+                            controller = new File(pythonController.getSourceCodePath());
                         } else {
                             controller = new File(sourceRoot, viewPath + ".py");
                         }
@@ -371,10 +369,9 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                         }
                     } else if (parsedCodebase != null) {
                         File controller = null;
-                        if (parsedCodebase.containsClass(viewPath)) {
-                            controller = new File(parsedCodebase.findFileForClass(viewPath));
-                        } else if (parsedCodebase.containsGlobalFunction(viewPath)) {
-                            controller = new File(parsedCodebase.findFileForFunction(viewPath));
+                        AbstractPythonScope pythonController = parsedCodebase.findByFullName(viewPath);
+                        if (pythonController != null) {
+                            controller = new File(pythonController.getSourceCodePath());
                         }
 
                         if (controller != null && controller.exists()) {

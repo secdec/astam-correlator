@@ -5,10 +5,8 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-public class PythonFunction {
+public class PythonFunction extends AbstractPythonScope {
     String name;
-    PythonClass ownerClass;
-    int lineNumber;
     List<String> params = list();
     List<PythonDecorator> decorators = list();
 
@@ -16,10 +14,7 @@ public class PythonFunction {
         return params;
     }
 
-    public PythonClass getOwnerClass() {
-        return ownerClass;
-    }
-
+    @Override
     public String getName() {
         return name;
     }
@@ -28,8 +23,15 @@ public class PythonFunction {
         this.name = name;
     }
 
-    public void setOwnerClass(PythonClass ownerClass) {
-        this.ownerClass = ownerClass;
+    public PythonClass getOwnerClass() {
+        AbstractPythonScope parent = getParentScope();
+        if (parent == null) {
+            return null;
+        } else if (!PythonClass.class.isAssignableFrom(parent.getClass())) {
+            return null;
+        } else {
+            return (PythonClass)parent;
+        }
     }
 
     public void setParams(List<String> params) {
@@ -38,14 +40,6 @@ public class PythonFunction {
 
     public void addParam(String paramName) {
         params.add(paramName);
-    }
-
-    public int getLineNumber() {
-        return lineNumber;
-    }
-
-    public void setLineNumber(int lineNumber) {
-        this.lineNumber = lineNumber;
     }
 
     public Collection<PythonDecorator> getDecorators() {

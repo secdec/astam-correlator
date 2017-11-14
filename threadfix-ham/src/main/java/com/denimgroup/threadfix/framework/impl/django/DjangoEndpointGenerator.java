@@ -64,7 +64,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         assert foundUrlFiles : "Root URL file did not exist";
 
         PythonCodeCollection codebase = PythonSyntaxParser.run(rootDirectory);
-        LOG.info("Finished parsing codebase, found " + codebase.getAllClasses().size() + " classes and " + codebase.getAllGlobalFunctions().size() + " global functions");
+        LOG.info("Finished parsing codebase, found " + codebase.getClasses().size() + " classes and " + codebase.getFunctions().size() + " functions");
 
         if (rootUrlsFile != null && rootUrlsFile.exists()) {
             routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", FilePathUtils.getFolder(rootUrlsFile), codebase, rootUrlsFile);

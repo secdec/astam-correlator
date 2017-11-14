@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.python;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -7,120 +8,135 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class PythonCodeCollection {
 
-    Map<String, Collection<PythonClass>> classMap = map();
-    Map<String, Collection<PythonFunction>> functionMap = map();
+    List<AbstractPythonScope> scopes = list();
 
-    public void addClass(String sourceFilePath, PythonClass pythonClass) {
-        if (!classMap.containsKey(sourceFilePath)) {
-            classMap.put(sourceFilePath, new LinkedList<PythonClass>());
-        }
-        Collection<PythonClass> classes = classMap.get(sourceFilePath);
-        classes.add(pythonClass);
+    public void add(AbstractPythonScope scope) {
+        scopes.add(scope);
     }
 
-    public void addClasses(String sourceFilePath, Collection<PythonClass> classes) {
-        if (!classMap.containsKey(sourceFilePath)) {
-            classMap.put(sourceFilePath, classes);
-        } else {
-            Collection<PythonClass> existingClasses = classMap.get(sourceFilePath);
-            existingClasses.addAll(classes);
-        }
-    }
-
-    public void addFunction(String sourceFilePath, PythonFunction pythonFunction) {
-        if (!functionMap.containsKey(sourceFilePath)) {
-            functionMap.put(sourceFilePath, new LinkedList<PythonFunction>());
-        }
-        Collection<PythonFunction> classes = functionMap.get(sourceFilePath);
-        classes.add(pythonFunction);
-    }
-
-    public void addFunctions(String sourceFilePath, Collection<PythonFunction> functions) {
-        if (!functionMap.containsKey(sourceFilePath)) {
-            functionMap.put(sourceFilePath, functions);
-        } else {
-            Collection<PythonFunction> existingFunctions = functionMap.get(sourceFilePath);
-            existingFunctions.addAll(functions);
-        }
-    }
-
-    public String findFileForClass(String className) {
-        for (Map.Entry<String, Collection<PythonClass>> entry : classMap.entrySet()) {
-            for (PythonClass pythonClass : entry.getValue()) {
-                if (pythonClass.getName().equals(className))
-                    return entry.getKey();
+    public Collection<PythonModule> getModules() {
+        final LinkedList<PythonModule> modules = new LinkedList<PythonModule>();
+        traverse(new PythonVisitor() {
+            @Override
+            public void visitModule(PythonModule pyModule) {
+                modules.add(pyModule);
             }
-        }
-        return null;
+
+            @Override public void visitClass(PythonClass pyClass) { }
+            @Override public void visitFunction(PythonFunction pyFunction) { }
+        });
+        return modules;
     }
 
-    public String findFileForFunction(String functionName) {
-        for (Map.Entry<String, Collection<PythonFunction>> entry : functionMap.entrySet()) {
-            for (PythonFunction pythonFunction : entry.getValue()) {
-                if (pythonFunction.getName().equals(functionName)) {
-                    return entry.getKey();
-                }
+    public Collection<PythonFunction> getFunctions() {
+        final LinkedList<PythonFunction> functions = new LinkedList<PythonFunction>();
+        traverse(new PythonVisitor() {
+            @Override public void visitModule(PythonModule pyModule) { }
+            @Override public void visitClass(PythonClass pyClass) { }
+
+            @Override public void visitFunction(PythonFunction pyFunction) {
+                functions.add(pyFunction);
             }
-        }
-        return null;
-    }
-
-    public Collection<PythonClass> findClassesForFile(String absolutePath) {
-        if (!classMap.containsKey(absolutePath)) {
-            return null;
-        } else {
-            return classMap.get(absolutePath);
-        }
-    }
-
-    public Collection<PythonClass> getAllClasses() {
-        List<PythonClass> classes = list();
-        for (Map.Entry<String, Collection<PythonClass>> entry : classMap.entrySet()) {
-            classes.addAll(entry.getValue());
-        }
-        return classes;
-    }
-
-    public Collection<PythonFunction> findFunctionsForFile(String absolutePath) {
-        if (!functionMap.containsKey(absolutePath)) {
-            return null;
-        } else {
-            return functionMap.get(absolutePath);
-        }
-    }
-
-    public Collection<PythonFunction> getAllGlobalFunctions() {
-        List<PythonFunction> functions = list();
-        for (Map.Entry<String, Collection<PythonFunction>> entry : functionMap.entrySet()) {
-            functions.addAll(entry.getValue());
-        }
+        });
         return functions;
     }
 
-    public boolean containsFile(String absolutePath) {
-        return classMap.containsKey(absolutePath) || functionMap.containsKey(absolutePath);
+    public Collection<PythonClass> getClasses() {
+        final LinkedList<PythonClass> classes = new LinkedList<PythonClass>();
+        traverse(new PythonVisitor() {
+            @Override public void visitModule(PythonModule pyModule) { }
+
+            @Override public void visitClass(PythonClass pyClass) {
+                classes.add(pyClass);
+            }
+
+            @Override public void visitFunction(PythonFunction pyFunction) { }
+        });
+        return classes;
     }
 
-    public boolean containsClass(String className) {
-        for (Map.Entry<String, Collection<PythonClass>> entry : classMap.entrySet()) {
-            for (PythonClass pythonClass : entry.getValue()) {
-                if (pythonClass.getName().equals(className))
-                    return true;
+    public AbstractPythonScope findByFullName(@Nonnull String fullName) {
+        AbstractPythonScope result = null;
+        String firstPart = fullName.split("\\.")[0];
+        String remainingPart = fullName.substring(fullName.indexOf(".") + 1);
+        for (AbstractPythonScope child : scopes) {
+            if (child.getName().equals(firstPart)) {
+                result = findByPartialName(child, remainingPart);
+            }
+            if (result != null) {
+                break;
             }
         }
-        return false;
+        return result;
     }
 
-    public boolean containsGlobalFunction(String functionName) {
-        for (Map.Entry<String, Collection<PythonFunction>> entry : functionMap.entrySet()) {
-            for (PythonFunction pythonFunction : entry.getValue()) {
-                if (pythonFunction.getName().equals(functionName))
-                    return true;
+    public <T extends AbstractPythonScope> T findByFullName(@Nonnull String fullName, Class<T> type) {
+        AbstractPythonScope result = findByFullName(fullName);
+        if (result != null && type.isAssignableFrom(result.getClass())) {
+            return (T)result;
+        } else {
+            return null;
+        }
+    }
+
+    public AbstractPythonScope findByPartialName(@Nonnull AbstractPythonScope base, @Nonnull String partialName) {
+        if (partialName.length() == 0 || partialName.equals(base.getName())) {
+            return base;
+        }
+
+        String currentPart = partialName.substring(0, partialName.indexOf("."));
+        String nextPart = partialName.substring(partialName.indexOf(".") + 1);
+
+        for (AbstractPythonScope child : base.getChildScopes()) {
+            if (child.getName().equals(currentPart)) {
+                return findByPartialName(child, nextPart);
             }
         }
-        return false;
+
+        return null;
+    }
+
+    public Collection<AbstractPythonScope> findInFile(@Nonnull final String fileName) {
+        final List<AbstractPythonScope> result = new LinkedList<AbstractPythonScope>();
+        traverse(new PythonVisitor() {
+            @Override
+            public void visitModule(PythonModule pyModule) {
+                if (pyModule.getSourceCodePath().startsWith(fileName)) {
+                    result.add(pyModule);
+                }
+            }
+
+            @Override
+            public void visitClass(PythonClass pyClass) {
+                if (pyClass.getSourceCodePath().startsWith(fileName)) {
+                    result.add(pyClass);
+                }
+            }
+
+            @Override
+            public void visitFunction(PythonFunction pyFunction) {
+                if (pyFunction.getSourceCodePath().startsWith(fileName)) {
+                    result.add(pyFunction);
+                }
+            }
+        });
+        return result;
     }
 
 
+
+    public void traverse(PythonVisitor visitor) {
+        for (AbstractPythonScope child : scopes) {
+            Class<?> type = child.getClass();
+            if (PythonClass.class.isAssignableFrom(type)) {
+                visitor.visitClass((PythonClass)child);
+            } else if (PythonFunction.class.isAssignableFrom(type)) {
+                visitor.visitFunction((PythonFunction)child);
+            } else if (PythonModule.class.isAssignableFrom(type)) {
+                visitor.visitModule((PythonModule)child);
+            }
+            child.accept(visitor);
+        }
+    }
 
 }
