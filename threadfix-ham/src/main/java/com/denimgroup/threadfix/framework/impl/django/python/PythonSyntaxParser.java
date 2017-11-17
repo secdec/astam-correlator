@@ -4,6 +4,8 @@ import com.denimgroup.threadfix.framework.impl.django.DjangoTokenizerConfigurato
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.Collection;
@@ -17,69 +19,86 @@ import static com.denimgroup.threadfix.framework.impl.django.python.PythonSyntax
 
 public class PythonSyntaxParser implements EventBasedTokenizer {
 
+    private static SanitizedLogger LOG = new SanitizedLogger(PythonSyntaxParser.class);
+
+    private static void log(String msg) {
+        //LOG.info(msg);
+        LOG.debug(msg);
+    }
+
+    private static boolean isModuleFolder(File folder) {
+        return (new File(folder.getAbsolutePath() + "/__init__.py")).exists();
+    }
+
+    private static String makeModuleName(File file) {
+        String name = file.getName();
+        if (name.contains("."))
+            name = name.substring(0, name.lastIndexOf("."));
+        name = name.replaceAll("\\-", "_");
+        return name;
+    }
+
     public static PythonCodeCollection run(File rootDirectory) {
+        log("Running on " + rootDirectory.getAbsolutePath());
         PythonCodeCollection codebase = new PythonCodeCollection();
         if (rootDirectory.isFile()) {
-            PythonSyntaxParser parser = new PythonSyntaxParser();
+            PythonSyntaxParser parser = new PythonSyntaxParser(rootDirectory);
             EventBasedTokenizerRunner.run(rootDirectory, DjangoTokenizerConfigurator.INSTANCE, parser);
-            for (PythonFunction pyFunction : parser.getGlobalFunctions()) {
-                pyFunction.setSourceCodePath(rootDirectory.getAbsolutePath());
-                codebase.add(pyFunction);
-            }
-            for (PythonClass pyClass : parser.getClasses()) {
-                pyClass.setSourceCodePath(rootDirectory.getAbsolutePath());
-                codebase.add(pyClass);
-            }
+            codebase.add(parser.getThisModule());
         } else {
-            for (AbstractPythonScope scope : recurseCodeDirectory(rootDirectory)) {
-                codebase.add(scope);
+            if (isModuleFolder(rootDirectory)) {
+                PythonModule module = recurseCodeDirectory(rootDirectory);
+                codebase.add(module);
+            } else {
+                for (File file : rootDirectory.listFiles()) {
+                    if (file.isDirectory()) {
+                        if (isModuleFolder(file)) {
+                            PythonModule dirModule = recurseCodeDirectory(file);
+                            if (dirModule != null) {
+                                codebase.add(dirModule);
+                            }
+                        }
+                    } else if (file.getName().endsWith(".py")) {
+                        PythonSyntaxParser parser = new PythonSyntaxParser(file);
+                        EventBasedTokenizerRunner.run(file, DjangoTokenizerConfigurator.INSTANCE, parser);
+                        codebase.add(parser.getThisModule());
+                    }
+                }
             }
         }
+
+        codebase.expandImports();
         return codebase;
     }
 
-    private static Collection<AbstractPythonScope> recurseCodeDirectory(File rootDirectory) {
-        List<AbstractPythonScope> result = new LinkedList<AbstractPythonScope>();
+    private static PythonModule recurseCodeDirectory(File rootDirectory) {
         File[] allFiles = rootDirectory.listFiles();
+        PythonModule directoryModule = new PythonModule();
+        directoryModule.setName(makeModuleName(rootDirectory));
+        directoryModule.setSourceCodePath(rootDirectory.getAbsolutePath());
         for (File file : allFiles) {
             if (file.isFile()) {
                 if (!file.getName().endsWith(".py")) {
                     continue;
                 }
 
-                PythonSyntaxParser parser = new PythonSyntaxParser();
+                log("Starting .py file " + file.getAbsolutePath());
+
+                PythonSyntaxParser parser = new PythonSyntaxParser(file);
                 EventBasedTokenizerRunner.run(file, DjangoTokenizerConfigurator.INSTANCE, parser);
 
-                Collection<PythonClass> classes = parser.getClasses();
-                Collection<PythonFunction> globalFunctions = parser.getGlobalFunctions();
-                Collection<PythonPublicVariable> publicVariables = parser.getPublicVariables();
+                directoryModule.addChildScope(parser.getThisModule());
 
-                for (PythonClass pyClass : classes) {
-                    pyClass.setSourceCodePath(file.getAbsolutePath());
-                }
+                log("Finished .py file " + file.getAbsolutePath());
 
-                for (PythonFunction pyFunction : globalFunctions) {
-                    pyFunction.setSourceCodePath(file.getAbsolutePath());
-                }
-
-                for (PythonPublicVariable pyVariable : publicVariables) {
-                    pyVariable.setSourceCodePath(file.getAbsolutePath());
-                }
-
-                result.addAll(classes);
-                result.addAll(globalFunctions);
-                result.addAll(publicVariables);
             } else {
-                PythonModule module = new PythonModule();
-                module.setSourceCodePath(file.getAbsolutePath());
-                module.setName(file.getName());
-                for (AbstractPythonScope scope : recurseCodeDirectory(file)) {
-                    module.addChildScope(scope);
+                if (isModuleFolder(file)) {
+                    directoryModule.addChildScope(recurseCodeDirectory(file));
                 }
-                result.add(module);
             }
         }
-        return result;
+
+        return directoryModule;
     }
 
     @Override
@@ -102,14 +121,57 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     int classEntrySpaceDepth = -1;
     int functionEntrySpaceDepth = -1;
 
+    PythonModule thisModule;
     List<PythonClass> classes = list();
     List<PythonFunction> globalFunctions = list();
     List<PythonDecorator> pendingDecorators = list();
     List<PythonPublicVariable> publicVariables = list();
 
+    private void registerScopeOutput(AbstractPythonScope scope) {
+
+        if (thisModule != null) {
+            thisModule.addChildScope(scope);
+        } else {
+            Class scopeClass = scope.getClass();
+            if (PythonClass.class.isAssignableFrom(scopeClass)) {
+                classes.add((PythonClass)scope);
+            } else if (PythonFunction.class.isAssignableFrom(scopeClass)) {
+                globalFunctions.add((PythonFunction)scope);
+            } else if (PythonPublicVariable.class.isAssignableFrom(scopeClass)) {
+                publicVariables.add((PythonPublicVariable)scope);
+            }
+        }
+
+        log("Registered output " + scope.toString());
+    }
+
+    private void registerImport(String fullName, String alias) {
+        importsMap.put(alias, fullName);
+        if (thisModule != null) {
+            thisModule.addImport(fullName, alias);
+        }
+    }
+
+    public PythonSyntaxParser() {
+        thisModule = null;
+    }
+
+    public PythonSyntaxParser(File forFile) {
+        String moduleName = makeModuleName(forFile);
+        thisModule = new PythonModule();
+        thisModule.setName(moduleName);
+        thisModule.setSourceCodePath(forFile.getAbsolutePath());
+    }
+
     // shortName, fullImportName
     Map<String, String> importsMap = map();
     // TODO - Use imports to expand variable types to their full type names, including modules
+
+    private void attachImports(AbstractPythonScope scope) {
+        for (Map.Entry<String, String> importItem : importsMap.entrySet()) {
+            scope.addImport(importItem.getValue(), importItem.getKey());
+        }
+    }
 
     boolean isInClass() {
         return numOpenBrace == 0 && numOpenParen == 0 &&
@@ -130,6 +192,15 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
 
     public Collection<PythonPublicVariable> getPublicVariables() { return publicVariables; }
+
+
+    /**
+     * @return The PythonModule constructed by this parser, if available. This will be null if no file parameters were
+     * passed to the constructor.
+     */
+    public PythonModule getThisModule() {
+        return thisModule;
+    }
 
     enum ParsePhase {
         START,
@@ -210,6 +281,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             currentClass = new PythonClass();
             currentClass.setName(stringValue);
             currentClass.setSourceCodeLine(lineNumber);
+            currentClass.setSourceCodePath(this.thisModule.getSourceCodePath());
             classEntrySpaceDepth = spaceDepth;
 
             for (PythonDecorator decorator : pendingDecorators) {
@@ -223,7 +295,8 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
     private void processClassBaseTypes(int type, int lineNumber, String stringValue) {
         if (numOpenParen == 0) {
-            classes.add(currentClass);
+            attachImports(currentClass);
+            registerScopeOutput(currentClass);
             parsePhase = ParsePhase.START;
         } else if (stringValue != null) {
             currentClass.addBaseType(stringValue);
@@ -241,10 +314,12 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             functionEntrySpaceDepth = spaceDepth;
             if (isInClass()) {
                 currentFunction = new PythonFunction();
-                currentFunction.setParentModule(currentClass);
+                currentFunction.setParentScope(currentClass);
             } else {
                 currentFunction = new PythonFunction();
             }
+
+            currentFunction.setSourceCodePath(this.thisModule.getSourceCodePath());
 
             for (PythonDecorator decorator : pendingDecorators) {
                 currentFunction.addDecorator(decorator);
@@ -262,7 +337,8 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     private void processFunctionParams(int type, int lineNumber, String stringValue) {
         if (numOpenParen == 0) {
             if (currentFunction.getOwnerClass() == null) {
-                globalFunctions.add(currentFunction);
+                //attachImports(currentFunction);
+                registerScopeOutput(currentFunction);
             }
             parsePhase = ParsePhase.START;
         } else if (stringValue != null) {
@@ -318,6 +394,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             workingVariable = new PythonPublicVariable();
             workingVariable.setSourceCodeLine(lineNumber);
             workingVariable.setName(lastString);
+            workingVariable.setSourceCodePath(this.thisModule.getSourceCodePath());
         }
 
         if (stringValue != null) {
@@ -338,10 +415,11 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             }
 
             if (!hasParsedVariable(fullVarName)) {
+                //attachImports(workingVariable);
                 if (currentClass != null) {
                     currentClass.addChildScope(workingVariable);
                 } else {
-                    publicVariables.add(workingVariable);
+                    registerScopeOutput(workingVariable);
                 }
             }
             workingVariable = null;
@@ -352,39 +430,125 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         }
     }
 
-    String importName, importItem;
+    String importName; // Package being pulled from
+    String importNameWithItem; // Full name of the object being imported (including package names)
+    String importItem; // Name of the input item, either an alias or the original import name
 
     private void processFromImport(int type, int lineNumber, String stringValue) {
-        //
-        if (type == '\n' && (importName == null || importItem == null)) {
-            importName = null;
+
+        if (type == '\n' && numOpenParen == 0) {
+
+            if (importName != null) {
+                //  If a package was specified without an import target
+                if (importNameWithItem == null) {
+                    importNameWithItem = importName;
+                    importItem = importName;
+                }
+                registerImport(importNameWithItem, importItem);
+            }
+
+            importNameWithItem = null;
             importItem = null;
+            importName = null;
             parsePhase = START;
+            return;
         }
 
-        if (stringValue != null && !stringValue.equals("import")) {
-            if (importName == null) {
-                importName = stringValue;
-            } else {
-                importItem = stringValue;
-                parsePhase = START;
+        boolean isImportPath = true;
+        if (type == ' ' || type == '(' || type == ')' || type == '\t') {
+            isImportPath = false;
+        }
 
-                importsMap.put(importItem, importName);
-                importName = null;
+        if (stringValue != null) {
+            if (stringValue.equals("import")) {
+                isImportPath = false;
+
+            } else if (stringValue.equals("as")) {
+                isImportPath = false;
                 importItem = null;
+            }
+        }
+
+        if (type == ',') {
+            if (importName != null && importNameWithItem == null) {
+                importNameWithItem = importName;
+                importItem = importName;
+            }
+            isImportPath = false;
+            registerImport(importNameWithItem, importItem);
+            importItem = null;
+            importNameWithItem = null;
+        }
+
+        if (isImportPath) {
+            if (importName == null) {
+                importName = CodeParseUtil.buildTokenString(type, stringValue);
+            } else if (importItem == null) {
+                importItem = CodeParseUtil.buildTokenString(type, stringValue);
+                if (importNameWithItem == null) {
+                    if (importName.endsWith(".") || importItem.startsWith(".")) {
+                        importNameWithItem = importName + importItem;
+                    } else {
+                        importNameWithItem = importName + "." + importItem;
+                    }
+                }
             }
         }
     }
 
     private void processImportAs(int type, int lineNumber, String stringValue) {
-        if (stringValue != null && !stringValue.equals("as")) {
-            if (importName == null) {
-                importName = stringValue;
-            } else {
-                importItem = stringValue;
-                parsePhase = START;
 
-                importsMap.put(importItem, importName);
+        if (type == '\n' && numOpenParen == 0) {
+            if (importName != null && importNameWithItem == null) {
+                importNameWithItem = importName;
+                importItem = importName;
+            }
+            registerImport(importNameWithItem, importItem);
+            importNameWithItem = null;
+            importItem = null;
+            importName = null;
+            parsePhase = START;
+            return;
+        }
+
+        boolean isImportPath = true;
+        if (type == ' ' || type == '(' || type == ')' || type == '\t') {
+            isImportPath = false;
+        }
+
+        if (stringValue != null) {
+            if (stringValue.equals("import")) {
+                isImportPath = false;
+
+            } else if (stringValue.equals("as")) {
+                isImportPath = false;
+                importItem = null;
+            }
+        }
+
+        if (type == ',') {
+            isImportPath = false;
+            if (importName != null && importNameWithItem == null) {
+                importNameWithItem = importName;
+                importItem = importName;
+            }
+            registerImport(importNameWithItem, importItem);
+            importItem = null;
+            importNameWithItem = null;
+        }
+
+        if (isImportPath) {
+            if (importName == null) {
+                importName = CodeParseUtil.buildTokenString(type, stringValue);
+            } else if (importItem == null) {
+                importItem = CodeParseUtil.buildTokenString(type, stringValue);
+                if (importNameWithItem == null) {
+                    if (importName.endsWith(".") || importItem.startsWith(".")) {
+                        importNameWithItem = importName + importItem;
+                    } else {
+                        importNameWithItem = importName + "." + importItem;
+                    }
+                }
             }
         }
     }

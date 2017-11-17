@@ -22,6 +22,7 @@ import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonDebugUtil;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -68,14 +69,22 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         LOG.info("Parsing codebase for modules, classes, and functions...");
         long codeParseStartTime = System.currentTimeMillis();
         PythonCodeCollection codebase = PythonSyntaxParser.run(rootDirectory);
+        //PythonDebugUtil.printFullTypeNames(codebase);
+        //PythonDebugUtil.printFullImports(codebase);
         long codeParseDuration = System.currentTimeMillis() - codeParseStartTime;
         LOG.info("Finished parsing codebase in " + codeParseDuration + "ms, found "
                 + codebase.getClasses().size() + " classes, "
                 + codebase.getFunctions().size() + " functions, and "
                 + codebase.getPublicVariables().size() + " public variables");
 
+        DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
+        codebase.traverse(i18Detector);
+        if (i18Detector.isLocalized()) {
+            LOG.info("Internationalization detected");
+        }
+
         if (rootUrlsFile != null && rootUrlsFile.exists()) {
-            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", FilePathUtils.getFolder(rootUrlsFile), codebase, rootUrlsFile);
+            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", rootUrlsFile.getAbsolutePath(), codebase, rootUrlsFile);
         } else if (possibleGuessedUrlFiles != null && possibleGuessedUrlFiles.size() > 0) {
 
             LOG.debug("Found " + possibleGuessedUrlFiles.size() + " possible URL files:");
@@ -85,8 +94,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
             routeMap = map();
             for (File guessedUrlsFile : possibleGuessedUrlFiles) {
-                String folder = FilePathUtils.getFolder(guessedUrlsFile);
-                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", folder, codebase, guessedUrlsFile);
+                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", guessedUrlsFile.getAbsolutePath(), codebase, guessedUrlsFile);
                 for (Map.Entry<String, DjangoRoute> url : guessedUrls.entrySet()) {
                     DjangoRoute existingRoute = routeMap.get(url.getKey());
                     if (existingRoute != null) {
@@ -111,7 +119,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             routeMap = map();
         }
 
-        this.endpoints = generateMappings();
+        this.endpoints = generateMappings(i18Detector.isLocalized());
 
         long generationDuration = System.currentTimeMillis() - generationStartTime;
         LOG.info("Finished python endpoint generation in " + generationDuration + "ms");
@@ -143,7 +151,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         }
     }
 
-    private List<Endpoint> generateMappings() {
+    private List<Endpoint> generateMappings(boolean i18) {
         List<Endpoint> mappings = list();
         for (DjangoRoute route : routeMap.values()) {
             String urlPath = route.getUrl();
@@ -151,7 +159,10 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
             Collection<String> httpMethods = route.getHttpMethods();
             Map<String, ParameterDataType> parameters = route.getParameters();
-            mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters));
+            mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters, false));
+            if (i18) {
+                mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters, true));
+            }
         }
         return mappings;
     }

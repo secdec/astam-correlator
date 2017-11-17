@@ -2,6 +2,7 @@ package com.denimgroup.threadfix.framework.impl.django.python;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
@@ -9,6 +10,16 @@ public class PythonFunction extends AbstractPythonScope {
     String name;
     List<String> params = list();
     List<PythonDecorator> decorators = list();
+
+    @Override
+    public void addImport(String importedItem, String alias) {
+
+    }
+
+    @Override
+    public Map<String, String> getImports() {
+        return this.findParent(PythonModule.class).getImports();
+    }
 
     public List<String> getParams() {
         return params;

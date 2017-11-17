@@ -18,18 +18,22 @@
 
 package com.denimgroup.threadfix.framework.impl.django;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonScope;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
+import com.denimgroup.threadfix.framework.impl.django.routers.DjangoRouter;
 import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.StreamTokenizer;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 
+import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
 /**
@@ -42,29 +46,39 @@ public class DjangoRouteParser implements EventBasedTokenizer{
 
     private PythonCodeCollection parsedCodebase;
     private DjangoRouterFactory routerFactory;
-    PythonModule rootModule;
+    private PythonModule thisModule;
 
     //alias, path
     private Map<String, String> importPathMap = map();
     //url, djangoroute
     private Map<String, DjangoRoute> routeMap = map();
 
+    private Map<String, String> importAliases = null;
+
     private String sourceRoot;
+    private String sourceFilePath;
     private String sourceFolderPath;
 
     private String rootPath = "";
 
-    public DjangoRouteParser(String sourceRoot, String rootPath, String sourceFolderPath, PythonCodeCollection sourcecode) {
+    public DjangoRouteParser(String sourceRoot, String rootPath, String sourceFilePath, PythonCodeCollection sourcecode) {
         this.sourceRoot = sourceRoot;
         this.rootPath = rootPath;
         this.parsedCodebase = sourcecode;
-        this.sourceFolderPath = sourceFolderPath;
+        this.sourceFilePath = sourceFilePath;
+        this.sourceFolderPath = FilePathUtils.getFolder(new File(sourceFilePath));
         routerFactory = new DjangoRouterFactory(sourcecode);
-        this.rootModule = sourcecode.findFirstByFilePath(sourceFolderPath, PythonModule.class);
+
+        this.thisModule = sourcecode.findByFilePath(this.sourceFilePath);
+        if (this.thisModule == null) {
+            this.thisModule = new PythonModule();
+            this.thisModule.setSourceCodePath(sourceFilePath);
+        }
+        importAliases = thisModule.getImports();
     }
 
-    public static Map<String, DjangoRoute> parse(String sourceRoot, String rootPath, String sourceFolderPath, PythonCodeCollection sourcecode, @Nonnull File file) {
-        DjangoRouteParser routeParser = new DjangoRouteParser(sourceRoot, rootPath, sourceFolderPath, sourcecode);
+    public static Map<String, DjangoRoute> parse(String sourceRoot, String rootPath, String sourceFilePath, PythonCodeCollection sourcecode, @Nonnull File file) {
+        DjangoRouteParser routeParser = new DjangoRouteParser(sourceRoot, rootPath, sourceFilePath, sourcecode);
         EventBasedTokenizerRunner.run(file, DjangoTokenizerConfigurator.INSTANCE, routeParser);
         return routeParser.routeMap;
     }
@@ -75,7 +89,8 @@ public class DjangoRouteParser implements EventBasedTokenizer{
         ALIAS = "as",
         URL = "url",
         URLPATTERNS = "urlpatterns",
-        REGEXSTART = "r",
+        PATH = "path",
+        RE_PATH = "re_path",
         INCLUDE = "include",
         TEMPLATE = "TemplateView.as_view",
         REDIRECT = "RedirectView.as_view",
@@ -98,7 +113,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
 
     private Map<String, DjangoRouter> namedRouters = map();
 
-    private boolean getRootModule() {
+    private boolean isModuleScope() {
         return numOpenParen == 0 && numOpenBracket == 0 && numOpenBrace == 0;
     }
 
@@ -116,6 +131,42 @@ public class DjangoRouteParser implements EventBasedTokenizer{
 
     private boolean isInObjectLiteral() {
         return numOpenBrace > 0;
+    }
+
+    private String expandSymbol(String symbolName) {
+        Map<String, String> imports = thisModule.getImports();
+        String varName = symbolName;
+        String subNames = symbolName;
+        if (varName.contains(".")) {
+            varName = varName.substring(0, varName.indexOf("."));
+            subNames = subNames.substring(subNames.indexOf(".") + 1);
+        } else if (varName.contains("(")) {
+            varName = varName.substring(0, varName.indexOf("("));
+            subNames = null;
+        } else {
+            subNames = null;
+        }
+
+        String fullSymbol = imports.get(varName);
+        if (subNames != null && fullSymbol != null) {
+            fullSymbol += "." + subNames;
+        }
+
+        if (fullSymbol != null) {
+            return fullSymbol;
+        } else {
+            return symbolName;
+        }
+    }
+
+    private DjangoRouter findRouterForSymbol(String symbol) {
+        if (symbol.contains(".")) {
+            symbol = symbol.substring(0, symbol.indexOf("."));
+        } else if (symbol.contains("(")) {
+            symbol = symbol.substring(0, symbol.indexOf("("));
+        }
+
+        return namedRouters.get(symbol);
     }
 
     @Override
@@ -154,7 +205,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
             }
         }
 
-        if (URL.equals(stringValue) || URLPATTERNS.equals(stringValue)){
+        if (URL.equals(stringValue) || PATH.equals(stringValue) || RE_PATH.equals(stringValue) || URLPATTERNS.equals(stringValue)){
             currentPhase = Phase.IN_URL;
             currentUrlState = UrlState.START;
         } else if (IMPORT_START.equals(stringValue)) {
@@ -183,10 +234,15 @@ public class DjangoRouteParser implements EventBasedTokenizer{
     }
 
     private enum ParsingState {
-        START, POSSIBLE_ROUTER
+        START, POSSIBLE_ROUTER, METHOD_CALL
     }
     ParsingState parsingState = ParsingState.START;
     private String possibleRouterName = null;
+    int methodCall_numStartParen;
+    String methodCallTarget = null;
+    String methodCallName = null;
+    List<String> methodCallParams;
+    String workingMethodParam;
 
     private void processParsing(int type, String stringValue) {
         switch (parsingState) {
@@ -194,6 +250,18 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                 if (type == '=' && numOpenParen == 0) {
                     possibleRouterName = lastString;
                     parsingState = ParsingState.POSSIBLE_ROUTER;
+                } else if (type == '(') {
+                    parsingState = ParsingState.METHOD_CALL;
+                    methodCall_numStartParen = numOpenParen;
+                    methodCallParams = list();
+                    if (lastString.contains(".")) {
+                        methodCallTarget = lastString.substring(0, lastString.lastIndexOf("."));
+                        methodCallName = lastString.substring(lastString.lastIndexOf(".") + 1);
+                    } else {
+                        methodCallTarget = null;
+                        methodCallName = expandSymbol(lastString);
+                    }
+                    workingMethodParam = "";
                 }
                 break;
 
@@ -201,7 +269,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                 if (type == '\n' && numOpenParen == 0) {
                     parsingState = ParsingState.START;
                 } else if (type == '(') {
-                    String routerType = lastString;
+                    String routerType = expandSymbol(lastString);
                     //  Remove any module names from the type name
                     if (routerType.contains(".")) {
                         routerType = routerType.substring(routerType.lastIndexOf(".") + 1);
@@ -214,7 +282,45 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                     parsingState = ParsingState.START;
                 }
                 break;
+
+            case METHOD_CALL:
+                if (numOpenParen < methodCall_numStartParen) {
+
+                    if (workingMethodParam.length() > 0) {
+                        methodCallParams.add(workingMethodParam);
+                    }
+
+                    //  Fully-qualify these param values
+                    for (int i = 0; i < methodCallParams.size(); i++) {
+                        String param = methodCallParams.get(i);
+                        param = expandSymbol(param);
+                        methodCallParams.set(i, param);
+                    }
+
+                    DjangoRouter routerForVar = namedRouters.get(methodCallTarget);
+                    if (routerForVar != null) {
+                        routerForVar.parseMethod(methodCallName, methodCallParams);
+                    }
+                    methodCall_numStartParen = -1;
+                    methodCallName = null;
+                    methodCallTarget = null;
+                    methodCallParams.clear();
+                    workingMethodParam = null;
+                    parsingState = ParsingState.START;
+                } else {
+                    if (type == ',' && numOpenParen == methodCall_numStartParen) {
+                        methodCallParams.add(workingMethodParam.trim());
+                        workingMethodParam = "";
+                    } else {
+                        workingMethodParam += CodeParseUtil.buildTokenString(type, stringValue);
+                    }
+                }
+                break;
         }
+    }
+
+    private void importRouters(File fromFile) {
+
     }
 
     private enum ImportState {
@@ -250,17 +356,17 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                 } else if (stringValue != null){
                     alias = stringValue;
                     String basePath = path;
-                    path = PathUtil.combine(path, stringValue);
-                    if (!(new File(PathUtil.combine(sourceFolderPath, path) + ".py")).exists()) {
-                        if ((new File(PathUtil.combine(sourceFolderPath, basePath) + ".py")).exists()) {
+                    path = DjangoPathUtil.combine(path, stringValue);
+                    if (!(new File(DjangoPathUtil.combine(sourceFolderPath, path) + ".py")).exists()) {
+                        if ((new File(DjangoPathUtil.combine(sourceFolderPath, basePath) + ".py")).exists()) {
                             path = basePath;
                         }
                     }
 
-                    String filePath = PathUtil.combine(sourceFolderPath, path + ".py");
+                    String filePath = DjangoPathUtil.combine(sourceFolderPath, path + ".py");
                     File codeFile = new File(filePath);
                     if (codeFile.exists()) {
-                        DjangoRouteParser parser = new DjangoRouteParser(sourceRoot, rootPath, FilePathUtils.getFolder(codeFile), parsedCodebase);
+                        DjangoRouteParser parser = new DjangoRouteParser(sourceRoot, rootPath, codeFile.getAbsolutePath(), parsedCodebase);
                         EventBasedTokenizerRunner.run(codeFile, DjangoTokenizerConfigurator.INSTANCE, parser);
                         if (parser.namedRouters != null) {
                             namedRouters.putAll(parser.namedRouters);
@@ -294,7 +400,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
         switch (currentUrlState) {
             case START:
                 regexBuilder = new StringBuilder("");
-                if (REGEXSTART.equals(stringValue))
+                if (type == '(')
                     currentUrlState = UrlState.REGEX;
                 break;
             case REGEX:
@@ -359,7 +465,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                             viewPath = pathToken;
 
                         File controller;
-                        AbstractPythonScope pythonController = parsedCodebase.findByFullName(pathToken);
+                        AbstractPythonScope pythonController = parsedCodebase.findByFullName(expandSymbol(pathToken));
                         if (pythonController != null) {
                             controller = new File(pythonController.getSourceCodePath());
                         } else {
@@ -367,18 +473,18 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                         }
 
                         if (controller.exists()) {
-                            String urlPath = PathUtil.combine(rootPath, regexBuilder.toString());
+                            String urlPath = DjangoPathUtil.combine(rootPath, regexBuilder.toString());
                             routeMap.put(urlPath, DjangoControllerParser.parse(controller, urlPath, methodToken));
                         }
                     } else if (parsedCodebase != null) {
                         File controller = null;
-                        AbstractPythonScope pythonController = parsedCodebase.findByFullName(viewPath);
+                        AbstractPythonScope pythonController = parsedCodebase.findByFullName(expandSymbol(viewPath));
                         if (pythonController != null) {
                             controller = new File(pythonController.getSourceCodePath());
                         }
 
                         if (controller != null && controller.exists()) {
-                            String urlPath = PathUtil.combine(rootPath, regexBuilder.toString());
+                            String urlPath = DjangoPathUtil.combine(rootPath, regexBuilder.toString());
                             routeMap.put(urlPath, DjangoControllerParser.parse(controller, urlPath, null));
                         }
                     }
@@ -394,23 +500,37 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                 } else if (type == '_') {
                     viewPath += "_";
                 } else if (!viewPath.isEmpty()) {
-                    String viewFile = null;
-                    if (importPathMap.containsKey(viewPath)) {
-                        viewFile = importPathMap.get(viewPath);
-                    } else {
-                        viewFile = viewPath.replaceAll("\\.", "\\/");
-                        if (!new File(PathUtil.combine(sourceRoot, viewFile)).exists()) {
-                            viewFile += ".py";
-                        }
-                    }
 
-                    File importFile = new File(PathUtil.combine(sourceRoot, viewFile));
-                    if (importFile.exists()) {
-                        if (importFile.isDirectory()) {
-                            for (File file : importFile.listFiles())
-                                routeMap.putAll(DjangoRouteParser.parse(sourceRoot, PathUtil.combine(rootPath, regexBuilder.toString()), FilePathUtils.getFolder(file), parsedCodebase, file));
+                    DjangoRouter referencedRouter = findRouterForSymbol(viewPath);
+                    if (referencedRouter != null && viewPath.endsWith(referencedRouter.getUrlsName())) {
+                        String basePath = DjangoPathUtil.combine(rootPath, regexBuilder.toString());
+                        for (DjangoRoute route : referencedRouter.getRoutes()) {
+                            String fullPath = DjangoPathUtil.combine(basePath, route.getUrl());
+                            DjangoRoute newRoute = new DjangoRoute(fullPath, route.getViewPath());
+                            for (Map.Entry<String, ParameterDataType> param : newRoute.getParameters().entrySet()) {
+                                newRoute.addParameter(param.getKey(), param.getValue());
+                            }
+                            routeMap.put(fullPath, newRoute);
+                        }
+                    } else {
+                        String viewFile = null;
+                        if (importPathMap.containsKey(viewPath)) {
+                            viewFile = importPathMap.get(viewPath);
                         } else {
-                            routeMap.putAll(DjangoRouteParser.parse(sourceRoot, PathUtil.combine(rootPath, regexBuilder.toString()), FilePathUtils.getFolder(importFile), parsedCodebase, importFile));
+                            viewFile = viewPath.replaceAll("\\.", "\\/");
+                            if (!new File(DjangoPathUtil.combine(sourceRoot, viewFile)).exists()) {
+                                viewFile += ".py";
+                            }
+                        }
+
+                        File importFile = new File(DjangoPathUtil.combine(sourceRoot, viewFile));
+                        if (importFile.exists()) {
+                            if (importFile.isDirectory()) {
+                                for (File file : importFile.listFiles())
+                                    routeMap.putAll(DjangoRouteParser.parse(sourceRoot, DjangoPathUtil.combine(rootPath, regexBuilder.toString()), file.getAbsolutePath(), parsedCodebase, file));
+                            } else {
+                                routeMap.putAll(DjangoRouteParser.parse(sourceRoot, DjangoPathUtil.combine(rootPath, regexBuilder.toString()), importFile.getAbsolutePath(), parsedCodebase, importFile));
+                            }
                         }
                     }
 

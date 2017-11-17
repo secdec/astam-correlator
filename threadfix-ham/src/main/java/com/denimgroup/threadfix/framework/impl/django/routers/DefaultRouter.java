@@ -1,7 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.routers;
 
 import com.denimgroup.threadfix.framework.impl.django.DjangoRoute;
-import com.denimgroup.threadfix.framework.impl.django.DjangoRouter;
+import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonScope;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 
 import java.util.Collection;
@@ -25,9 +25,8 @@ public class DefaultRouter implements DjangoRouter {
     }
 
     @Override
-    public void parseConstructorParameters(String parameters) {
-        String[] paramParts = parameters.split(",");
-        for (String param: paramParts) {
+    public void parseConstructorParameters(List<String> parameters) {
+        for (String param: parameters) {
             String[] paramValue = param.split("=");
             if (paramValue.length == 2) {
                 String name = paramValue[0];
@@ -41,18 +40,40 @@ public class DefaultRouter implements DjangoRouter {
     }
 
     @Override
-    public void parseMethod(String name, String parameters) {
+    public void parseMethod(String name, List<String> parameters) {
         if (name.equalsIgnoreCase("register")) {
-            String[] params = parameters.split(",");
+            String path = parameters.get(0);
+            if (path.startsWith("r")) {
+                path = path.substring(1);
+            }
 
-            String path = params[0];
-            if (path.startsWith("r")) path = path.substring(1);
-            if (path.startsWith("'")) path = path.substring(1);
-            if (path.endsWith  ("'")) path = path.substring(0, path.length() - 1);
+            if (path.startsWith("'") || path.startsWith("\"")) {
+                path = path.substring(1);
+            }
 
-            String view = params[1];
+            if (path.endsWith("'") || path.endsWith("\"")) {
+                path = path.substring(0, path.length() - 1);
+            }
 
-            DjangoRoute route = new DjangoRoute(path, view);
+            String controller = parameters.get(1);
+            String viewBaseName = null; // Indicates the text format of related view files, unused
+            if (parameters.size() > 2) {
+                for (int i = 2; i < parameters.size(); i++) {
+                    String param = parameters.get(i);
+                    if (param.startsWith("base_name")) {
+                        viewBaseName = param.split("\\=")[1];
+                    }
+                }
+            }
+
+            AbstractPythonScope controllerObj = this.codebase.findByFullName(controller);
+            DjangoRoute route;
+            if (controllerObj != null) {
+                route = new DjangoRoute(path, controllerObj.getSourceCodePath());
+            } else {
+                route = new DjangoRoute(path, controller);
+            }
+
             routes.add(route);
         }
     }

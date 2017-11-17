@@ -4,6 +4,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public abstract class AbstractPythonScope {
 
@@ -11,6 +12,7 @@ public abstract class AbstractPythonScope {
     private List<AbstractPythonScope> childScopes = list();
     private String sourceCodePath;
     private int sourceCodeLine;
+    private Map<String, String> imports = map();
 
     public abstract String getName();
 
@@ -30,7 +32,19 @@ public abstract class AbstractPythonScope {
         return sourceCodeLine;
     }
 
-    public void setParentModule(AbstractPythonScope parentModule) {
+    public Map<String, String> getImports() {
+        return imports;
+    }
+
+    public void addImport(String importedItem, String alias) {
+        imports.put(alias, importedItem);
+    }
+
+    public String resolveImportedAlias(String alias) {
+        return imports.get(alias);
+    }
+
+    public void setParentScope(AbstractPythonScope parentModule) {
         this.parentScope = parentModule;
         if (!parentModule.childScopes.contains(this)) {
             parentModule.childScopes.add(this);
@@ -42,7 +56,7 @@ public abstract class AbstractPythonScope {
     }
 
     public void addChildScope(AbstractPythonScope newChild) {
-        newChild.setParentModule(this);
+        newChild.setParentScope(this);
     }
 
     public Collection<AbstractPythonScope> getChildScopes() {
@@ -76,6 +90,17 @@ public abstract class AbstractPythonScope {
             fullName.append(scope.getName());
         }
         return fullName.toString();
+    }
+
+    public <T extends AbstractPythonScope> T findParent(Class<T> type) {
+        AbstractPythonScope current = this.getParentScope();
+        while (current != null) {
+            if (type.isAssignableFrom(current.getClass())) {
+                return (T)current;
+            }
+            current = current.getParentScope();
+        }
+        return null;
     }
 
     public void accept(PythonVisitor visitor) {

@@ -36,6 +36,15 @@ import static com.denimgroup.threadfix.CollectionUtils.setFrom;
  */
 public class DjangoEndpoint extends AbstractEndpoint {
 
+    // https://github.com/django/django/tree/master/django/conf/locale
+    private static String I18_LANG_PATTERN =
+                    "af|ar|ast|bg|bn|br|bs|ca|cs|cy|da|de|de_CH|dsb|el|en"  + "|" +
+                    "en_AU|en_GB|eo|es|es_AR|es_CO|es_MX|es_NI|es_PR|es_VE" + "|" +
+                    "et|eu|fa|fi|fr|fy|ga|gd|gl|he|hi|hr|hsb|hu|ia|id|io"   + "|" +
+                    "is|it|ja|ka|kk|km|kn|ko|lb|lt|lv|mk|ml|mn|mr|my|ne|nl" + "|" +
+                    "nn|os|pa|pl|pt|pt_BR|ro|ru|sk|sl|sq|sr|sr_Latn|sv|sw"  + "|" +
+                    "ta|te|th|tr|tt|udm|uk|ur|vi|zh_Hans|zh_Hant";
+
     private String filePath;
     private String urlPath;
     private Pattern urlPattern;
@@ -44,7 +53,8 @@ public class DjangoEndpoint extends AbstractEndpoint {
     private Map<String, ParameterDataType> parameters;
 
     public DjangoEndpoint(String filePath, String urlPath,
-                          Collection<String> httpMethods, Map<String, ParameterDataType> parameters) {
+                          Collection<String> httpMethods, Map<String, ParameterDataType> parameters,
+                          boolean isInternationalized) {
         this.filePath = filePath;
         this.urlPath = urlPath;
         if (httpMethods != null)
@@ -73,6 +83,11 @@ public class DjangoEndpoint extends AbstractEndpoint {
             if (endsWithDollar) {
                 pattern += "$";
             }
+        }
+
+        if (isInternationalized) {
+            pattern = DjangoPathUtil.combine("/(?:" + I18_LANG_PATTERN + ")/", pattern);
+            this.urlPath = DjangoPathUtil.combine("/(lang)", this.urlPath);
         }
 
         urlPattern = Pattern.compile(pattern);

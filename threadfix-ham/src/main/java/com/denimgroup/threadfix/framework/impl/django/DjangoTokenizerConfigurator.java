@@ -12,6 +12,8 @@ public class DjangoTokenizerConfigurator implements EventBasedTokenizerConfigura
     public void configure(StreamTokenizer tokenizer) {
         tokenizer.eolIsSignificant(true);
         tokenizer.wordChars('_', '_');
+        tokenizer.ordinaryChar('.');
+        tokenizer.wordChars('.', '.');
         tokenizer.commentChar('#');
 
         //  Python is uses whitespace for scoping
