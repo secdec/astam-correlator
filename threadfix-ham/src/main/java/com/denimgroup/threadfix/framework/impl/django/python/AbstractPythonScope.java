@@ -16,6 +16,10 @@ public abstract class AbstractPythonScope {
 
     public abstract String getName();
 
+    public PythonValue evaluate(String parameters) {
+        return null;
+    }
+
     public void setSourceCodePath(String sourceCodePath) {
         this.sourceCodePath = sourceCodePath;
     }

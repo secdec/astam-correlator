@@ -5,11 +5,9 @@ import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
-import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -408,7 +406,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
     private void processVariableType(int type, int lineNumber, String stringValue) {
         if (type == '(' || type == '\n') {
-            workingVariable.setTypeName(workingVariableType);
+            workingVariable.setValueString(workingVariableType);
             String fullVarName = workingVariable.getName();
             if (currentClass != null) {
                 fullVarName = currentClass.getFullName() + "." + fullVarName;

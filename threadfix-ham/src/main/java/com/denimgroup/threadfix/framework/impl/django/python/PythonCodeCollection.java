@@ -268,7 +268,8 @@ public class PythonCodeCollection {
         traverse(new PythonVisitor() {
             @Override
             public void visitModule(PythonModule pyModule) {
-                if (pyModule.getSourceCodePath().equals(filePath)) {
+                String sourcePath = pyModule.getSourceCodePath();
+                if (sourcePath != null && sourcePath.equals(filePath)) {
                     result.add(pyModule);
                 }
             }

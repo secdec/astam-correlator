@@ -5,7 +5,7 @@ import java.util.Map;
 public class PythonPublicVariable extends AbstractPythonScope {
 
     String name;
-    String typeName;
+    String valueString;
 
     @Override
     public void addImport(String importedItem, String alias) {
@@ -26,11 +26,11 @@ public class PythonPublicVariable extends AbstractPythonScope {
         this.name = name;
     }
 
-    public void setTypeName(String typeName) {
-        this.typeName = typeName;
+    public void setValueString(String valueString) {
+        this.valueString = valueString;
     }
 
-    public String getTypeName() {
-        return typeName;
+    public String getValueString() {
+        return valueString;
     }
 }

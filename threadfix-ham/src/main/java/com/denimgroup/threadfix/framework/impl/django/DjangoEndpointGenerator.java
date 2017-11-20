@@ -21,8 +21,10 @@ package com.denimgroup.threadfix.framework.impl.django;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
+import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonDebugUtil;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -50,6 +52,11 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
     private File rootDirectory, rootUrlsFile;
     private List<File> possibleGuessedUrlFiles;
 
+    private void debugLog(String msg) {
+        //LOG.info(msg);
+        LOG.debug(msg);
+    }
+
     public DjangoEndpointGenerator(@Nonnull File rootDirectory) {
         assert rootDirectory.exists() : "Root file did not exist.";
         assert rootDirectory.isDirectory() : "Root file was not a directory.";
@@ -73,9 +80,13 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         //PythonDebugUtil.printFullImports(codebase);
         long codeParseDuration = System.currentTimeMillis() - codeParseStartTime;
         LOG.info("Finished parsing codebase in " + codeParseDuration + "ms, found "
+                + codebase.getModules().size() + " modules, "
                 + codebase.getClasses().size() + " classes, "
                 + codebase.getFunctions().size() + " functions, and "
                 + codebase.getPublicVariables().size() + " public variables");
+
+        debugLog("Attaching known Django APIs");
+        //DjangoApiConfigurator.apply(codebase);
 
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
         codebase.traverse(i18Detector);
@@ -87,9 +98,9 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", rootUrlsFile.getAbsolutePath(), codebase, rootUrlsFile);
         } else if (possibleGuessedUrlFiles != null && possibleGuessedUrlFiles.size() > 0) {
 
-            LOG.debug("Found " + possibleGuessedUrlFiles.size() + " possible URL files:");
+            debugLog("Found " + possibleGuessedUrlFiles.size() + " possible URL files:");
             for (File urlFile : possibleGuessedUrlFiles) {
-                LOG.debug("- " + urlFile.getAbsolutePath());
+                debugLog("- " + urlFile.getAbsolutePath());
             }
 
             routeMap = map();
@@ -122,7 +133,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         this.endpoints = generateMappings(i18Detector.isLocalized());
 
         long generationDuration = System.currentTimeMillis() - generationStartTime;
-        LOG.info("Finished python endpoint generation in " + generationDuration + "ms");
+        debugLog("Finished python endpoint generation in " + generationDuration + "ms");
     }
 
     private void findRootUrlsFile() {
