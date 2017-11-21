@@ -1,40 +1,40 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis;
 
-import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonScope;
+import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
 
 public abstract class AbstractDjangoApi implements DjangoApi {
 
-    protected void tryAddScopes(PythonCodeCollection codebase, AbstractPythonScope baseScope) {
-        AbstractPythonScope targetScope = codebase.findByFullName(baseScope.getFullName());
+    protected void tryAddScopes(PythonCodeCollection codebase, AbstractPythonStatement baseScope) {
+        AbstractPythonStatement targetScope = codebase.findByFullName(baseScope.getFullName());
         if (targetScope == null) {
             codebase.add(baseScope);
             targetScope = baseScope;
         }
 
-        for (AbstractPythonScope child : baseScope.getChildScopes()) {
-            child.setParentScope(targetScope);
+        for (AbstractPythonStatement child : baseScope.getChildStatements()) {
+            child.setParentStatement(targetScope);
             tryAddScopeTree(codebase, child, targetScope);
         }
     }
 
-    private void tryAddScopeTree(PythonCodeCollection codebase, AbstractPythonScope newScopes, AbstractPythonScope baseScope) {
-        AbstractPythonScope targetScope = codebase.findByPartialName(baseScope, newScopes.getName());
+    private void tryAddScopeTree(PythonCodeCollection codebase, AbstractPythonStatement newScopes, AbstractPythonStatement baseScope) {
+        AbstractPythonStatement targetScope = codebase.findByPartialName(baseScope, newScopes.getName());
         if (targetScope == null) {
-            baseScope.addChildScope(newScopes);
+            baseScope.addChildStatement(newScopes);
             targetScope = newScopes;
         }
 
-        for (AbstractPythonScope child : newScopes.getChildScopes()) {
-            child.setParentScope(targetScope);
+        for (AbstractPythonStatement child : newScopes.getChildStatements()) {
+            child.setParentStatement(targetScope);
             tryAddScopeTree(codebase, child, targetScope);
         }
     }
 
-    protected AbstractPythonScope getRootScope(AbstractPythonScope scope) {
-        while (scope.getParentScope() != null) {
-            scope = scope.getParentScope();
+    protected AbstractPythonStatement getRootScope(AbstractPythonStatement scope) {
+        while (scope.getParentStatement() != null) {
+            scope = scope.getParentStatement();
         }
         return scope;
     }
@@ -49,7 +49,7 @@ public abstract class AbstractDjangoApi implements DjangoApi {
             } else {
                 PythonModule newModule = new PythonModule();
                 newModule.setName(module);
-                currentModule.addChildScope(newModule);
+                currentModule.addChildStatement(newModule);
                 currentModule = newModule;
             }
         }

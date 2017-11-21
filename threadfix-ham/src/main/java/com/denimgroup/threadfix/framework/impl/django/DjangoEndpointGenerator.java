@@ -23,7 +23,9 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonFunctionCall;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonVariableModification;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -79,8 +81,10 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         LOG.info("Finished parsing codebase in " + codeParseDuration + "ms, found "
                 + codebase.getModules().size() + " modules, "
                 + codebase.getClasses().size() + " classes, "
-                + codebase.getFunctions().size() + " functions, and "
-                + codebase.getPublicVariables().size() + " public variables");
+                + codebase.getFunctions().size() + " functions, "
+                + codebase.getPublicVariables().size() + " public variables, "
+                + codebase.get(PythonVariableModification.class).size() + " variable changes, and "
+                + codebase.get(PythonFunctionCall.class).size() + " function calls.");
 
         debugLog("Attaching known Django APIs");
         DjangoApiConfigurator.apply(codebase);

@@ -1,6 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.python;
 
-public class PythonModule extends AbstractPythonScope {
+public class PythonModule extends AbstractPythonStatement {
 
     String name;
 

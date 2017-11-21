@@ -19,7 +19,7 @@
 package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
-import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonScope;
+import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
 import com.denimgroup.threadfix.framework.impl.django.routers.DjangoRouter;
@@ -465,7 +465,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                             viewPath = pathToken;
 
                         File controller;
-                        AbstractPythonScope pythonController = parsedCodebase.findByFullName(expandSymbol(pathToken));
+                        AbstractPythonStatement pythonController = parsedCodebase.findByFullName(expandSymbol(pathToken));
                         if (pythonController != null) {
                             controller = new File(pythonController.getSourceCodePath());
                         } else {
@@ -478,7 +478,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                         }
                     } else if (parsedCodebase != null) {
                         File controller = null;
-                        AbstractPythonScope pythonController = parsedCodebase.findByFullName(expandSymbol(viewPath));
+                        AbstractPythonStatement pythonController = parsedCodebase.findByFullName(expandSymbol(viewPath));
                         if (pythonController != null) {
                             controller = new File(pythonController.getSourceCodePath());
                         }

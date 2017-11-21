@@ -1,7 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.routers;
 
 import com.denimgroup.threadfix.framework.impl.django.DjangoRoute;
-import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonScope;
+import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 
 import java.util.Collection;
@@ -66,7 +66,7 @@ public class DefaultRouter implements DjangoRouter {
                 }
             }
 
-            AbstractPythonScope controllerObj = this.codebase.findByFullName(controller);
+            AbstractPythonStatement controllerObj = this.codebase.findByFullName(controller);
             DjangoRoute route;
             if (controllerObj != null) {
                 route = new DjangoRoute(path, controllerObj.getSourceCodePath());

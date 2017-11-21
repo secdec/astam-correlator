@@ -4,7 +4,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.*;
 
 import java.util.Map;
 
-public class DjangoInternationalizationDetector implements PythonVisitor {
+public class DjangoInternationalizationDetector extends AbstractPythonVisitor {
 
     private boolean i18RefFound = false;
 
@@ -12,7 +12,7 @@ public class DjangoInternationalizationDetector implements PythonVisitor {
         return i18RefFound;
     }
 
-    private void detectInScope(AbstractPythonScope scope) {
+    private void detectInScope(AbstractPythonStatement scope) {
         if (i18RefFound) {
             return;
         }
@@ -24,22 +24,7 @@ public class DjangoInternationalizationDetector implements PythonVisitor {
     }
 
     @Override
-    public void visitModule(PythonModule pyModule) {
-        detectInScope(pyModule);
-    }
-
-    @Override
-    public void visitClass(PythonClass pyClass) {
-        detectInScope(pyClass);
-    }
-
-    @Override
-    public void visitFunction(PythonFunction pyFunction) {
-        detectInScope(pyFunction);
-    }
-
-    @Override
-    public void visitPublicVariable(PythonPublicVariable pyVariable) {
-        detectInScope(pyVariable);
+    public void visitAny(AbstractPythonStatement statement) {
+        detectInScope(statement);
     }
 }

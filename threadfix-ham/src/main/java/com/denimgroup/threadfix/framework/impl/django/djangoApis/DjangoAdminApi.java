@@ -1,5 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis;
 
+import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteClass;
+import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteRegisterFunction;
 import com.denimgroup.threadfix.framework.impl.django.python.*;
 
 public class DjangoAdminApi extends AbstractDjangoApi {
@@ -14,8 +16,9 @@ public class DjangoAdminApi extends AbstractDjangoApi {
 
         attachModelAdmin(admin);
         attachAdminSite(admin);
+        attachGlobalSite(admin);
 
-        AbstractPythonScope result = getRootScope(admin);
+        AbstractPythonStatement result = getRootScope(admin);
         tryAddScopes(codebase, result);
     }
 
@@ -24,22 +27,26 @@ public class DjangoAdminApi extends AbstractDjangoApi {
 
     }
 
-    private void attachModelAdmin(AbstractPythonScope target) {
+    private void attachModelAdmin(AbstractPythonStatement target) {
         PythonClass modelAdmin = new PythonClass();
         modelAdmin.setName("ModelAdmin");
-
-        target.addChildScope(modelAdmin);
+        target.addChildStatement(modelAdmin);
     }
 
-    private void attachAdminSite(AbstractPythonScope target) {
-        PythonClass adminSite = new PythonClass();
-        adminSite.setName("AdminSite");
+    private void attachAdminSite(AbstractPythonStatement target) {
+        AdminSiteClass adminSite = new AdminSiteClass();
+        PythonFunction register = new AdminSiteRegisterFunction(adminSite);
+        adminSite.addChildStatement(register);
 
-        PythonFunction register = new PythonFunction();
-        register.setName("register");
-        adminSite.addChildScope(register);
+        target.addChildStatement(adminSite);
+    }
 
-        target.addChildScope(adminSite);
+    private void attachGlobalSite(AbstractPythonStatement target) {
+        PythonPublicVariable site = new PythonPublicVariable();
+        site.setName("site");
+        site.setValueString("django.contrib.admin.AdminSite()");
+
+        target.addChildStatement(site);
     }
 
 

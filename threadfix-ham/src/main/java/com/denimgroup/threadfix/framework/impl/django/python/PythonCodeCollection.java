@@ -12,29 +12,29 @@ public class PythonCodeCollection {
 
     private static SanitizedLogger LOG = new SanitizedLogger(PythonCodeCollection.class);
 
-    List<AbstractPythonScope> scopes = list();
+    List<AbstractPythonStatement> statements = list();
 
     private void log(String message) {
         LOG.debug(message);
         //LOG.info(message);
     }
 
-    public void add(AbstractPythonScope scope) {
-        scopes.add(scope);
+    public void add(AbstractPythonStatement statement) {
+        statements.add(statement);
     }
 
-    private void expandScopeImports(AbstractPythonScope scope) {
+    private void expandStatementImports(AbstractPythonStatement statement) {
 
-        Map<String, String> imports = scope.getImports();
+        Map<String, String> imports = statement.getImports();
         Collection<Map.Entry<String, String>> importEntries = imports.entrySet();
 
-        log("Expanding: " + scope.toString());
+        log("Expanding: " + statement.toString());
 
         for (Map.Entry<String, String> entry : importEntries) {
             String alias = entry.getKey();
             String importPath = entry.getValue();
             if (importPath.startsWith(".")) {
-                AbstractPythonScope baseScope = scope.findParent(PythonModule.class);
+                AbstractPythonStatement baseScope = statement.findParent(PythonModule.class);
                 while ((importPath = importPath.substring(1)).startsWith(".")) {
                     baseScope = baseScope.findParent(PythonModule.class);
                 }
@@ -45,94 +45,89 @@ public class PythonCodeCollection {
             }
         }
 
-        log("Finished expanding: " + scope.toString());
+        log("Finished expanding: " + statement.toString());
     }
 
     /**
      * Expands relative import paths to their full path names.
      */
     public void expandImports() {
-        LOG.info("Expanding scope imports");
+        LOG.info("Expanding statement imports");
         long start = System.currentTimeMillis();
 
-        traverse(new PythonVisitor() {
+        traverse(new AbstractPythonVisitor() {
             @Override
             public void visitModule(PythonModule pyModule) {
-                expandScopeImports(pyModule);
+                expandStatementImports(pyModule);
             }
 
             @Override
             public void visitClass(PythonClass pyClass) {
-                //expandScopeImports(pyClass);
+                //expandStatementImports(pyClass);
             }
 
             @Override
             public void visitFunction(PythonFunction pyFunction) {
-                //expandScopeImports(pyFunction);
+                //expandStatementImports(pyFunction);
             }
 
             @Override
             public void visitPublicVariable(PythonPublicVariable pyVariable) {
-                //expandScopeImports(pyVariable);
+                //expandStatementImports(pyVariable);
             }
         });
 
         long duration = System.currentTimeMillis() - start;
-        LOG.info("Expanding scope imports took " + duration + "ms");
+        LOG.info("Expanding statement imports took " + duration + "ms");
+    }
+
+    public <T extends AbstractPythonStatement> Collection<T> get(final Class<T> type) {
+        final LinkedList<T> result = new LinkedList<T>();
+        traverse(new AbstractPythonVisitor() {
+            @Override
+            public void visitAny(AbstractPythonStatement statement) {
+                if (type.isAssignableFrom(statement.getClass())) {
+                    result.add((T)statement);
+                }
+            }
+        });
+        return result;
     }
 
     public Collection<PythonModule> getModules() {
         final LinkedList<PythonModule> modules = new LinkedList<PythonModule>();
-        traverse(new PythonVisitor() {
+        traverse(new AbstractPythonVisitor() {
             @Override
             public void visitModule(PythonModule pyModule) {
                 modules.add(pyModule);
             }
-
-            @Override public void visitClass(PythonClass pyClass) { }
-            @Override public void visitFunction(PythonFunction pyFunction) { }
-            @Override public void visitPublicVariable(PythonPublicVariable pyVariable) { }
         });
         return modules;
     }
 
     public Collection<PythonFunction> getFunctions() {
         final LinkedList<PythonFunction> functions = new LinkedList<PythonFunction>();
-        traverse(new PythonVisitor() {
-            @Override public void visitModule(PythonModule pyModule) { }
-            @Override public void visitClass(PythonClass pyClass) { }
-
+        traverse(new AbstractPythonVisitor() {
             @Override public void visitFunction(PythonFunction pyFunction) {
                 functions.add(pyFunction);
             }
-
-            @Override public void visitPublicVariable(PythonPublicVariable pyVariable) { }
         });
         return functions;
     }
 
     public Collection<PythonClass> getClasses() {
         final LinkedList<PythonClass> classes = new LinkedList<PythonClass>();
-        traverse(new PythonVisitor() {
-            @Override public void visitModule(PythonModule pyModule) { }
-
+        traverse(new AbstractPythonVisitor() {
             @Override public void visitClass(PythonClass pyClass) {
                 classes.add(pyClass);
             }
-
-            @Override public void visitFunction(PythonFunction pyFunction) { }
-            @Override public void visitPublicVariable(PythonPublicVariable pyVariable) { }
         });
         return classes;
     }
 
     public Collection<PythonPublicVariable> getPublicVariables() {
         final LinkedList<PythonPublicVariable> variables = new LinkedList<PythonPublicVariable>();
-        traverse(new PythonVisitor() {
-            @Override public void visitModule(PythonModule pyModule) { }
-            @Override public void visitClass(PythonClass pyClass) { }
-            @Override public void visitFunction(PythonFunction pyFunction) { }
-
+        traverse(new AbstractPythonVisitor() {
             @Override
             public void visitPublicVariable(PythonPublicVariable pyVariable) {
                 variables.add(pyVariable);
@@ -141,37 +136,22 @@ public class PythonCodeCollection {
         return variables;
     }
 
-    public Collection<AbstractPythonScope> getAll() {
-        final LinkedList<AbstractPythonScope> all = new LinkedList<AbstractPythonScope>();
-        traverse(new PythonVisitor() {
+    public Collection<AbstractPythonStatement> getAll() {
+        final LinkedList<AbstractPythonStatement> all = new LinkedList<AbstractPythonStatement>();
+        traverse(new AbstractPythonVisitor() {
             @Override
-            public void visitModule(PythonModule pyModule) {
-                all.add(pyModule);
-            }
-
-            @Override
-            public void visitClass(PythonClass pyClass) {
-                all.add(pyClass);
-            }
-
-            @Override
-            public void visitFunction(PythonFunction pyFunction) {
-                all.add(pyFunction);
-            }
-
-            @Override
-            public void visitPublicVariable(PythonPublicVariable pyVariable) {
-                all.add(pyVariable);
+            public void visitAny(AbstractPythonStatement statement) {
+                all.add(statement);
             }
         });
         return all;
     }
 
-    public AbstractPythonScope findByFullName(@Nonnull String fullName) {
-        AbstractPythonScope result = null;
+    public AbstractPythonStatement findByFullName(@Nonnull String fullName) {
+        AbstractPythonStatement result = null;
         String firstPart = fullName.split("\\.")[0];
         String remainingPart = fullName.substring(fullName.indexOf(".") + 1);
-        for (AbstractPythonScope child : scopes) {
+        for (AbstractPythonStatement child : statements) {
             if (child.getName().equals(firstPart)) {
                 result = findByPartialName(child, remainingPart);
             }
@@ -182,8 +162,8 @@ public class PythonCodeCollection {
         return result;
     }
 
-    public <T extends AbstractPythonScope> T findByFullName(@Nonnull String fullName, Class<T> type) {
-        AbstractPythonScope result = findByFullName(fullName);
+    public <T extends AbstractPythonStatement> T findByFullName(@Nonnull String fullName, Class<T> type) {
+        AbstractPythonStatement result = findByFullName(fullName);
         if (result != null && type.isAssignableFrom(result.getClass())) {
             return (T)result;
         } else {
@@ -191,7 +171,7 @@ public class PythonCodeCollection {
         }
     }
 
-    public AbstractPythonScope findByPartialName(@Nonnull AbstractPythonScope base, @Nonnull String partialName) {
+    public AbstractPythonStatement findByPartialName(@Nonnull AbstractPythonStatement base, @Nonnull String partialName) {
         if (partialName.length() == 0 || partialName.equals(base.getName())) {
             return base;
         }
@@ -207,7 +187,7 @@ public class PythonCodeCollection {
         }
 
 
-        for (AbstractPythonScope child : base.getChildScopes()) {
+        for (AbstractPythonStatement child : base.getChildStatements()) {
             if (child.getName().equals(currentPart)) {
                 if (nextPart == null) {
                     return child;
@@ -222,11 +202,11 @@ public class PythonCodeCollection {
 
     /**
      * @param fileName The name of the base file to begin searching through.
-     * @return The set of AbstractPythonScopes contained within the file and its children (if it's a folder)
+     * @return The set of AbstractPythonStatements contained within the file and its children (if it's a folder)
      */
-    public Collection<AbstractPythonScope> findInFile(@Nonnull final String fileName) {
-        final List<AbstractPythonScope> result = new LinkedList<AbstractPythonScope>();
-        traverse(new PythonVisitor() {
+    public Collection<AbstractPythonStatement> findInFile(@Nonnull final String fileName) {
+        final List<AbstractPythonStatement> result = new LinkedList<AbstractPythonStatement>();
+        traverse(new AbstractPythonVisitor() {
             @Override
             public void visitModule(PythonModule pyModule) {
                 if (pyModule.getSourceCodePath().startsWith(fileName)) {
@@ -265,7 +245,7 @@ public class PythonCodeCollection {
     public PythonModule findByFilePath(@Nonnull final String filePath) {
         //  TODO - Remove need for "container" collection
         final List<PythonModule> result = new LinkedList<PythonModule>();
-        traverse(new PythonVisitor() {
+        traverse(new AbstractPythonVisitor() {
             @Override
             public void visitModule(PythonModule pyModule) {
                 String sourcePath = pyModule.getSourceCodePath();
@@ -289,10 +269,10 @@ public class PythonCodeCollection {
         }
     }
 
-    public <T extends AbstractPythonScope> T findFirstByFilePath(@Nonnull final String filePath, final Class<?> type) {
-        final List<AbstractPythonScope> result = new ArrayList<AbstractPythonScope>();
+    public <T extends AbstractPythonStatement> T findFirstByFilePath(@Nonnull final String filePath, final Class<?> type) {
+        final List<AbstractPythonStatement> result = new ArrayList<AbstractPythonStatement>();
 
-        traverse(new PythonVisitor() {
+        traverse(new AbstractPythonVisitor() {
             @Override
             public void visitModule(PythonModule pyModule) {
                 if (type == null) {
@@ -359,7 +339,7 @@ public class PythonCodeCollection {
      * @param importRelativeToScope The import text, either in absolute form (a.b.package) or relative form (...b.package)
      * @return The set of Python scope objects matching the given import.
      */
-    public Collection<AbstractPythonScope> resolveLocalImport(AbstractPythonScope scope, String importRelativeToScope) {
+    public Collection<AbstractPythonStatement> resolveLocalImport(AbstractPythonStatement scope, String importRelativeToScope) {
         if (!(scope instanceof PythonModule)) {
             scope = scope.findParent(PythonModule.class);
         }
@@ -375,9 +355,9 @@ public class PythonCodeCollection {
                 }
             }
 
-            AbstractPythonScope targetScope = scope;
+            AbstractPythonStatement targetScope = scope;
             for (int i = 0; i < numParentTraversal; i++) {
-                targetScope = targetScope.getParentScope();
+                targetScope = targetScope.getParentStatement();
             }
 
             basePath = targetScope.getFullName() + "." + importRelativeToScope.substring(numParentTraversal);
@@ -397,12 +377,12 @@ public class PythonCodeCollection {
             basePath = basePath.substring(0, basePath.length() - 1);
         }
 
-        Collection<AbstractPythonScope> result = list();
+        Collection<AbstractPythonStatement> result = list();
 
-        AbstractPythonScope resolvedScope = findByFullName(basePath);
+        AbstractPythonStatement resolvedScope = findByFullName(basePath);
         if (resolvedScope != null) {
             if (wildcard) {
-                result.addAll(resolvedScope.getChildScopes());
+                result.addAll(resolvedScope.getChildStatements());
             } else {
                 result.add(resolvedScope);
             }
@@ -417,18 +397,9 @@ public class PythonCodeCollection {
 
 
 
-    public void traverse(PythonVisitor visitor) {
-        for (AbstractPythonScope child : scopes) {
-            Class<?> type = child.getClass();
-            if (PythonClass.class.isAssignableFrom(type)) {
-                visitor.visitClass((PythonClass)child);
-            } else if (PythonFunction.class.isAssignableFrom(type)) {
-                visitor.visitFunction((PythonFunction)child);
-            } else if (PythonModule.class.isAssignableFrom(type)) {
-                visitor.visitModule((PythonModule)child);
-            } else if (PythonPublicVariable.class.isAssignableFrom(type)) {
-                visitor.visitPublicVariable((PythonPublicVariable)child);
-            }
+    public void traverse(AbstractPythonVisitor visitor) {
+        for (AbstractPythonStatement child : statements) {
+            AbstractPythonVisitor.visitSingle(visitor, child);
             child.accept(visitor);
         }
     }

@@ -154,6 +154,44 @@ public class EventBasedTokenizerRunner {
 		}
 	}
 
+    public static void runString(@Nonnull String string, @Nonnull EventBasedTokenizerConfigurator configurator, @Nonnull EventBasedTokenizer... eventBasedTokenizers) {
+        Reader reader = null;
+        try {
+            reader = new InputStreamReader(new ByteArrayInputStream(string.getBytes("UTF-8")), "UTF-8");
+            StreamTokenizer tokenizer = new StreamTokenizer(reader);
+            tokenizer.ordinaryChar('<');
+            tokenizer.wordChars(':', ':');
+            configurator.configure(tokenizer);
+
+            // stop only if all of the tokenizers return false from shouldContinue();
+            boolean keepGoing = true;
+            while (tokenizer.nextToken() != StreamTokenizer.TT_EOF && keepGoing) {
+
+                log(tokenizer);
+
+                keepGoing = false;
+                for (EventBasedTokenizer eventBasedTokenizer : eventBasedTokenizers) {
+                    if (eventBasedTokenizer.shouldContinue()) {
+                        eventBasedTokenizer.processToken(tokenizer.ttype, tokenizer.lineno(), tokenizer.sval);
+                    }
+                    if (!keepGoing) {
+                        keepGoing = eventBasedTokenizer.shouldContinue();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            log.warn("Encountered IOException while tokenizing file.", e);
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    log.error("Encountered IOException while closing stream.", e);
+                }
+            }
+        }
+    }
+
     public static void runRails(@Nullable File file, boolean eolEnabled, boolean commentsEnabled, @Nonnull EventBasedTokenizer... eventBasedTokenizers ) {
         if (file != null && file.exists() && file.isFile()) {
 

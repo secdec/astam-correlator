@@ -2,10 +2,19 @@ package com.denimgroup.threadfix.framework.impl.django.python;
 
 import java.util.Map;
 
-public class PythonPublicVariable extends AbstractPythonScope {
+public class PythonPublicVariable extends AbstractPythonStatement {
 
     String name;
     String valueString;
+    PythonClass resolvedTypeClass;
+
+    public void setResolvedTypeClass(PythonClass pyClass) {
+        resolvedTypeClass = pyClass;
+    }
+
+    public PythonClass getResolvedTypeClass() {
+        return resolvedTypeClass;
+    }
 
     @Override
     public void addImport(String importedItem, String alias) {

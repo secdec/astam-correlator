@@ -18,5 +18,10 @@ public class AdminSiteClass extends PythonClass {
 
     public void register(String model, String adminClass) {
         // if adminClass is null, use default ModelAdmin
+        if (adminClass == null) {
+            adminClass = "django.contrib.admin.ModelAdmin";
+        }
+
+        registrations.put(model, adminClass);
     }
 }
