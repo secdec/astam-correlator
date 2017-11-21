@@ -10,7 +10,6 @@ public class DjangoApiConfigurator {
 
     //  Adding support for more standard Django APIs and third-party APIs can be inserted here
     final static List<DjangoApi> apis = list(
-            (DjangoApi)new DjangoUrlsApi(),
             (DjangoApi)new DjangoAdminApi()
     );
 
@@ -21,6 +20,10 @@ public class DjangoApiConfigurator {
         for (DjangoApi api : apis) {
             api.apply(codebase);
         }
+    }
+
+    public static void applyPostLink(PythonCodeCollection codebase) {
+
     }
 
 }

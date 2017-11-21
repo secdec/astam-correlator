@@ -11,16 +11,6 @@ public class PythonFunction extends AbstractPythonScope {
     List<String> params = list();
     List<PythonDecorator> decorators = list();
 
-    @Override
-    public void addImport(String importedItem, String alias) {
-
-    }
-
-    @Override
-    public Map<String, String> getImports() {
-        return this.findParent(PythonModule.class).getImports();
-    }
-
     public List<String> getParams() {
         return params;
     }
@@ -42,6 +32,17 @@ public class PythonFunction extends AbstractPythonScope {
             return null;
         } else {
             return (PythonClass)parent;
+        }
+    }
+
+    public PythonFunction getOwnerFunction() {
+        AbstractPythonScope parent = getParentScope();
+        if (parent == null) {
+            return null;
+        } else if (!PythonFunction.class.isAssignableFrom(parent.getClass())) {
+            return null;
+        } else {
+            return (PythonFunction)parent;
         }
     }
 

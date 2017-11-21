@@ -13,6 +13,8 @@ public abstract class AbstractPythonScope {
     private String sourceCodePath;
     private int sourceCodeLine;
     private Map<String, String> imports = map();
+    private Map<String, String> urlsModifications = map();
+    private int indentationLevel = -1;
 
     public abstract String getName();
 
@@ -34,6 +36,22 @@ public abstract class AbstractPythonScope {
 
     public int getSourceCodeLine() {
         return sourceCodeLine;
+    }
+
+    public void addUrlModification(String endpoint, String targetController) {
+        urlsModifications.put(endpoint, targetController);
+    }
+
+    public Map<String, String> getUrlsModifications() {
+        return urlsModifications;
+    }
+
+    public void setIndentationLevel(int indentationLevel) {
+        this.indentationLevel = indentationLevel;
+    }
+
+    public int getIndentationLevel() {
+        return indentationLevel;
     }
 
     public Map<String, String> getImports() {

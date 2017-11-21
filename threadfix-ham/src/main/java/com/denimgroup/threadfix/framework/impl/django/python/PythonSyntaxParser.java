@@ -1,6 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.python;
 
-import com.denimgroup.threadfix.framework.impl.django.DjangoTokenizerConfigurator;
+import com.denimgroup.threadfix.framework.impl.django.PythonTokenizerConfigurator;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -9,6 +9,7 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -41,7 +42,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         PythonCodeCollection codebase = new PythonCodeCollection();
         if (rootDirectory.isFile()) {
             PythonSyntaxParser parser = new PythonSyntaxParser(rootDirectory);
-            EventBasedTokenizerRunner.run(rootDirectory, DjangoTokenizerConfigurator.INSTANCE, parser);
+            EventBasedTokenizerRunner.run(rootDirectory, PythonTokenizerConfigurator.INSTANCE, parser);
             codebase.add(parser.getThisModule());
         } else {
             if (isModuleFolder(rootDirectory)) {
@@ -58,7 +59,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
                         }
                     } else if (file.getName().endsWith(".py")) {
                         PythonSyntaxParser parser = new PythonSyntaxParser(file);
-                        EventBasedTokenizerRunner.run(file, DjangoTokenizerConfigurator.INSTANCE, parser);
+                        EventBasedTokenizerRunner.run(file, PythonTokenizerConfigurator.INSTANCE, parser);
                         codebase.add(parser.getThisModule());
                     }
                 }
@@ -83,7 +84,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
                 log("Starting .py file " + file.getAbsolutePath());
 
                 PythonSyntaxParser parser = new PythonSyntaxParser(file);
-                EventBasedTokenizerRunner.run(file, DjangoTokenizerConfigurator.INSTANCE, parser);
+                EventBasedTokenizerRunner.run(file, PythonTokenizerConfigurator.INSTANCE, parser);
 
                 directoryModule.addChildScope(parser.getThisModule());
 
@@ -107,8 +108,10 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     PythonClass currentClass = null;
     PythonFunction currentFunction = null;
 
+    String lastValidString;
+    int lastValidType;
     String lastString;
-    int lastType;
+    int lastType = -1;
     boolean isInString = false;
 
     int numOpenParen = 0;
@@ -124,6 +127,60 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     List<PythonFunction> globalFunctions = list();
     List<PythonDecorator> pendingDecorators = list();
     List<PythonPublicVariable> publicVariables = list();
+
+    List<AbstractPythonScope> scopeStack = list();
+
+    private void pushScope(AbstractPythonScope newScope) {
+        scopeStack.add(newScope);
+        if (newScope instanceof PythonClass) {
+            currentClass = (PythonClass)newScope;
+        } else if (newScope instanceof PythonFunction) {
+            currentFunction = (PythonFunction)newScope;
+        }
+    }
+
+    private void popScope() {
+        if (scopeStack.size() == 0) {
+            return;
+        }
+
+        AbstractPythonScope lastEntry = scopeStack.get(scopeStack.size() - 1);
+        Class entryType = lastEntry.getClass();
+        scopeStack.remove(lastEntry);
+
+        AbstractPythonScope newCurrentEntry = null;
+        ListIterator<AbstractPythonScope> iterator = scopeStack.listIterator(scopeStack.size());
+        while (iterator.hasPrevious()) {
+            newCurrentEntry = iterator.previous();
+            if (newCurrentEntry.getClass().isAssignableFrom(entryType)) {
+                break;
+            } else {
+                newCurrentEntry = null;
+            }
+        }
+
+        if (PythonClass.class.isAssignableFrom(entryType)) {
+            if (newCurrentEntry == null) {
+                currentClass = null;
+            } else {
+                currentClass = (PythonClass) newCurrentEntry;
+            }
+        } else if (PythonFunction.class.isAssignableFrom(entryType)) {
+            if (newCurrentEntry == null) {
+                currentFunction = null;
+            } else {
+                currentFunction = (PythonFunction)newCurrentEntry;
+            }
+        }
+    }
+
+    private AbstractPythonScope getScope() {
+        if (scopeStack.isEmpty()) {
+            return null;
+        } else {
+            return scopeStack.get(scopeStack.size() - 1);
+        }
+    }
 
     private void registerScopeOutput(AbstractPythonScope scope) {
 
@@ -210,27 +267,77 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
     private ParsePhase parsePhase = ParsePhase.START;
 
+    private boolean isModifyingUrlPatterns = false;
+    private int urlPatterns_numStartOpenParen = -1,
+                urlPatterns_numStartOpenBrace = -1,
+                urlPatterns_numStartOpenBracket = -1;
+
+    boolean ranScopingCheck = false;
+
+    int lastLineNumber = -1;
+    int quoteStartType = -1;
+
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
 
-        if (type == '(') numOpenParen++;
-        if (type == ')') numOpenParen--;
-        if (type == '{') numOpenBrace++;
-        if (type == '}') numOpenBrace--;
-        if (type == '[') numOpenBracket++;
-        if (type == ']') numOpenBracket--;
+        if (!isInString) {
+            if (type == '(') numOpenParen++;
+            if (type == ')') numOpenParen--;
+            if (type == '{') numOpenBrace++;
+            if (type == '}') numOpenBrace--;
+            if (type == '[') numOpenBracket++;
+            if (type == ']') numOpenBracket--;
+        }
 
-        if (type == '\n') spaceDepth = 0;
+        if (stringValue != null && stringValue.equals("):")) {
+            numOpenParen--;
+        }
+
+        if (type == '\n') {
+            spaceDepth = 0;
+            ranScopingCheck = false;
+        }
+
+        if (lineNumber != lastLineNumber) {
+            lastLineNumber = lineNumber;
+        }
 
         if (type == ' ') spaceDepth++;
-        if (type == '\t') spaceDepth += 3;
+        if (type == '\t') spaceDepth += 4;
 
-        if ((type == '\'' || type == '"') && stringValue == null) {
-            isInString = !isInString;
+        boolean isStringChar = (type == '\'' || type == '"');
+
+        if (lastType == '\\' || (lastString != null && lastString.endsWith("\\"))) {
+            isStringChar = false;
+        }
+
+        if (isStringChar && stringValue == null) {
+            if (quoteStartType < 0) {
+                isInString = !isInString;
+                quoteStartType = type;
+            } else {
+                if (quoteStartType == type) {
+                    quoteStartType = -1;
+                    isInString = !isInString;
+                }
+            }
         }
 
         if (type == '@' && !isInMethod() && !isInString) {
             parsePhase = DECORATOR_NAME;
+        }
+
+        if (!isInString && stringValue != null && (stringValue.equals("urlpatterns") || stringValue.equals("urls"))) {
+            isModifyingUrlPatterns = true;
+        }
+
+        if (!ranScopingCheck && !isStringChar && !isInString && (stringValue != null || (type != ' ' && type != '\n' && type != '\t'))) {
+            AbstractPythonScope currentScope = getScope();
+            while (currentScope != null && spaceDepth < currentScope.getIndentationLevel()) {
+                popScope();
+                currentScope = getScope();
+            }
+            ranScopingCheck = true;
         }
 
         switch (parsePhase) {
@@ -247,12 +354,14 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             case IMPORT_AS:        processImportAs        (type, lineNumber, stringValue); break;
         }
 
-        if (stringValue != null) lastString = stringValue;
-        if (type > 0) lastType = type;
+        if (stringValue != null) lastValidString = stringValue;
+        if (type > 0) lastValidType = type;
+        lastString = stringValue;
+        lastType = type;
     }
 
     private void processStart(int type, int lineNumber, String stringValue) {
-        if (stringValue != null) {
+        if (stringValue != null && !isInString) {
             if (stringValue.equals("class")) {
                 parsePhase = ParsePhase.CLASS_NAME;
             } else if (stringValue.equals("def")) {
@@ -270,16 +379,12 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
 
     private void processClassName(int type, int lineNumber, String stringValue) {
-        if (isInClass() || isInMethod()) {
-            //  Not supporting embedded classes
-            parsePhase = ParsePhase.START;
-            return;
-        }
         if (stringValue != null) {
             currentClass = new PythonClass();
             currentClass.setName(stringValue);
             currentClass.setSourceCodeLine(lineNumber);
             currentClass.setSourceCodePath(this.thisModule.getSourceCodePath());
+            currentClass.setIndentationLevel(spaceDepth);
             classEntrySpaceDepth = spaceDepth;
 
             for (PythonDecorator decorator : pendingDecorators) {
@@ -288,6 +393,8 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             pendingDecorators.clear();
 
             parsePhase = ParsePhase.CLASS_BASE_TYPES;
+
+            pushScope(currentClass);
         }
     }
 
@@ -295,6 +402,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         if (numOpenParen == 0) {
             attachImports(currentClass);
             registerScopeOutput(currentClass);
+            classEntrySpaceDepth = -1;
             parsePhase = ParsePhase.START;
         } else if (stringValue != null) {
             currentClass.addBaseType(stringValue);
@@ -302,31 +410,30 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
 
     private void processFunctionName(int type, int lineNumber, String stringValue) {
-        if (isInMethod()) {
-            //  Not supporting embedded functions
-            parsePhase = ParsePhase.START;
-            return;
-        }
-
         if (stringValue != null) {
             functionEntrySpaceDepth = spaceDepth;
+            PythonFunction newFunction = new PythonFunction();
+
             if (isInClass()) {
-                currentFunction = new PythonFunction();
-                currentFunction.setParentScope(currentClass);
+                newFunction.setParentScope(currentClass);
+            } else if (isInMethod()) {
+                currentFunction.addChildScope(newFunction);
             } else {
-                currentFunction = new PythonFunction();
+                newFunction = new PythonFunction();
             }
 
-            currentFunction.setSourceCodePath(this.thisModule.getSourceCodePath());
+            newFunction.setName(stringValue);
+            newFunction.setSourceCodeLine(lineNumber);
+            newFunction.setSourceCodePath(this.thisModule.getSourceCodePath());
+            newFunction.setIndentationLevel(spaceDepth);
+
+            pushScope(newFunction);
 
             for (PythonDecorator decorator : pendingDecorators) {
-                currentFunction.addDecorator(decorator);
+                newFunction.addDecorator(decorator);
             }
 
             pendingDecorators.clear();
-
-            currentFunction.setName(stringValue);
-            currentFunction.setSourceCodeLine(lineNumber);
 
             parsePhase = ParsePhase.FUNCTION_PARAMS;
         }
@@ -334,10 +441,11 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
     private void processFunctionParams(int type, int lineNumber, String stringValue) {
         if (numOpenParen == 0) {
-            if (currentFunction.getOwnerClass() == null) {
+            if (currentFunction.getOwnerClass() == null && currentFunction.getOwnerFunction() == null) {
                 //attachImports(currentFunction);
                 registerScopeOutput(currentFunction);
             }
+            functionEntrySpaceDepth = -1;
             parsePhase = ParsePhase.START;
         } else if (stringValue != null) {
             currentFunction.addParam(stringValue);
@@ -391,7 +499,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         if (workingVariable == null) {
             workingVariable = new PythonPublicVariable();
             workingVariable.setSourceCodeLine(lineNumber);
-            workingVariable.setName(lastString);
+            workingVariable.setName(lastValidString);
             workingVariable.setSourceCodePath(this.thisModule.getSourceCodePath());
         }
 

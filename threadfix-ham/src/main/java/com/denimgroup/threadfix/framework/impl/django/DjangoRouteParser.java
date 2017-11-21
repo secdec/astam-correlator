@@ -79,7 +79,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
 
     public static Map<String, DjangoRoute> parse(String sourceRoot, String rootPath, String sourceFilePath, PythonCodeCollection sourcecode, @Nonnull File file) {
         DjangoRouteParser routeParser = new DjangoRouteParser(sourceRoot, rootPath, sourceFilePath, sourcecode);
-        EventBasedTokenizerRunner.run(file, DjangoTokenizerConfigurator.INSTANCE, routeParser);
+        EventBasedTokenizerRunner.run(file, routeParser);
         return routeParser.routeMap;
     }
 
@@ -367,7 +367,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                     File codeFile = new File(filePath);
                     if (codeFile.exists()) {
                         DjangoRouteParser parser = new DjangoRouteParser(sourceRoot, rootPath, codeFile.getAbsolutePath(), parsedCodebase);
-                        EventBasedTokenizerRunner.run(codeFile, DjangoTokenizerConfigurator.INSTANCE, parser);
+                        EventBasedTokenizerRunner.run(codeFile, PythonTokenizerConfigurator.INSTANCE, parser);
                         if (parser.namedRouters != null) {
                             namedRouters.putAll(parser.namedRouters);
                         }

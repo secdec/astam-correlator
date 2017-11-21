@@ -45,9 +45,18 @@ public class DjangoEndpoint extends AbstractEndpoint {
                     "nn|os|pa|pl|pt|pt_BR|ro|ru|sk|sl|sq|sr|sr_Latn|sv|sw"  + "|" +
                     "ta|te|th|tr|tt|udm|uk|ur|vi|zh_Hans|zh_Hant";
 
+    private final static List<String> I18_SUPPORTED_LANGS = list(
+            "af", "ar", "ast", "bg", "bn", "br", "bs", "ca", "cs", "cy", "da", "de", "de_CH", "dsb",
+            "el", "en", "en_AU", "en_GB", "eo", "es", "es_AR", "es_CO", "es_MX", "es_NI", "es_PR", "es_VE",
+            "et", "eu", "fa", "fi", "fr", "fy", "ga", "gd", "gl", "he", "hi", "hr", "hsb", "hu", "ia", "id",
+            "io", "is", "it", "ja", "ka", "kk", "km", "kn", "ko", "lb", "lt", "lv", "mk", "ml", "mn", "mr",
+            "my", "ne", "nl", "nn", "os", "pa", "pl", "pt", "pt_BR", "ro", "ru", "sk", "sl", "sq", "sr",
+            "sr_Latn", "sv", "sw", "ta", "te", "th", "tr", "tt", "udm", "uk", "ur", "vi", "zh_Hans", "zh_Hant");
+
     private String filePath;
     private String urlPath;
     private Pattern urlPattern;
+    private boolean isInternationalized;
 
     private Set<String> httpMethods;
     private Map<String, ParameterDataType> parameters;
@@ -85,16 +94,39 @@ public class DjangoEndpoint extends AbstractEndpoint {
             }
         }
 
-        if (isInternationalized) {
-            pattern = DjangoPathUtil.combine("/(?:" + I18_LANG_PATTERN + ")/", pattern);
-            this.urlPath = DjangoPathUtil.combine("/(lang)", this.urlPath);
-        }
+        this.isInternationalized = isInternationalized;
+
+//        if (isInternationalized) {
+//            pattern = DjangoPathUtil.combine("/(?:" + I18_LANG_PATTERN + ")/", pattern);
+//            this.urlPath = DjangoPathUtil.combine("/(i18)", this.urlPath);
+//        }
 
         urlPattern = Pattern.compile(pattern);
     }
 
     @Override
     public int compareRelevance(String endpoint) {
+
+        if (isInternationalized) {
+            if (endpoint.startsWith("/")) {
+                endpoint = endpoint.substring(1);
+            }
+
+            String[] endpointParts;
+            endpointParts = endpoint.split("/");
+
+            if (endpointParts.length == 0) {
+                return -1;
+            } else if (!I18_SUPPORTED_LANGS.contains(endpointParts[0])) {
+                return -1;
+            } else {
+                //  The first part was a supported language code (ie 'en', 'fr'), remove that part of
+                //  the path so that it doesn't interfere with pattern matching
+                endpoint = endpoint.substring(endpoint.indexOf('/'));
+                // /en/some-page -> /some-page
+            }
+        }
+
         if (endpoint.equalsIgnoreCase(urlPath)) {
             return 100;
         } else if (urlPattern.matcher(endpoint).matches()) {

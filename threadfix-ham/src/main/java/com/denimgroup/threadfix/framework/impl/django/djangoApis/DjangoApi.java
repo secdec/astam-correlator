@@ -4,6 +4,8 @@ import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollectio
 
 public interface DjangoApi {
 
+    String getIdentifier();
     void apply(PythonCodeCollection codebase);
+    void applyPostLink(PythonCodeCollection codebase);
 
 }

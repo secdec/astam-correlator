@@ -23,12 +23,9 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonDebugUtil;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
-import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 
@@ -53,8 +50,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
     private List<File> possibleGuessedUrlFiles;
 
     private void debugLog(String msg) {
-        //LOG.info(msg);
-        LOG.debug(msg);
+        LOG.info(msg);
+        //LOG.debug(msg);
     }
 
     public DjangoEndpointGenerator(@Nonnull File rootDirectory) {
@@ -86,7 +83,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 + codebase.getPublicVariables().size() + " public variables");
 
         debugLog("Attaching known Django APIs");
-        //DjangoApiConfigurator.apply(codebase);
+        DjangoApiConfigurator.apply(codebase);
 
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
         codebase.traverse(i18Detector);
@@ -148,7 +145,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         if (settingsFile.isDirectory()) {
             for (File file : settingsFile.listFiles()) {
-                EventBasedTokenizerRunner.run(file, DjangoTokenizerConfigurator.INSTANCE, urlFileFinder);
+                EventBasedTokenizerRunner.run(file, PythonTokenizerConfigurator.INSTANCE, urlFileFinder);
                 if (!urlFileFinder.shouldContinue()) break;
             }
         } else {
