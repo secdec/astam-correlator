@@ -42,10 +42,17 @@ public class PythonCodeCollection {
                 String basePath = baseScope.getFullName();
                 importPath = basePath + "." + importPath;
                 imports.put(alias, importPath);
+                log("Expanded " + alias + " to " + importPath);
             }
         }
 
         log("Finished expanding: " + statement.toString());
+    }
+
+    public void initialize() {
+        this.expandImports();
+        this.collapseSymbolReferences();
+        this.executeInvocations();
     }
 
     /**
@@ -63,22 +70,165 @@ public class PythonCodeCollection {
 
             @Override
             public void visitClass(PythonClass pyClass) {
-                //expandStatementImports(pyClass);
+                expandStatementImports(pyClass);
             }
 
             @Override
             public void visitFunction(PythonFunction pyFunction) {
-                //expandStatementImports(pyFunction);
+                expandStatementImports(pyFunction);
             }
 
             @Override
             public void visitPublicVariable(PythonPublicVariable pyVariable) {
-                //expandStatementImports(pyVariable);
+                expandStatementImports(pyVariable);
             }
         });
 
         long duration = System.currentTimeMillis() - start;
         LOG.info("Expanding statement imports took " + duration + "ms");
+    }
+
+    public void collapseSymbolReferences() {
+        LOG.info("Collapsing symbol references");
+        //  Various function and variable references have been made and captured. Neither
+        //  have been resolved to their fully-qualified names yet.
+        //
+        //  1. Fully-qualify variables declared directly in a module.
+        //  2. Fully-qualify variables referenced via 'self.ABC'.
+        //  3. Remove function-local variable references that have been qualified outside of the function.
+        //  4. Link variable modifications to their now-qualified references.
+        //  5. Link function calls to their fully-qualified references.
+
+        //  Lower-depth nodes are considered the definitions of a variable (unless defined in __init__)
+
+        // OR
+
+        long startTime = System.currentTimeMillis();
+        long duration;
+
+        int numPrunedVariables = 0;
+        Collection<PythonPublicVariable> variableDeclarations = this.getPublicVariables();
+        for (PythonPublicVariable var : variableDeclarations) {
+            String name = var.getName();
+            if (name.contains(".") && !name.startsWith("self.")) {
+                var.detach();
+                ++numPrunedVariables;
+            } else if (name.startsWith("self.")) {
+                var.setName(name.substring(5));
+            }
+        }
+
+        duration = System.currentTimeMillis() - startTime;
+        LOG.info("Pruned " + numPrunedVariables + " redundant variable declarations in " + duration + "ms");
+        startTime = System.currentTimeMillis();
+
+        int numResolvedTypes = 0;
+        variableDeclarations = this.getPublicVariables(); // use updated list of non-pruned variables
+        for (PythonPublicVariable var : variableDeclarations) {
+            String value = var.getValueString();
+            if (value.contains("(")) {
+                String methodName = value.substring(0, value.indexOf("("));
+                PythonClass type = resolveLocalSymbol(methodName, var, PythonClass.class);
+                if (type != null) {
+                    var.setResolvedTypeClass(type);
+                    ++numResolvedTypes;
+                }
+            }
+        }
+
+        duration = System.currentTimeMillis() - startTime;
+        LOG.info("Resolved " + numResolvedTypes + " variable types in " + duration + "ms");
+
+        int numResolvedModifications = 0;
+        Collection<PythonVariableModification> variableModifications = this.get(PythonVariableModification.class);
+        for (PythonVariableModification var : variableModifications) {
+            String varName = var.getTarget();
+            PythonPublicVariable resolvedVar = resolveLocalSymbol(varName, var, PythonPublicVariable.class);
+            if (resolvedVar != null) {
+                var.setResolvedTarget(resolvedVar);
+                ++numResolvedModifications;
+            }
+        }
+
+        duration = System.currentTimeMillis() - startTime;
+        LOG.info("Resolved " + numResolvedModifications + " variable modifications in " + duration + "ms");
+        startTime = System.currentTimeMillis();
+
+        int numResolvedFunctionCalls = 0;
+        Collection<PythonFunctionCall> functionCalls = this.get(PythonFunctionCall.class);
+        for (PythonFunctionCall call : functionCalls) {
+            String invokee = call.getInvokeeName();
+            String function = call.getFunctionName();
+
+            PythonPublicVariable resolvedInvokee = null;
+            if (invokee != null) {
+                resolvedInvokee = resolveLocalSymbol(invokee, call, PythonPublicVariable.class);
+            }
+
+            PythonFunction resolvedFunction = null;
+            if (function != null) {
+                if (resolvedInvokee != null) {
+                    PythonClass invokeeType = resolvedInvokee.getResolvedTypeClass();
+                    if (invokeeType != null) {
+                        resolvedFunction = resolveLocalSymbol(function, invokeeType, PythonFunction.class);
+                    }
+                } else {
+                    resolvedFunction = resolveLocalSymbol(function, call, PythonFunction.class);
+                }
+            } else {
+                continue;
+            }
+
+            if (resolvedInvokee != null) {
+                call.setResolvedInvokee(resolvedInvokee);
+            }
+
+            if (resolvedFunction != null) {
+                call.setResolvedFunction(resolvedFunction);
+                ++numResolvedFunctionCalls;
+            }
+        }
+
+        duration = System.currentTimeMillis() - startTime;
+        LOG.info("Resolved " + numResolvedFunctionCalls + " function calls in " + duration + "ms");
+
+        LOG.info("Finished collapsing symbol references");
+    }
+
+    public void executeInvocations() {
+        LOG.info("Executing global-level function calls");
+
+        Collection<PythonFunctionCall> functionCalls = new LinkedList<PythonFunctionCall>();
+        Collection<PythonModule> modules = getModules();
+
+        for (PythonModule module : modules) {
+            for (AbstractPythonStatement child : module.getChildStatements()) {
+                if (child instanceof PythonFunctionCall) {
+                    functionCalls.add((PythonFunctionCall)child);
+                }
+            }
+        }
+
+        long startTime = System.currentTimeMillis();
+
+        for (PythonFunctionCall call : functionCalls) {
+            PythonFunction function = call.getResolvedFunction();
+            if (function != null) {
+                if (function.canInvoke()) {
+                    Collection<String> params = call.getParameters();
+                    String[] arrayParams;
+                    if (params.size() == 0) {
+                        arrayParams = new String[0];
+                    } else {
+                        arrayParams = params.toArray(new String[params.size()]);
+                    }
+                    function.invoke(this, call.getResolvedInvokee(), arrayParams);
+                }
+            }
+        }
+
+        long duration = System.currentTimeMillis() - startTime;
+        LOG.info("Executing " + functionCalls.size() + " function calls took " + duration + "ms");
     }
 
     public <T extends AbstractPythonStatement> Collection<T> get(final Class<T> type) {
@@ -148,8 +298,18 @@ public class PythonCodeCollection {
     }
 
     public AbstractPythonStatement findByFullName(@Nonnull String fullName) {
+
+        if (!fullName.contains(".")) {
+            for (AbstractPythonStatement child : statements) {
+                if (child.getFullName().equals(fullName)) {
+                    return child;
+                }
+            }
+            return null;
+        }
+
         AbstractPythonStatement result = null;
-        String firstPart = fullName.split("\\.")[0];
+        String firstPart = fullName.substring(0, fullName.indexOf('.'));
         String remainingPart = fullName.substring(fullName.indexOf(".") + 1);
         for (AbstractPythonStatement child : statements) {
             if (child.getName().equals(firstPart)) {
@@ -392,6 +552,78 @@ public class PythonCodeCollection {
             return null;
         } else {
             return result;
+        }
+    }
+
+
+    public AbstractPythonStatement resolveLocalSymbol(@Nonnull String symbol, @Nonnull AbstractPythonStatement localScope) {
+
+        AbstractPythonStatement result;
+
+        if (symbol.startsWith("self.")) {
+            while (!(localScope instanceof PythonClass)) {
+                localScope = localScope.getParentStatement();
+                if (localScope == null) {
+                    return null;
+                }
+            }
+            PythonClass ownerClass = (PythonClass)localScope;
+            symbol = symbol.substring(5);
+            return findByFullName(ownerClass.getFullName() + "." + symbol);
+        }
+
+        result = findByFullName(localScope.getFullName() + "." + symbol);
+        if (result != null) {
+            return result;
+        }
+
+        result = findByFullName(symbol);
+        if (result != null) {
+            return result;
+        }
+
+        AbstractPythonStatement currentImportScope = localScope;
+        Map<String, String> imports = currentImportScope.getImports();
+        while (currentImportScope != null && imports.size() == 0) {
+            imports = currentImportScope.getImports();
+            currentImportScope = currentImportScope.getParentStatement();
+        }
+
+        for (Map.Entry<String, String> entry : imports.entrySet()) {
+            String alias = entry.getKey();
+            String fullName = entry.getValue();
+
+            if (symbol.startsWith(alias)) {
+                result = findByFullName(symbol.replace(alias, fullName));
+                if (result != null) {
+                    break;
+                }
+            }
+        }
+
+        if (result != null) {
+            return result;
+        }
+
+        AbstractPythonStatement currentScope = localScope;
+        do {
+            currentScope = currentScope.getParentStatement();
+            if (currentScope == null) {
+                break;
+            }
+            result = resolveLocalSymbol(symbol, currentScope);
+
+        } while (!(currentScope instanceof PythonModule) && result == null);
+
+        return result;
+    }
+
+    public <T extends AbstractPythonStatement> T resolveLocalSymbol(@Nonnull String symbol, @Nonnull AbstractPythonStatement localScope, @Nonnull Class<?> type) {
+        AbstractPythonStatement statement = resolveLocalSymbol(symbol, localScope);
+        if (statement != null && type.isAssignableFrom(statement.getClass())) {
+            return (T)statement;
+        } else {
+            return null;
         }
     }
 

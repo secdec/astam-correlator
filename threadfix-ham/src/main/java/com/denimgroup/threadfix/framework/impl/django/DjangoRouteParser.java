@@ -464,15 +464,17 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                         else
                             viewPath = pathToken;
 
-                        File controller;
+                        File controller = null;
                         AbstractPythonStatement pythonController = parsedCodebase.findByFullName(expandSymbol(pathToken));
                         if (pythonController != null) {
-                            controller = new File(pythonController.getSourceCodePath());
+                            if (pythonController.getSourceCodePath() != null) {
+                                controller = new File(pythonController.getSourceCodePath());
+                            }
                         } else {
                             controller = new File(sourceRoot, viewPath + ".py");
                         }
 
-                        if (controller.exists()) {
+                        if (controller != null && controller.exists()) {
                             String urlPath = DjangoPathUtil.combine(rootPath, regexBuilder.toString());
                             routeMap.put(urlPath, DjangoControllerParser.parse(controller, urlPath, methodToken));
                         }

@@ -2,7 +2,7 @@ package com.denimgroup.threadfix.framework.impl.django.python;
 
 public abstract class AbstractPythonVisitor {
 
-    public static void visitSingle(AbstractPythonVisitor visitor, AbstractPythonStatement statement) {
+    static void visitSingle(AbstractPythonVisitor visitor, AbstractPythonStatement statement) {
         Class<?> type = statement.getClass();
         if (PythonClass.class.isAssignableFrom(type)) {
             visitor.visitClass((PythonClass)statement);

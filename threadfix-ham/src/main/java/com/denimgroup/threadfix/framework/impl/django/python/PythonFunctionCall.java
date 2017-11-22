@@ -10,6 +10,8 @@ public class PythonFunctionCall extends AbstractPythonStatement {
     String invokeeName = null;
     String functionName = null;
     List<String> args = list();
+    PythonPublicVariable resolvedInvokee;
+    PythonFunction resolvedFunction;
 
     @Override
     public String getName() {
@@ -34,12 +36,28 @@ public class PythonFunctionCall extends AbstractPythonStatement {
         this.functionName = functionName;
     }
 
+    public PythonPublicVariable getResolvedInvokee() {
+        return resolvedInvokee;
+    }
+
+    public PythonFunction getResolvedFunction() {
+        return resolvedFunction;
+    }
+
+    public void setResolvedInvokee(PythonPublicVariable resolvedInvokee) {
+        this.resolvedInvokee = resolvedInvokee;
+    }
+
+    public void setResolvedFunction(PythonFunction resolvedFunction) {
+        this.resolvedFunction = resolvedFunction;
+    }
+
     public void addParameter(String value) {
         args.add(value);
     }
 
     public void setParameters(List<String> args) {
-        args = new ArrayList<String>(args);
+        this.args = new ArrayList<String>(args);
     }
 
     public List<String> getParameters() {

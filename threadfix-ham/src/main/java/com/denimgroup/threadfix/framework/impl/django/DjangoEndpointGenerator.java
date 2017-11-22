@@ -69,7 +69,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             possibleGuessedUrlFiles = findUrlsByFileName();
         }
 
-        boolean foundUrlFiles = (rootUrlsFile == null || !rootUrlsFile.exists()) && (possibleGuessedUrlFiles == null || possibleGuessedUrlFiles.size() == 0);
+        boolean foundUrlFiles = (rootUrlsFile != null && rootUrlsFile.exists()) || (possibleGuessedUrlFiles != null && possibleGuessedUrlFiles.size() > 0);
         assert foundUrlFiles : "Root URL file did not exist";
 
         LOG.info("Parsing codebase for modules, classes, and functions...");
@@ -88,6 +88,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         debugLog("Attaching known Django APIs");
         DjangoApiConfigurator.apply(codebase);
+
+        codebase.initialize();
 
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
         codebase.traverse(i18Detector);
@@ -144,7 +146,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         EventBasedTokenizerRunner.run(manageFile, settingsFinder);
 
         File settingsFile = settingsFinder.getSettings(rootDirectory.getPath());
-        assert settingsFile.exists() : "Settings file not found";
+        //assert settingsFile.exists() : "Settings file not found";
         UrlFileFinder urlFileFinder = new UrlFileFinder();
 
         if (settingsFile.isDirectory()) {
@@ -156,7 +158,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             settingsFile = new File(settingsFile.getAbsolutePath().concat(".py"));
             EventBasedTokenizerRunner.run(settingsFile, urlFileFinder);
         }
-        assert !urlFileFinder.getUrlFile().isEmpty() : "Root URL file setting does not exist.";
+
+        //assert !urlFileFinder.getUrlFile().isEmpty() : "Root URL file setting does not exist.";
 
         if (!urlFileFinder.getUrlFile().isEmpty()) {
             rootUrlsFile = new File(rootDirectory, urlFileFinder.getUrlFile());

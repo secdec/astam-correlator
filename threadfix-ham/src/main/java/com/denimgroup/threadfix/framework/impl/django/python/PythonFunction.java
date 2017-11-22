@@ -29,7 +29,7 @@ public class PythonFunction extends AbstractPythonStatement {
         return false;
     }
 
-    public String invoke(PythonPublicVariable context, String[] params) {
+    public String invoke(PythonCodeCollection codebase, PythonPublicVariable context, String[] params) {
         return null;
     }
 

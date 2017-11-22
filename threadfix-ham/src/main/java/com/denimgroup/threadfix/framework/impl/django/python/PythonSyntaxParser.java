@@ -17,6 +17,8 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
     private static SanitizedLogger LOG = new SanitizedLogger(PythonSyntaxParser.class);
 
+    private static Collection<String> PYTHON_KEYWORDS = list("if", "while", "else", "elif", "in", "do", "and", "not", "or", "\\");
+
     private static void log(String msg) {
         //LOG.info(msg);
         LOG.debug(msg);
@@ -63,7 +65,6 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             }
         }
 
-        codebase.expandImports();
         return codebase;
     }
 
@@ -191,8 +192,9 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
     private void registerScopeOutput(AbstractPythonStatement scope) {
 
-        if (thisModule != null) {
-            thisModule.addChildStatement(scope);
+        AbstractPythonStatement currentScope = getScope();
+        if (currentScope != null) {
+            currentScope.addChildStatement(scope);
         } else {
             Class scopeClass = scope.getClass();
             if (PythonClass.class.isAssignableFrom(scopeClass)) {
@@ -412,8 +414,6 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             pendingDecorators.clear();
 
             parsePhase = ParsePhase.CLASS_BASE_TYPES;
-
-            pushScope(currentClass);
         }
     }
 
@@ -421,6 +421,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         if (numOpenParen == 0) {
             attachImports(currentClass);
             registerScopeOutput(currentClass);
+            pushScope(currentClass);
             classEntrySpaceDepth = -1;
             parsePhase = ParsePhase.START;
         } else if (stringValue != null) {
@@ -446,14 +447,13 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             newFunction.setSourceCodePath(this.thisModule.getSourceCodePath());
             newFunction.setIndentationLevel(spaceDepth);
 
-            pushScope(newFunction);
-
             for (PythonDecorator decorator : pendingDecorators) {
                 newFunction.addDecorator(decorator);
             }
 
             pendingDecorators.clear();
 
+            currentFunction = newFunction;
             parsePhase = ParsePhase.DECL_FUNCTION_PARAMS;
         }
     }
@@ -464,6 +464,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
                 //attachImports(currentFunction);
                 registerScopeOutput(currentFunction);
             }
+            pushScope(currentFunction);
             functionEntrySpaceDepth = -1;
             parsePhase = ParsePhase.START;
         } else if (stringValue != null) {
@@ -472,11 +473,22 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
 
     PythonFunctionCall workingFunctionCall = null;
-    String workingFunctionCallParams = null;
+    StringBuilder workingFunctionCallParams = null;
+    int functionCallStartNumParen = -1;
     private void processInvokeFunctionParams(int type, int lineNumber, String stringValue) {
+
+        if (!isInString && stringValue != null &&
+                (PYTHON_KEYWORDS.contains(stringValue) || PYTHON_KEYWORDS.contains(lastValidString))) {
+            parsePhase = START;
+            return;
+        }
+
         if (workingFunctionCall == null) {
             workingFunctionCall = new PythonFunctionCall();
-            workingFunctionCallParams = "";
+            workingFunctionCallParams = new StringBuilder();
+            workingFunctionCall.setSourceCodeLine(lineNumber);
+
+            functionCallStartNumParen = numOpenParen;
 
             String callName = lastValidString;
             if (callName.contains(".")) {
@@ -488,20 +500,20 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             }
         }
 
-        if (numOpenParen == 0) {
-            String[] params = CodeParseUtil.splitByComma(workingFunctionCallParams);
+        if (numOpenParen < functionCallStartNumParen) {
+            String[] params = CodeParseUtil.splitByComma(workingFunctionCallParams.toString());
             workingFunctionCall.setParameters(Arrays.asList(params));
             registerScopeOutput(workingFunctionCall);
             workingFunctionCall = null;
             workingFunctionCallParams = null;
             parsePhase = START;
         } else {
-            workingFunctionCallParams += CodeParseUtil.buildTokenString(type, stringValue);
+            workingFunctionCallParams.append(CodeParseUtil.buildTokenString(type, stringValue));
         }
     }
 
     PythonDecorator currentDecorator;
-    String workingDecoratorParam;
+    StringBuilder workingDecoratorParam;
     int decorator_startParenIndex = -1;
     int decorator_startBraceIndex = -1;
     int decorator_startBracketIndex = -1;
@@ -514,16 +526,17 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             decorator_startParenIndex = numOpenParen;
             decorator_startBraceIndex = numOpenBrace;
             decorator_startBracketIndex = numOpenBrace;
-            workingDecoratorParam = "";
+            workingDecoratorParam = new StringBuilder();
         }
     }
 
     private void processDecoratorParams(int type, int lineNumber, String stringValue) {
         if (numOpenParen == 0) {
             if (workingDecoratorParam != null && workingDecoratorParam.length() > 0) {
-                workingDecoratorParam = cleanParamValue(workingDecoratorParam);
-                currentDecorator.addParam(workingDecoratorParam);
+                String paramValue = cleanParamValue(workingDecoratorParam.toString());
+                currentDecorator.addParam(paramValue);
             }
+            workingDecoratorParam = null;
             pendingDecorators.add(currentDecorator);
             parsePhase = START;
         } else {
@@ -531,20 +544,18 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
                     numOpenBrace != decorator_startBraceIndex &&
                     numOpenBracket != decorator_startBracketIndex) {
 
-                workingDecoratorParam = cleanParamValue(workingDecoratorParam);
-                currentDecorator.addParam(workingDecoratorParam);
-                workingDecoratorParam = "";
-
+                String paramValue = cleanParamValue(workingDecoratorParam.toString());
+                currentDecorator.addParam(paramValue);
+                workingDecoratorParam = new StringBuilder();
             } else {
-                workingDecoratorParam += CodeParseUtil.buildTokenString(type, stringValue);
+                workingDecoratorParam.append(CodeParseUtil.buildTokenString(type, stringValue));
             }
         }
     }
 
     PythonVariableModification workingVarChange;
-    String workingVarValue = null;
+    StringBuilder workingVarValue = null;
     int initialOperatorType = -1;
-    VariableModificationType variableChangeType = VariableModificationType.UNKNOWN;
     private void processVariableAssignment(int type, int lineNumber, String stringValue) {
         if (workingVarChange == null) {
             workingVarChange = new PythonVariableModification();
@@ -555,18 +566,23 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         }
 
         if (stringValue != null) {
-            workingVarValue = CodeParseUtil.buildTokenString(type, stringValue);
+            workingVarValue = new StringBuilder(CodeParseUtil.buildTokenString(type, stringValue));
         } else {
-            workingVarValue = "";
+            workingVarValue = new StringBuilder();
         }
 
-        if (variableChangeType == VariableModificationType.UNKNOWN) {
-            if (initialOperatorType == '=') {
-                variableChangeType = VariableModificationType.ASSIGNMENT;
+        if (workingVarChange.getModificationType() == VariableModificationType.UNKNOWN) {
+            if (initialOperatorType == '=' && type != '=') {
+                workingVarChange.setModificationType(VariableModificationType.ASSIGNMENT);
             } else if (initialOperatorType == '+' && type == '=') {
-                variableChangeType = VariableModificationType.CONCATENATION;
+                workingVarChange.setModificationType(VariableModificationType.CONCATENATION);
             } else if (initialOperatorType == '-' && type == '=') {
-                variableChangeType = VariableModificationType.REMOVAL;
+                workingVarChange.setModificationType(VariableModificationType.REMOVAL);
+            } else {
+                workingVarChange = null;
+                initialOperatorType = -1;
+                parsePhase = START;
+                return;
             }
         }
 
@@ -576,25 +592,26 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     private void processVariableValue(int type, int lineNumber, String stringValue) {
         if (type == '\n' && numOpenParen == 0 && numOpenBrace == 0 && numOpenBracket == 0) {
 
-            workingVarChange.setOperatorValue(workingVarValue);
+            String varValue = workingVarValue.toString();
+
+            workingVarChange.setOperatorValue(varValue);
             String varName = workingVarChange.getTarget();
 
             if (getScope().findChild(varName) == null) {
                 PythonPublicVariable variable = new PythonPublicVariable();
+                variable.setSourceCodeLine(workingVarChange.getSourceCodeLine());
                 variable.setName(varName);
-                variable.setValueString(workingVarValue);
+                variable.setValueString(varValue);
                 registerScopeOutput(variable);
             }
 
             registerScopeOutput(workingVarChange);
-
-            variableChangeType = VariableModificationType.UNKNOWN;
             initialOperatorType = -1;
             workingVarChange = null;
             workingVarValue = null;
             parsePhase = START;
         } else {
-            workingVarValue += CodeParseUtil.buildTokenString(type, stringValue);
+            workingVarValue.append(CodeParseUtil.buildTokenString(type, stringValue));
         }
     }
 

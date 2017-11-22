@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin;
 
+import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonFunction;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonPublicVariable;
 
@@ -22,7 +23,12 @@ public class AdminSiteRegisterFunction extends PythonFunction {
     }
 
     @Override
-    public String invoke(PythonPublicVariable target, String[] params) {
+    public String invoke(PythonCodeCollection codebase, PythonPublicVariable target, String[] params) {
+
+        if (params.length == 0) {
+            return null;
+        }
+
         String modelObject;
         String adminController = null;
         modelObject = params[0];
