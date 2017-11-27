@@ -7,6 +7,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class PythonFunctionCall extends AbstractPythonStatement {
 
+    String manualName = null;
     String invokeeName = null;
     String functionName = null;
     List<String> args = list();
@@ -15,7 +16,29 @@ public class PythonFunctionCall extends AbstractPythonStatement {
 
     @Override
     public String getName() {
-        return "call " + functionName + " on " + invokeeName + " at line " + getSourceCodeLine();
+        if (manualName == null) {
+            return "call " + functionName + " on " + invokeeName + " at line " + getSourceCodeLine();
+        } else {
+            return manualName;
+        }
+    }
+
+    @Override
+    public void setName(String newName) {
+        manualName = newName;
+    }
+
+    @Override
+    public AbstractPythonStatement clone() {
+        PythonFunctionCall clone = new PythonFunctionCall();
+        baseCloneTo(clone);
+        clone.manualName = this.manualName;
+        clone.invokeeName = this.invokeeName;
+        clone.functionName = this.functionName;
+        clone.resolvedInvokee = this.resolvedInvokee;
+        clone.resolvedFunction = this.resolvedFunction;
+        clone.args.addAll(this.args);
+        return clone;
     }
 
     public String getInvokeeName() {

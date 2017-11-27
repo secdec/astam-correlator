@@ -20,6 +20,18 @@ public class PythonClass extends AbstractPythonStatement {
         return result;
     }
 
+    @Override
+    public AbstractPythonStatement clone() {
+        PythonClass clone = new PythonClass();
+        baseCloneTo(clone);
+        clone.name = this.name;
+        clone.baseTypes.addAll(this.baseTypes);
+        for (PythonDecorator decorator : decorators) {
+            clone.addDecorator(decorator.clone());
+        }
+        return clone;
+    }
+
     public Collection<String> getBaseTypes() {
         return baseTypes;
     }
@@ -28,14 +40,21 @@ public class PythonClass extends AbstractPythonStatement {
         baseTypes.add(baseType);
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setBaseTypes(Collection<String> baseTypes) {
+        this.baseTypes.addAll(baseTypes);
     }
 
     @Override
     public String getName() {
         return name;
     }
+
+    @Override
+    public void setName(String name) {
+        this.name = name;
+    }
+
+
 
     public Collection<PythonDecorator> getDecorators() {
         return decorators;

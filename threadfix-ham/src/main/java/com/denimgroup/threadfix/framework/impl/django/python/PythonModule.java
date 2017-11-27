@@ -9,6 +9,15 @@ public class PythonModule extends AbstractPythonStatement {
         return name;
     }
 
+    @Override
+    public AbstractPythonStatement clone() {
+        PythonModule clone = new PythonModule();
+        baseCloneTo(clone);
+        clone.name = this.name;
+        return clone;
+    }
+
+    @Override
     public void setName(String name) {
         this.name = name;
     }

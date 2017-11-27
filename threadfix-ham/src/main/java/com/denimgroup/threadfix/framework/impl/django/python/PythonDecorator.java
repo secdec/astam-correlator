@@ -9,6 +9,13 @@ public class PythonDecorator {
     private String name;
     private List<String> params = list();
 
+    public PythonDecorator clone() {
+        PythonDecorator clone = new PythonDecorator();
+        clone.name = this.name;
+        clone.params.addAll(this.params);
+        return clone;
+    }
+
     public void setName(String name) {
         this.name = name;
     }

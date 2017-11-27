@@ -17,6 +17,21 @@ public abstract class AbstractPythonStatement {
     private int indentationLevel = -1;
 
     public abstract String getName();
+    public abstract void setName(String newName);
+    public abstract AbstractPythonStatement clone();
+
+
+    /**
+     * Clones all children and shared properties to the target 'clone'.
+     */
+    protected void baseCloneTo(AbstractPythonStatement clone) {
+        clone.setName(this.getName());
+        clone.setSourceCodeLine(this.getSourceCodeLine());
+        clone.setSourceCodePath(this.getSourceCodePath());
+        for (AbstractPythonStatement child : childStatements) {
+            clone.addChildStatement(child.clone());
+        }
+    }
 
     public void setSourceCodePath(String sourceCodePath) {
         this.sourceCodePath = sourceCodePath;
@@ -55,7 +70,12 @@ public abstract class AbstractPythonStatement {
     }
 
     public void addImport(String importedItem, String alias) {
-        imports.put(alias, importedItem);
+        if (imports.containsKey(alias)) {
+            String existingImport = imports.get(alias);
+            imports.put(alias, existingImport + "|" + importedItem);
+        } else {
+            imports.put(alias, importedItem);
+        }
     }
 
     public String resolveImportedAlias(String alias) {

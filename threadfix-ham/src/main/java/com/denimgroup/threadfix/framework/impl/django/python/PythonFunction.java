@@ -20,16 +20,28 @@ public class PythonFunction extends AbstractPythonStatement {
     public String getName() {
         return name;
     }
-
+    @Override
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public AbstractPythonStatement clone() {
+        PythonFunction clone = new PythonFunction();
+        baseCloneTo(clone);
+        clone.name = this.name;
+        clone.params.addAll(this.params);
+        for (PythonDecorator decorator : decorators) {
+            clone.addDecorator(decorator.clone());
+        }
+        return clone;
     }
 
     public boolean canInvoke() {
         return false;
     }
 
-    public String invoke(PythonCodeCollection codebase, PythonPublicVariable context, String[] params) {
+    public String invoke(PythonCodeCollection codebase, PythonFunctionCall context, PythonPublicVariable target, String[] params) {
         return null;
     }
 

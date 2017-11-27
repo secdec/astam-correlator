@@ -31,8 +31,19 @@ public class PythonPublicVariable extends AbstractPythonStatement {
         return name;
     }
 
+    @Override
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public AbstractPythonStatement clone() {
+        PythonPublicVariable clone = new PythonPublicVariable();
+        baseCloneTo(clone);
+        clone.name = this.name;
+        clone.valueString = this.valueString;
+        clone.resolvedTypeClass = this.resolvedTypeClass;
+        return clone;
     }
 
     public void setValueString(String valueString) {

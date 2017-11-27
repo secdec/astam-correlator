@@ -2,6 +2,7 @@ package com.denimgroup.threadfix.framework.impl.django.djangoApis;
 
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteClass;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteRegisterFunction;
+import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteUrlsVariable;
 import com.denimgroup.threadfix.framework.impl.django.python.*;
 
 public class DjangoAdminApi extends AbstractDjangoApi {
@@ -35,8 +36,10 @@ public class DjangoAdminApi extends AbstractDjangoApi {
 
     private void attachAdminSite(AbstractPythonStatement target) {
         AdminSiteClass adminSite = new AdminSiteClass();
-        PythonFunction register = new AdminSiteRegisterFunction(adminSite);
+        PythonFunction register = new AdminSiteRegisterFunction();
+        AdminSiteUrlsVariable urls = new AdminSiteUrlsVariable();
         adminSite.addChildStatement(register);
+        adminSite.addChildStatement(urls);
 
         target.addChildStatement(adminSite);
     }

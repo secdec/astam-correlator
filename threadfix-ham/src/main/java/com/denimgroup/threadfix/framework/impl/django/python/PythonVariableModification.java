@@ -4,6 +4,7 @@ public class PythonVariableModification extends AbstractPythonStatement {
 
     String targetVariable;
     String value;
+    String manualName = null;
     VariableModificationType modificationType = VariableModificationType.UNKNOWN;
     AbstractPythonStatement resolvedTarget;
 
@@ -21,7 +22,28 @@ public class PythonVariableModification extends AbstractPythonStatement {
 
     @Override
     public String getName() {
-        return "change " + targetVariable + " by " + modificationType + " at line " + getSourceCodeLine();
+        if (manualName == null) {
+            return "change " + targetVariable + " by " + modificationType + " at line " + getSourceCodeLine();
+        } else {
+            return manualName;
+        }
+    }
+
+    @Override
+    public void setName(String newName) {
+        manualName = newName;
+    }
+
+    @Override
+    public AbstractPythonStatement clone() {
+        PythonVariableModification clone = new PythonVariableModification();
+        baseCloneTo(clone);
+        clone.targetVariable = this.targetVariable;
+        clone.value = this.value;
+        clone.modificationType = this.modificationType;
+        clone.resolvedTarget = this.resolvedTarget;
+        clone.manualName = this.manualName;
+        return clone;
     }
 
     public String getTarget() {

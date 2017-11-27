@@ -487,6 +487,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             workingFunctionCall = new PythonFunctionCall();
             workingFunctionCallParams = new StringBuilder();
             workingFunctionCall.setSourceCodeLine(lineNumber);
+            workingFunctionCall.setSourceCodePath(this.getThisModule().getSourceCodePath());
 
             functionCallStartNumParen = numOpenParen;
 
@@ -500,7 +501,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             }
         }
 
-        if (numOpenParen < functionCallStartNumParen) {
+        if (numOpenParen < functionCallStartNumParen || numOpenParen == 0) {
             String[] params = CodeParseUtil.splitByComma(workingFunctionCallParams.toString());
             workingFunctionCall.setParameters(Arrays.asList(params));
             registerScopeOutput(workingFunctionCall);
@@ -560,8 +561,8 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         if (workingVarChange == null) {
             workingVarChange = new PythonVariableModification();
             workingVarChange.setSourceCodeLine(lineNumber);
-            workingVarChange.setTarget(lastValidString);
             workingVarChange.setSourceCodePath(this.thisModule.getSourceCodePath());
+            workingVarChange.setTarget(lastValidString);
             initialOperatorType = lastValidType;
         }
 

@@ -32,17 +32,45 @@ public class PythonCodeCollection {
 
         for (Map.Entry<String, String> entry : importEntries) {
             String alias = entry.getKey();
-            String importPath = entry.getValue();
-            if (importPath.startsWith(".")) {
-                AbstractPythonStatement baseScope = statement.findParent(PythonModule.class);
-                while ((importPath = importPath.substring(1)).startsWith(".")) {
-                    baseScope = baseScope.findParent(PythonModule.class);
+            String multiImportPath = entry.getValue();
+            String[] importPaths = multiImportPath.split("\\|");
+            for (String importPath : importPaths) {
+                if (importPath.startsWith(".")) {
+                    AbstractPythonStatement baseScope = statement.findParent(PythonModule.class);
+                    while ((importPath = importPath.substring(1)).startsWith(".")) {
+                        baseScope = baseScope.findParent(PythonModule.class);
+                    }
+
+                    String basePath = baseScope.getFullName();
+                    importPath = basePath + "." + importPath;
                 }
 
-                String basePath = baseScope.getFullName();
-                importPath = basePath + "." + importPath;
-                imports.put(alias, importPath);
-                log("Expanded " + alias + " to " + importPath);
+                if (importPath.endsWith("*")) {
+
+                    String basePath = importPath.substring(0, importPath.length() - 2);
+                    AbstractPythonStatement baseScope;
+                    if (basePath.length() == 0) {
+                        baseScope = statement;
+                    } else {
+                        baseScope = findByFullName(basePath);
+                    }
+
+                    if (baseScope == null) {
+                        log("Unable to expand wildcard import with unknown Python statement '" + basePath + "'");
+                        continue;
+                    }
+
+                    for (AbstractPythonStatement child : baseScope.getChildStatements()) {
+                        String name = child.getName();
+                        imports.put(name, child.getFullName());
+                    }
+
+                    log("Expanded " + alias + " to " + baseScope.getChildStatements().size() + " statements");
+
+                } else {
+                    imports.put(alias, importPath);
+                    log("Expanded " + alias + " to " + importPath);
+                }
             }
         }
 
@@ -56,31 +84,60 @@ public class PythonCodeCollection {
     }
 
     /**
-     * Expands relative import paths to their full path names.
+     * Expands relative import paths to their full path names. Directory
+     * modules with imports in their __init__.py have the imports added as direct
+     * children to those modules.
      */
     public void expandImports() {
         LOG.info("Expanding statement imports");
         long start = System.currentTimeMillis();
 
+        //  Expand local imports
+        traverse(new AbstractPythonVisitor() {
+            @Override
+            public void visitAny(AbstractPythonStatement statement) {
+                super.visitAny(statement);
+                expandStatementImports(statement);
+            }
+        });
+
+        //  Inherit imports from __init__.py when importing a module
+        // ie cms.models.__init__.py imports .static and .dynamic; importing cms.models.*
+        //  should also import cms.models.static and cms.models.dynamic
+        //
+        //  "Inheriting" is done by copying over each imported node and their full sub-nodes, should
+        //  be resolving these needs when searching rather than doing a complete copy. Inefficient
+        //  and interferes with variable value tracking
         traverse(new AbstractPythonVisitor() {
             @Override
             public void visitModule(PythonModule pyModule) {
-                expandStatementImports(pyModule);
-            }
+                super.visitModule(pyModule);
+                AbstractPythonStatement init = pyModule.findChild("__init__");
 
-            @Override
-            public void visitClass(PythonClass pyClass) {
-                expandStatementImports(pyClass);
-            }
+                if (init == null) {
+                    return;
+                }
 
-            @Override
-            public void visitFunction(PythonFunction pyFunction) {
-                expandStatementImports(pyFunction);
-            }
+                Map<String, String> imports = init.getImports();
+                for (Map.Entry<String, String> entry : imports.entrySet()) {
+                    //  Import path should be fully expanded
+                    String alias = entry.getKey();
+                    String fullPath = entry.getValue();
+                    Collection<AbstractPythonStatement> importedStatements = resolveLocalImport(pyModule, fullPath);
+                    if (importedStatements == null || importedStatements.size() == 0) {
+                        continue;
+                    } else {
+                        for (AbstractPythonStatement child : importedStatements) {
+                            AbstractPythonStatement clone = child.clone();
 
-            @Override
-            public void visitPublicVariable(PythonPublicVariable pyVariable) {
-                expandStatementImports(pyVariable);
+                            if (alias != null && !alias.endsWith("*") && importedStatements.size() == 0) {
+                                clone.setName(alias);
+                            }
+
+                            pyModule.addChildStatement(clone);
+                        }
+                    }
+                }
             }
         });
 
@@ -131,6 +188,11 @@ public class PythonCodeCollection {
                 PythonClass type = resolveLocalSymbol(methodName, var, PythonClass.class);
                 if (type != null) {
                     var.setResolvedTypeClass(type);
+                    //  Copy immediate children (would like to do a deep clone but circular dependencies make it hard)
+                    Collection<PythonPublicVariable> members = type.getChildStatements(PythonPublicVariable.class);
+                    for (PythonPublicVariable mem : members) {
+                        var.addChildStatement(mem.clone());
+                    }
                     ++numResolvedTypes;
                 }
             }
@@ -222,7 +284,7 @@ public class PythonCodeCollection {
                     } else {
                         arrayParams = params.toArray(new String[params.size()]);
                     }
-                    function.invoke(this, call.getResolvedInvokee(), arrayParams);
+                    function.invoke(this, call, call.getResolvedInvokee(), arrayParams);
                 }
             }
         }
@@ -368,30 +430,10 @@ public class PythonCodeCollection {
         final List<AbstractPythonStatement> result = new LinkedList<AbstractPythonStatement>();
         traverse(new AbstractPythonVisitor() {
             @Override
-            public void visitModule(PythonModule pyModule) {
-                if (pyModule.getSourceCodePath().startsWith(fileName)) {
-                    result.add(pyModule);
-                }
-            }
-
-            @Override
-            public void visitClass(PythonClass pyClass) {
-                if (pyClass.getSourceCodePath().startsWith(fileName)) {
-                    result.add(pyClass);
-                }
-            }
-
-            @Override
-            public void visitFunction(PythonFunction pyFunction) {
-                if (pyFunction.getSourceCodePath().startsWith(fileName)) {
-                    result.add(pyFunction);
-                }
-            }
-
-            @Override
-            public void visitPublicVariable(PythonPublicVariable pyVariable) {
-                if (pyVariable.getSourceCodePath().startsWith(fileName)) {
-                    result.add(pyVariable);
+            public void visitAny(AbstractPythonStatement statement) {
+                super.visitAny(statement);
+                if (statement.getSourceCodePath().startsWith(fileName)) {
+                    result.add(statement);
                 }
             }
         });
@@ -413,13 +455,6 @@ public class PythonCodeCollection {
                     result.add(pyModule);
                 }
             }
-
-            @Override
-            public void visitClass(PythonClass pyClass) { }
-            @Override
-            public void visitFunction(PythonFunction pyFunction) { }
-            @Override
-            public void visitPublicVariable(PythonPublicVariable pyVariable) { }
         });
 
         if (result.size() > 0) {
@@ -429,59 +464,18 @@ public class PythonCodeCollection {
         }
     }
 
-    public <T extends AbstractPythonStatement> T findFirstByFilePath(@Nonnull final String filePath, final Class<?> type) {
+    public <T extends AbstractPythonStatement> T findFirstByFilePath(@Nonnull final String filePath, final Class<T> type) {
         final List<AbstractPythonStatement> result = new ArrayList<AbstractPythonStatement>();
 
         traverse(new AbstractPythonVisitor() {
             @Override
-            public void visitModule(PythonModule pyModule) {
-                if (type == null) {
-                    result.add(pyModule);
-                    return;
-                }
+            public void visitAny(AbstractPythonStatement statement) {
+                super.visitAny(statement);
+                Class<?> statementType = statement.getClass();
                 if (result.size() == 0 &&
-                        type.isAssignableFrom(PythonModule.class) &&
-                        pyModule.getSourceCodePath().equals(filePath)) {
-                    result.add(pyModule);
-                }
-            }
-
-            @Override
-            public void visitClass(PythonClass pyClass) {
-                if (type == null) {
-                    result.add(pyClass);
-                    return;
-                }
-                if (result.size() == 0 &&
-                        type.isAssignableFrom(PythonClass.class) &&
-                        pyClass.getSourceCodePath().equals(filePath)) {
-                    result.add(pyClass);
-                }
-            }
-
-            @Override
-            public void visitFunction(PythonFunction pyFunction) {
-                if (type == null) {
-                    result.add(pyFunction);
-                    return;
-                }
-                if (result.size() == 0 &&
-                        type.isAssignableFrom(PythonFunction.class) &&
-                        pyFunction.getSourceCodePath().equals(filePath)) {
-                    result.add(pyFunction);
-                }
-            }
-
-            @Override
-            public void visitPublicVariable(PythonPublicVariable pyVariable) {
-                if (type == null) {
-                    result.add(pyVariable);
-                    return;
-                }
-                if (result.size() == 0 &&
-                        type.isAssignableFrom(PythonPublicVariable.class) &&
-                        pyVariable.getSourceCodePath().equals(filePath)) {
-                    result.add(pyVariable);
+                        (type == null || type.isAssignableFrom(statementType)) &&
+                        statement.getSourceCodePath().equals(filePath)) {
+                    result.add(statement);
                 }
             }
         });
@@ -525,6 +519,8 @@ public class PythonCodeCollection {
         } else if (importRelativeToScope.startsWith(".")) {
             String currentName = scope.getFullName();
             basePath = currentName + "." + importRelativeToScope.substring(1);
+        } else {
+            basePath = importRelativeToScope;
         }
 
         boolean wildcard = false;
@@ -587,6 +583,12 @@ public class PythonCodeCollection {
         while (currentImportScope != null && imports.size() == 0) {
             imports = currentImportScope.getImports();
             currentImportScope = currentImportScope.getParentStatement();
+            if (currentImportScope != null) {
+                result = findByFullName(currentImportScope.getFullName() + "." + symbol);
+                if (result != null) {
+                    return result;
+                }
+            }
         }
 
         for (Map.Entry<String, String> entry : imports.entrySet()) {
@@ -618,7 +620,7 @@ public class PythonCodeCollection {
         return result;
     }
 
-    public <T extends AbstractPythonStatement> T resolveLocalSymbol(@Nonnull String symbol, @Nonnull AbstractPythonStatement localScope, @Nonnull Class<?> type) {
+    public <T extends AbstractPythonStatement> T resolveLocalSymbol(@Nonnull String symbol, @Nonnull AbstractPythonStatement localScope, @Nonnull Class<T> type) {
         AbstractPythonStatement statement = resolveLocalSymbol(symbol, localScope);
         if (statement != null && type.isAssignableFrom(statement.getClass())) {
             return (T)statement;
