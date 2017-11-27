@@ -74,7 +74,7 @@ public class CodeParseUtil {
                 openBraceCnt--;
 
             if (c == ',' && openParenCnt == 0 && openBracketCnt == 0 && openBraceCnt == 0 && !isInInnerString) {
-                String line = currentString.toString().replace("\n", "\\n");
+                String line = currentString.toString().trim().replace("\n", "\\n");
                 splitString.add(line);
                 currentString = new StringBuilder();
             } else {
@@ -87,7 +87,7 @@ public class CodeParseUtil {
 
         String lastString = currentString.toString();
         if (lastString.length() > 0) {
-            splitString.add(lastString);
+            splitString.add(lastString.trim());
         }
 
         return splitString.toArray(new String[splitString.size()]);

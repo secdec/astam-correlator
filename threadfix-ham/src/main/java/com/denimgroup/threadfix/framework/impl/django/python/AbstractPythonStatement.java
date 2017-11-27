@@ -83,6 +83,16 @@ public abstract class AbstractPythonStatement {
     }
 
     public void setParentStatement(AbstractPythonStatement parentModule) {
+
+        if (this.parentStatement != null) {
+            this.parentStatement.childStatements.remove(this);
+        }
+
+        if (parentModule == null) {
+            this.parentStatement = null;
+            return;
+        }
+
         assert this != parentModule: "Cannot set parent to itself!";
         this.parentStatement = parentModule;
         if (!parentModule.childStatements.contains(this)) {
@@ -102,6 +112,13 @@ public abstract class AbstractPythonStatement {
         if (this.childStatements.contains(childStatement)) {
             childStatement.parentStatement = null;
             this.childStatements.remove(childStatement);
+        }
+    }
+
+    public void clearChildStatements() {
+        while (childStatements.size() > 0) {
+            AbstractPythonStatement child = childStatements.get(0);
+            child.setParentStatement(null);
         }
     }
 

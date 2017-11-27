@@ -252,7 +252,7 @@ public class PythonCodeCollection {
         }
 
         duration = System.currentTimeMillis() - startTime;
-        LOG.info("Resolved " + numResolvedFunctionCalls + " function calls in " + duration + "ms");
+        LOG.info("Resolved " + numResolvedFunctionCalls + " function and lambda calls in " + duration + "ms");
 
         LOG.info("Finished collapsing symbol references");
     }

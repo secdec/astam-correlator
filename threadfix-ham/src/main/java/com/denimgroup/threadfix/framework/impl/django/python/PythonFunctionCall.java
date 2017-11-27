@@ -9,6 +9,7 @@ public class PythonFunctionCall extends AbstractPythonStatement {
 
     String manualName = null;
     String invokeeName = null;
+    String assignee = null;
     String functionName = null;
     List<String> args = list();
     PythonPublicVariable resolvedInvokee;

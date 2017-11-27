@@ -4,6 +4,9 @@ import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonState
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 public abstract class AbstractDjangoApi implements DjangoApi {
 
     protected void tryAddScopes(PythonCodeCollection codebase, AbstractPythonStatement baseScope) {
@@ -26,7 +29,9 @@ public abstract class AbstractDjangoApi implements DjangoApi {
             targetScope = newScopes;
         }
 
-        for (AbstractPythonStatement child : newScopes.getChildStatements()) {
+        Collection<AbstractPythonStatement> children = new ArrayList<AbstractPythonStatement>(newScopes.getChildStatements());
+
+        for (AbstractPythonStatement child : children) {
             child.setParentStatement(targetScope);
             tryAddScopeTree(codebase, child, targetScope);
         }

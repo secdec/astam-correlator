@@ -68,7 +68,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         return codebase;
     }
 
-    public static PythonModule run(String pythonCode) {
+    public static PythonModule runPartial(String pythonCode) {
         log("Running on python code string: " + pythonCode);
         PythonModule result = new PythonModule();
         PythonSyntaxParser parser = new PythonSyntaxParser(result);
@@ -279,6 +279,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         CLASS_NAME, CLASS_BASE_TYPES,
         DECL_FUNCTION_NAME, DECL_FUNCTION_PARAMS,
         INVOKE_FUNCTION_PARAMS,
+        LAMBDA_PARAMS, LAMBDA_BODY,
         DECORATOR_NAME, DECORATOR_PARAMS,
         VARIABLE_ASSIGNMENT, VARIABLE_VALUE,
         FROM_IMPORT, IMPORT_AS
@@ -365,6 +366,8 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             case DECL_FUNCTION_NAME:     processFunctionDeclarationName  (type, lineNumber, stringValue); break;
             case DECL_FUNCTION_PARAMS:   processFunctionDeclarationParams(type, lineNumber, stringValue); break;
             case INVOKE_FUNCTION_PARAMS: processInvokeFunctionParams     (type, lineNumber, stringValue); break;
+            case LAMBDA_PARAMS:          processLambdaParams             (type, lineNumber, stringValue); break;
+            case LAMBDA_BODY:            processLambdaBody               (type, lineNumber, stringValue); break;
             case DECORATOR_NAME:         processDecoratorName            (type, lineNumber, stringValue); break;
             case DECORATOR_PARAMS:       processDecoratorParams          (type, lineNumber, stringValue); break;
             case VARIABLE_ASSIGNMENT:    processVariableAssignment       (type, lineNumber, stringValue); break;
@@ -513,6 +516,59 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         }
     }
 
+    PythonLambda workingLambda = null;
+    int lambda_startNumOpenParen;
+    int lambda_startNumOpenBrace;
+    int lambda_startNumOpenBracket;
+
+    private void processLambdaParams(int type, int lineNumber, String stringValue) {
+        boolean endsParams = false;
+
+        if (type == ':') {
+            endsParams = true;
+        }
+
+        if (stringValue != null) {
+            if (stringValue.endsWith(":")) {
+                endsParams = true;
+                stringValue = stringValue.substring(0, stringValue.length() - 1);
+            }
+            workingLambda.addParam(stringValue);
+        }
+
+        if (endsParams) {
+            lambda_startNumOpenParen = numOpenParen;
+            lambda_startNumOpenBrace = numOpenBrace;
+            lambda_startNumOpenBracket = numOpenBracket;
+            parsePhase = LAMBDA_BODY;
+        }
+    }
+
+    StringBuilder workingLambdaBody = null;
+    private void processLambdaBody(int type, int lineNumber, String stringValue) {
+        if (workingLambdaBody == null) {
+            workingLambdaBody = new StringBuilder();
+        }
+
+        if (type == '\n' && lambda_startNumOpenBrace <= numOpenParen &&
+                lambda_startNumOpenBracket == numOpenBracket && lambda_startNumOpenBrace == numOpenBrace) {
+
+            workingLambda.setFunctionBody(workingLambdaBody.toString());
+
+            registerScopeOutput(workingLambda);
+
+            workingLambda = null;
+            workingLambdaBody = null;
+            lambda_startNumOpenBrace = -1;
+            lambda_startNumOpenBracket = -1;
+            lambda_startNumOpenParen = -1;
+            parsePhase = START;
+        } else {
+            workingLambdaBody.append(CodeParseUtil.buildTokenString(type, stringValue));
+        }
+
+    }
+
     PythonDecorator currentDecorator;
     StringBuilder workingDecoratorParam;
     int decorator_startParenIndex = -1;
@@ -601,6 +657,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             if (getScope().findChild(varName) == null) {
                 PythonPublicVariable variable = new PythonPublicVariable();
                 variable.setSourceCodeLine(workingVarChange.getSourceCodeLine());
+                variable.setSourceCodePath(workingVarChange.getSourceCodePath());
                 variable.setName(varName);
                 variable.setValueString(varValue);
                 registerScopeOutput(variable);
@@ -611,6 +668,20 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             workingVarChange = null;
             workingVarValue = null;
             parsePhase = START;
+        } else if (stringValue != null && stringValue.equals("lambda") && workingVarValue.length() == 0) {
+
+            if (workingLambda == null) {
+                workingLambda = new PythonLambda();
+                workingLambda.setSourceCodeLine(lineNumber);
+                workingLambda.setSourceCodePath(thisModule.getSourceCodePath());
+            }
+
+            workingLambda.setName(workingVarChange.getTarget());
+
+            parsePhase = LAMBDA_PARAMS;
+            workingVarValue = null;
+            workingVarChange = null;
+            initialOperatorType = -1;
         } else {
             workingVarValue.append(CodeParseUtil.buildTokenString(type, stringValue));
         }

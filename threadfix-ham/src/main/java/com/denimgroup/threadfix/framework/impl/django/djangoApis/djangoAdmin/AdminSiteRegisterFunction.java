@@ -98,7 +98,7 @@ public class AdminSiteRegisterFunction extends PythonFunction {
 
         urls = "[" + urls + "]";
 
-        target.setValueString(urls);
+        urlsVariable.setValueString(urls);
 
 
         return null;

@@ -22,6 +22,7 @@ import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonPublicVariable;
 import com.denimgroup.threadfix.framework.impl.django.routers.DjangoRouter;
 import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -515,23 +516,69 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                             routeMap.put(fullPath, newRoute);
                         }
                     } else {
-                        String viewFile = null;
-                        if (importPathMap.containsKey(viewPath)) {
-                            viewFile = importPathMap.get(viewPath);
-                        } else {
-                            viewFile = viewPath.replaceAll("\\.", "\\/");
-                            if (!new File(DjangoPathUtil.combine(sourceRoot, viewFile)).exists()) {
-                                viewFile += ".py";
-                            }
-                        }
 
-                        File importFile = new File(DjangoPathUtil.combine(sourceRoot, viewFile));
-                        if (importFile.exists()) {
-                            if (importFile.isDirectory()) {
-                                for (File file : importFile.listFiles())
-                                    routeMap.putAll(DjangoRouteParser.parse(sourceRoot, DjangoPathUtil.combine(rootPath, regexBuilder.toString()), file.getAbsolutePath(), parsedCodebase, file));
+                        AbstractPythonStatement referencedStatement = parsedCodebase.resolveLocalSymbol(viewPath, thisModule);
+                        if (referencedStatement != null && referencedStatement instanceof PythonPublicVariable) {
+
+                            PythonPublicVariable referencedVar = (PythonPublicVariable)referencedStatement;
+                            String value = referencedVar.getValueString();
+                            if (value.startsWith("[") && value.endsWith("]")) {
+                                value = value.substring(1, value.length() - 1);
+                            }
+
+                            String[] parts = CodeParseUtil.splitByComma(value);
+                            for (String part : parts) {
+                                if (part.startsWith("url(")) {
+                                    part = part.substring("url(".length(), part.length() - 1);
+                                    String[] params = CodeParseUtil.splitByComma(part);
+                                    String endpoint = params[0].trim();
+                                    String controller = params[1].trim();
+
+                                    AbstractPythonStatement resolvedController = parsedCodebase.findByPartialName(thisModule, controller);
+                                    if (resolvedController == null) {
+                                        resolvedController = parsedCodebase.findByFullName(controller);
+                                    }
+                                    if (resolvedController == null) {
+                                        continue;
+                                    }
+
+                                    if (endpoint.startsWith("r")) {
+                                        endpoint = endpoint.substring(2);
+                                    } else if (endpoint.startsWith("'") || endpoint.startsWith("\"")) {
+                                        endpoint = endpoint.substring(1);
+                                    }
+
+                                    if (endpoint.endsWith("'") || endpoint.endsWith("\"")) {
+                                        endpoint = endpoint.substring(0, endpoint.length() - 1);
+                                    }
+
+                                    String basePath = DjangoPathUtil.combine(rootPath, regexBuilder.toString());
+                                    endpoint = DjangoPathUtil.combine(basePath, endpoint);
+                                    DjangoRoute newRoute = new DjangoRoute(endpoint, resolvedController.getSourceCodePath());
+                                    routeMap.put(endpoint, newRoute);
+                                }
+                            }
+
+                        } else {
+
+                            String viewFile = null;
+                            if (importPathMap.containsKey(viewPath)) {
+                                viewFile = importPathMap.get(viewPath);
                             } else {
-                                routeMap.putAll(DjangoRouteParser.parse(sourceRoot, DjangoPathUtil.combine(rootPath, regexBuilder.toString()), importFile.getAbsolutePath(), parsedCodebase, importFile));
+                                viewFile = viewPath.replaceAll("\\.", "\\/");
+                                if (!new File(DjangoPathUtil.combine(sourceRoot, viewFile)).exists()) {
+                                    viewFile += ".py";
+                                }
+                            }
+
+                            File importFile = new File(DjangoPathUtil.combine(sourceRoot, viewFile));
+                            if (importFile.exists()) {
+                                if (importFile.isDirectory()) {
+                                    for (File file : importFile.listFiles())
+                                        routeMap.putAll(DjangoRouteParser.parse(sourceRoot, DjangoPathUtil.combine(rootPath, regexBuilder.toString()), file.getAbsolutePath(), parsedCodebase, file));
+                                } else {
+                                    routeMap.putAll(DjangoRouteParser.parse(sourceRoot, DjangoPathUtil.combine(rootPath, regexBuilder.toString()), importFile.getAbsolutePath(), parsedCodebase, importFile));
+                                }
                             }
                         }
                     }
