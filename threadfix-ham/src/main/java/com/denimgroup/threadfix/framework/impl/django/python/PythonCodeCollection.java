@@ -185,11 +185,10 @@ public class PythonCodeCollection {
         for (PythonPublicVariable var : variableDeclarations) {
             String value = var.getValueString();
             if (value.contains("(")) {
-                String methodName = value.substring(0, value.indexOf("("));
+                String methodName = value.substring(0, value.indexOf('('));
                 PythonClass type = resolveLocalSymbol(methodName, var, PythonClass.class);
                 if (type != null) {
                     var.setResolvedTypeClass(type);
-                    //  Copy immediate children (would like to do a deep clone but circular dependencies make it hard)
                     Collection<PythonPublicVariable> members = type.getChildStatements(PythonPublicVariable.class);
                     for (PythonPublicVariable mem : members) {
                         var.addChildStatement(mem.clone());
@@ -364,7 +363,7 @@ public class PythonCodeCollection {
 
         if (!fullName.contains(".")) {
             for (AbstractPythonStatement child : statements) {
-                if (child.getFullName().equals(fullName)) {
+                if (child.getName().equals(fullName)) {
                     return child;
                 }
             }
@@ -402,8 +401,8 @@ public class PythonCodeCollection {
         String currentPart;
         String nextPart;
         if (partialName.contains(".")) {
-            currentPart = partialName.substring(0, partialName.indexOf("."));
-            nextPart = partialName.substring(partialName.indexOf(".") + 1);
+            currentPart = partialName.substring(0, partialName.indexOf('.'));
+            nextPart = partialName.substring(partialName.indexOf('.') + 1);
         } else {
             currentPart = partialName;
             nextPart = null;
@@ -519,18 +518,18 @@ public class PythonCodeCollection {
 
         } else if (importRelativeToScope.startsWith(".")) {
             String currentName = scope.getFullName();
-            basePath = currentName + "." + importRelativeToScope.substring(1);
+            basePath = currentName + importRelativeToScope;
         } else {
             basePath = importRelativeToScope;
         }
 
         boolean wildcard = false;
-        if (basePath.endsWith("*")) {
+        if (basePath.charAt(basePath.length() - 1) == '*') {
             wildcard = true;
             basePath = basePath.substring(0, basePath.length() - 1);
         }
 
-        if (basePath.endsWith(".")) {
+        if (basePath.charAt(basePath.length() - 1) == '.') {
             basePath = basePath.substring(0, basePath.length() - 1);
         }
 
@@ -569,11 +568,19 @@ public class PythonCodeCollection {
             return findByFullName(ownerClass.getFullName() + "." + symbol);
         }
 
-        result = findByFullName(localScope.getFullName() + "." + symbol);
+        boolean symbolIsEmbedded = symbol.contains(".");
+
+        // Try to find the symbol as a direct child
+        if (!symbolIsEmbedded) {
+            result = localScope.findChild(symbol);
+        } else {
+            result = findByPartialName(localScope, symbol);
+        }
         if (result != null) {
             return result;
         }
 
+        // Try to find the symbol as an absolute reference
         result = findByFullName(symbol);
         if (result != null) {
             return result;
@@ -585,7 +592,11 @@ public class PythonCodeCollection {
             imports = currentImportScope.getImports();
             currentImportScope = currentImportScope.getParentStatement();
             if (currentImportScope != null) {
-                result = findByFullName(currentImportScope.getFullName() + "." + symbol);
+                if (!symbolIsEmbedded) {
+                    result = currentImportScope.findChild(symbol);
+                } else {
+                    result = findByPartialName(currentImportScope, symbol);
+                }
                 if (result != null) {
                     return result;
                 }
@@ -608,6 +619,7 @@ public class PythonCodeCollection {
             return result;
         }
 
+        // Couldn't resolve based on current scope, try in parent scopes
         AbstractPythonStatement currentScope = localScope;
         do {
             currentScope = currentScope.getParentStatement();
