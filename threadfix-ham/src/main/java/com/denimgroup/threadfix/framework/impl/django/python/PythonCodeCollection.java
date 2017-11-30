@@ -26,7 +26,8 @@ public class PythonCodeCollection {
     private void expandStatementImports(AbstractPythonStatement statement) {
 
         Map<String, String> imports = statement.getImports();
-        Collection<Map.Entry<String, String>> importEntries = imports.entrySet();
+        //  Work on copy to avoid concurrent modification
+        Collection<Map.Entry<String, String>> importEntries = new HashMap<String, String>(imports).entrySet();
 
         log("Expanding: " + statement.toString());
 
@@ -372,7 +373,7 @@ public class PythonCodeCollection {
 
         AbstractPythonStatement result = null;
         String firstPart = fullName.substring(0, fullName.indexOf('.'));
-        String remainingPart = fullName.substring(fullName.indexOf(".") + 1);
+        String remainingPart = fullName.substring(fullName.indexOf('.') + 1);
         for (AbstractPythonStatement child : statements) {
             if (child.getName().equals(firstPart)) {
                 result = findByPartialName(child, remainingPart);

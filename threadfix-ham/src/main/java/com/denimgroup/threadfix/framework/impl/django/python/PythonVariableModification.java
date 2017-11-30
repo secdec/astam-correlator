@@ -23,7 +23,7 @@ public class PythonVariableModification extends AbstractPythonStatement {
     @Override
     public String getName() {
         if (manualName == null) {
-            return "change " + targetVariable + " by " + modificationType + " at line " + getSourceCodeLine();
+            return "change " + targetVariable + " by " + modificationType + " at line " + getSourceCodeStartLine();
         } else {
             return manualName;
         }

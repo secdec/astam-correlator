@@ -11,9 +11,9 @@ public abstract class AbstractPythonStatement {
     private AbstractPythonStatement parentStatement;
     private List<AbstractPythonStatement> childStatements = list();
     private String sourceCodePath;
-    private int sourceCodeLine;
+    private int sourceCodeStartLine = -1;
+    private int sourceCodeEndLine = -1;
     private Map<String, String> imports = map();
-    private Map<String, String> urlsModifications = map();
     private int indentationLevel = -1;
 
     public abstract String getName();
@@ -26,7 +26,8 @@ public abstract class AbstractPythonStatement {
      */
     protected void baseCloneTo(AbstractPythonStatement clone) {
         clone.setName(this.getName());
-        clone.setSourceCodeLine(this.getSourceCodeLine());
+        clone.setSourceCodeStartLine(this.getSourceCodeStartLine());
+        clone.setSourceCodeEndLine(this.getSourceCodeEndLine());
         clone.setSourceCodePath(this.getSourceCodePath());
         for (AbstractPythonStatement child : childStatements) {
             clone.addChildStatement(child.clone());
@@ -41,20 +42,20 @@ public abstract class AbstractPythonStatement {
         return sourceCodePath;
     }
 
-    public void setSourceCodeLine(int sourceCodeLine) {
-        this.sourceCodeLine = sourceCodeLine;
+    public void setSourceCodeStartLine(int sourceCodeStartLine) {
+        this.sourceCodeStartLine = sourceCodeStartLine;
     }
 
-    public int getSourceCodeLine() {
-        return sourceCodeLine;
+    public int getSourceCodeStartLine() {
+        return sourceCodeStartLine;
     }
 
-    public void addUrlModification(String endpoint, String targetController) {
-        urlsModifications.put(endpoint, targetController);
+    public int getSourceCodeEndLine() {
+        return sourceCodeEndLine;
     }
 
-    public Map<String, String> getUrlsModifications() {
-        return urlsModifications;
+    public void setSourceCodeEndLine(int sourceCodeEndLine) {
+        this.sourceCodeEndLine = sourceCodeEndLine;
     }
 
     public void setIndentationLevel(int indentationLevel) {

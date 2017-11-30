@@ -64,7 +64,7 @@ public class PythonPublicVariable extends AbstractPythonStatement {
                 int idx = i++;
 
                 PythonPublicVariable element = new PythonPublicVariable();
-                element.setSourceCodeLine(this.getSourceCodeLine());
+                element.setSourceCodeStartLine(this.getSourceCodeStartLine());
                 element.setSourceCodePath(this.getSourceCodePath());
                 element.setName("[" + idx + "]");
                 element.setValueString(value);
@@ -73,7 +73,7 @@ public class PythonPublicVariable extends AbstractPythonStatement {
 
                 PythonVariableModification assignment = new PythonVariableModification();
                 assignment.setTarget(element.getFullName());
-                assignment.setSourceCodeLine(this.getSourceCodeLine());
+                assignment.setSourceCodeStartLine(this.getSourceCodeStartLine());
                 assignment.setSourceCodePath(this.getSourceCodePath());
                 assignment.setName("Array[" + idx + "] = " + value);
                 assignment.setOperatorValue(value);

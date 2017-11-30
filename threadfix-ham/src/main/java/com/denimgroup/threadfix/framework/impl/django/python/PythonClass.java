@@ -36,6 +36,10 @@ public class PythonClass extends AbstractPythonStatement {
         return baseTypes;
     }
 
+    public boolean hasBaseType(String typeName) {
+        return baseTypes.contains(typeName);
+    }
+
     public void addBaseType(String baseType) {
         baseTypes.add(baseType);
     }

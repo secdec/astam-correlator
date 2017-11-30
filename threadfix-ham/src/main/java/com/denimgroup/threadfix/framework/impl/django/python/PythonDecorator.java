@@ -24,7 +24,7 @@ public class PythonDecorator {
         return name;
     }
 
-    public Collection<String> getParams() {
+    public List<String> getParams() {
         return params;
     }
 

@@ -22,7 +22,7 @@ public class AdminSiteRegisterFunction extends PythonFunction {
     }
 
     @Override
-    public String invoke(PythonCodeCollection codebase, PythonFunctionCall context, PythonPublicVariable target, String[] params) {
+    public String invoke(PythonCodeCollection codebase, AbstractPythonStatement context, PythonPublicVariable target, String[] params) {
 
         if (params.length == 0) {
             return null;
@@ -50,19 +50,26 @@ public class AdminSiteRegisterFunction extends PythonFunction {
 
         PythonClass metaType = (PythonClass)foundObject;
         AbstractPythonStatement app_label = metaType.findChild("app_label");
-        if (app_label == null) {
-            return null;
+
+        String appName = null;
+
+        if (app_label != null) {
+            appName = ((PythonPublicVariable)app_label).getValueString();
+
+            if (appName.startsWith("'") || appName.startsWith("\"")) {
+                appName = appName.substring(1);
+            }
+            if (appName.endsWith("'") || appName.endsWith("\"")) {
+                appName = appName.substring(0, appName.length() - 1);
+            }
         }
 
-        String appName = ((PythonPublicVariable)app_label).getValueString();
-        if (appName.startsWith("'") || appName.startsWith("\"")) {
-            appName = appName.substring(1);
-        }
-        if (appName.endsWith("'") || appName.endsWith("\"")) {
-            appName = appName.substring(0, appName.length() - 1);
+        String newEndpoint = "r'/^";
+        if (appName != null) {
+            newEndpoint += appName + "/^";
         }
 
-        String newEndpoint = "r'/^" + appName + "/^" + modelType.getName().toLowerCase() + "/$'";
+        newEndpoint += modelType.getName().toLowerCase() + "/$'";
 
         PythonPublicVariable urlsVariable = (PythonPublicVariable)target.findChild("urls");
         if (urlsVariable == null) {

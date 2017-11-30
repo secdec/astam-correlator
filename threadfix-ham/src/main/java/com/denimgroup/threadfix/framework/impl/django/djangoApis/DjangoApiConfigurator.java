@@ -23,7 +23,9 @@ public class DjangoApiConfigurator {
     }
 
     public static void applyPostLink(PythonCodeCollection codebase) {
-
+        for (DjangoApi api : apis) {
+            api.applyPostLink(codebase);
+        }
     }
 
 }

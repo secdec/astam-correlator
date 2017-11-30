@@ -91,6 +91,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         codebase.initialize();
 
+        DjangoApiConfigurator.applyPostLink(codebase);
+
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
         codebase.traverse(i18Detector);
         if (i18Detector.isLocalized()) {

@@ -5,9 +5,17 @@ import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.filefilter.IOFileFilter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
@@ -28,7 +36,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         return (new File(folder.getAbsolutePath() + "/__init__.py")).exists();
     }
 
-    private static String makeModuleName(File file) {
+    static String makeModuleName(File file) {
         String name = file.getName();
         if (name.contains("."))
             name = name.substring(0, name.lastIndexOf("."));
@@ -39,6 +47,137 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     public static PythonCodeCollection run(File rootDirectory) {
         log("Running on " + rootDirectory.getAbsolutePath());
         PythonCodeCollection codebase = new PythonCodeCollection();
+        //runRecursive(rootDirectory, codebase);
+        runParallel(rootDirectory, codebase);
+        return codebase;
+    }
+
+    private static void runParallel(File rootDirectory, PythonCodeCollection codebase) {
+
+        if (rootDirectory.isFile()) {
+            runRecursive(rootDirectory, codebase);
+            return;
+        }
+
+        Collection<File> pythonFiles = FileUtils.listFiles(rootDirectory, new String[] { "py"}, true);
+        Map<PythonParallelParserRunner, Future<PythonModule>> pendingModules = map();
+
+        log("Parsing " + pythonFiles.size() + " python files in parallel");
+
+        int numThreads = Runtime.getRuntime().availableProcessors() / 2;
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        for (File file : pythonFiles) {
+            PythonParallelParserRunner runner = new PythonParallelParserRunner(file);
+            pendingModules.put(runner, executor.submit(runner));
+        }
+
+
+
+        log("Finished queueing, waiting for futures...");
+
+        Collection<PythonModule> finishedModules = list();
+
+        int numCompleted = 0;
+        for (Map.Entry<PythonParallelParserRunner, Future<PythonModule>> entry : pendingModules.entrySet()) {
+            PythonParallelParserRunner runner = entry.getKey();
+            Future<PythonModule> future = entry.getValue();
+            try {
+                log("Waiting for " + runner.getTargetFile().getAbsolutePath());
+                PythonModule result = future.get();
+                log("Finished " + ++numCompleted + "/" + pendingModules.size());
+                finishedModules.add(result);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+        }
+
+        log("Parsing tasks completed, reconstructing module hierarchy...");
+
+        // Reconstruct directory-based hierarchy first
+        List<File> folders = new ArrayList<File>(FileUtils.listFilesAndDirs(rootDirectory, new IOFileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return false;
+            }
+
+            @Override
+            public boolean accept(File file, String s) {
+                return false;
+            }
+        }, new IOFileFilter() {
+            @Override
+            public boolean accept(File file) {
+                return true;
+            }
+
+            @Override
+            public boolean accept(File file, String s) {
+                return true;
+            }
+        })
+        );
+
+        Collections.sort(folders, new Comparator<File>() {
+            @Override
+            public int compare(File o1, File o2) {
+                return StringUtils.countMatches(o1.getAbsolutePath(), "/") - StringUtils.countMatches(o2.getAbsolutePath(), "/");
+            }
+        });
+
+        // Start with folder modules
+
+        for (File folder : folders) {
+            String folderPath = folder.getAbsolutePath();
+            if (folderPath.equals(rootDirectory.getAbsolutePath())) {
+                continue;
+            }
+
+            String relativePath = folderPath.replace(rootDirectory.getAbsolutePath() + "/", "");
+            if (relativePath.length() == 0 || relativePath.contains(".")) {
+                continue;
+            }
+            PythonModule module = new PythonModule();
+            module.setSourceCodePath(folder.getAbsolutePath());
+            module.setName(makeModuleName(folder));
+            if (!relativePath.contains("/")) {
+                codebase.add(module);
+            } else {
+                String modulePath = relativePath.replaceAll("\\/", ".");
+                String basePath = modulePath.substring(0, modulePath.lastIndexOf('.'));
+                PythonModule parentModule = codebase.findByFullName(basePath, PythonModule.class);
+                if (parentModule != null) {
+                    parentModule.addChildStatement(module);
+                }
+            }
+        }
+
+        // Now that the basic structure exists, start inserting parsed modules
+        Queue<PythonModule> modulesQueue = new LinkedList<PythonModule>(finishedModules);
+        while (!modulesQueue.isEmpty()) {
+            PythonModule currentModule = modulesQueue.remove();
+            String baseModule = currentModule.getSourceCodePath().replace(rootDirectory.getAbsolutePath() + "/", "");
+
+            if (!baseModule.contains("/")) {
+                codebase.add(currentModule);
+                continue;
+            }
+
+            // Remove file name
+            baseModule = baseModule.substring(0, baseModule.lastIndexOf('/'));
+            baseModule = baseModule.replaceAll("\\/", ".");
+
+            PythonModule parentModule = codebase.findByFullName(baseModule, PythonModule.class);
+            if (parentModule != null) {
+                parentModule.addChildStatement(currentModule);
+            }
+        }
+
+        log("Finished python syntax parsing");
+    }
+
+    private static void runRecursive(File rootDirectory, PythonCodeCollection codebase) {
         if (rootDirectory.isFile()) {
             PythonSyntaxParser parser = new PythonSyntaxParser(rootDirectory);
             EventBasedTokenizerRunner.run(rootDirectory, PythonTokenizerConfigurator.INSTANCE, parser);
@@ -64,8 +203,6 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
                 }
             }
         }
-
-        return codebase;
     }
 
     public static PythonModule runPartial(String pythonCode) {
@@ -353,6 +490,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         if (!ranScopingCheck && !isStringChar && !isInString && (stringValue != null || (type != ' ' && type != '\n' && type != '\t'))) {
             AbstractPythonStatement currentScope = getScope();
             while (currentScope != null && spaceDepth < currentScope.getIndentationLevel()) {
+                currentScope.setSourceCodeEndLine(lineNumber);
                 popScope();
                 currentScope = getScope();
             }
@@ -406,7 +544,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         if (stringValue != null) {
             currentClass = new PythonClass();
             currentClass.setName(stringValue);
-            currentClass.setSourceCodeLine(lineNumber);
+            currentClass.setSourceCodeStartLine(lineNumber);
             currentClass.setSourceCodePath(this.thisModule.getSourceCodePath());
             currentClass.setIndentationLevel(spaceDepth);
             classEntrySpaceDepth = spaceDepth;
@@ -446,7 +584,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             }
 
             newFunction.setName(stringValue);
-            newFunction.setSourceCodeLine(lineNumber);
+            newFunction.setSourceCodeStartLine(lineNumber);
             newFunction.setSourceCodePath(this.thisModule.getSourceCodePath());
             newFunction.setIndentationLevel(spaceDepth);
 
@@ -489,7 +627,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         if (workingFunctionCall == null) {
             workingFunctionCall = new PythonFunctionCall();
             workingFunctionCallParams = new StringBuilder();
-            workingFunctionCall.setSourceCodeLine(lineNumber);
+            workingFunctionCall.setSourceCodeStartLine(lineNumber);
             workingFunctionCall.setSourceCodePath(this.getThisModule().getSourceCodePath());
 
             functionCallStartNumParen = numOpenParen;
@@ -554,6 +692,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
                 lambda_startNumOpenBracket == numOpenBracket && lambda_startNumOpenBrace == numOpenBrace) {
 
             workingLambda.setFunctionBody(workingLambdaBody.toString());
+            workingLambda.setSourceCodeEndLine(lineNumber);
 
             registerScopeOutput(workingLambda);
 
@@ -616,7 +755,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     private void processVariableAssignment(int type, int lineNumber, String stringValue) {
         if (workingVarChange == null) {
             workingVarChange = new PythonVariableModification();
-            workingVarChange.setSourceCodeLine(lineNumber);
+            workingVarChange.setSourceCodeStartLine(lineNumber);
             workingVarChange.setSourceCodePath(this.thisModule.getSourceCodePath());
             workingVarChange.setTarget(lastValidString);
             initialOperatorType = lastValidType;
@@ -652,11 +791,13 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             String varValue = workingVarValue.toString();
 
             workingVarChange.setOperatorValue(varValue);
+            workingVarChange.setSourceCodeEndLine(lineNumber);
             String varName = workingVarChange.getTarget();
 
             if (getScope().findChild(varName) == null) {
                 PythonPublicVariable variable = new PythonPublicVariable();
-                variable.setSourceCodeLine(workingVarChange.getSourceCodeLine());
+                variable.setSourceCodeStartLine(workingVarChange.getSourceCodeStartLine());
+                variable.setSourceCodeEndLine(workingVarChange.getSourceCodeEndLine());
                 variable.setSourceCodePath(workingVarChange.getSourceCodePath());
                 variable.setName(varName);
                 variable.setValueString(varValue);
@@ -672,7 +813,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
             if (workingLambda == null) {
                 workingLambda = new PythonLambda();
-                workingLambda.setSourceCodeLine(lineNumber);
+                workingLambda.setSourceCodeStartLine(lineNumber);
                 workingLambda.setSourceCodePath(thisModule.getSourceCodePath());
             }
 
@@ -810,15 +951,6 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         }
     }
 
-    private boolean hasParsedVariable(String fullVariableName) {
-        for (PythonPublicVariable var : publicVariables) {
-            if (var.getFullName().equals(fullVariableName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private String cleanParamValue(String value) {
         if (value.startsWith("(")) {
             value = value.substring(1);
@@ -826,6 +958,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
                 value = value.substring(0, value.length() - 1);
             }
         }
+        value = value.trim();
         return value;
     }
 }

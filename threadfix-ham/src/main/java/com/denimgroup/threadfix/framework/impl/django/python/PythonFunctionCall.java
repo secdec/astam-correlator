@@ -18,7 +18,7 @@ public class PythonFunctionCall extends AbstractPythonStatement {
     @Override
     public String getName() {
         if (manualName == null) {
-            return "call " + functionName + " on " + invokeeName + " at line " + getSourceCodeLine();
+            return "call " + functionName + " on " + invokeeName + " at line " + getSourceCodeStartLine();
         } else {
             return manualName;
         }

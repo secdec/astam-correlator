@@ -41,7 +41,7 @@ public class PythonFunction extends AbstractPythonStatement {
         return false;
     }
 
-    public String invoke(PythonCodeCollection codebase, PythonFunctionCall context, PythonPublicVariable target, String[] params) {
+    public String invoke(PythonCodeCollection codebase, AbstractPythonStatement context, PythonPublicVariable target, String[] params) {
         return null;
     }
 

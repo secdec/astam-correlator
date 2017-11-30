@@ -16,6 +16,8 @@ public abstract class AbstractPythonVisitor {
             visitor.visitVariableModifier((PythonVariableModification)statement);
         } else if (PythonFunctionCall.class.isAssignableFrom(type)) {
             visitor.visitFunctionCall((PythonFunctionCall)statement);
+        } else if (PythonLambda.class.isAssignableFrom(type)) {
+            visitor.visitLambda((PythonLambda)statement);
         }
         visitor.visitAny(statement);
     }
@@ -41,6 +43,10 @@ public abstract class AbstractPythonVisitor {
     }
 
     public void visitFunctionCall(PythonFunctionCall pyFunctionCall) {
+
+    }
+
+    public void visitLambda(PythonLambda pyLambda) {
 
     }
 
