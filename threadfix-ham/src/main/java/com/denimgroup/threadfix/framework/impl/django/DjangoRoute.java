@@ -34,10 +34,24 @@ public class DjangoRoute {
     private String viewPath;
     private List<String> httpMethods = list();
     private Map<String, ParameterDataType> parameters = map();
+    private int startLineNumber = -1, endLineNumber = -1;
 
     public DjangoRoute(String url, String viewPath) {
         this.url = url;
         this.viewPath = viewPath;
+    }
+
+    public void setLineNumbers(int startLine, int endLine) {
+        startLineNumber = startLine;
+        endLineNumber = endLine;
+    }
+
+    public int getStartLineNumber() {
+        return startLineNumber;
+    }
+
+    public int getEndLineNumber() {
+        return endLineNumber;
     }
 
     public String getUrl() {

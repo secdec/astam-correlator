@@ -70,6 +70,7 @@ public class DefaultRouter implements DjangoRouter {
             DjangoRoute route;
             if (controllerObj != null) {
                 route = new DjangoRoute(path, controllerObj.getSourceCodePath());
+                route.setLineNumbers(controllerObj.getSourceCodeStartLine(), controllerObj.getSourceCodeEndLine());
             } else {
                 route = new DjangoRoute(path, controller);
             }

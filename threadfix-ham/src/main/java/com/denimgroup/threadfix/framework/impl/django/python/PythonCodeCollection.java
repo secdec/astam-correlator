@@ -159,8 +159,6 @@ public class PythonCodeCollection {
 
         //  Lower-depth nodes are considered the definitions of a variable (unless defined in __init__)
 
-        // OR
-
         long startTime = System.currentTimeMillis();
         long duration;
 
@@ -423,24 +421,6 @@ public class PythonCodeCollection {
     }
 
     /**
-     * @param fileName The name of the base file to begin searching through.
-     * @return The set of AbstractPythonStatements contained within the file and its children (if it's a folder)
-     */
-    public Collection<AbstractPythonStatement> findInFile(@Nonnull final String fileName) {
-        final List<AbstractPythonStatement> result = new LinkedList<AbstractPythonStatement>();
-        traverse(new AbstractPythonVisitor() {
-            @Override
-            public void visitAny(AbstractPythonStatement statement) {
-                super.visitAny(statement);
-                if (statement.getSourceCodePath().startsWith(fileName)) {
-                    result.add(statement);
-                }
-            }
-        });
-        return result;
-    }
-
-    /**
      * @param filePath The name of the specific file or directory to search for.
      * @return The module for the given folder or file.
      */
@@ -459,29 +439,6 @@ public class PythonCodeCollection {
 
         if (result.size() > 0) {
             return result.get(0);
-        } else {
-            return null;
-        }
-    }
-
-    public <T extends AbstractPythonStatement> T findFirstByFilePath(@Nonnull final String filePath, final Class<T> type) {
-        final List<AbstractPythonStatement> result = new ArrayList<AbstractPythonStatement>();
-
-        traverse(new AbstractPythonVisitor() {
-            @Override
-            public void visitAny(AbstractPythonStatement statement) {
-                super.visitAny(statement);
-                Class<?> statementType = statement.getClass();
-                if (result.size() == 0 &&
-                        (type == null || type.isAssignableFrom(statementType)) &&
-                        statement.getSourceCodePath().equals(filePath)) {
-                    result.add(statement);
-                }
-            }
-        });
-
-        if (result.size() > 0) {
-            return (T)result.get(0);
         } else {
             return null;
         }

@@ -510,6 +510,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                         for (DjangoRoute route : referencedRouter.getRoutes()) {
                             String fullPath = DjangoPathUtil.combine(basePath, route.getUrl());
                             DjangoRoute newRoute = new DjangoRoute(fullPath, route.getViewPath());
+                            newRoute.setLineNumbers(route.getStartLineNumber(), route.getEndLineNumber());
                             for (Map.Entry<String, ParameterDataType> param : newRoute.getParameters().entrySet()) {
                                 newRoute.addParameter(param.getKey(), param.getValue());
                             }
@@ -555,6 +556,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                                     String basePath = DjangoPathUtil.combine(rootPath, regexBuilder.toString());
                                     endpoint = DjangoPathUtil.combine(basePath, endpoint);
                                     DjangoRoute newRoute = new DjangoRoute(endpoint, resolvedController.getSourceCodePath());
+                                    newRoute.setLineNumbers(resolvedController.getSourceCodeStartLine(), resolvedController.getSourceCodeEndLine());
                                     routeMap.put(endpoint, newRoute);
                                 }
                             }

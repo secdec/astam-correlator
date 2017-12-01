@@ -43,7 +43,7 @@ public class DjangoEndpoint extends AbstractEndpoint {
                     "et|eu|fa|fi|fr|fy|ga|gd|gl|he|hi|hr|hsb|hu|ia|id|io"   + "|" +
                     "is|it|ja|ka|kk|km|kn|ko|lb|lt|lv|mk|ml|mn|mr|my|ne|nl" + "|" +
                     "nn|os|pa|pl|pt|pt_BR|ro|ru|sk|sl|sq|sr|sr_Latn|sv|sw"  + "|" +
-                    "ta|te|th|tr|tt|udm|uk|ur|vi|zh_Hans|zh_Hant";
+                    "ta|te|th|tr|tt|udm|uk|ur|vi|zh_Hans|zh_Hant"; // for use in regex
 
     private final static List<String> I18_SUPPORTED_LANGS = list(
             "af", "ar", "ast", "bg", "bn", "br", "bs", "ca", "cs", "cy", "da", "de", "de_CH", "dsb",
@@ -57,6 +57,8 @@ public class DjangoEndpoint extends AbstractEndpoint {
     private String urlPath;
     private Pattern urlPattern;
     private boolean isInternationalized;
+    private int startLineNumber = -1;
+    private int endLineNumber = -1;
 
     private Set<String> httpMethods;
     private Map<String, ParameterDataType> parameters;
@@ -70,6 +72,10 @@ public class DjangoEndpoint extends AbstractEndpoint {
             this.httpMethods = setFrom(httpMethods);
         if (parameters != null)
             this.parameters = parameters;
+
+        if (!this.urlPath.startsWith("/")) {
+            this.urlPath = "/" + urlPath;
+        }
 
         //  Remove named groups, not supported by Java 6
         String pattern = urlPath;
@@ -96,12 +102,12 @@ public class DjangoEndpoint extends AbstractEndpoint {
 
         this.isInternationalized = isInternationalized;
 
-//        if (isInternationalized) {
-//            pattern = DjangoPathUtil.combine("/(?:" + I18_LANG_PATTERN + ")/", pattern);
-//            this.urlPath = DjangoPathUtil.combine("/(i18)", this.urlPath);
-//        }
-
         urlPattern = Pattern.compile(pattern);
+    }
+
+    public void setLineNumbers(int startLine, int endLine) {
+        startLineNumber = startLine;
+        endLineNumber = endLine;
     }
 
     @Override
@@ -151,7 +157,11 @@ public class DjangoEndpoint extends AbstractEndpoint {
     @Nonnull
     @Override
     public String getUrlPath() {
-        return urlPath;
+        if (!isInternationalized) {
+            return urlPath;
+        } else {
+            return "/^(?P<i18>[\\w\\-_]+)" + urlPath;
+        }
     }
 
     @Nonnull
@@ -162,7 +172,7 @@ public class DjangoEndpoint extends AbstractEndpoint {
 
     @Override
     public int getStartingLineNumber() {
-        return 0;
+        return startLineNumber;
     }
 
     @Override
@@ -172,7 +182,13 @@ public class DjangoEndpoint extends AbstractEndpoint {
 
     @Override
     public boolean matchesLineNumber(int lineNumber) {
-        return false;
+        if (startLineNumber < 0) {
+            return false;
+        } else if (endLineNumber < 0) {
+            return lineNumber == startLineNumber;
+        } else {
+            return lineNumber >= startLineNumber && lineNumber <= endLineNumber;
+        }
     }
 
     @Nonnull
