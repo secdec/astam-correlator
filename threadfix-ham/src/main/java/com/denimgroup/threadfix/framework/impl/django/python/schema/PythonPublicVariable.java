@@ -59,7 +59,7 @@ public class PythonPublicVariable extends AbstractPythonStatement {
     public void setValueString(String valueString) {
         this.valueString = valueString;
 
-        isArray = valueString.startsWith("[");
+        isArray = valueString.startsWith("[") && valueString.length() > 1;
 
         this.clearChildStatements();
 

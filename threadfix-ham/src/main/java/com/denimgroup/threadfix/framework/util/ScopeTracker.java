@@ -5,25 +5,73 @@ public class ScopeTracker {
     int numOpenParen = 0, numOpenBrace = 0, numOpenBracket = 0;
     int stringStartToken = -1;
     boolean nextIsEscaped = false;
+    boolean enteredScope = false;
+    boolean exitedScope = false;
+
+    boolean enteredGlobalScope = false;
+    boolean exitedGlobalScope = false;
+
+    boolean enteredString = false;
+    boolean exitedString = false;
 
     public void interpretToken(int token) {
         if (token == '"' || token == '\'' && !nextIsEscaped) {
             if (stringStartToken < 0) {
                 stringStartToken = token;
+                enteredString = true;
             } else if (token == stringStartToken) {
                 stringStartToken = -1;
+                exitedString = true;
             }
         }
+
+        enteredScope = false; exitedScope = false;
+        enteredGlobalScope = false; exitedGlobalScope = false;
+        enteredString = false; exitedString = false;
 
         nextIsEscaped = token == '\\' && !nextIsEscaped;
 
         if (!isInString()) {
-            if (token == '(') numOpenParen++;
-            if (token == ')') numOpenParen--;
-            if (token == '{') numOpenBrace++;
-            if (token == '}') numOpenBrace--;
-            if (token == '[') numOpenBracket++;
-            if (token == ']') numOpenBracket--;
+            boolean wasGlobalScope = !isInScope();
+            boolean movedUpScope = false;
+            boolean movedDownScope = false;
+            if (token == '(') {
+                numOpenParen++;
+                movedUpScope = true;
+            }
+            if (token == ')') {
+                numOpenParen--;
+                movedDownScope = true;
+            }
+            if (token == '{') {
+                numOpenBrace++;
+                movedUpScope = true;
+            }
+            if (token == '}') {
+                numOpenBrace--;
+                movedDownScope = true;
+            }
+            if (token == '[') {
+                numOpenBracket++;
+                movedUpScope = true;
+            }
+            if (token == ']') {
+                numOpenBracket--;
+                movedDownScope = true;
+            }
+
+            if (movedUpScope) {
+                enteredScope = true;
+                if (wasGlobalScope) {
+                    exitedGlobalScope = true;
+                }
+            }
+            if (movedDownScope) {
+                exitedScope = true;
+                if (!isInScope()) {
+                    enteredGlobalScope = true;
+                }
+            }
         }
     }
 
@@ -45,5 +93,29 @@ public class ScopeTracker {
 
     public int getNumOpenBracket() {
         return numOpenBracket;
+    }
+
+    public boolean enteredScope() {
+        return enteredScope;
+    }
+
+    public boolean exitedScope() {
+        return exitedScope;
+    }
+
+    public boolean enteredGlobalScope() {
+        return enteredGlobalScope;
+    }
+
+    public boolean exitedGlobalScope() {
+        return exitedGlobalScope;
+    }
+
+    public boolean enteredString() {
+        return enteredString;
+    }
+
+    public boolean exitedString() {
+        return exitedString;
     }
 }

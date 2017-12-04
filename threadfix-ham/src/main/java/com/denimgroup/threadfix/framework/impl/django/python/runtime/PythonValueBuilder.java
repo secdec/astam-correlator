@@ -15,7 +15,7 @@ public class PythonValueBuilder {
             if (symbols.startsWith("[")) {
                 arrayResult = new PythonArray();
             } else {
-                arrayResult = new PythonParameterGroup();
+                arrayResult = new PythonTuple();
             }
 
             StringBuilder elementBuilder = new StringBuilder();
@@ -39,15 +39,45 @@ public class PythonValueBuilder {
                 arrayResult.addEntry(new PythonUnresolvedValue(elementBuilder.toString()));
             }
 
+            result = arrayResult;
+
         } else if (symbols.startsWith("{")) {
 
             symbols = CodeParseUtil.trim(symbols, new String[] { "{", "}" }, 1);
 
             StringBuilder elementBuilder = new StringBuilder();
-            String key = null, value = null;
+            String key = null;
 
-        } else if (symbols.startsWith("\"") || symbols.startsWith("'")) {
+            PythonDictionary dictionaryResult = new PythonDictionary();
 
+            for (int i = 0; i < symbols.length(); i++) {
+                int token = symbols.charAt(i);
+                scopeTracker.interpretToken(token);
+
+                if (!scopeTracker.isInScope() && !scopeTracker.isInString()) {
+                    if (token == ':') {
+                        if (key == null) {
+                            key = elementBuilder.toString();
+                            elementBuilder = new StringBuilder();
+                        } else {
+                            dictionaryResult.add(new PythonUnresolvedValue(key), new PythonUnresolvedValue(elementBuilder.toString()));
+                            key = null;
+                            elementBuilder = new StringBuilder();
+                        }
+                    }
+                } else {
+                    elementBuilder.append((char)token);
+                }
+            }
+
+            if (elementBuilder.length() > 0 && key != null) {
+                dictionaryResult.add(new PythonUnresolvedValue(key), new PythonUnresolvedValue(elementBuilder.toString()));
+            }
+
+            result = dictionaryResult;
+
+        } else if (symbols.startsWith("\"") || symbols.startsWith("'") || symbols.startsWith("r'") || symbols.startsWith("r\"")) {
+            result = new PythonStringPrimitive(CodeParseUtil.trim(symbols, new String[] { "\"", "'", "r'", "r\"" }));
         } else {
             result = new PythonIndeterminateValue();
         }

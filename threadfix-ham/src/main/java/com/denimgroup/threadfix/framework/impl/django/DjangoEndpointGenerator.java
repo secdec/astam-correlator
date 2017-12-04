@@ -23,7 +23,9 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonIncrementalParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.ExpressionDeconstructor;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -58,6 +60,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
     public DjangoEndpointGenerator(@Nonnull File rootDirectory) {
         assert rootDirectory.exists() : "Root file did not exist.";
         assert rootDirectory.isDirectory() : "Root file was not a directory.";
+
+
 
         long generationStartTime = System.currentTimeMillis();
 

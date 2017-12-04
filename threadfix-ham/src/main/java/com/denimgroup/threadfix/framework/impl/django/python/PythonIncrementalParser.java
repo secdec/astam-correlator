@@ -6,6 +6,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPyth
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.util.ScopeTracker;
 
 /**
  * Parses individual python code strings to generate a binary expression tree.
@@ -18,7 +19,7 @@ public class PythonIncrementalParser implements EventBasedTokenizer {
 
     public static PythonBinaryExpression parse(PythonCodeCollection linkedCodebase, AbstractPythonStatement context, String pythonCodeLine) {
         PythonIncrementalParser parser = new PythonIncrementalParser(linkedCodebase, context);
-        EventBasedTokenizerRunner.runString(pythonCodeLine, PythonTokenizerConfigurator.INSTANCE, parser);
+        EventBasedTokenizerRunner.runString(pythonCodeLine, PythonIncrementalParserTokenizerConfigurator.INSTANCE, parser);
         return parser.getBuiltExpression();
     }
 
@@ -36,77 +37,50 @@ public class PythonIncrementalParser implements EventBasedTokenizer {
         return true;
     }
 
-    int numOpenBrace = 0, numOpenBracket = 0, numOpenParen = 0;
-    int stringStartType = -1;
-    boolean nextIsEscaped = false, wasEscaped = false;
-
     String lastString, lastValidString;
     int lastType, lastValidType;
+    boolean endedToken = false;
 
-    StringBuilder workingStringLiteral;
+    StringBuilder workingLine = new StringBuilder();
     StringBuilder pendingSubExpression;
+
+    ScopeTracker scopeTracker = new ScopeTracker();
 
     PythonValue targetObject = null;
     PythonValue operandObject = null;
 
+    int primitiveOperator1 = -1, primitiveOperator2 = -1;
+
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
 
-        if (type == '\'' || type == '"' && !nextIsEscaped) {
-            if (stringStartType > 0) {
-                if (type == stringStartType) {
-                    stringStartType = -1;
-                }
+        scopeTracker.interpretToken(type);
+        if (stringValue != null) {
+            for (int i = 0; i < stringValue.length(); i++) {
+                scopeTracker.interpretToken(stringValue.charAt(i));
+            }
+            scopeTracker.interpretToken(type);
+        }
+        workingLine.append(CodeParseUtil.buildTokenString(type, stringValue));
+
+        int detectedOperator = -1;
+        if (type == '=' || type == '+' || type == '-') {
+            detectedOperator = type;
+        }
+
+        if (detectedOperator > 0) {
+            if (primitiveOperator1 < 0) {
+                primitiveOperator1 = detectedOperator;
             } else {
-                stringStartType = type;
-                workingStringLiteral = new StringBuilder();
+                primitiveOperator2 = detectedOperator;
             }
         }
 
-        if (stringStartType < 0) {
-            if (type == '{') numOpenBrace++;
-            if (type == '}') numOpenBrace--;
-            if (type == '(') numOpenParen++;
-            if (type == ')') numOpenParen--;
-            if (type == '[') numOpenBracket++;
-            if (type == ']') numOpenBracket--;
-        }
-
-        wasEscaped = nextIsEscaped;
-        nextIsEscaped = type == '\\' && !nextIsEscaped;
-
-        if (stringStartType > 0) {
-            workingStringLiteral.append(CodeParseUtil.buildTokenString(type, stringValue));
-        }
-
-        PythonValue detectedValue = null;
-
-        if (stringValue != null && stringStartType < 0) {
-            if (workingStringLiteral != null) {
-                String literalValue = workingStringLiteral.toString();
-                literalValue = CodeParseUtil.trim(literalValue, new String[] { "'", "\"" });
-                detectedValue = new PythonStringPrimitive(literalValue);
-                workingStringLiteral = null;
-            } else {
-                detectedValue = new PythonObject();
-            }
-        } else {
-            if (type > 0) {
-                if (type == '[') {
-                    detectedValue = new PythonArray();
-                } else if (type == '{') {
-                    detectedValue = new PythonDictionary();
-                } else if (type == '(') {
-                    detectedValue = new PythonParameterGroup();
+        if (workingLine.length() > 0) {
+            if (!scopeTracker.isInString() && !scopeTracker.isInScope()) {
+                if (type == '.') {
+                    endedToken = true;
                 }
-            }
-        }
-
-        if (detectedValue != null) {
-            if (targetObject == null) {
-                targetObject = detectedValue;
-            } else if (operandObject == null) {
-                operandObject = detectedValue;
             }
         }
 
