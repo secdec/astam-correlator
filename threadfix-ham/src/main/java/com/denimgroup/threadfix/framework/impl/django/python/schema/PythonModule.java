@@ -1,4 +1,4 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
 public class PythonModule extends AbstractPythonStatement {
 
@@ -22,4 +22,9 @@ public class PythonModule extends AbstractPythonStatement {
         this.name = name;
     }
 
+    @Override
+    public void accept(AbstractPythonVisitor visitor) {
+        visitor.visitModule(this);
+        super.accept(visitor);
+    }
 }

@@ -1,4 +1,4 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,6 +30,12 @@ public class PythonClass extends AbstractPythonStatement {
             clone.addDecorator(decorator.clone());
         }
         return clone;
+    }
+
+    @Override
+    public void accept(AbstractPythonVisitor visitor) {
+        visitor.visitClass(this);
+        super.accept(visitor);
     }
 
     public Collection<String> getBaseTypes() {

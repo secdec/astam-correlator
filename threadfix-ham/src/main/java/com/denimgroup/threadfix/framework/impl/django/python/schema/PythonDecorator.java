@@ -1,6 +1,5 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
-import java.util.Collection;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;

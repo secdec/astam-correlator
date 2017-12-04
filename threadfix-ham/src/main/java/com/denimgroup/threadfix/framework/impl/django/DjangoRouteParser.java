@@ -19,10 +19,10 @@
 package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
-import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonPublicVariable;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonModule;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonPublicVariable;
 import com.denimgroup.threadfix.framework.impl.django.routers.DjangoRouter;
 import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;

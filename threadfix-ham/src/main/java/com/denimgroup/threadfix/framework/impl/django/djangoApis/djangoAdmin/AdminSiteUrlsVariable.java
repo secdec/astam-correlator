@@ -1,8 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin;
 
-import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonStatement;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonFunction;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonPublicVariable;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonPublicVariable;
 
 public class AdminSiteUrlsVariable extends PythonPublicVariable {
 

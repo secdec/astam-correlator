@@ -1,4 +1,4 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -183,8 +183,8 @@ public abstract class AbstractPythonStatement {
     }
 
     public void accept(AbstractPythonVisitor visitor) {
+        visitor.visitAny(this);
         for (AbstractPythonStatement statement : childStatements) {
-            AbstractPythonVisitor.visitSingle(visitor, statement);
             statement.accept(visitor);
         }
     }

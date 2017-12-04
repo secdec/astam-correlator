@@ -1,5 +1,6 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
+import com.denimgroup.threadfix.framework.impl.django.python.VariableModificationType;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 
 import java.util.Map;
@@ -49,6 +50,12 @@ public class PythonPublicVariable extends AbstractPythonStatement {
         return clone;
     }
 
+    @Override
+    public void accept(AbstractPythonVisitor visitor) {
+        visitor.visitPublicVariable(this);
+        super.accept(visitor);
+    }
+
     public void setValueString(String valueString) {
         this.valueString = valueString;
 
@@ -71,7 +78,7 @@ public class PythonPublicVariable extends AbstractPythonStatement {
 
                 this.addChildStatement(element);
 
-                PythonVariableModification assignment = new PythonVariableModification();
+                PythonFunction.PythonVariableModification assignment = new PythonFunction.PythonVariableModification();
                 assignment.setTarget(element.getFullName());
                 assignment.setSourceCodeStartLine(this.getSourceCodeStartLine());
                 assignment.setSourceCodePath(this.getSourceCodePath());

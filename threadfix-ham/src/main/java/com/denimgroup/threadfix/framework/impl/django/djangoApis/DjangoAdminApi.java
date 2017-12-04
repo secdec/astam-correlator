@@ -4,6 +4,7 @@ import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.Adm
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteRegisterFunction;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteUrlsVariable;
 import com.denimgroup.threadfix.framework.impl.django.python.*;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 
 import java.io.*;

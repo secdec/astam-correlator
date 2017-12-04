@@ -1,6 +1,10 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin;
 
 import com.denimgroup.threadfix.framework.impl.django.python.*;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonPublicVariable;
 
 public class AdminSiteRegisterFunction extends PythonFunction {
 

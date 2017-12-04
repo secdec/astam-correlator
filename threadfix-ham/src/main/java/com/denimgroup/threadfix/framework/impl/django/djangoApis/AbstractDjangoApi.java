@@ -1,8 +1,8 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis;
 
-import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonModule;
 
 import java.util.ArrayList;
 import java.util.Collection;

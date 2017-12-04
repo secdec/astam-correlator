@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.python;
 
+import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
@@ -200,8 +201,8 @@ public class PythonCodeCollection {
         LOG.info("Resolved " + numResolvedTypes + " variable types in " + duration + "ms");
 
         int numResolvedModifications = 0;
-        Collection<PythonVariableModification> variableModifications = this.get(PythonVariableModification.class);
-        for (PythonVariableModification var : variableModifications) {
+        Collection<PythonFunction.PythonVariableModification> variableModifications = this.get(PythonFunction.PythonVariableModification.class);
+        for (PythonFunction.PythonVariableModification var : variableModifications) {
             String varName = var.getTarget();
             PythonPublicVariable resolvedVar = resolveLocalSymbol(varName, var, PythonPublicVariable.class);
             if (resolvedVar != null) {
@@ -215,8 +216,8 @@ public class PythonCodeCollection {
         startTime = System.currentTimeMillis();
 
         int numResolvedFunctionCalls = 0;
-        Collection<PythonFunctionCall> functionCalls = this.get(PythonFunctionCall.class);
-        for (PythonFunctionCall call : functionCalls) {
+        Collection<PythonFunction.PythonFunctionCall> functionCalls = this.get(PythonFunction.PythonFunctionCall.class);
+        for (PythonFunction.PythonFunctionCall call : functionCalls) {
             String invokee = call.getInvokeeName();
             String function = call.getFunctionName();
 
@@ -258,20 +259,20 @@ public class PythonCodeCollection {
     public void executeInvocations() {
         LOG.info("Executing global-level function calls");
 
-        Collection<PythonFunctionCall> functionCalls = new LinkedList<PythonFunctionCall>();
+        Collection<PythonFunction.PythonFunctionCall> functionCalls = new LinkedList<PythonFunction.PythonFunctionCall>();
         Collection<PythonModule> modules = getModules();
 
         for (PythonModule module : modules) {
             for (AbstractPythonStatement child : module.getChildStatements()) {
-                if (child instanceof PythonFunctionCall) {
-                    functionCalls.add((PythonFunctionCall)child);
+                if (child instanceof PythonFunction.PythonFunctionCall) {
+                    functionCalls.add((PythonFunction.PythonFunctionCall)child);
                 }
             }
         }
 
         long startTime = System.currentTimeMillis();
 
-        for (PythonFunctionCall call : functionCalls) {
+        for (PythonFunction.PythonFunctionCall call : functionCalls) {
             PythonFunction function = call.getResolvedFunction();
             if (function != null) {
                 if (function.canInvoke()) {
@@ -603,7 +604,6 @@ public class PythonCodeCollection {
 
     public void traverse(AbstractPythonVisitor visitor) {
         for (AbstractPythonStatement child : statements) {
-            AbstractPythonVisitor.visitSingle(visitor, child);
             child.accept(visitor);
         }
     }

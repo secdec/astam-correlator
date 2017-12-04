@@ -1,16 +1,17 @@
 package com.denimgroup.threadfix.framework.impl.django.python;
 
 import com.denimgroup.threadfix.framework.impl.django.PythonTokenizerConfigurator;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.util.ScopeTracker;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.IOFileFilter;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -19,13 +20,12 @@ import java.util.concurrent.Future;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.framework.impl.django.python.Language.PYTHON_KEYWORDS;
 import static com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser.ParsePhase.*;
 
 public class PythonSyntaxParser implements EventBasedTokenizer {
 
     private static SanitizedLogger LOG = new SanitizedLogger(PythonSyntaxParser.class);
-
-    private static Collection<String> PYTHON_KEYWORDS = list("if", "while", "else", "elif", "in", "do", "and", "not", "or", "\\");
 
     private static void log(String msg) {
         //LOG.info(msg);
@@ -258,11 +258,8 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     int lastValidType;
     String lastString;
     int lastType = -1;
-    boolean isInString = false;
 
-    int numOpenParen = 0;
-    int numOpenBrace = 0;
-    int numOpenBracket = 0;
+    ScopeTracker scopeTracker = new ScopeTracker();
 
     int spaceDepth = 0;
     int classEntrySpaceDepth = -1;
@@ -384,12 +381,12 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
 
     boolean isInClass() {
-        return numOpenBrace == 0 && numOpenParen == 0 &&
+        return !scopeTracker.isInScope() &&
                 spaceDepth > classEntrySpaceDepth && classEntrySpaceDepth >= 0;
     }
 
     boolean isInMethod() {
-        return numOpenBrace == 0 && numOpenParen == 0 &&
+        return !scopeTracker.isInScope() &&
                 spaceDepth > functionEntrySpaceDepth && functionEntrySpaceDepth >= 0;
     }
 
@@ -437,17 +434,11 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
 
-        if (!isInString) {
-            if (type == '(') numOpenParen++;
-            if (type == ')') numOpenParen--;
-            if (type == '{') numOpenBrace++;
-            if (type == '}') numOpenBrace--;
-            if (type == '[') numOpenBracket++;
-            if (type == ']') numOpenBracket--;
-        }
-
-        if (stringValue != null && stringValue.equals("):")) {
-            numOpenParen--;
+        scopeTracker.interpretToken(type);
+        if (stringValue != null) {
+            for (int i = 0; i < stringValue.length(); i++) {
+                scopeTracker.interpretToken((int)stringValue.charAt(i));
+            }
         }
 
         if (type == '\n') {
@@ -468,27 +459,15 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             isStringChar = false;
         }
 
-        if (isStringChar && stringValue == null) {
-            if (quoteStartType < 0) {
-                isInString = !isInString;
-                quoteStartType = type;
-            } else {
-                if (quoteStartType == type) {
-                    quoteStartType = -1;
-                    isInString = !isInString;
-                }
-            }
-        }
-
-        if (type == '@' && !isInMethod() && !isInString) {
+        if (type == '@' && !isInMethod() && !scopeTracker.isInString()) {
             parsePhase = DECORATOR_NAME;
         }
 
-        if (!isInString && stringValue != null && (stringValue.equals("urlpatterns") || stringValue.equals("urls"))) {
+        if (!scopeTracker.isInString() && stringValue != null && (stringValue.equals("urlpatterns") || stringValue.equals("urls"))) {
             isModifyingUrlPatterns = true;
         }
 
-        if (!ranScopingCheck && !isStringChar && !isInString && (stringValue != null || (type != ' ' && type != '\n' && type != '\t'))) {
+        if (!ranScopingCheck && !isStringChar && !scopeTracker.isInString() && (stringValue != null || (type != ' ' && type != '\n' && type != '\t'))) {
             AbstractPythonStatement currentScope = getScope();
             while (currentScope != null && spaceDepth < currentScope.getIndentationLevel()) {
                 currentScope.setSourceCodeEndLine(lineNumber);
@@ -522,21 +501,21 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
 
     private void processStart(int type, int lineNumber, String stringValue) {
-        if (stringValue != null && !isInString) {
+        if (stringValue != null && !scopeTracker.isInString()) {
             if (stringValue.equals("class")) {
                 parsePhase = ParsePhase.CLASS_NAME;
             } else if (stringValue.equals("def")) {
                 parsePhase = ParsePhase.DECL_FUNCTION_NAME;
-            } else if (!isInMethod() && !isInClass() && numOpenParen == 0 && !isInString) {
+            } else if (!isInMethod() && !isInClass() && scopeTracker.getNumOpenParen() == 0 && !scopeTracker.isInString()) {
                 if (stringValue.equals("from")) {
                     parsePhase = FROM_IMPORT;
                 } else if (stringValue.equals("import")) {
                     parsePhase = IMPORT_AS;
                 }
             }
-        } else if ((type == '=' || type == '-' || type == '+') && !isInMethod() && numOpenParen == 0 && !isInString) {
+        } else if ((type == '=' || type == '-' || type == '+') && !isInMethod() && scopeTracker.getNumOpenParen() == 0 && !scopeTracker.isInString()) {
             parsePhase = VARIABLE_ASSIGNMENT;
-        } else if (type == '(' && !isInString) {
+        } else if (type == '(' && !scopeTracker.isInString()) {
             parsePhase = INVOKE_FUNCTION_PARAMS;
         }
     }
@@ -560,7 +539,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
 
     private void processClassBaseTypes(int type, int lineNumber, String stringValue) {
-        if (numOpenParen == 0) {
+        if (scopeTracker.getNumOpenParen() == 0) {
             attachImports(currentClass);
             registerScopeOutput(currentClass);
             pushScope(currentClass);
@@ -601,7 +580,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
 
     private void processFunctionDeclarationParams(int type, int lineNumber, String stringValue) {
-        if (numOpenParen == 0) {
+        if (scopeTracker.getNumOpenParen() == 0) {
             if (currentFunction.getOwnerClass() == null && currentFunction.getOwnerFunction() == null) {
                 //attachImports(currentFunction);
                 registerScopeOutput(currentFunction);
@@ -614,24 +593,24 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         }
     }
 
-    PythonFunctionCall workingFunctionCall = null;
+    PythonFunction.PythonFunctionCall workingFunctionCall = null;
     StringBuilder workingFunctionCallParams = null;
     int functionCallStartNumParen = -1;
     private void processInvokeFunctionParams(int type, int lineNumber, String stringValue) {
 
-        if (!isInString && stringValue != null &&
+        if (!scopeTracker.isInString() && stringValue != null &&
                 (PYTHON_KEYWORDS.contains(stringValue) || PYTHON_KEYWORDS.contains(lastValidString))) {
             parsePhase = START;
             return;
         }
 
         if (workingFunctionCall == null) {
-            workingFunctionCall = new PythonFunctionCall();
+            workingFunctionCall = new PythonFunction.PythonFunctionCall();
             workingFunctionCallParams = new StringBuilder();
             workingFunctionCall.setSourceCodeStartLine(lineNumber);
             workingFunctionCall.setSourceCodePath(this.getThisModule().getSourceCodePath());
 
-            functionCallStartNumParen = numOpenParen;
+            functionCallStartNumParen = scopeTracker.getNumOpenParen();
 
             String callName = lastValidString;
             if (callName.contains(".")) {
@@ -643,7 +622,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             }
         }
 
-        if (numOpenParen < functionCallStartNumParen || numOpenParen == 0) {
+        if (scopeTracker.getNumOpenParen() < functionCallStartNumParen || scopeTracker.getNumOpenParen() == 0) {
             String[] params = CodeParseUtil.splitByComma(workingFunctionCallParams.toString());
             workingFunctionCall.setParameters(Arrays.asList(params));
             registerScopeOutput(workingFunctionCall);
@@ -676,9 +655,9 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         }
 
         if (endsParams) {
-            lambda_startNumOpenParen = numOpenParen;
-            lambda_startNumOpenBrace = numOpenBrace;
-            lambda_startNumOpenBracket = numOpenBracket;
+            lambda_startNumOpenParen = scopeTracker.getNumOpenParen();
+            lambda_startNumOpenBrace = scopeTracker.getNumOpenBrace();
+            lambda_startNumOpenBracket = scopeTracker.getNumOpenBracket();
             parsePhase = LAMBDA_BODY;
         }
     }
@@ -689,8 +668,8 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             workingLambdaBody = new StringBuilder();
         }
 
-        if (type == '\n' && lambda_startNumOpenBrace <= numOpenParen &&
-                lambda_startNumOpenBracket == numOpenBracket && lambda_startNumOpenBrace == numOpenBrace) {
+        if (type == '\n' && lambda_startNumOpenBrace <= scopeTracker.getNumOpenParen() &&
+                lambda_startNumOpenBracket == scopeTracker.getNumOpenBracket() && lambda_startNumOpenBrace == scopeTracker.getNumOpenBrace()) {
 
             workingLambda.setFunctionBody(workingLambdaBody.toString());
             workingLambda.setSourceCodeEndLine(lineNumber);
@@ -720,15 +699,15 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             currentDecorator = new PythonDecorator();
             currentDecorator.setName(stringValue);
             parsePhase = DECORATOR_PARAMS;
-            decorator_startParenIndex = numOpenParen;
-            decorator_startBraceIndex = numOpenBrace;
-            decorator_startBracketIndex = numOpenBrace;
+            decorator_startParenIndex = scopeTracker.getNumOpenParen();
+            decorator_startBraceIndex = scopeTracker.getNumOpenBrace();
+            decorator_startBracketIndex = scopeTracker.getNumOpenBracket();
             workingDecoratorParam = new StringBuilder();
         }
     }
 
     private void processDecoratorParams(int type, int lineNumber, String stringValue) {
-        if (numOpenParen == 0) {
+        if (scopeTracker.getNumOpenParen() == 0) {
             if (workingDecoratorParam != null && workingDecoratorParam.length() > 0) {
                 String paramValue = cleanParamValue(workingDecoratorParam.toString());
                 currentDecorator.addParam(paramValue);
@@ -737,9 +716,9 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             pendingDecorators.add(currentDecorator);
             parsePhase = START;
         } else {
-            if (type == ',' && numOpenParen != decorator_startParenIndex &&
-                    numOpenBrace != decorator_startBraceIndex &&
-                    numOpenBracket != decorator_startBracketIndex) {
+            if (type == ',' && scopeTracker.getNumOpenParen() != decorator_startParenIndex &&
+                    scopeTracker.getNumOpenBrace() != decorator_startBraceIndex &&
+                    scopeTracker.getNumOpenBracket() != decorator_startBracketIndex) {
 
                 String paramValue = cleanParamValue(workingDecoratorParam.toString());
                 currentDecorator.addParam(paramValue);
@@ -750,12 +729,12 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         }
     }
 
-    PythonVariableModification workingVarChange;
+    PythonFunction.PythonVariableModification workingVarChange;
     StringBuilder workingVarValue = null;
     int initialOperatorType = -1;
     private void processVariableAssignment(int type, int lineNumber, String stringValue) {
         if (workingVarChange == null) {
-            workingVarChange = new PythonVariableModification();
+            workingVarChange = new PythonFunction.PythonVariableModification();
             workingVarChange.setSourceCodeStartLine(lineNumber);
             workingVarChange.setSourceCodePath(this.thisModule.getSourceCodePath());
             workingVarChange.setTarget(lastValidString);
@@ -787,7 +766,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
 
     private void processVariableValue(int type, int lineNumber, String stringValue) {
-        if (type == '\n' && numOpenParen == 0 && numOpenBrace == 0 && numOpenBracket == 0) {
+        if (type == '\n' && scopeTracker.getNumOpenParen() == 0 && scopeTracker.getNumOpenBrace() == 0 && scopeTracker.getNumOpenBracket() == 0) {
 
             String varValue = workingVarValue.toString();
 
@@ -835,7 +814,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
     private void processFromImport(int type, int lineNumber, String stringValue) {
 
-        if (type == '\n' && numOpenParen == 0) {
+        if (type == '\n' && scopeTracker.getNumOpenParen() == 0) {
 
             if (importName != null) {
                 //  If a package was specified without an import target
@@ -897,7 +876,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
     private void processImportAs(int type, int lineNumber, String stringValue) {
 
-        if (type == '\n' && numOpenParen == 0) {
+        if (type == '\n' && scopeTracker.getNumOpenParen() == 0) {
             if (importName != null && importNameWithItem == null) {
                 importNameWithItem = importName;
                 importItem = importName;

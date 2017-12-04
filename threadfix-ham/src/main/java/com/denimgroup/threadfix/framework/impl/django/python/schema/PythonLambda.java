@@ -1,4 +1,4 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
 import java.util.Collection;
 
@@ -18,6 +18,12 @@ public class PythonLambda extends AbstractPythonStatement {
     @Override
     public void setName(String newName) {
         name = newName;
+    }
+
+    @Override
+    public void accept(AbstractPythonVisitor visitor) {
+        visitor.visitLambda(this);
+        super.accept(visitor);
     }
 
     public Collection<String> getParamNames() {

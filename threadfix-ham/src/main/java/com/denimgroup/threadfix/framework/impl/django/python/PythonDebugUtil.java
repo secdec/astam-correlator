@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.python;
 
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import java.util.Collection;
