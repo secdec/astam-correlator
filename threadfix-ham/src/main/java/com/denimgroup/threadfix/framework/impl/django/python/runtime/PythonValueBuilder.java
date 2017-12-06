@@ -1,11 +1,26 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.impl.django.python.Language;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
 
+import javax.annotation.Nonnull;
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
+
 public class PythonValueBuilder {
 
-    public PythonValue buildFromSymbol(String symbols) {
+    public <T extends PythonValue> T buildFromSymbol(@Nonnull String symbols, @Nonnull Class<T> type) {
+        PythonValue value = buildFromSymbol(symbols);
+        if (value != null && type.isAssignableFrom(value.getClass())) {
+            return (T)value;
+        } else {
+            return null;
+        }
+    }
+
+    public PythonValue buildFromSymbol(@Nonnull String symbols) {
         PythonValue result = null;
         ScopeTracker scopeTracker = new ScopeTracker();
 
@@ -20,14 +35,14 @@ public class PythonValueBuilder {
 
             StringBuilder elementBuilder = new StringBuilder();
 
-            symbols = CodeParseUtil.trim(symbols, new String[] { "[", "]" }, 1);
+            symbols = CodeParseUtil.trim(symbols, new String[] { "[", "]", "(", ")" }, 1);
 
             for (int i = 0; i < symbols.length(); i++) {
                 int token = symbols.charAt(i);
                 scopeTracker.interpretToken(token);
 
                 if (token == ',' && !scopeTracker.isInString() && !scopeTracker.isInScope()) {
-                    PythonUnresolvedValue entry = new PythonUnresolvedValue(elementBuilder.toString());
+                    PythonValue entry = new PythonUnresolvedValue(elementBuilder.toString().trim());
                     arrayResult.addEntry(entry);
                     elementBuilder = new StringBuilder();
                 } else {
@@ -36,7 +51,7 @@ public class PythonValueBuilder {
             }
 
             if (elementBuilder.length() > 0) {
-                arrayResult.addEntry(new PythonUnresolvedValue(elementBuilder.toString()));
+                arrayResult.addEntry(new PythonUnresolvedValue(elementBuilder.toString().trim()));
             }
 
             result = arrayResult;
@@ -76,10 +91,31 @@ public class PythonValueBuilder {
 
             result = dictionaryResult;
 
-        } else if (symbols.startsWith("\"") || symbols.startsWith("'") || symbols.startsWith("r'") || symbols.startsWith("r\"")) {
-            result = new PythonStringPrimitive(CodeParseUtil.trim(symbols, new String[] { "\"", "'", "r'", "r\"" }));
+        } else if (Language.isString(symbols)) {
+            result = new PythonStringPrimitive(CodeParseUtil.trim(symbols, new String[] { "\"", "'", "r'", "r\"", "u'", "u\"" }));
+        } else if (symbols.equals("None")) {
+            result = new PythonNone();
         } else {
-            result = new PythonIndeterminateValue();
+            boolean isExpression = false;
+            boolean isTuple = false;
+            for (int i = 0; i < symbols.length(); i++) {
+                int c = symbols.charAt(i);
+                if ((c <= 64) || (c >= 91 && c <= 94) || (c == 96) || (c >= 123)) {
+                    if (c == ',') {
+                        isTuple = true;
+                    } else if (c != '.') {
+                        isExpression = true;
+                    }
+                }
+            }
+
+            if (isExpression) {
+                result = new PythonIndeterminateValue();
+            } else if (isTuple) {
+                result = buildFromSymbol("(" + symbols + ")");
+            } else {
+                result = new PythonObject(symbols);
+            }
         }
 
         return result;

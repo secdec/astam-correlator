@@ -30,4 +30,27 @@ public class PythonArray implements PythonValue {
         entries.remove(index);
         entries.add(index, newValue);
     }
+
+    @Override
+    public List<PythonValue> getSubValues() {
+        return entries;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+
+        result.append('[');
+
+        for (int i = 0; i < entries.size(); i++) {
+            if (i > 0) {
+                result.append(", ");
+            }
+            result.append(entries.get(i).toString());
+        }
+
+        result.append(']');
+
+        return result.toString();
+    }
 }

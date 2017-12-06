@@ -26,6 +26,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollectio
 import com.denimgroup.threadfix.framework.impl.django.python.PythonIncrementalParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.ExpressionDeconstructor;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -95,6 +96,42 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         codebase.initialize();
 
         DjangoApiConfigurator.applyPostLink(codebase);
+
+        ExpressionDeconstructor ed = new ExpressionDeconstructor();
+        List<String> subexpressions;
+        subexpressions = ed.deconstruct("abc = 123 + 23");
+        subexpressions = ed.deconstruct("[a, c, d]");
+        subexpressions = ed.deconstruct("a, c, d", 3);
+        subexpressions = ed.deconstruct("a == b");
+        subexpressions = ed.deconstruct("var += 2");
+        subexpressions = ed.deconstruct("var -= '2' - 5", 2);
+        subexpressions = ed.deconstruct("abc = [1, 2, 3] + [2]");
+        subexpressions = ed.deconstruct("12, '13', someCall(5 + 3, this.x), this.y, a.b.c.d");
+        subexpressions = ed.deconstruct("[1, 2, 3], 5", 1);
+        subexpressions = ed.deconstruct("someCall(123).member");
+        subexpressions = ed.deconstruct("someCall(123).otherCall().member");
+
+        PythonIncrementalParser incrementalParser = new PythonIncrementalParser(codebase);
+        PythonExpression expr = incrementalParser.processString("x = 5", null);
+        expr = incrementalParser.processString("x += 5", null);
+        expr = incrementalParser.processString("x.y += 5", null);
+        expr = incrementalParser.processString("x.y += a - b", null);
+        expr = incrementalParser.processString("abc(xyz)", null);
+        expr = incrementalParser.processString("a.b.c(xyz)", null);
+        expr = incrementalParser.processString("a.b.c(x, y)", null);
+        expr = incrementalParser.processString("a.b.c(x.y.z)", null);
+        expr = incrementalParser.processString("a.b.c(x, y.z) + 5", null);
+        expr = incrementalParser.processString("a.b.c(d(x), g(y).z) -= 2", null);
+        expr = incrementalParser.processString("a.b(d(x).y + 5, g(y) -= 5).x + 1 % 5 - g(x) + (z, b)", null);
+
+        expr = incrementalParser.processString("if page and page.parent_id:", null);
+        expr = incrementalParser.processString("title=_(u\"New page\")", null);
+        expr = incrementalParser.processString("context['has_change_permissions'] = user_can_change_page(request.user, page)", null);
+        expr = incrementalParser.processString("abc['123' + '456' - func() + func].func() + 2", null);
+
+        expr = incrementalParser.processString("return x = 5", null);
+        expr = incrementalParser.processString("return", null);
+        expr = incrementalParser.processString("return x, y", null);
 
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
         codebase.traverse(i18Detector);

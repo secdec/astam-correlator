@@ -1,5 +1,9 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+
+import java.util.List;
+
 public class PythonStringPrimitive implements PythonValue {
 
     String value;
@@ -9,7 +13,7 @@ public class PythonStringPrimitive implements PythonValue {
     }
 
     public PythonStringPrimitive(String value) {
-        this.value = value;
+        setValue(value);
     }
 
     public String getValue() {
@@ -17,11 +21,25 @@ public class PythonStringPrimitive implements PythonValue {
     }
 
     public void setValue(String value) {
-        this.value = value;
+        this.value = CodeParseUtil.trim(value, new String[] { "\"", "'", "r'", "r\"" });
     }
 
     @Override
     public void resolveSubValue(PythonValue previousValue, PythonValue newValue) {
 
+    }
+
+    @Override
+    public List<PythonValue> getSubValues() {
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        if (this.value != null) {
+            return '"' + this.value + '"';
+        } else {
+            return "<Unassigned String>";
+        }
     }
 }
