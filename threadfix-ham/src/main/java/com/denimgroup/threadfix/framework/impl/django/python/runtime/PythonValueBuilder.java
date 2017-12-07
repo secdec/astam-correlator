@@ -92,7 +92,9 @@ public class PythonValueBuilder {
             result = dictionaryResult;
 
         } else if (Language.isString(symbols)) {
-            result = new PythonStringPrimitive(CodeParseUtil.trim(symbols, new String[] { "\"", "'", "r'", "r\"", "u'", "u\"" }));
+            result = new PythonStringPrimitive(CodeParseUtil.trim(symbols, new String[]{"\"", "'", "r'", "r\"", "u'", "u\""}));
+        } else if (Language.isNumber(symbols)) {
+            result = new PythonNumericPrimitive(symbols);
         } else if (symbols.equals("None")) {
             result = new PythonNone();
         } else {

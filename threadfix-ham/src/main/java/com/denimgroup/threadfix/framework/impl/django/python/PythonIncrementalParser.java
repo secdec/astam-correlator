@@ -27,7 +27,7 @@ public class PythonIncrementalParser {
 
     enum OperationType {
         UNKNOWN, INVALID,
-        ASSIGNMENT, CONCATENATION, REMOVAL, ADDITION, SUBTRACTION, STRING_INTERPOLATION,
+        PRIMITIVE_OPERATION,
         MEMBER_ACCESS, TUPLE_REFERENCE, INDEXER, RETURN_STATEMENT,
         PARAMETER_ENTRY, // For tuples (a, b, c) and multi-assignment 'a, b = 1, 2'
         FUNCTION_CALL
@@ -52,6 +52,7 @@ public class PythonIncrementalParser {
 
         OperationType operationType = OperationType.UNKNOWN;
         List<OperationType> expressionOperations = new ArrayList<OperationType>(expressions.size());
+        String operationTypeIndicator = null;
 
         int primaryEndIndex = 0;
         for (int i = 0; i < expressions.size(); i++) {
@@ -79,6 +80,7 @@ public class PythonIncrementalParser {
                         ((subexprOperation != OperationType.TUPLE_REFERENCE &&
                         subexprOperation != OperationType.MEMBER_ACCESS) || i == 0)) {
                     operationType = subexprOperation;
+                    operationTypeIndicator = subexpr;
                     primaryEndIndex = i;
                 }
 
@@ -93,34 +95,63 @@ public class PythonIncrementalParser {
         //  as the primary operation.
 
         if (operationType == OperationType.UNKNOWN) {
-            for (OperationType type : expressionOperations) {
+            for (int i = 0; i < expressionOperations.size(); i++) {
+                OperationType type = expressionOperations.get(i);
                 if (type != OperationType.UNKNOWN && type != OperationType.INVALID) {
                     operationType = type;
+                    operationTypeIndicator = expressions.get(i);
                     break;
                 }
             }
         }
 
         switch (operationType) {
-            case ASSIGNMENT:
-            case CONCATENATION:
-            case REMOVAL:
-            case ADDITION:
-            case SUBTRACTION:
-            case STRING_INTERPOLATION:
-                result = parsePrimitiveOperation(expressions, subjects, expressionOperations, context, primaryEndIndex, operationType);
+            case PRIMITIVE_OPERATION:
+                result = parsePrimitiveOperation(
+                        expressions,
+                        subjects,
+                        expressionOperations,
+                        context,
+                        primaryEndIndex,
+                        operationType,
+                        operationTypeIndicator
+                );
                 break;
             case FUNCTION_CALL:
-                result = parseFunctionCall(expressions, subjects, expressionOperations, context, primaryEndIndex);
+                result = parseFunctionCall(
+                        expressions,
+                        subjects,
+                        expressionOperations,
+                        context,
+                        primaryEndIndex
+                );
                 break;
             case MEMBER_ACCESS:
-                result = parseMemberAccess(expressions, subjects, expressionOperations, context, primaryEndIndex);
+                result = parseMemberAccess(
+                        expressions,
+                        subjects,
+                        expressionOperations,
+                        context,
+                        primaryEndIndex
+                );
                 break;
             case INDEXER:
-                result = parseIndexer(expressions, subjects, expressionOperations, context, primaryEndIndex);
+                result = parseIndexer(
+                        expressions,
+                        subjects,
+                        expressionOperations,
+                        context,
+                        primaryEndIndex
+                );
                 break;
             case RETURN_STATEMENT:
-                result = parseReturnStatement(expressions, subjects, expressionOperations, context, primaryEndIndex);
+                result = parseReturnStatement(
+                        expressions,
+                        subjects,
+                        expressionOperations,
+                        context,
+                        primaryEndIndex
+                );
                 break;
             default:
                 result = null;
@@ -140,18 +171,8 @@ public class PythonIncrementalParser {
             return OperationType.RETURN_STATEMENT;
         } else if (expression.equals(".")) {
             return OperationType.MEMBER_ACCESS;
-        } else if (expression.equals("+")) {
-            return OperationType.ADDITION;
-        } else if (expression.equals("-")) {
-            return OperationType.SUBTRACTION;
-        } else if (expression.equals("=")) {
-            return OperationType.ASSIGNMENT;
-        } else if (expression.equals("+=")) {
-            return OperationType.CONCATENATION;
-        } else if (expression.equals("-=")) {
-            return OperationType.REMOVAL;
-        } else if (expression.equals("%")) {
-            return OperationType.STRING_INTERPOLATION;
+        } else if (PrimitiveOperationExpression.interpretOperator(expression) != PrimitiveOperationType.UNKNOWN) {
+            return OperationType.PRIMITIVE_OPERATION;
         } else if (expression.startsWith("(")) {
             return OperationType.TUPLE_REFERENCE;
         } else if (expression.equals(",")) {
@@ -170,17 +191,10 @@ public class PythonIncrementalParser {
                                                    List<OperationType> expressionTypes,
                                                    AbstractPythonStatement context,
                                                    int primaryEndIndex,
-                                                   OperationType type) {
+                                                   OperationType type,
+                                                   String operationIndicator) {
 
-        PrimitiveOperationType primitiveType = PrimitiveOperationType.UNKNOWN;
-        switch (type) {
-            case ADDITION:             primitiveType = PrimitiveOperationType.ADDITION;             break;
-            case SUBTRACTION:          primitiveType = PrimitiveOperationType.SUBTRACTION;          break;
-            case ASSIGNMENT:           primitiveType = PrimitiveOperationType.ASSIGNMENT;           break;
-            case CONCATENATION:        primitiveType = PrimitiveOperationType.CONCATENATION;        break;
-            case REMOVAL:              primitiveType = PrimitiveOperationType.REMOVAL;              break;
-            case STRING_INTERPOLATION: primitiveType = PrimitiveOperationType.STRING_INTERPOLATION; break;
-        }
+        PrimitiveOperationType primitiveType = PrimitiveOperationExpression.interpretOperator(operationIndicator);
 
         List<PythonValue> operands = null;
         PrimitiveOperationExpression result = new PrimitiveOperationExpression(primitiveType);

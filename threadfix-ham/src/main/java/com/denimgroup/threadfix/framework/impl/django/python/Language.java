@@ -22,4 +22,15 @@ public class Language {
             }
         }
     }
+
+
+    public static boolean isNumber(String string) {
+        for (int i = 0; i < string.length(); i++) {
+            int c = string.charAt(i);
+            if ((c < 48 || c > 57) && c != '.') {
+                return false;
+            }
+        }
+        return true;
+    }
 }

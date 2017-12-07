@@ -110,6 +110,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         subexpressions = ed.deconstruct("[1, 2, 3], 5", 1);
         subexpressions = ed.deconstruct("someCall(123).member");
         subexpressions = ed.deconstruct("someCall(123).otherCall().member");
+        subexpressions = ed.deconstruct("123 + 34.12 - x");
 
         PythonIncrementalParser incrementalParser = new PythonIncrementalParser(codebase);
         PythonExpression expr = incrementalParser.processString("x = 5", null);
@@ -123,6 +124,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         expr = incrementalParser.processString("a.b.c(x, y.z) + 5", null);
         expr = incrementalParser.processString("a.b.c(d(x), g(y).z) -= 2", null);
         expr = incrementalParser.processString("a.b(d(x).y + 5, g(y) -= 5).x + 1 % 5 - g(x) + (z, b)", null);
+        expr = incrementalParser.processString("x - (y - (z - w)) + v", null);
 
         expr = incrementalParser.processString("if page and page.parent_id:", null);
         expr = incrementalParser.processString("title=_(u\"New page\")", null);

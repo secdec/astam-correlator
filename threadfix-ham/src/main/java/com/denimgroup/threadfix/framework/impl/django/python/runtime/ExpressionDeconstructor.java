@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.impl.django.python.Language;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
 
 import java.util.List;
@@ -74,7 +75,27 @@ public class ExpressionDeconstructor {
             expressions.add(workingSubExpression.toString().trim());
         }
 
+        //  Collapse decimal numbers (ie 12.34 would otherwise be '12', '.', '34' instead of '12.34')
+        for (int i = 1; i < expressions.size() - 1; i++) {
+            String last = expressions.get(i - 1);
+            String current = expressions.get(i);
+            String next = expressions.get(i + 1);
+
+            if (Language.isNumber(last) && Language.isNumber(next) && current.equals(".")) {
+                StringBuilder combined = new StringBuilder();
+                combined.append(last);
+                combined.append('.');
+                combined.append(next);
+                expressions.remove(i + 1);
+                expressions.remove(i);
+                expressions.remove(i - 1);
+                expressions.add(i - 1, combined.toString());
+                i -= 2;
+            }
+        }
+
         return expressions;
     }
+
 
 }

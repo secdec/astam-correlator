@@ -6,10 +6,30 @@ import com.denimgroup.threadfix.framework.impl.django.python.runtime.RuntimeUtil
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class PrimitiveOperationExpression extends PythonBinaryExpression {
 
     PrimitiveOperationType type = PrimitiveOperationType.UNKNOWN;
+
+    private static final Map<String, PrimitiveOperationType> OPERATORS_MAP = map(
+            "+", PrimitiveOperationType.ADDITION,
+            "-", PrimitiveOperationType.SUBTRACTION,
+            "+=", PrimitiveOperationType.CONCATENATION,
+            "-=", PrimitiveOperationType.REMOVAL,
+            "=", PrimitiveOperationType.ASSIGNMENT,
+            "%", PrimitiveOperationType.STRING_INTERPOLATION
+    );
+
+    public static PrimitiveOperationType interpretOperator(String operator) {
+        if (OPERATORS_MAP.containsKey(operator)) {
+            return OPERATORS_MAP.get(operator);
+        } else {
+            return PrimitiveOperationType.UNKNOWN;
+        }
+    }
 
     public PrimitiveOperationExpression() {
 
