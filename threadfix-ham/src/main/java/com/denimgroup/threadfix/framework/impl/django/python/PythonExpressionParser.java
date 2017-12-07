@@ -16,13 +16,13 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 /**
  * Parses individual python code strings to generate a binary expression tree.
  */
-public class PythonIncrementalParser {
+public class PythonExpressionParser {
 
     private PythonCodeCollection linkedCodebase;
     private PythonValueBuilder valueBuilder = new PythonValueBuilder();
     private ExpressionDeconstructor expressionDeconstructor = new ExpressionDeconstructor();
 
-    public PythonIncrementalParser(PythonCodeCollection codebase) {
+    public PythonExpressionParser(PythonCodeCollection codebase) {
         this.linkedCodebase = codebase;
     }
 
