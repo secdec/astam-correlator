@@ -18,13 +18,8 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
  */
 public class PythonExpressionParser {
 
-    private PythonCodeCollection linkedCodebase;
     private PythonValueBuilder valueBuilder = new PythonValueBuilder();
     private ExpressionDeconstructor expressionDeconstructor = new ExpressionDeconstructor();
-
-    public PythonExpressionParser(PythonCodeCollection codebase) {
-        this.linkedCodebase = codebase;
-    }
 
     enum OperationType {
         UNKNOWN, INVALID,
@@ -34,11 +29,11 @@ public class PythonExpressionParser {
         FUNCTION_CALL
     }
 
-    public PythonExpression processString(String stringValue, AbstractPythonStatement context) {
-        return processString(stringValue, context, null);
+    public PythonExpression processString(String stringValue) {
+        return processString(stringValue, null);
     }
 
-    public PythonExpression processString(String stringValue, AbstractPythonStatement context, List<PythonValue> subjects) {
+    public PythonExpression processString(String stringValue, List<PythonValue> subjects) {
 
         PythonExpression result = null;
 
@@ -117,7 +112,6 @@ public class PythonExpressionParser {
                         expressions,
                         subjects,
                         expressionOperations,
-                        context,
                         primaryEndIndex,
                         operationType,
                         operationTypeIndicator
@@ -128,7 +122,6 @@ public class PythonExpressionParser {
                         expressions,
                         subjects,
                         expressionOperations,
-                        context,
                         primaryEndIndex
                 );
                 break;
@@ -137,7 +130,6 @@ public class PythonExpressionParser {
                         expressions,
                         subjects,
                         expressionOperations,
-                        context,
                         primaryEndIndex
                 );
                 break;
@@ -146,7 +138,6 @@ public class PythonExpressionParser {
                         expressions,
                         subjects,
                         expressionOperations,
-                        context,
                         primaryEndIndex
                 );
                 break;
@@ -155,7 +146,6 @@ public class PythonExpressionParser {
                         expressions,
                         subjects,
                         expressionOperations,
-                        context,
                         primaryEndIndex
                 );
                 break;
@@ -164,7 +154,6 @@ public class PythonExpressionParser {
                         expressions,
                         subjects,
                         expressionOperations,
-                        context,
                         primaryEndIndex
                 );
                 break;
@@ -176,7 +165,7 @@ public class PythonExpressionParser {
         if (result == null) {
             return new IndeterminateExpression();
         } else {
-            resolveSubValues(result, context);
+            resolveSubValues(result);
             return result;
         }
     }
@@ -204,7 +193,6 @@ public class PythonExpressionParser {
     PythonExpression parsePrimitiveOperation(List<String> expressions,
                                                    List<PythonValue> subjects,
                                                    List<OperationType> expressionTypes,
-                                                   AbstractPythonStatement context,
                                                    int primaryEndIndex,
                                                    OperationType type,
                                                    String operationIndicator) {
@@ -235,20 +223,20 @@ public class PythonExpressionParser {
                 PythonValue operand;
                 if (nextOperation == OperationType.FUNCTION_CALL) {
                     String functionCall = reconstructExpression(expressions, nextOperationIdx - 1, nextOperationIdx + 1);
-                    operand = processString(functionCall, context);
+                    operand = processString(functionCall);
                 } else {
-                    operand = tryMakeValue(expressions.get(nextOperationIdx), context, null);
+                    operand = tryMakeValue(expressions.get(nextOperationIdx), null);
                 }
                 operands = list((PythonValue)operand);
             }
         } else {
             String remainingExpression = reconstructExpression(expressions, primaryEndIndex + 1);
-            PythonValue operand = tryMakeValue(remainingExpression, context, null);
+            PythonValue operand = tryMakeValue(remainingExpression, null);
             operands = list((PythonValue)operand);
         }
 
         if (subjects == null) {
-            subjects = tryMakeSubjectValues(expressions, expressionTypes, primaryEndIndex - 1, context, list((PythonValue)result));
+            subjects = tryMakeSubjectValues(expressions, expressionTypes, primaryEndIndex - 1, list((PythonValue)result));
         }
 
         if (operands != null && subjects != null) {
@@ -264,7 +252,6 @@ public class PythonExpressionParser {
     PythonExpression parseFunctionCall(List<String> expressions,
                                        List<PythonValue> subjects,
                                        List<OperationType> expressionTypes,
-                                       AbstractPythonStatement context,
                                        int primaryEndIndex) {
 
         FunctionCallExpression callExpression = new FunctionCallExpression();
@@ -274,12 +261,12 @@ public class PythonExpressionParser {
         String primaryOperand = expressions.get(primaryEndIndex);
         String[] parameterEntries = gatherGroupEntries(primaryOperand);
         for (String entry : parameterEntries) {
-            operands.add(tryMakeValue(entry, context, null));
+            operands.add(tryMakeValue(entry, null));
         }
 
         /* Collect subjects */
         if (subjects == null) {
-            subjects = tryMakeSubjectValues(expressions, expressionTypes, primaryEndIndex - 1, context, list((PythonValue)callExpression));
+            subjects = tryMakeSubjectValues(expressions, expressionTypes, primaryEndIndex - 1, list((PythonValue)callExpression));
         }
 
         //  The function call may have trailing expressions, if so, then this function call is a subject of
@@ -291,7 +278,7 @@ public class PythonExpressionParser {
             if (primaryEndIndex != expressions.size() - 1) {
                 //  There are trailing expressions, generate it with this as the subject
                 String remainingExpressions = reconstructExpression(expressions, primaryEndIndex + 1);
-                PythonExpression trailingExpression = processString(remainingExpressions, context, list((PythonValue)callExpression));
+                PythonExpression trailingExpression = processString(remainingExpressions, list((PythonValue)callExpression));
                 return trailingExpression;
             }
 
@@ -304,7 +291,6 @@ public class PythonExpressionParser {
     PythonExpression parseMemberAccess(List<String> expressions,
                                        List<PythonValue> subjects,
                                        List<OperationType> expressionTypes,
-                                       AbstractPythonStatement context,
                                        int primaryEndIndex) {
 
         MemberExpression memberExpression = new MemberExpression();
@@ -329,7 +315,7 @@ public class PythonExpressionParser {
 
         if (lastMemberAccessExpression != expressionTypes.size() - 1) {
             String remainingExpression = reconstructExpression(expressions, lastMemberAccessExpression);
-            PythonExpression trailingExpression = processString(remainingExpression, context, list((PythonValue)memberExpression));
+            PythonExpression trailingExpression = processString(remainingExpression, list((PythonValue)memberExpression));
             return trailingExpression;
         }
 
@@ -339,7 +325,6 @@ public class PythonExpressionParser {
     PythonExpression parseIndexer(List<String> expressions,
                                        List<PythonValue> subjects,
                                        List<OperationType> expressionTypes,
-                                       AbstractPythonStatement context,
                                        int primaryEndIndex) {
 
         IndexerExpression indexerExpression = new IndexerExpression();
@@ -349,15 +334,15 @@ public class PythonExpressionParser {
         List<String> indexerSubExpressions = expressionDeconstructor.deconstruct(indexerText);
 
         if (indexerSubExpressions.size() <= 1) {
-            PythonValue indexerValue = tryMakeValue(indexerText, context, null);
+            PythonValue indexerValue = tryMakeValue(indexerText, null);
             indexerExpression.setIndexerValue(indexerValue);
         } else {
-            PythonValue indexerValue = processString(indexerText, context);
+            PythonValue indexerValue = processString(indexerText);
             indexerExpression.setIndexerValue(indexerValue);
         }
 
         if (subjects == null) {
-            subjects = tryMakeSubjectValues(expressions, expressionTypes, primaryEndIndex - 1, context, null);
+            subjects = tryMakeSubjectValues(expressions, expressionTypes, primaryEndIndex - 1, null);
             if (subjects != null) {
                 indexerExpression.setSubjects(subjects);
             }
@@ -365,7 +350,7 @@ public class PythonExpressionParser {
 
         if (primaryEndIndex != expressions.size() - 1) {
             String remainingExpressionText = reconstructExpression(expressions, primaryEndIndex + 1);
-            PythonExpression remainingExpression = processString(remainingExpressionText, context, list((PythonValue)indexerExpression));
+            PythonExpression remainingExpression = processString(remainingExpressionText, list((PythonValue)indexerExpression));
             return remainingExpression;
         }
 
@@ -375,14 +360,13 @@ public class PythonExpressionParser {
     PythonExpression parseReturnStatement(List<String> expressions,
                                   List<PythonValue> subjects,
                                   List<OperationType> expressionTypes,
-                                  AbstractPythonStatement context,
                                   int primaryEndIndex) {
 
         ReturnExpression returnExpression = new ReturnExpression();
 
         if (primaryEndIndex != expressions.size() - 1) {
             String subjectExpression = reconstructExpression(expressions, primaryEndIndex + 1);
-            PythonValue value = tryMakeValue(subjectExpression, context, null);
+            PythonValue value = tryMakeValue(subjectExpression, null);
             returnExpression.addSubject(value);
         }
 
@@ -392,7 +376,6 @@ public class PythonExpressionParser {
     PythonExpression parseTupleReference(List<String> expressions,
                                           List<PythonValue> subjects,
                                           List<OperationType> expressionTypes,
-                                          AbstractPythonStatement context,
                                           int primaryEndIndex) {
 
         //  A direct tuple reference will occur if parentheses are used to order operations. All
@@ -408,12 +391,12 @@ public class PythonExpressionParser {
 
         String tupleString = expressions.get(primaryEndIndex);
         tupleString = CodeParseUtil.trim(tupleString, new String[] { "(", ")" }, 1);
-        PythonValue tupleExpression = tryMakeValue(tupleString, context, null);
+        PythonValue tupleExpression = tryMakeValue(tupleString, null);
         result.addSubject(tupleExpression);
 
         if (expressions.size() > 1) {
             String remainingString = reconstructExpression(expressions, primaryEndIndex + 1);
-            PythonValue remainingExpression = tryMakeValue(remainingString, context, list((PythonValue)result));
+            PythonValue remainingExpression = tryMakeValue(remainingString, list((PythonValue)result));
             if (remainingExpression instanceof PythonExpression) {
                 return (PythonExpression)remainingExpression;
             } else {
@@ -461,19 +444,18 @@ public class PythonExpressionParser {
         return reconstructExpression(expressionParts, startIndex, Integer.MAX_VALUE);
     }
 
-    PythonValue tryMakeValue(String expression, AbstractPythonStatement context, List<PythonValue> expressionSubject) {
+    PythonValue tryMakeValue(String expression, List<PythonValue> expressionSubject) {
         PythonValue asValue = valueBuilder.buildFromSymbol(expression);
         if (isValidValue(asValue)) {
             return asValue;
         } else {
-            return processString(expression, context, expressionSubject);
+            return processString(expression, expressionSubject);
         }
     }
 
     List<PythonValue> tryMakeSubjectValues(List<String> expressions,
                                            List<OperationType> expressionTypes,
                                            int endIndex,
-                                           AbstractPythonStatement context,
                                            List<PythonValue> expressionSubject) {
 
         OperationType subjectType = OperationType.UNKNOWN;
@@ -496,7 +478,7 @@ public class PythonExpressionParser {
                 if (entries != null) {
                     subjects = list();
                     for (String entry : entries) {
-                        subjects.add(tryMakeValue(entry, context, expressionSubject));
+                        subjects.add(tryMakeValue(entry, expressionSubject));
                     }
                 }
                 break;
@@ -513,7 +495,7 @@ public class PythonExpressionParser {
                 if (isValidValue(asValue)) {
                     subjects = list(asValue);
                 } else {
-                    PythonExpression asExpression = processString(subjectExpression, context, expressionSubject);
+                    PythonExpression asExpression = processString(subjectExpression, expressionSubject);
                     subjects = list((PythonValue)asExpression);
                 }
                 break;
@@ -522,7 +504,7 @@ public class PythonExpressionParser {
         return subjects;
     }
 
-    void resolveSubValues(PythonValue value, AbstractPythonStatement context) {
+    void resolveSubValues(PythonValue value) {
         List<PythonValue> subValues = value.getSubValues();
         if (subValues == null) {
             return;
@@ -533,14 +515,15 @@ public class PythonExpressionParser {
             PythonValue subValue = subValues.get(0);
             if (subValue instanceof PythonUnresolvedValue) {
                 PythonUnresolvedValue unresolvedValue = (PythonUnresolvedValue)subValue;
-                PythonValue resolvedValue = tryMakeValue(unresolvedValue.getStringValue(), context, null);
+                PythonValue resolvedValue = tryMakeValue(unresolvedValue.getStringValue(), null);
                 if (!(resolvedValue instanceof PythonUnresolvedValue)) {
+                    resolvedValue.resolveSourceLocation(unresolvedValue.getSourceLocation());
                     value.resolveSubValue(subValue, resolvedValue);
                     subValue = resolvedValue;
                 }
             }
 
-            resolveSubValues(subValue, context);
+            resolveSubValues(subValue);
             subValues.remove(0);
         }
     }

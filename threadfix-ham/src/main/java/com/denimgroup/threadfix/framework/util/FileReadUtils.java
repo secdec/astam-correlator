@@ -10,7 +10,7 @@ import java.util.List;
 
 public class FileReadUtils {
 
-    public List<String> readLines(String filePath, int startLine, int endLine) {
+    public static List<String> readLines(String filePath, int startLine, int endLine) {
         File file = new File(filePath);
 
         try {
@@ -34,7 +34,7 @@ public class FileReadUtils {
         }
     }
 
-    public String readWholeLines(String filePath, int startLine, int endLine) {
+    public static String readWholeLines(String filePath, int startLine, int endLine) {
         File file = new File(filePath);
 
         try {
@@ -64,7 +64,7 @@ public class FileReadUtils {
     /**
      * @return All lines in the file @filePath from @startLine to @endLine, where lines have been collapsed to a single line when a block or string spans multiple lines.
      */
-    public List<String> readLinesCondensed(String filePath, int startLine, int endLine) {
+    public static List<String> readLinesCondensed(String filePath, int startLine, int endLine) {
         String contents = readWholeLines(filePath, startLine, endLine);
         if (contents == null) {
             return null;

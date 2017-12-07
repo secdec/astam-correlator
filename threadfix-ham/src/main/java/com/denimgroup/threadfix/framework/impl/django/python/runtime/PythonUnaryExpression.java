@@ -1,5 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +10,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 public abstract class PythonUnaryExpression implements PythonExpression {
 
     List<PythonValue> subjects = list();
+    AbstractPythonStatement sourceLocation;
 
     public void addSubject(PythonValue subject) {
         this.subjects.add(subject);
@@ -46,5 +49,15 @@ public abstract class PythonUnaryExpression implements PythonExpression {
         List<PythonValue> subValues = new ArrayList<PythonValue>(subjects);
         addPrivateSubValues(subValues);
         return subValues;
+    }
+
+    @Override
+    public void resolveSourceLocation(AbstractPythonStatement source) {
+        sourceLocation = source;
+    }
+
+    @Override
+    public AbstractPythonStatement getSourceLocation() {
+        return sourceLocation;
     }
 }

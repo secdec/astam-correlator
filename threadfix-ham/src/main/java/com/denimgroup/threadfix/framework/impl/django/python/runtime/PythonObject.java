@@ -6,10 +6,15 @@ import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
 import java.util.List;
 import java.util.Map;
 
+import static com.denimgroup.threadfix.CollectionUtils.map;
+
 public class PythonObject implements PythonValue {
 
     String memberPath;
     PythonClass classType;
+    AbstractPythonStatement sourceLocation;
+
+    Map<String, PythonValue> memberMap = map();
 
     public PythonObject() {
 
@@ -47,6 +52,41 @@ public class PythonObject implements PythonValue {
     @Override
     public void resolveSubValue(PythonValue previousValue, PythonValue newValue) {
 
+    }
+
+    @Override
+    public void resolveSourceLocation(AbstractPythonStatement source) {
+        sourceLocation = source;
+    }
+
+    @Override
+    public AbstractPythonStatement getSourceLocation() {
+        return sourceLocation;
+    }
+
+    public boolean hasMemberValue(String name) {
+        return memberMap.containsKey(name);
+    }
+
+    public void setMemberValue(String name, PythonValue value) {
+        memberMap.put(name, value);
+    }
+
+    public PythonValue getMemberValue(String name) {
+        if (memberMap.containsKey(name)) {
+            return memberMap.get(name);
+        } else {
+            return null;
+        }
+    }
+
+    public <T extends PythonValue> T getMemberValue(String name, Class<?> type) {
+        PythonValue value = getMemberValue(name);
+        if (type.isAssignableFrom(value.getClass())) {
+            return (T)value;
+        } else {
+            return null;
+        }
     }
 
     @Override

@@ -1,5 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -7,6 +9,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 public class PythonArray implements PythonValue {
 
     List<PythonValue> entries = list();
+    AbstractPythonStatement sourceLocation = null;
 
     public void addEntry(PythonValue entry) {
         entries.add(entry);
@@ -29,6 +32,16 @@ public class PythonArray implements PythonValue {
         int index = entries.indexOf(previousValue);
         entries.remove(index);
         entries.add(index, newValue);
+    }
+
+    @Override
+    public void resolveSourceLocation(AbstractPythonStatement source) {
+        this.sourceLocation = source;
+    }
+
+    @Override
+    public AbstractPythonStatement getSourceLocation() {
+        return this.sourceLocation;
     }
 
     @Override

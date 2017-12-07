@@ -3,6 +3,8 @@ package com.denimgroup.threadfix.framework.impl.django.python.runtime.expression
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonBinaryExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonUnaryExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.MemberInterpreter;
 
 import java.util.List;
 
@@ -61,5 +63,10 @@ public class MemberExpression extends PythonUnaryExpression {
         result.append(getFullMemberPath());
 
         return result.toString();
+    }
+
+    @Override
+    public ExpressionInterpreter makeInterpreter() {
+        return new MemberInterpreter();
     }
 }

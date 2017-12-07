@@ -27,6 +27,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionPar
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.ExpressionDeconstructor;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonExpression;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonInterpreter;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -112,7 +113,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         subexpressions = ed.deconstruct("someCall(123).otherCall().member");
         subexpressions = ed.deconstruct("123 + 34.12 - x");
 
-        PythonExpressionParser incrementalParser = new PythonExpressionParser(codebase);
+        PythonExpressionParser incrementalParser = new PythonExpressionParser();
         PythonExpression expr = incrementalParser.processString("x = 5", null);
         expr = incrementalParser.processString("x += 5", null);
         expr = incrementalParser.processString("x.y += 5", null);

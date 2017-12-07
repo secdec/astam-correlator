@@ -1,5 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,6 +9,8 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public abstract class PythonBinaryExpression implements PythonExpression {
     List<PythonValue> subjects = list(), operands = list();
+
+    AbstractPythonStatement sourceLocation;
 
     public void addOperand(PythonValue operand) {
         this.operands.add(operand);
@@ -77,5 +81,15 @@ public abstract class PythonBinaryExpression implements PythonExpression {
         subValues.addAll(operands);
         addPrivateSubValues(subValues);
         return subValues;
+    }
+
+    @Override
+    public AbstractPythonStatement getSourceLocation() {
+        return sourceLocation;
+    }
+
+    @Override
+    public void resolveSourceLocation(AbstractPythonStatement source) {
+        this.sourceLocation = source;
     }
 }

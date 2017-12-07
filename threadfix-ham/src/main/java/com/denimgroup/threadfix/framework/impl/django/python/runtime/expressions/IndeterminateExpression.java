@@ -3,16 +3,28 @@ package com.denimgroup.threadfix.framework.impl.django.python.runtime.expression
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonBinaryExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 
 import java.util.List;
 
 public class IndeterminateExpression implements PythonExpression {
 
-    public static final IndeterminateExpression INSTANCE = new IndeterminateExpression();
+    AbstractPythonStatement sourceLocation;
 
     @Override
     public void resolveSubValue(PythonValue previousValue, PythonValue newValue) {
 
+    }
+
+    @Override
+    public void resolveSourceLocation(AbstractPythonStatement source) {
+        sourceLocation = source;
+    }
+
+    @Override
+    public AbstractPythonStatement getSourceLocation() {
+        return sourceLocation;
     }
 
     @Override
@@ -23,5 +35,10 @@ public class IndeterminateExpression implements PythonExpression {
     @Override
     public String toString() {
         return "<IndeterminateExpression>";
+    }
+
+    @Override
+    public ExpressionInterpreter makeInterpreter() {
+        return null;
     }
 }

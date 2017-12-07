@@ -1,9 +1,9 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions;
 
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonUnaryExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.RuntimeUtils;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.FunctionCallInterpreter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,13 +46,11 @@ public class FunctionCallExpression extends PythonUnaryExpression {
     public String toString() {
         StringBuilder result = new StringBuilder();
 
-        if (!RuntimeUtils.containsExpression(this.getSubjects())) {
-            for (int i = 0; i < this.numSubjects(); i++) {
-                if (i > 0) {
-                    result.append(", ");
-                }
-                result.append(this.getSubject(i).toString());
+        for (int i = 0; i < this.numSubjects(); i++) {
+            if (i > 0) {
+                result.append(", ");
             }
+            result.append(this.getSubject(i).toString());
         }
 
         result.append('(');
@@ -67,5 +65,10 @@ public class FunctionCallExpression extends PythonUnaryExpression {
         result.append(')');
 
         return result.toString();
+    }
+
+    @Override
+    public ExpressionInterpreter makeInterpreter() {
+        return new FunctionCallInterpreter();
     }
 }

@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.List;
 public class PythonStringPrimitive implements PythonValue {
 
     String value;
+    AbstractPythonStatement sourceLocation;
 
     public PythonStringPrimitive() {
 
@@ -27,6 +29,16 @@ public class PythonStringPrimitive implements PythonValue {
     @Override
     public void resolveSubValue(PythonValue previousValue, PythonValue newValue) {
 
+    }
+
+    @Override
+    public void resolveSourceLocation(AbstractPythonStatement source) {
+        sourceLocation = source;
+    }
+
+    @Override
+    public AbstractPythonStatement getSourceLocation() {
+        return sourceLocation;
     }
 
     @Override

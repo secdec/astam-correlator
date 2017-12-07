@@ -2,7 +2,8 @@ package com.denimgroup.threadfix.framework.impl.django.python.runtime.expression
 
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonBinaryExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.RuntimeUtils;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.PrimitiveOperationInterpreter;
 
 import java.util.Collection;
 import java.util.List;
@@ -154,16 +155,14 @@ public class PrimitiveOperationExpression extends PythonBinaryExpression {
 
             StringBuilder result = new StringBuilder();
 
-            if (!RuntimeUtils.containsExpression(this.getSubjects())) {
-                result.append('(');
-                for (int i = 0; i < this.getSubjects().size(); i++) {
-                    if (i > 0) {
-                        result.append(", ");
-                    }
-                    result.append(this.getSubject(i).toString());
+            result.append('(');
+            for (int i = 0; i < this.getSubjects().size(); i++) {
+                if (i > 0) {
+                    result.append(", ");
                 }
-                result.append(')');
+                result.append(this.getSubject(i).toString());
             }
+            result.append(')');
 
             result.append(' ');
             result.append(separator);
@@ -179,5 +178,10 @@ public class PrimitiveOperationExpression extends PythonBinaryExpression {
             result.append(")");
             return result.toString();
         }
+    }
+
+    @Override
+    public ExpressionInterpreter makeInterpreter() {
+        return new PrimitiveOperationInterpreter();
     }
 }

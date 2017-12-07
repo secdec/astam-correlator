@@ -1,5 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,6 +11,7 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 public class PythonDictionary implements PythonValue {
 
     Map<PythonValue, PythonValue> values = map();
+    AbstractPythonStatement sourceLocation;
 
     public void add(PythonValue key, PythonValue value) {
         values.put(key, value);
@@ -33,6 +36,16 @@ public class PythonDictionary implements PythonValue {
                 values.put(key, newValue);
             }
         }
+    }
+
+    @Override
+    public void resolveSourceLocation(AbstractPythonStatement source) {
+        sourceLocation = source;
+    }
+
+    @Override
+    public AbstractPythonStatement getSourceLocation() {
+        return sourceLocation;
     }
 
     @Override
