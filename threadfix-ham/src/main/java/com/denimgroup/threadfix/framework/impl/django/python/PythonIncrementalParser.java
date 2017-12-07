@@ -4,6 +4,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.*;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import com.denimgroup.threadfix.framework.util.ScopeTracker;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -54,12 +55,17 @@ public class PythonIncrementalParser {
         List<OperationType> expressionOperations = new ArrayList<OperationType>(expressions.size());
         String operationTypeIndicator = null;
 
+        ScopeTracker scopeTracker = new ScopeTracker();
+
         int primaryEndIndex = 0;
         for (int i = 0; i < expressions.size(); i++) {
             String subexpr = expressions.get(i);
+            for (int m = 0; m < subexpr.length(); m++) {
+                scopeTracker.interpretToken(subexpr.charAt(m));
+            }
             OperationType subexprOperation = detectOperationType(subexpr);
 
-            if (subexprOperation != OperationType.INVALID && subexprOperation != OperationType.UNKNOWN) {
+            if (subexprOperation != OperationType.INVALID && subexprOperation != OperationType.UNKNOWN && !scopeTracker.isInString() && !scopeTracker.isInScope()) {
 
                 if (i > 0) {
                     OperationType lastType = expressionOperations.get(i - 1);
@@ -153,6 +159,15 @@ public class PythonIncrementalParser {
                         primaryEndIndex
                 );
                 break;
+            case TUPLE_REFERENCE:
+                result = parseTupleReference(
+                        expressions,
+                        subjects,
+                        expressionOperations,
+                        context,
+                        primaryEndIndex
+                );
+                break;
             default:
                 result = null;
         }
@@ -193,6 +208,8 @@ public class PythonIncrementalParser {
                                                    int primaryEndIndex,
                                                    OperationType type,
                                                    String operationIndicator) {
+
+        //  NOTE - Does not conform to PEMDAS order of operations! Operations are parsed left-to-right!
 
         PrimitiveOperationType primitiveType = PrimitiveOperationExpression.interpretOperator(operationIndicator);
 
@@ -237,6 +254,7 @@ public class PythonIncrementalParser {
         if (operands != null && subjects != null) {
             result.setOperands(operands);
             result.setSubjects(subjects);
+            result = PrimitiveOperationExpression.rectifyOrderOfOperations(result);
             return result;
         } else {
             return new IndeterminateExpression();
@@ -369,6 +387,43 @@ public class PythonIncrementalParser {
         }
 
         return returnExpression;
+    }
+
+    PythonExpression parseTupleReference(List<String> expressions,
+                                          List<PythonValue> subjects,
+                                          List<OperationType> expressionTypes,
+                                          AbstractPythonStatement context,
+                                          int primaryEndIndex) {
+
+        //  A direct tuple reference will occur if parentheses are used to order operations. All
+        //  other cases are implemented as subsets of the other expression types.
+
+        //  The tuple reference needs to be the first entry in the expressions. Any preceding
+        //  expressions must be parsed before the tuple reference is parsed.
+        if (primaryEndIndex != 0) {
+            return null;
+        }
+
+        ScopingExpression result = new ScopingExpression();
+
+        String tupleString = expressions.get(primaryEndIndex);
+        tupleString = CodeParseUtil.trim(tupleString, new String[] { "(", ")" }, 1);
+        PythonValue tupleExpression = tryMakeValue(tupleString, context, null);
+        result.addSubject(tupleExpression);
+
+        if (expressions.size() > 1) {
+            String remainingString = reconstructExpression(expressions, primaryEndIndex + 1);
+            PythonValue remainingExpression = tryMakeValue(remainingString, context, list((PythonValue)result));
+            if (remainingExpression instanceof PythonExpression) {
+                return (PythonExpression)remainingExpression;
+            } else {
+                //  A trailing expression was added that could not be parsed as an expression - this makes
+                //  no sense as a value would directly follow another value, which is invalid syntax.
+                return null;
+            }
+        } else {
+            return result;
+        }
     }
 
     String[] gatherGroupEntries(String groupExpression) {

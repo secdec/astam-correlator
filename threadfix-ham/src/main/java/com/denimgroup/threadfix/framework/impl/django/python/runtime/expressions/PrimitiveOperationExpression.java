@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class PrimitiveOperationExpression extends PythonBinaryExpression {
@@ -29,6 +30,67 @@ public class PrimitiveOperationExpression extends PythonBinaryExpression {
         } else {
             return PrimitiveOperationType.UNKNOWN;
         }
+    }
+
+    private static Map<PrimitiveOperationType, Integer> OPERATORS_PRIORITY = map(
+            PrimitiveOperationType.ADDITION, 1,
+            PrimitiveOperationType.SUBTRACTION, 0,
+            PrimitiveOperationType.CONCATENATION, -1,
+            PrimitiveOperationType.REMOVAL, -2,
+            PrimitiveOperationType.ASSIGNMENT, -3,
+            PrimitiveOperationType.STRING_INTERPOLATION, 5
+    );
+
+    public static PrimitiveOperationExpression rectifyOrderOfOperations(PrimitiveOperationExpression baseExpression) {
+
+        //  Can only rectify OOO for single-var operations
+        if (baseExpression.numSubjects() != 1 && baseExpression.numOperands() != 1) {
+            return baseExpression;
+        }
+
+        PythonValue subject = baseExpression.getSubject(0);
+        PythonValue operand = baseExpression.getOperand(0);
+
+        int basePriority = OPERATORS_PRIORITY.get(baseExpression.getOperationType());
+        int subjectPriority = -5;
+        int operandPriority = -5;
+
+        if (subject instanceof PrimitiveOperationExpression) {
+            PrimitiveOperationExpression subjectOperation = (PrimitiveOperationExpression)subject;
+            subjectPriority = OPERATORS_PRIORITY.get(subjectOperation.getOperationType());
+            if (basePriority > subjectPriority) {
+                swapOrderOfOperations(baseExpression, subjectOperation);
+            }
+
+            rectifyOrderOfOperations(subjectOperation);
+        }
+
+        if (operand instanceof PrimitiveOperationExpression) {
+            PrimitiveOperationExpression operandOperation = (PrimitiveOperationExpression)operand;
+            operandPriority = OPERATORS_PRIORITY.get(((PrimitiveOperationExpression) operand).getOperationType());
+            if (basePriority > operandPriority) {
+                swapOrderOfOperations(operandOperation, baseExpression);
+                baseExpression = operandOperation;
+                rectifyOrderOfOperations(baseExpression);
+            } else {
+                rectifyOrderOfOperations(operandOperation);
+            }
+        }
+
+        return baseExpression;
+    }
+
+    private static void swapOrderOfOperations(PrimitiveOperationExpression lhs, PrimitiveOperationExpression rhs) {
+        List<PythonValue> lhsSubjects = lhs.getSubjects();
+        rhs.setOperands(lhsSubjects);
+        lhs.setSubjects(list((PythonValue)rhs));
+    }
+
+    public static boolean isAssignment(PrimitiveOperationType operationType) {
+        return
+                operationType == PrimitiveOperationType.CONCATENATION ||
+                operationType == PrimitiveOperationType.REMOVAL ||
+                operationType == PrimitiveOperationType.ASSIGNMENT;
     }
 
     public PrimitiveOperationExpression() {
@@ -80,7 +142,7 @@ public class PrimitiveOperationExpression extends PythonBinaryExpression {
         if (type == PrimitiveOperationType.UNKNOWN) {
             return "<UnknownPrimitiveOperation>";
         } else {
-            String separator = null;
+            String separator = "<UnsupportedPrimitiveOperation>";
             switch (type) {
                 case REMOVAL: separator = "-="; break;
                 case ADDITION: separator = "+"; break;

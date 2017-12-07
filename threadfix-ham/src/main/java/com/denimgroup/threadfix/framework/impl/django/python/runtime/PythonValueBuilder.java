@@ -24,7 +24,7 @@ public class PythonValueBuilder {
         PythonValue result = null;
         ScopeTracker scopeTracker = new ScopeTracker();
 
-        if (symbols.startsWith("[") || symbols.startsWith("(")) {
+        if ((symbols.startsWith("[") && symbols.endsWith("]")) || (symbols.startsWith("(") && symbols.endsWith(")"))) {
 
             PythonArray arrayResult;
             if (symbols.startsWith("[")) {
@@ -56,7 +56,7 @@ public class PythonValueBuilder {
 
             result = arrayResult;
 
-        } else if (symbols.startsWith("{")) {
+        } else if (symbols.startsWith("{") && symbols.endsWith("}")) {
 
             symbols = CodeParseUtil.trim(symbols, new String[] { "{", "}" }, 1);
 

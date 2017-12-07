@@ -1,5 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.python;
 
+import com.denimgroup.threadfix.framework.util.ScopeTracker;
+
 import java.util.Collection;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -13,13 +15,27 @@ public class Language {
         } else {
             int first = value.charAt(0);
             int second = value.charAt(1);
-            if (first == '\'' || first == '"') {
-                return true;
-            } else if ((first == 'r' || first == 'u') && (second == '\'' || second == '"')) {
-                return true;
-            } else {
+            if (first != '\'' && first != '"' && !((first == 'r' || first == 'u') && (second == '\'' || second == '"'))) {
                 return false;
             }
+
+            ScopeTracker scopeTracker = new ScopeTracker();
+            boolean startedString = false;
+            for (int i = 0; i < value.length(); i++) {
+                int c = value.charAt(i);
+                scopeTracker.interpretToken(c);
+                if (!startedString) {
+                    if (scopeTracker.isInString()) {
+                        startedString = true;
+                    }
+                } else {
+                    if (!scopeTracker.isInString() && i != value.length() - 1) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
     }
 
