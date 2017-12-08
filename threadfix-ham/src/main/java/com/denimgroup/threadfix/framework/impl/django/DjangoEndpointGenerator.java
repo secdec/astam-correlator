@@ -98,6 +98,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         DjangoApiConfigurator.applyPostLink(codebase);
 
+        long executionStartTime = System.currentTimeMillis();
+
         ExpressionDeconstructor ed = new ExpressionDeconstructor();
         List<String> subexpressions;
         subexpressions = ed.deconstruct("abc = 123 + 23");
@@ -135,6 +137,9 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         expr = incrementalParser.processString("return x = 5", null);
         expr = incrementalParser.processString("return", null);
         expr = incrementalParser.processString("return x, y", null);
+
+        long executionDuration = System.currentTimeMillis() - executionStartTime;
+        LOG.info("Executing test expressions took " + executionDuration + "ms");
 
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
         codebase.traverse(i18Detector);

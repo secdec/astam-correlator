@@ -45,7 +45,7 @@ public abstract class PythonUnaryExpression implements PythonExpression {
     }
 
     @Override
-    public final List<PythonValue> getSubValues() {
+    public List<PythonValue> getSubValues() {
         List<PythonValue> subValues = new ArrayList<PythonValue>(subjects);
         addPrivateSubValues(subValues);
         return subValues;

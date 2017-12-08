@@ -9,6 +9,7 @@ import com.denimgroup.threadfix.framework.util.FileReadUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 public class PythonInterpreter {
@@ -62,15 +63,55 @@ public class PythonInterpreter {
 
 
     public PythonValue run(@Nonnull PythonExpression expression, AbstractPythonStatement scope) {
+        return run(expression, scope, null);
+    }
+
+    public PythonValue run(@Nonnull PythonExpression expression, AbstractPythonStatement scope, PythonValue selfValue) {
         //  Real run function
+
+        boolean usesNewContext =
+                selfValue != this.executionContext.selfValue ||
+                scope != this.executionContext.scope;
 
         ExpressionInterpreter interpreter = expression.makeInterpreter();
         if (interpreter == null) {
             return new PythonIndeterminateValue();
         } else {
-            return interpreter.interpret(expression, executionContext);
-        }
+            if (usesNewContext) {
+                pushExecutionContext(scope, selfValue);
+            }
 
+            List<PythonValue> dependencies = expression.getSubValues();
+
+            for (PythonValue subValue : dependencies) {
+                if (subValue instanceof PythonExpression) {
+                    PythonValue resolvedValue = run((PythonExpression) subValue, scope);
+                    expression.resolveSubValue(subValue, resolvedValue);
+                }
+            }
+
+            PythonValue result = interpreter.interpret(this, expression);
+
+            if (usesNewContext) {
+                popExecutionContext();
+            }
+            return result;
+        }
+    }
+
+
+
+    private void pushExecutionContext(AbstractPythonStatement scope, PythonValue selfValue) {
+        ExecutionContext newContext = new ExecutionContext(this.executionContext.codebase, selfValue, scope);
+        newContext.parentContext = this.executionContext;
+        this.executionContext = newContext;
+    }
+
+    private void popExecutionContext() {
+        ExecutionContext parentContext = this.executionContext.parentContext;
+        if (parentContext != null) {
+            this.executionContext = parentContext;
+        }
     }
 
 }
