@@ -1,9 +1,11 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.impl.django.python.Language;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCachingExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.InterpreterUtil;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.FileReadUtils;
@@ -17,6 +19,7 @@ public class PythonInterpreter {
 
     ExecutionContext executionContext;
     PythonExpressionParser expressionParser;
+    PythonValueBuilder valueBuilder = new PythonValueBuilder();
 
     public PythonInterpreter(PythonCodeCollection codebase) {
         executionContext = new ExecutionContext(codebase);
@@ -43,7 +46,13 @@ public class PythonInterpreter {
     }
 
     public PythonValue run(@Nonnull String code, AbstractPythonStatement scope) {
-        return run(expressionParser.processString(code), scope);
+        code = Language.stripComments(code);
+        PythonValue asValue = valueBuilder.buildFromSymbol(code);
+        if (asValue != null && !(asValue instanceof PythonIndeterminateValue)) {
+            return asValue;
+        } else {
+            return run(expressionParser.processString(code), scope);
+        }
     }
 
     public PythonValue run(@Nonnull PythonExpression expression) {

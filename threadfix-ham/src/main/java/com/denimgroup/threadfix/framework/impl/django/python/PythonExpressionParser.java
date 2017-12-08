@@ -35,7 +35,7 @@ public class PythonExpressionParser {
 
     public PythonExpression processString(String stringValue, List<PythonValue> subjects) {
 
-        stringValue = stripComments(stringValue);
+        stringValue = Language.stripComments(stringValue);
 
         PythonExpression result = null;
 
@@ -62,7 +62,8 @@ public class PythonExpressionParser {
             }
             OperationType subexprOperation = detectOperationType(subexpr);
 
-            if (subexprOperation != OperationType.INVALID && subexprOperation != OperationType.UNKNOWN && !scopeTracker.isInString() && !scopeTracker.isInScope()) {
+            if (subexprOperation != OperationType.INVALID && subexprOperation != OperationType.UNKNOWN &&
+                    !scopeTracker.isInString() && !scopeTracker.isInScope() && subexprOperation != OperationType.PARAMETER_ENTRY) {
 
                 if (i > 0) {
                     OperationType lastType = expressionOperations.get(i - 1);
@@ -80,8 +81,7 @@ public class PythonExpressionParser {
                 }
 
                 if (operationType == OperationType.UNKNOWN &&
-                        ((subexprOperation != OperationType.TUPLE_REFERENCE &&
-                        subexprOperation != OperationType.MEMBER_ACCESS) || i == 0)) {
+                        (subexprOperation != OperationType.TUPLE_REFERENCE || i == 0)) {
                     operationType = subexprOperation;
                     operationTypeIndicator = subexpr;
                     primaryEndIndex = i;
@@ -296,8 +296,6 @@ public class PythonExpressionParser {
                                        int primaryEndIndex) {
 
         MemberExpression memberExpression = new MemberExpression();
-        assert subjects != null : "No subjects were provided for a MemberExpression, but subjects are required for this expression!";
-        memberExpression.setSubjects(subjects);
 
         int lastMemberAccessExpression = primaryEndIndex;
         OperationType currentExpressionType = OperationType.MEMBER_ACCESS;
@@ -313,6 +311,15 @@ public class PythonExpressionParser {
             if (expressionTypes.get(i) != OperationType.MEMBER_ACCESS) {
                 memberExpression.appendPath(expressions.get(i));
             }
+        }
+
+        if (subjects == null) {
+            String primaryMember = expressions.get(primaryEndIndex - 1);
+            PythonVariable variable = new PythonVariable(primaryMember);
+            memberExpression.setSubjects(list((PythonValue)variable));
+            memberExpression.removePath(0);
+        } else {
+            memberExpression.setSubjects(subjects);
         }
 
         if (lastMemberAccessExpression != expressionTypes.size() - 1) {
@@ -487,7 +494,7 @@ public class PythonExpressionParser {
 
             case MEMBER_ACCESS:
                 String memberPath = reconstructExpression(expressions, 0, endIndex + 1);
-                PythonValue value = new PythonObject(memberPath);
+                PythonValue value = new PythonVariable(memberPath);
                 subjects = list(value);
                 break;
 
@@ -536,21 +543,5 @@ public class PythonExpressionParser {
 
     boolean isValidExpression(PythonExpression expression) {
         return expression != null && !(expression instanceof IndeterminateExpression);
-    }
-
-    String stripComments(String expression) {
-        ScopeTracker scopeTracker = new ScopeTracker();
-
-        for (int i = 0; i < expression.length(); i++) {
-            int c = expression.charAt(i);
-            scopeTracker.interpretToken(c);
-
-            if (c == '#' && !scopeTracker.isInString()) {
-                String result = expression.substring(0, i).trim();
-                return result;
-            }
-        }
-
-        return expression;
     }
 }

@@ -18,7 +18,7 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
         PrimitiveOperationType type = primitiveOperationExpression.getOperationType();
 
         PythonValue mainSubject = subjects.get(0);
-        String sourceSymbol = null;
+        String sourceSymbol;
 
         PythonValue result = null;
 
@@ -27,9 +27,16 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
         switch (type) {
             case ASSIGNMENT:
 
+                if (subjects.size() > operands.size()) {
+                    PythonValue mainOperand = operands.get(0);
+                    if (mainOperand instanceof PythonArray) {
+                        operands = ((PythonArray)mainOperand).getEntries();
+                    }
+                }
+
                 for (int i = 0; i < subjects.size(); i++) {
                     PythonValue subject = subjects.get(i);
-                    PythonValue operand = operands.get(i);
+                    PythonValue operand = executionContext.resolveValue(operands.get(i));
 
                     String subjectSymbol = InterpreterUtil.tryGetValueSymbol(subject);
 
@@ -51,7 +58,7 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
                 break;
 
             case REMOVAL:
-                PythonValue removed = doMultiSubtraction(subjects, operands);
+                PythonValue removed = doMultiSubtraction(executionContext, subjects, operands);
                 sourceSymbol = InterpreterUtil.tryGetValueSymbol(mainSubject);
                 if (sourceSymbol != null) {
                     executionContext.assignSymbolValue(sourceSymbol, removed);
@@ -62,7 +69,7 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
                 break;
 
             case CONCATENATION:
-                PythonValue concatenated = doMultiAddition(subjects, operands);
+                PythonValue concatenated = doMultiAddition(executionContext, subjects, operands);
                 sourceSymbol = InterpreterUtil.tryGetValueSymbol(mainSubject);
                 if (sourceSymbol != null) {
                     executionContext.assignSymbolValue(sourceSymbol, concatenated);
@@ -73,19 +80,19 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
                 break;
 
             case ADDITION:
-                result = doMultiAddition(subjects, operands);
+                result = doMultiAddition(executionContext, subjects, operands);
                 break;
 
             case SUBTRACTION:
-                result = doMultiSubtraction(subjects, operands);
+                result = doMultiSubtraction(executionContext, subjects, operands);
                 break;
 
             case STRING_INTERPOLATION:
-                result = doStringInterpolation(subjects, operands);
+                result = doStringInterpolation(executionContext, subjects, operands);
                 break;
 
             case STRING_INTERPOLATION_ASSIGNMENT:
-                PythonValue interpolated = doStringInterpolation(subjects, operands);
+                PythonValue interpolated = doStringInterpolation(executionContext, subjects, operands);
 
                 sourceSymbol = InterpreterUtil.tryGetValueSymbol(mainSubject);
                 if (sourceSymbol != null) {
@@ -102,23 +109,26 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
         return result;
     }
 
-    private PythonValue doMultiAddition(List<PythonValue> subjects, List<PythonValue> operands) {
+    private PythonValue doMultiAddition(ExecutionContext executionContext, List<PythonValue> subjects, List<PythonValue> operands) {
         if (subjects.size() == 1) {
             PythonValue subject = subjects.get(0);
             PythonValue operand = operands.get(0);
-            return doAddition(subject, operand);
+            return doAddition(executionContext, subject, operand);
         } else {
             PythonTuple tuple = new PythonTuple();
             for (int i = 0; i < subjects.size(); i++) {
                 PythonValue subject = subjects.get(i);
                 PythonValue operand = operands.get(i);
-                tuple.addEntry(doAddition(subject, operand));
+                tuple.addEntry(doAddition(executionContext, subject, operand));
             }
             return tuple;
         }
     }
 
-    private PythonValue doAddition(PythonValue subject, PythonValue operand) {
+    private PythonValue doAddition(ExecutionContext executionContext, PythonValue subject, PythonValue operand) {
+        subject = executionContext.resolveValue(subject);
+        operand = executionContext.resolveValue(operand);
+
         if ((subject instanceof PythonStringPrimitive) && (operand instanceof PythonStringPrimitive)) {
             String subjectString = ((PythonStringPrimitive)subject).getValue();
             String operandString = ((PythonStringPrimitive)operand).getValue();
@@ -154,23 +164,27 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
         }
     }
 
-    private PythonValue doMultiSubtraction(List<PythonValue> subjects, List<PythonValue> operands) {
+    private PythonValue doMultiSubtraction(ExecutionContext executionContext, List<PythonValue> subjects, List<PythonValue> operands) {
         if (subjects.size() == 1) {
             PythonValue subject = subjects.get(0);
             PythonValue operand = operands.get(0);
-            return doSubtraction(subject, operand);
+            return doSubtraction(executionContext, subject, operand);
         } else {
             PythonTuple tuple = new PythonTuple();
             for (int i = 0; i < subjects.size(); i++) {
                 PythonValue subject = subjects.get(i);
                 PythonValue operand = operands.get(i);
-                tuple.addEntry(doSubtraction(subject, operand));
+                tuple.addEntry(doSubtraction(executionContext, subject, operand));
             }
             return tuple;
         }
     }
 
-    private PythonValue doSubtraction(PythonValue subject, PythonValue operand) {
+    private PythonValue doSubtraction(ExecutionContext executionContext, PythonValue subject, PythonValue operand) {
+
+        subject = executionContext.resolveValue(subject);
+        operand = executionContext.resolveValue(operand);
+
         if ((subject instanceof PythonNumericPrimitive) && (operand instanceof PythonNumericPrimitive)) {
             double subjectValue = ((PythonNumericPrimitive)subject).getValue();
             double operandValue = ((PythonNumericPrimitive)operand).getValue();
@@ -180,8 +194,8 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
         }
     }
 
-    private PythonValue doStringInterpolation(List<PythonValue> subjects, List<PythonValue> operands) {
-        PythonValue subject = subjects.get(0);
+    private PythonValue doStringInterpolation(ExecutionContext executionContext, List<PythonValue> subjects, List<PythonValue> operands) {
+        PythonValue subject = executionContext.resolveValue(subjects.get(0));
         String string = tryGetStringValue(subject);
 
         if (string == null) {
@@ -189,7 +203,7 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
         }
 
         for (int i = 0; i < operands.size(); i++) {
-            PythonValue operand = operands.get(i);
+            PythonValue operand = executionContext.resolveValue(operands.get(i));
             String operandValue = tryGetStringValue(operand);
             if (operandValue == null) {
                 return new PythonIndeterminateValue();

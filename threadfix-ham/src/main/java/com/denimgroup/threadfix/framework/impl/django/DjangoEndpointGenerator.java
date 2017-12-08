@@ -124,6 +124,9 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         expr = incrementalParser.processString("x += 5");
         expr = incrementalParser.processString("x.y += 5");
         expr = incrementalParser.processString("x.y += a - b");
+        expr = incrementalParser.processString("x, y = (5, 6)");
+        expr = incrementalParser.processString("x, y = (5, 6,)");
+        expr = incrementalParser.processString("'abc %s' % ('123',)");
         expr = incrementalParser.processString("abc(xyz)");
         expr = incrementalParser.processString("a.b.c(xyz)");
         expr = incrementalParser.processString("a.b.c(x, y)");
@@ -155,6 +158,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             PythonValue intrpval;
             intrpval = interpreter.run("x = 5");
             intrpval = interpreter.run("x, y = (1, 2)");
+            intrpval = interpreter.run("xx, yy = [3, 4]");
+            intrpval = interpreter.run("a, b = (x, y)");
             intrpval = interpreter.run("'abc %s' % (123)");
             intrpval = interpreter.run("'abc %s, %s' % (123, '456')");
             intrpval = interpreter.run("5 + 5");
@@ -162,7 +167,12 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             intrpval = interpreter.run("123 + 5 # - 5");
             intrpval = interpreter.run("");
             intrpval = interpreter.run("# asd");
-            intrpval = interpreter.run("5#asd");
+            intrpval = interpreter.run("5+2#asd");
+            intrpval = interpreter.run("4");
+            intrpval = interpreter.run("3#asd");
+            intrpval = interpreter.run("[1] + [2]");
+            intrpval = interpreter.run("a1, a2 = [1], [2]");
+            intrpval = interpreter.run("a1 + a2");
         //}
 
         executionDuration = System.currentTimeMillis() - executionStartTime;

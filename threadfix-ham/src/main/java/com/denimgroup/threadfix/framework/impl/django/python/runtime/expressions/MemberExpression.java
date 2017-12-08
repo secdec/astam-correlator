@@ -19,6 +19,10 @@ public class MemberExpression extends PythonUnaryExpression {
         this.memberPath.add(relativePath);
     }
 
+    public void removePath(int index) {
+        this.memberPath.remove(index);
+    }
+
     public List<String> getMemberPath() {
         return memberPath;
     }

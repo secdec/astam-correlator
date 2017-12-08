@@ -116,7 +116,7 @@ public class PythonValueBuilder {
             } else if (isTuple) {
                 result = buildFromSymbol("(" + symbols + ")");
             } else {
-                result = new PythonObject(symbols);
+                result = new PythonVariable(symbols);
             }
         }
 
