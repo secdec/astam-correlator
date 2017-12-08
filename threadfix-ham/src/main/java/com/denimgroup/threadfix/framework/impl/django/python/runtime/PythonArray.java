@@ -2,6 +2,7 @@ package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 
+import java.util.Collection;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -13,6 +14,14 @@ public class PythonArray implements PythonValue {
 
     public void addEntry(PythonValue entry) {
         entries.add(entry);
+    }
+
+    public void setEntries(List<PythonValue> entries) {
+        this.entries = entries;
+    }
+
+    public void addEntries(Collection<PythonValue> entries) {
+        this.entries.addAll(entries);
     }
 
     public List<PythonValue> getEntries() {

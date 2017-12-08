@@ -35,6 +35,8 @@ public class PythonExpressionParser {
 
     public PythonExpression processString(String stringValue, List<PythonValue> subjects) {
 
+        stringValue = stripComments(stringValue);
+
         PythonExpression result = null;
 
         List<String> expressions = expressionDeconstructor.deconstruct(stringValue);
@@ -534,5 +536,21 @@ public class PythonExpressionParser {
 
     boolean isValidExpression(PythonExpression expression) {
         return expression != null && !(expression instanceof IndeterminateExpression);
+    }
+
+    String stripComments(String expression) {
+        ScopeTracker scopeTracker = new ScopeTracker();
+
+        for (int i = 0; i < expression.length(); i++) {
+            int c = expression.charAt(i);
+            scopeTracker.interpretToken(c);
+
+            if (c == '#' && !scopeTracker.isInString()) {
+                String result = expression.substring(0, i).trim();
+                return result;
+            }
+        }
+
+        return expression;
     }
 }

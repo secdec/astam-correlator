@@ -20,6 +20,7 @@ public class PythonInterpreter {
 
     public PythonInterpreter(PythonCodeCollection codebase) {
         executionContext = new ExecutionContext(codebase);
+        expressionParser = new PythonCachingExpressionParser();
     }
 
     public PythonInterpreter(@Nonnull ExecutionContext executionContext) {

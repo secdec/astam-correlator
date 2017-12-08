@@ -9,7 +9,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class ExpressionDeconstructor {
 
-    static final List<Character> SPECIAL_CHARS = list('%', '+', '-', '/', '*', '=', '.', '(', ')', '[', ']', '{', '}', ':', ',');
+    static final List<Character> SPECIAL_CHARS = list('%', '+', '-', '/', '*', '=', '.', '(', ')', '[', ']', '{', '}', ':', ',', '#');
 
     public List<String> deconstruct(String fullExpression) {
         return deconstruct(fullExpression, 10000);

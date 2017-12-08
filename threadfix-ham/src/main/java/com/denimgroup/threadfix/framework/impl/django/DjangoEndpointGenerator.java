@@ -151,9 +151,19 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         PythonInterpreter interpreter = new PythonInterpreter(codebase);
         int testCount = 200;
-        for (int i = 0; i < testCount; i++) {
-            PythonValue intrpval = interpreter.run("x = 5");
-        }
+        //for (int i = 0; i < testCount; i++) {
+            PythonValue intrpval;
+            intrpval = interpreter.run("x = 5");
+            intrpval = interpreter.run("x, y = (1, 2)");
+            intrpval = interpreter.run("'abc %s' % (123)");
+            intrpval = interpreter.run("'abc %s, %s' % (123, '456')");
+            intrpval = interpreter.run("5 + 5");
+            intrpval = interpreter.run("'123' + 'abc'");
+            intrpval = interpreter.run("123 + 5 # - 5");
+            intrpval = interpreter.run("");
+            intrpval = interpreter.run("# asd");
+            intrpval = interpreter.run("5#asd");
+        //}
 
         executionDuration = System.currentTimeMillis() - executionStartTime;
         LOG.info("Running text interpreter expressions " + testCount + " times took " + executionDuration + "ms");
