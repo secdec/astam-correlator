@@ -5,6 +5,14 @@ import java.util.List;
 public class PythonTuple extends PythonArray {
 
     @Override
+    public PythonValue clone() {
+        PythonTuple clone = new PythonTuple();
+        clone.sourceLocation = this.sourceLocation;
+        cloneContentsTo(clone);
+        return clone;
+    }
+
+    @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
 

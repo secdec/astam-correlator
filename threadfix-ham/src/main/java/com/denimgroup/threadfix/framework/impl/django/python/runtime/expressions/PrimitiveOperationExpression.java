@@ -22,7 +22,8 @@ public class PrimitiveOperationExpression extends PythonBinaryExpression {
             "+=", PrimitiveOperationType.CONCATENATION,
             "-=", PrimitiveOperationType.REMOVAL,
             "=", PrimitiveOperationType.ASSIGNMENT,
-            "%", PrimitiveOperationType.STRING_INTERPOLATION
+            "%", PrimitiveOperationType.STRING_INTERPOLATION,
+            "%=", PrimitiveOperationType.STRING_INTERPOLATION_ASSIGNMENT
     );
 
     public static PrimitiveOperationType interpretOperator(String operator) {
@@ -39,7 +40,8 @@ public class PrimitiveOperationExpression extends PythonBinaryExpression {
             PrimitiveOperationType.CONCATENATION, -1,
             PrimitiveOperationType.REMOVAL, -2,
             PrimitiveOperationType.ASSIGNMENT, -3,
-            PrimitiveOperationType.STRING_INTERPOLATION, 5
+            PrimitiveOperationType.STRING_INTERPOLATION, 5,
+            PrimitiveOperationType.STRING_INTERPOLATION_ASSIGNMENT, -4
     );
 
     public static PrimitiveOperationExpression rectifyOrderOfOperations(PrimitiveOperationExpression baseExpression) {
@@ -134,6 +136,16 @@ public class PrimitiveOperationExpression extends PythonBinaryExpression {
     }
 
     @Override
+    public PythonValue clone() {
+        PrimitiveOperationExpression clone = new PrimitiveOperationExpression();
+        clone.type = this.type;
+        clone.resolveSourceLocation(this.getSourceLocation());
+        cloneSubjectsTo(clone);
+        cloneOperandsTo(clone);
+        return clone;
+    }
+
+    @Override
     protected void addPrivateSubValues(List<PythonValue> targetList) {
 
     }
@@ -151,6 +163,7 @@ public class PrimitiveOperationExpression extends PythonBinaryExpression {
                 case SUBTRACTION: separator = "-"; break;
                 case CONCATENATION: separator = "+="; break;
                 case STRING_INTERPOLATION: separator = "%"; break;
+                case STRING_INTERPOLATION_ASSIGNMENT: separator = "%="; break;
             }
 
             StringBuilder result = new StringBuilder();

@@ -32,6 +32,17 @@ public class IndexerExpression extends PythonUnaryExpression {
     }
 
     @Override
+    public PythonValue clone() {
+        IndexerExpression clone = new IndexerExpression();
+        clone.resolveSourceLocation(this.getSourceLocation());
+        if (indexerValue != null) {
+            clone.indexerValue = this.indexerValue.clone();
+        }
+        cloneSubjectsTo(clone);
+        return clone;
+    }
+
+    @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
 

@@ -65,7 +65,40 @@ public class ExecutionContext {
             String fullName = codebaseLocation.getFullName();
             return findSymbol(fullName);
         } else {
-            return null;
+            return findSymbol(symbolName);
+        }
+    }
+
+    public void assignSymbolValue(String symbolName, PythonValue newValue) {
+        AbstractPythonStatement codebaseLocation;
+        if (scope == null) {
+            codebaseLocation = codebase.findByFullName(symbolName);
+        } else {
+            codebaseLocation = codebase.resolveLocalSymbol(symbolName, scope);
+        }
+        if (codebaseLocation != null) {
+            symbolName = codebaseLocation.getFullName();
+        }
+
+        //  Search parent contexts for existing entry for this symbol
+        ExecutionContext rootContext = this;
+        while (rootContext.parentContext != null) {
+            rootContext = rootContext.parentContext;
+        }
+
+        ExecutionContext currentContext = rootContext;
+        while (currentContext != null) {
+
+            if (currentContext.workingMemory.containsKey(symbolName)) {
+                currentContext.workingMemory.put(symbolName, newValue);
+                break;
+            }
+
+            currentContext = currentContext.parentContext;
+        }
+
+        if (currentContext == null) {
+            this.workingMemory.put(symbolName, newValue);
         }
     }
 

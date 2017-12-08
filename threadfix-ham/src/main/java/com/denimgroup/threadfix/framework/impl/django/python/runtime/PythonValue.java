@@ -12,4 +12,6 @@ public interface PythonValue {
     void resolveSourceLocation(AbstractPythonStatement source);
     AbstractPythonStatement getSourceLocation();
 
+    PythonValue clone();
+
 }

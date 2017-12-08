@@ -38,6 +38,17 @@ public class FunctionCallExpression extends PythonUnaryExpression {
     }
 
     @Override
+    public PythonValue clone() {
+        FunctionCallExpression clone = new FunctionCallExpression();
+        clone.resolveSourceLocation(this.getSourceLocation());
+        cloneSubjectsTo(clone);
+        for (PythonValue param : parameters) {
+            clone.addParameterValue(param.clone());
+        }
+        return clone;
+    }
+
+    @Override
     protected void addPrivateSubValues(List<PythonValue> targetList) {
         targetList.addAll(parameters);
     }

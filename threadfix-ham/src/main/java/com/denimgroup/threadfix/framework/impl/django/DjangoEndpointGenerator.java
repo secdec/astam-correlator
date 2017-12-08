@@ -22,12 +22,14 @@ import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonCachingExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.ExpressionDeconstructor;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonInterpreter;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -115,24 +117,28 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         subexpressions = ed.deconstruct("someCall(123).otherCall().member");
         subexpressions = ed.deconstruct("123 + 34.12 - x");
 
-        PythonExpressionParser incrementalParser = new PythonExpressionParser();
-        PythonExpression expr = incrementalParser.processString("x = 5", null);
-        expr = incrementalParser.processString("x += 5", null);
-        expr = incrementalParser.processString("x.y += 5", null);
-        expr = incrementalParser.processString("x.y += a - b", null);
-        expr = incrementalParser.processString("abc(xyz)", null);
-        expr = incrementalParser.processString("a.b.c(xyz)", null);
-        expr = incrementalParser.processString("a.b.c(x, y)", null);
-        expr = incrementalParser.processString("a.b.c(x.y.z)", null);
-        expr = incrementalParser.processString("a.b.c(x, y.z) + 5", null);
-        expr = incrementalParser.processString("a.b.c(d(x), g(y).z) -= 2", null);
-        expr = incrementalParser.processString("a.b(d(x).y + 5, g(y) -= 5).x + 1 % 5 - g(x) + (z, b)", null);
-        expr = incrementalParser.processString("x - (y - (z - w)) + v", null);
+        //PythonExpressionParser incrementalParser = new PythonExpressionParser();
+        PythonCachingExpressionParser incrementalParser = new PythonCachingExpressionParser();
+        PythonExpression expr;
+        expr = incrementalParser.processString("x = 5");
+        expr = incrementalParser.processString("x += 5");
+        expr = incrementalParser.processString("x.y += 5");
+        expr = incrementalParser.processString("x.y += a - b");
+        expr = incrementalParser.processString("abc(xyz)");
+        expr = incrementalParser.processString("a.b.c(xyz)");
+        expr = incrementalParser.processString("a.b.c(x, y)");
+        expr = incrementalParser.processString("a.b.c(x.y.z)");
+        expr = incrementalParser.processString("a.b.c(x, y.z) + 5");
+        expr = incrementalParser.processString("a.b.c(d(x), g(y).z) -= 2");
+        expr = incrementalParser.processString("a.b(d(x).y + 5, g(y) -= 5).x + 1 % 5 - g(x) + (z, b)");
+        expr = incrementalParser.processString("x - (y - (z - w)) + v");
 
-        expr = incrementalParser.processString("if page and page.parent_id:", null);
-        expr = incrementalParser.processString("title=_(u\"New page\")", null);
-        expr = incrementalParser.processString("context['has_change_permissions'] = user_can_change_page(request.user, page)", null);
-        expr = incrementalParser.processString("abc['123' + '456' - func() + func].func() + 2", null);
+        expr = incrementalParser.processString("if page and page.parent_id:");
+        expr = incrementalParser.processString("title=_(u\"New page\")");
+        expr = incrementalParser.processString("context['has_change_permissions'] = user_can_change_page(request.user, page)");
+        expr = incrementalParser.processString("abc['123' + '456' - func() + func].func() + 2");
+
+        expr = incrementalParser.processString("abc %= ('1', '2', '3')");
 
         expr = incrementalParser.processString("return x = 5", null);
         expr = incrementalParser.processString("return", null);
@@ -140,6 +146,17 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         long executionDuration = System.currentTimeMillis() - executionStartTime;
         LOG.info("Executing test expressions took " + executionDuration + "ms");
+
+        executionStartTime = System.currentTimeMillis();
+
+        PythonInterpreter interpreter = new PythonInterpreter(codebase);
+        int testCount = 200;
+        for (int i = 0; i < testCount; i++) {
+            PythonValue intrpval = interpreter.run("x = 5");
+        }
+
+        executionDuration = System.currentTimeMillis() - executionStartTime;
+        LOG.info("Running text interpreter expressions " + testCount + " times took " + executionDuration + "ms");
 
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
         codebase.traverse(i18Detector);

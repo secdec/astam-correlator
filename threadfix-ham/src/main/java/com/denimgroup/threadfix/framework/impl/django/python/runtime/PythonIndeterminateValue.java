@@ -26,6 +26,13 @@ public class PythonIndeterminateValue implements PythonValue {
     }
 
     @Override
+    public PythonValue clone() {
+        PythonIndeterminateValue clone = new PythonIndeterminateValue();
+        clone.sourceLocation = this.sourceLocation;
+        return clone;
+    }
+
+    @Override
     public List<PythonValue> getSubValues() {
         return null;
     }

@@ -19,6 +19,14 @@ public class ScopingExpression extends PythonUnaryExpression {
     }
 
     @Override
+    public PythonValue clone() {
+        ScopingExpression clone = new ScopingExpression();
+        clone.resolveSourceLocation(this.getSourceLocation());
+        cloneSubjectsTo(clone);
+        return clone;
+    }
+
+    @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
         result.append('(');

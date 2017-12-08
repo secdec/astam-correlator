@@ -28,6 +28,13 @@ public class IndeterminateExpression implements PythonExpression {
     }
 
     @Override
+    public PythonValue clone() {
+        IndeterminateExpression clone = new IndeterminateExpression();
+        clone.sourceLocation = this.sourceLocation;
+        return clone;
+    }
+
+    @Override
     public List<PythonValue> getSubValues() {
         return null;
     }

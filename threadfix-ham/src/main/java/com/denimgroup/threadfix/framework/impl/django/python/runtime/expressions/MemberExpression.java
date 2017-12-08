@@ -1,6 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions;
 
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonBinaryExpression;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonObject;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonUnaryExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;
@@ -37,6 +38,15 @@ public class MemberExpression extends PythonUnaryExpression {
     @Override
     public void resolveSubValue(PythonValue previousValue, PythonValue newValue) {
         replaceSubject(previousValue, newValue);
+    }
+
+    @Override
+    public PythonValue clone() {
+        MemberExpression clone = new MemberExpression();
+        clone.resolveSourceLocation(this.getSourceLocation());
+        clone.memberPath.addAll(this.memberPath);
+        cloneSubjectsTo(clone);
+        return clone;
     }
 
     @Override

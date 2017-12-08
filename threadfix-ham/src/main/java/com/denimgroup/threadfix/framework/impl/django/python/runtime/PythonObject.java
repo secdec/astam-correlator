@@ -95,6 +95,21 @@ public class PythonObject implements PythonValue {
     }
 
     @Override
+    public PythonValue clone() {
+        PythonObject clone = new PythonObject();
+        clone.memberPath = this.memberPath;
+        clone.classType = this.classType;
+        clone.sourceLocation = this.sourceLocation;
+        for (Map.Entry<String, PythonValue> entry : this.memberMap.entrySet()) {
+            clone.memberMap.put(
+                    entry.getKey(),
+                    entry.getValue().clone()
+            );
+        }
+        return clone;
+    }
+
+    @Override
     public String toString() {
         StringBuilder result = new StringBuilder();
 

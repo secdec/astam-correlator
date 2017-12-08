@@ -49,6 +49,19 @@ public class PythonDictionary implements PythonValue {
     }
 
     @Override
+    public PythonValue clone() {
+        PythonDictionary clone = new PythonDictionary();
+        clone.sourceLocation = this.sourceLocation;
+        for (Map.Entry<PythonValue, PythonValue> entry : values.entrySet()) {
+            clone.values.put(
+                    entry.getKey().clone(),
+                    entry.getValue().clone()
+            );
+        }
+        return clone;
+    }
+
+    @Override
     public List<PythonValue> getSubValues() {
         List<PythonValue> subValues = new ArrayList<PythonValue>(values.size() * 2);
         subValues.addAll(values.keySet());

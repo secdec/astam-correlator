@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.impl.django.python.PythonCachingExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;
@@ -15,6 +16,7 @@ import java.util.List;
 public class PythonInterpreter {
 
     ExecutionContext executionContext;
+    PythonExpressionParser expressionParser;
 
     public PythonInterpreter(PythonCodeCollection codebase) {
         executionContext = new ExecutionContext(codebase);
@@ -22,10 +24,12 @@ public class PythonInterpreter {
 
     public PythonInterpreter(@Nonnull ExecutionContext executionContext) {
         this.executionContext = executionContext;
+        expressionParser = new PythonCachingExpressionParser();
     }
 
     public PythonInterpreter(@Nonnull PythonCodeCollection codebase, PythonValue valueContext) {
         this.executionContext = new ExecutionContext(codebase, valueContext);
+        expressionParser = new PythonCachingExpressionParser();
     }
 
 
@@ -38,7 +42,6 @@ public class PythonInterpreter {
     }
 
     public PythonValue run(@Nonnull String code, AbstractPythonStatement scope) {
-        PythonExpressionParser expressionParser = new PythonExpressionParser();
         return run(expressionParser.processString(code), scope);
     }
 
@@ -95,7 +98,12 @@ public class PythonInterpreter {
             if (usesNewContext) {
                 popExecutionContext();
             }
-            return result;
+
+            if (result != null) {
+                return result;
+            } else {
+                return new PythonIndeterminateValue();
+            }
         }
     }
 

@@ -32,7 +32,16 @@ public abstract class PythonUnaryExpression implements PythonExpression {
         return subjects;
     }
 
+    @Override
+    public abstract PythonValue clone();
+
     protected abstract void addPrivateSubValues(List<PythonValue> targetList);
+
+    protected void cloneSubjectsTo(PythonUnaryExpression expression) {
+        for (PythonValue subject : subjects) {
+            expression.subjects.add(subject.clone());
+        }
+    }
 
     protected boolean replaceSubject(PythonValue oldSubject, PythonValue newSubject) {
         int idx = subjects.indexOf(oldSubject);

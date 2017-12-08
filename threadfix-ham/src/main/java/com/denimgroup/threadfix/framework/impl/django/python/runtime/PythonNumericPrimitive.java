@@ -54,6 +54,13 @@ public class PythonNumericPrimitive implements PythonValue {
     }
 
     @Override
+    public PythonValue clone() {
+        PythonNumericPrimitive clone = new PythonNumericPrimitive(value);
+        clone.sourceLocation = this.sourceLocation;
+        return clone;
+    }
+
+    @Override
     public String toString() {
         return Double.toString(value);
     }

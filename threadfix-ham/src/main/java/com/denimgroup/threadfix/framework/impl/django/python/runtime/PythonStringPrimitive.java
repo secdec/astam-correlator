@@ -42,6 +42,13 @@ public class PythonStringPrimitive implements PythonValue {
     }
 
     @Override
+    public PythonValue clone() {
+        PythonStringPrimitive clone = new PythonStringPrimitive(value);
+        clone.sourceLocation = this.sourceLocation;
+        return clone;
+    }
+
+    @Override
     public List<PythonValue> getSubValues() {
         return null;
     }

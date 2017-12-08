@@ -27,4 +27,11 @@ public class PythonNone implements PythonValue {
     public AbstractPythonStatement getSourceLocation() {
         return sourceLocation;
     }
+
+    @Override
+    public PythonValue clone() {
+        PythonNone clone = new PythonNone();
+        clone.sourceLocation = this.sourceLocation;
+        return clone;
+    }
 }

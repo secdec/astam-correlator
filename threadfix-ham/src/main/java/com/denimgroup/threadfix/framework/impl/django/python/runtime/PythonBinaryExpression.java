@@ -34,6 +34,13 @@ public abstract class PythonBinaryExpression extends PythonUnaryExpression {
 
     protected abstract void addPrivateSubValues(List<PythonValue> targetList);
 
+    protected void cloneOperandsTo(PythonBinaryExpression expression) {
+        expression.sourceLocation = this.sourceLocation;
+        for (PythonValue operand : operands) {
+            expression.operands.add(operand.clone());
+        }
+    }
+
     protected boolean replaceOperand(PythonValue oldOperand, PythonValue newOperand) {
         int idx = operands.indexOf(oldOperand);
         if (idx < 0) {

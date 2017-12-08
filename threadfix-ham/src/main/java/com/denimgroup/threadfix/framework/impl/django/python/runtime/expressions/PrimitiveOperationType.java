@@ -7,5 +7,6 @@ public enum PrimitiveOperationType {
     ADDITION,             // '+'
     SUBTRACTION,          // '-'
     STRING_INTERPOLATION, // '%'
+    STRING_INTERPOLATION_ASSIGNMENT, // '%='
     UNKNOWN
 }

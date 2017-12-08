@@ -33,6 +33,13 @@ public class PythonUnresolvedValue implements PythonValue {
     }
 
     @Override
+    public PythonValue clone() {
+        PythonUnresolvedValue clone = new PythonUnresolvedValue(stringValue);
+        clone.sourceLocation = this.sourceLocation;
+        return clone;
+    }
+
+    @Override
     public List<PythonValue> getSubValues() {
         return null;
     }

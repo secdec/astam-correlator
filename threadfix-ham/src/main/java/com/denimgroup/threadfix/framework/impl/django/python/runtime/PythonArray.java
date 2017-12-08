@@ -45,6 +45,20 @@ public class PythonArray implements PythonValue {
     }
 
     @Override
+    public PythonValue clone() {
+        PythonArray clone = new PythonArray();
+        clone.sourceLocation = this.sourceLocation;
+        cloneContentsTo(clone);
+        return clone;
+    }
+
+    protected void cloneContentsTo(PythonArray array) {
+        for (PythonValue entry : entries) {
+            array.entries.add(entry.clone());
+        }
+    }
+
+    @Override
     public List<PythonValue> getSubValues() {
         return entries;
     }

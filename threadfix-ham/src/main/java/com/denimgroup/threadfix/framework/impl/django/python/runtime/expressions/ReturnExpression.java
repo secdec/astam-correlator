@@ -17,6 +17,14 @@ public class ReturnExpression extends PythonUnaryExpression {
     }
 
     @Override
+    public PythonValue clone() {
+        ReturnExpression clone = new ReturnExpression();
+        clone.resolveSourceLocation(this.getSourceLocation());
+        cloneSubjectsTo(clone);
+        return clone;
+    }
+
+    @Override
     protected void addPrivateSubValues(List<PythonValue> targetList) {
 
     }
