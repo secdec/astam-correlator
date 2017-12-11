@@ -8,6 +8,6 @@ import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue
 public class ScopingInterpreter implements ExpressionInterpreter {
     @Override
     public PythonValue interpret(PythonInterpreter host, PythonExpression expression) {
-        return null;
+        return host.run(expression);
     }
 }
