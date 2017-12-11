@@ -1,13 +1,40 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters;
 
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.ExecutionContext;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonExpression;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonInterpreter;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndexerExpression;
 
 public class IndexerInterpreter implements ExpressionInterpreter {
     @Override
     public PythonValue interpret(PythonInterpreter host, PythonExpression expression) {
-        return null;
+
+        IndexerExpression indexerExpression = (IndexerExpression)expression;
+
+        ExecutionContext executionContext = host.getExecutionContext();
+
+        PythonValue subject = indexerExpression.getSubject(0);
+        PythonValue operand = indexerExpression.getIndexerValue();
+
+        subject = executionContext.resolveValue(subject);
+        operand = executionContext.resolveValue(operand);
+
+
+        if (subject instanceof PythonArray) {
+            PythonArray subjectArray = (PythonArray)subject;
+            if (operand instanceof PythonNumericPrimitive) {
+                int index = (int)((PythonNumericPrimitive)operand).getValue();
+                if (index > ((PythonArray) subject).getEntries().size()) {
+                    return new PythonNone();
+                } else {
+                    return subjectArray.entryAt(index);
+                }
+            } else {
+                return new PythonIndeterminateValue();
+            }
+        } else if (subject instanceof PythonDictionary) {
+            PythonDictionary subjectDictionary = (PythonDictionary)subject;
+            return subjectDictionary.get(subject);
+        } else {
+            return new PythonIndeterminateValue();
+        }
     }
 }

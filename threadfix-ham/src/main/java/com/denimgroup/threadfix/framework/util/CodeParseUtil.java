@@ -61,18 +61,23 @@ public class CodeParseUtil {
         return result.toString();
     }
 
+    public static String[] splitByComma(String codeLine) {
+        return splitByComma(codeLine, true);
+    }
 
     //  Splits the given code string at the top level by comma separator. This
     //      takes into account nested commas within strings, array lists, and parameter
     //      lists.
-    public static String[] splitByComma(String codeLine) {
+    public static String[] splitByComma(String codeLine, boolean trimEnds) {
         codeLine = codeLine.replace("\\([^\\])\\\"", "$1\"");
-        if (codeLine.startsWith("{") || codeLine.startsWith("(") || codeLine.startsWith("[")) {
-            codeLine = codeLine.substring(1);
-        }
+        if (trimEnds) {
+            if (codeLine.startsWith("{") || codeLine.startsWith("(") || codeLine.startsWith("[")) {
+                codeLine = codeLine.substring(1);
+            }
 
-        if (codeLine.endsWith("}") || codeLine.endsWith(")") || codeLine.endsWith("]")) {
-            codeLine = codeLine.substring(0, codeLine.length() - 1);
+            if (codeLine.endsWith("}") || codeLine.endsWith(")") || codeLine.endsWith("]")) {
+                codeLine = codeLine.substring(0, codeLine.length() - 1);
+            }
         }
 
         ScopeTracker scopeTracker = new ScopeTracker();

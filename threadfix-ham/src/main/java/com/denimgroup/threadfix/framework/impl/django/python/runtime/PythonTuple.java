@@ -17,7 +17,7 @@ public class PythonTuple extends PythonArray {
         StringBuilder result = new StringBuilder();
 
         result.append('(');
-        List<PythonValue> entries = this.getEntries();
+        List<PythonVariable> entries = this.getEntries();
 
         for (int i = 0; i < entries.size(); i++) {
             if (i > 0) {

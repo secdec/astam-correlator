@@ -6,6 +6,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.PrimitiveOperationType;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
@@ -30,7 +31,7 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
                 if (subjects.size() > operands.size()) {
                     PythonValue mainOperand = operands.get(0);
                     if (mainOperand instanceof PythonArray) {
-                        operands = ((PythonArray)mainOperand).getEntries();
+                        operands = new ArrayList<PythonValue>(((PythonArray)mainOperand).getEntries());
                     }
                 }
 
@@ -44,6 +45,8 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
                         executionContext.assignSymbolValue(subjectSymbol, operand);
                         subjects.remove(i);
                         subjects.add(i, operand);
+                    } else if (subject instanceof PythonVariable) {
+                        ((PythonVariable) subject).setValue(operand);
                     }
                 }
 
@@ -144,8 +147,8 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
             double operandValue = ((PythonNumericPrimitive)operand).getValue();
             return new PythonNumericPrimitive(subjectValue + operandValue);
         } else if ((subject instanceof PythonArray) && (operand instanceof PythonArray)) {
-            List<PythonValue> subjectEntries = ((PythonArray)subject).getEntries();
-            List<PythonValue> operandEntries = ((PythonArray)operand).getEntries();
+            List<PythonVariable> subjectEntries = ((PythonArray)subject).getEntries();
+            List<PythonVariable> operandEntries = ((PythonArray)operand).getEntries();
 
             PythonArray combined;
             if (subject instanceof PythonTuple) {
@@ -154,8 +157,13 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
                 combined = new PythonArray();
             }
 
-            combined.addEntries(subjectEntries);
-            combined.addEntries(operandEntries);
+            for (PythonVariable entry : subjectEntries) {
+                combined.addEntry(entry.getValue());
+            }
+
+            for (PythonVariable entry : operandEntries) {
+                combined.addEntry(entry.getValue());
+            }
 
             return combined;
 
@@ -188,7 +196,7 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
         if ((subject instanceof PythonNumericPrimitive) && (operand instanceof PythonNumericPrimitive)) {
             double subjectValue = ((PythonNumericPrimitive)subject).getValue();
             double operandValue = ((PythonNumericPrimitive)operand).getValue();
-            return new PythonNumericPrimitive(subjectValue + operandValue);
+            return new PythonNumericPrimitive(subjectValue - operandValue);
         } else {
             return new PythonIndeterminateValue();
         }

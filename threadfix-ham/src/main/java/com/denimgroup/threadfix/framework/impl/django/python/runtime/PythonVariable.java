@@ -78,10 +78,14 @@ public class PythonVariable implements PythonValue {
     public String toString() {
         StringBuilder result = new StringBuilder();
 
-        result.append(localName);
-        result.append("(=");
-        result.append(this.value);
-        result.append(')');
+        if (localName != null) {
+            result.append(localName);
+            result.append("(=");
+            result.append(this.value);
+            result.append(')');
+        } else {
+            result.append(this.value);
+        }
 
         return result.toString();
     }

@@ -4,6 +4,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.Language;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCachingExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.InterpreterUtil;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
@@ -47,11 +48,17 @@ public class PythonInterpreter {
 
     public PythonValue run(@Nonnull String code, AbstractPythonStatement scope) {
         code = Language.stripComments(code);
-        PythonValue asValue = valueBuilder.buildFromSymbol(code);
-        if (asValue != null && !(asValue instanceof PythonIndeterminateValue)) {
-            return asValue;
+
+        PythonExpression expression = expressionParser.processString(code);
+        if (expression instanceof IndeterminateExpression) {
+            return valueBuilder.buildFromSymbol(code);
         } else {
-            return run(expressionParser.processString(code), scope);
+            PythonValue evaluated = run(expression, scope);
+            if (!(evaluated instanceof PythonIndeterminateValue)) {
+                return evaluated;
+            } else {
+                return valueBuilder.buildFromSymbol(code);
+            }
         }
     }
 
@@ -94,14 +101,7 @@ public class PythonInterpreter {
                 pushExecutionContext(scope, selfValue);
             }
 
-            List<PythonValue> dependencies = expression.getSubValues();
-
-            for (PythonValue subValue : dependencies) {
-                if (subValue instanceof PythonExpression) {
-                    PythonValue resolvedValue = run((PythonExpression) subValue, scope);
-                    expression.resolveSubValue(subValue, resolvedValue);
-                }
-            }
+            resolveDependencies(expression, scope);
 
             PythonValue result = interpreter.interpret(this, expression);
 
@@ -113,6 +113,53 @@ public class PythonInterpreter {
                 return result;
             } else {
                 return new PythonIndeterminateValue();
+            }
+        }
+    }
+
+    private void resolveDependencies(PythonExpression expression, AbstractPythonStatement scope) {
+        List<PythonValue> dependencies = expression.getSubValues();
+
+        for (PythonValue subValue : dependencies) {
+            if (subValue instanceof PythonExpression) {
+                PythonValue resolvedValue = run((PythonExpression) subValue, scope);
+                expression.resolveSubValue(subValue, resolvedValue);
+            } else if (subValue instanceof PythonVariable) {
+                PythonVariable asVariable = (PythonVariable)subValue;
+
+                if (asVariable.getValue() == null && asVariable.getLocalName() != null) {
+                    asVariable.setValue(executionContext.resolveSymbol(asVariable.getLocalName()));
+                }
+
+                PythonValue resolvedValue = asVariable.getValue();
+
+                while (resolvedValue != null && resolvedValue instanceof PythonVariable) {
+                    PythonVariable valueAsVariable = (PythonVariable)resolvedValue;
+                    if (valueAsVariable.getValue() != null) {
+                        break;
+                    }
+
+                    if (valueAsVariable.getLocalName() != null) {
+                        resolvedValue = executionContext.resolveSymbol(valueAsVariable.getLocalName());
+                    } else {
+                        resolvedValue = valueAsVariable.getValue();
+                    }
+                }
+
+                if (resolvedValue != null) {
+                    if (resolvedValue instanceof PythonExpression) {
+                        PythonExpression variableExpression = (PythonExpression) resolvedValue;
+                        resolvedValue = run(variableExpression, scope);
+                    } else if (resolvedValue instanceof PythonVariable) {
+                        resolvedValue = ((PythonVariable) resolvedValue).getValue();
+                    }
+                }
+
+                if (resolvedValue != null) {
+                    asVariable.setValue(resolvedValue);
+                } else {
+                    asVariable.setValue(new PythonIndeterminateValue());
+                }
             }
         }
     }

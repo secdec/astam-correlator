@@ -63,7 +63,7 @@ public class PythonExpressionParser {
             OperationType subexprOperation = detectOperationType(subexpr);
 
             if (subexprOperation != OperationType.INVALID && subexprOperation != OperationType.UNKNOWN &&
-                    !scopeTracker.isInString() && !scopeTracker.isInScope() && subexprOperation != OperationType.PARAMETER_ENTRY) {
+                    !scopeTracker.isInString() && !scopeTracker.isInScope()) {
 
                 if (i > 0) {
                     OperationType lastType = expressionOperations.get(i - 1);
@@ -80,7 +80,8 @@ public class PythonExpressionParser {
                     }
                 }
 
-                if (operationType == OperationType.UNKNOWN &&
+                if (operationType == OperationType.UNKNOWN && subexprOperation != OperationType.PARAMETER_ENTRY &&
+                        (subexprOperation != OperationType.INDEXER) &&
                         (subexprOperation != OperationType.TUPLE_REFERENCE || i == 0)) {
                     operationType = subexprOperation;
                     operationTypeIndicator = subexpr;
@@ -102,6 +103,7 @@ public class PythonExpressionParser {
                 OperationType type = expressionOperations.get(i);
                 if (type != OperationType.UNKNOWN && type != OperationType.INVALID) {
                     operationType = type;
+                    primaryEndIndex = i;
                     operationTypeIndicator = expressions.get(i);
                     break;
                 }
@@ -233,12 +235,23 @@ public class PythonExpressionParser {
             }
         } else {
             String remainingExpression = reconstructExpression(expressions, primaryEndIndex + 1);
-            PythonValue operand = tryMakeValue(remainingExpression, null);
-            operands = list((PythonValue)operand);
+
+            if (nextOperation == OperationType.PARAMETER_ENTRY) {
+                //  It's a tuple
+                String[] parts = CodeParseUtil.splitByComma(remainingExpression, false);
+                operands = new ArrayList<PythonValue>(parts.length);
+                for (String part : parts) {
+                    PythonValue parsed = tryMakeValue(part, null);
+                    operands.add(parsed);
+                }
+            } else {
+                PythonValue operand = tryMakeValue(remainingExpression, null);
+                operands = list((PythonValue) operand);
+            }
         }
 
         if (subjects == null) {
-            subjects = tryMakeSubjectValues(expressions, expressionTypes, primaryEndIndex - 1, list((PythonValue)result));
+            subjects = tryMakeSubjectValues(expressions, expressionTypes, primaryEndIndex - 1, null);
         }
 
         if (operands != null && subjects != null) {
@@ -351,7 +364,13 @@ public class PythonExpressionParser {
         }
 
         if (subjects == null) {
-            subjects = tryMakeSubjectValues(expressions, expressionTypes, primaryEndIndex - 1, null);
+            int endIndex = primaryEndIndex;
+            if (endIndex > 0) {
+                endIndex -= 1;
+            } else {
+                endIndex = 0;
+            }
+            subjects = tryMakeSubjectValues(expressions, expressionTypes, endIndex, null);
             if (subjects != null) {
                 indexerExpression.setSubjects(subjects);
             }

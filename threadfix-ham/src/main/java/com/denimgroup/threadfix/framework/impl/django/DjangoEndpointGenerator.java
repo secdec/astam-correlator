@@ -135,6 +135,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         expr = incrementalParser.processString("a.b.c(d(x), g(y).z) -= 2");
         expr = incrementalParser.processString("a.b(d(x).y + 5, g(y) -= 5).x + 1 % 5 - g(x) + (z, b)");
         expr = incrementalParser.processString("x - (y - (z - w)) + v");
+        expr = incrementalParser.processString("a[123]");
+        expr = incrementalParser.processString("[1], [2]");
 
         expr = incrementalParser.processString("if page and page.parent_id:");
         expr = incrementalParser.processString("title=_(u\"New page\")");
@@ -156,10 +158,18 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         int testCount = 200;
         //for (int i = 0; i < testCount; i++) {
             PythonValue intrpval;
+            intrpval = interpreter.run("a1, a2 = [1], [2]");
             intrpval = interpreter.run("x = 5");
             intrpval = interpreter.run("x, y = (1, 2)");
             intrpval = interpreter.run("xx, yy = [3, 4]");
             intrpval = interpreter.run("a, b = (x, y)");
+            intrpval = interpreter.run("b1, b2 = (x + xx, y + yy + 3)");
+            intrpval = interpreter.run("b1 += 5");
+            intrpval = interpreter.run("b1 -= 2");
+            intrpval = interpreter.run("c1 = [5]");
+            intrpval = interpreter.run("c1, c2 = (c1 + a1, '3')");
+            intrpval = interpreter.run("c1[1] = 'a'");
+            intrpval = interpreter.run("m = { 'a': 1 } ");
             intrpval = interpreter.run("'abc %s' % (123)");
             intrpval = interpreter.run("'abc %s, %s' % (123, '456')");
             intrpval = interpreter.run("5 + 5");
@@ -171,7 +181,6 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             intrpval = interpreter.run("4");
             intrpval = interpreter.run("3#asd");
             intrpval = interpreter.run("[1] + [2]");
-            intrpval = interpreter.run("a1, a2 = [1], [2]");
             intrpval = interpreter.run("a1 + a2");
         //}
 

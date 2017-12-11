@@ -63,13 +63,15 @@ public class ExecutionContext {
     }
 
     public PythonValue resolveSymbol(String symbolName) {
-        AbstractPythonStatement codebaseLocation = codebase.resolveLocalSymbol(symbolName, scope);
-        if (codebaseLocation != null) {
-            String fullName = codebaseLocation.getFullName();
-            return findSymbol(fullName);
-        } else {
-            return findSymbol(symbolName);
+        if (scope != null) {
+            AbstractPythonStatement codebaseLocation = codebase.resolveLocalSymbol(symbolName, scope);
+            if (codebaseLocation != null) {
+                String fullName = codebaseLocation.getFullName();
+                return findSymbol(fullName);
+            }
         }
+
+        return findSymbol(symbolName);
     }
 
     public PythonValue resolveValue(PythonValue value) {

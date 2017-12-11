@@ -11,6 +11,17 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class PythonValueBuilder {
 
+    private enum ValueType {
+        ARRAY,
+        TUPLE,
+        IMPLICIT_TUPLE,
+        MAP,
+        STRING,
+        NUMBER,
+        NONE,
+        UNKNOWN
+    }
+
     public <T extends PythonValue> T buildFromSymbol(@Nonnull String symbols, @Nonnull Class<T> type) {
         PythonValue value = buildFromSymbol(symbols);
         if (value != null && type.isAssignableFrom(value.getClass())) {
@@ -24,103 +35,175 @@ public class PythonValueBuilder {
         PythonValue result = null;
         ScopeTracker scopeTracker = new ScopeTracker();
 
-        if ((symbols.startsWith("[") && symbols.endsWith("]")) || (symbols.startsWith("(") && symbols.endsWith(")"))) {
+        ValueType valueType = determineValueType(symbols);
+        StringBuilder elementBuilder = new StringBuilder();
 
-            PythonArray arrayResult;
-            if (symbols.startsWith("[")) {
-                arrayResult = new PythonArray();
-            } else {
-                arrayResult = new PythonTuple();
-            }
-
-            StringBuilder elementBuilder = new StringBuilder();
-
-            symbols = CodeParseUtil.trim(symbols, new String[] { "[", "]", "(", ")" }, 1);
-
-            for (int i = 0; i < symbols.length(); i++) {
-                int token = symbols.charAt(i);
-                scopeTracker.interpretToken(token);
-
-                if (token == ',' && !scopeTracker.isInString() && !scopeTracker.isInScope()) {
-                    PythonValue entry = new PythonUnresolvedValue(elementBuilder.toString().trim());
-                    arrayResult.addEntry(entry);
-                    elementBuilder = new StringBuilder();
+        switch (valueType) {
+            case TUPLE:
+            case IMPLICIT_TUPLE:
+            case ARRAY:
+                PythonArray arrayResult;
+                if (valueType == ValueType.ARRAY) {
+                    arrayResult = new PythonArray();
+                    symbols = CodeParseUtil.trim(symbols, new String[] { "[", "]" }, 1);
+                } else if (valueType == ValueType.TUPLE) {
+                    arrayResult = new PythonTuple();
+                    symbols = CodeParseUtil.trim(symbols, new String[] { "(", ")" }, 1);
                 } else {
-                    elementBuilder.append((char)token);
+                    // IMPLICIT_TUPLE
+                    arrayResult = new PythonTuple();
                 }
-            }
 
-            if (elementBuilder.length() > 0) {
-                arrayResult.addEntry(new PythonUnresolvedValue(elementBuilder.toString().trim()));
-            }
+                for (int i = 0; i < symbols.length(); i++) {
+                    int token = symbols.charAt(i);
+                    scopeTracker.interpretToken(token);
 
-            result = arrayResult;
+                    if (token == ',' && !scopeTracker.isInString() && !scopeTracker.isInScope()) {
+                        PythonValue entry = new PythonUnresolvedValue(elementBuilder.toString().trim());
+                        arrayResult.addEntry(entry);
+                        elementBuilder = new StringBuilder();
+                    } else {
+                        elementBuilder.append((char)token);
+                    }
+                }
 
-        } else if (symbols.startsWith("{") && symbols.endsWith("}")) {
+                if (elementBuilder.length() > 0) {
+                    arrayResult.addEntry(new PythonUnresolvedValue(elementBuilder.toString().trim()));
+                }
 
-            symbols = CodeParseUtil.trim(symbols, new String[] { "{", "}" }, 1);
+                result = arrayResult;
+                break;
+            case MAP:
+                symbols = CodeParseUtil.trim(symbols, new String[] { "{", "}" }, 1);
+                String key = null;
 
-            StringBuilder elementBuilder = new StringBuilder();
-            String key = null;
+                PythonDictionary dictionaryResult = new PythonDictionary();
 
-            PythonDictionary dictionaryResult = new PythonDictionary();
+                for (int i = 0; i < symbols.length(); i++) {
+                    int token = symbols.charAt(i);
+                    scopeTracker.interpretToken(token);
 
-            for (int i = 0; i < symbols.length(); i++) {
-                int token = symbols.charAt(i);
-                scopeTracker.interpretToken(token);
-
-                if (!scopeTracker.isInScope() && !scopeTracker.isInString()) {
-                    if (token == ':') {
-                        if (key == null) {
-                            key = elementBuilder.toString();
-                            elementBuilder = new StringBuilder();
+                    if (!scopeTracker.isInScope() && !scopeTracker.isInString()) {
+                        if (token == ':') {
+                            if (key == null) {
+                                key = elementBuilder.toString();
+                                elementBuilder = new StringBuilder();
+                            } else {
+                                dictionaryResult.add(new PythonUnresolvedValue(key), new PythonUnresolvedValue(elementBuilder.toString()));
+                                key = null;
+                                elementBuilder = new StringBuilder();
+                            }
                         } else {
-                            dictionaryResult.add(new PythonUnresolvedValue(key), new PythonUnresolvedValue(elementBuilder.toString()));
-                            key = null;
-                            elementBuilder = new StringBuilder();
+                            elementBuilder.append((char)token);
+                        }
+                    } else {
+                        elementBuilder.append((char)token);
+                    }
+                }
+
+                if (elementBuilder.length() > 0 && key != null) {
+                    dictionaryResult.add(new PythonUnresolvedValue(key), new PythonUnresolvedValue(elementBuilder.toString()));
+                }
+
+                result = dictionaryResult;
+                break;
+
+            case STRING:
+                result = new PythonStringPrimitive(CodeParseUtil.trim(symbols, new String[]{"\"", "'", "r'", "r\"", "u'", "u\""}));
+                break;
+
+            case NUMBER:
+                result = new PythonNumericPrimitive(symbols);
+                break;
+
+            case NONE:
+                result = new PythonNone();
+                break;
+
+            default:
+                boolean isExpression = false;
+                boolean isTuple = false;
+                for (int i = 0; i < symbols.length(); i++) {
+                    int c = symbols.charAt(i);
+                    if ((c < 48) || (c >= 58 && c <= 64) || (c >= 91 && c <= 94) || (c >= 123)) {
+                        if (c == ',') {
+                            isTuple = true;
+                        } else if (c != '.') {
+                            isExpression = true;
                         }
                     }
+                }
+
+                if (isExpression) {
+                    result = new PythonIndeterminateValue();
+                } else if (isTuple) {
+                    result = buildFromSymbol("(" + symbols + ")");
                 } else {
-                    elementBuilder.append((char)token);
+                    result = new PythonVariable(symbols);
                 }
-            }
+                break;
 
-            if (elementBuilder.length() > 0 && key != null) {
-                dictionaryResult.add(new PythonUnresolvedValue(key), new PythonUnresolvedValue(elementBuilder.toString()));
-            }
-
-            result = dictionaryResult;
-
-        } else if (Language.isString(symbols)) {
-            result = new PythonStringPrimitive(CodeParseUtil.trim(symbols, new String[]{"\"", "'", "r'", "r\"", "u'", "u\""}));
-        } else if (Language.isNumber(symbols)) {
-            result = new PythonNumericPrimitive(symbols);
-        } else if (symbols.equals("None")) {
-            result = new PythonNone();
-        } else {
-            boolean isExpression = false;
-            boolean isTuple = false;
-            for (int i = 0; i < symbols.length(); i++) {
-                int c = symbols.charAt(i);
-                if ((c <= 64) || (c >= 91 && c <= 94) || (c == 96) || (c >= 123)) {
-                    if (c == ',') {
-                        isTuple = true;
-                    } else if (c != '.') {
-                        isExpression = true;
-                    }
-                }
-            }
-
-            if (isExpression) {
-                result = new PythonIndeterminateValue();
-            } else if (isTuple) {
-                result = buildFromSymbol("(" + symbols + ")");
-            } else {
-                result = new PythonVariable(symbols);
-            }
         }
 
         return result;
+    }
+
+    private ValueType determineValueType(String symbols) {
+        ValueType possibleType = ValueType.UNKNOWN;
+        ScopeTracker scopeTracker = new ScopeTracker();
+        if (symbols.equals("None")) {
+            possibleType = ValueType.NONE;
+        } else if (Language.isString(symbols)) {
+            possibleType = ValueType.STRING;
+        } else if (Language.isNumber(symbols)) {
+            possibleType = ValueType.NUMBER;
+        } else {
+            for (int i = 0; i < symbols.length(); i++) {
+                char c = symbols.charAt(i);
+                scopeTracker.interpretToken(c);
+
+                if (i == 0) {
+                    switch (c) {
+                        case '[':
+                            possibleType = ValueType.ARRAY;
+                            break;
+                        case '(':
+                            possibleType = ValueType.TUPLE;
+                            break;
+                        case '{':
+                            possibleType = ValueType.MAP;
+                            break;
+                    }
+                } else {
+                    switch (possibleType) {
+                        case ARRAY:
+                            if (scopeTracker.getNumOpenBracket() == 0 && i != symbols.length() - 1) {
+                                possibleType = ValueType.UNKNOWN;
+                            }
+                            break;
+                        case TUPLE:
+                            if (scopeTracker.getNumOpenParen() == 0 && i != symbols.length() - 1) {
+                                possibleType = ValueType.UNKNOWN;
+                            }
+                            break;
+                        case MAP:
+                            if (scopeTracker.getNumOpenBrace() == 0 && i != symbols.length() - 1) {
+                                possibleType = ValueType.UNKNOWN;
+                            }
+                            break;
+                    }
+                }
+            }
+        }
+
+        if (possibleType == ValueType.UNKNOWN) {
+            String[] parts = CodeParseUtil.splitByComma(symbols);
+            if (parts.length > 1) {
+                //  It may be an implicit tuple, make sure the contents
+            }
+        }
+
+        return possibleType;
     }
 
 }
