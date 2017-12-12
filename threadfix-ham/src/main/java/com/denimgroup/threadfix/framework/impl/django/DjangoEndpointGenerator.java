@@ -194,7 +194,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         }
 
         if (rootUrlsFile != null && rootUrlsFile.exists()) {
-            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", rootUrlsFile.getAbsolutePath(), codebase, rootUrlsFile);
+            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", rootUrlsFile.getAbsolutePath(), codebase, interpreter, rootUrlsFile);
         } else if (possibleGuessedUrlFiles != null && possibleGuessedUrlFiles.size() > 0) {
 
             debugLog("Found " + possibleGuessedUrlFiles.size() + " possible URL files:");
@@ -204,7 +204,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
             routeMap = map();
             for (File guessedUrlsFile : possibleGuessedUrlFiles) {
-                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", guessedUrlsFile.getAbsolutePath(), codebase, guessedUrlsFile);
+                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", guessedUrlsFile.getAbsolutePath(), codebase, interpreter, guessedUrlsFile);
                 for (Map.Entry<String, DjangoRoute> url : guessedUrls.entrySet()) {
                     DjangoRoute existingRoute = routeMap.get(url.getKey());
                     if (existingRoute != null) {

@@ -152,6 +152,29 @@ public abstract class AbstractPythonStatement {
         return null;
     }
 
+    public <T extends AbstractPythonStatement> Collection<T> findChildren(Class<T> type) {
+        List<T> result = list();
+        for (AbstractPythonStatement statement : childStatements) {
+            if (type.isAssignableFrom(statement.getClass())) {
+                result.add((T)statement);
+            }
+        }
+        return result;
+    }
+
+    public <T extends AbstractPythonStatement> T findChild(String immediateChildName, Class<T> type) {
+        AbstractPythonStatement result = findChild(immediateChildName);
+        if (result == null) {
+            return null;
+        } else {
+            if (type.isAssignableFrom(result.getClass())) {
+                return (T)result;
+            } else {
+                return null;
+            }
+        }
+    }
+
 
     public String getFullName() {
         List<AbstractPythonStatement> parentChain = list();

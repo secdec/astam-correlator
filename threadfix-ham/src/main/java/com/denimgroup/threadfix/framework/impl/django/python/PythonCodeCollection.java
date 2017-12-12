@@ -30,8 +30,6 @@ public class PythonCodeCollection {
         //  Work on copy to avoid concurrent modification
         Collection<Map.Entry<String, String>> importEntries = new HashMap<String, String>(imports).entrySet();
 
-        log("Expanding: " + statement.toString());
-
         for (Map.Entry<String, String> entry : importEntries) {
             String alias = entry.getKey();
             String multiImportPath = entry.getValue();

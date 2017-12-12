@@ -14,7 +14,7 @@ public class PythonObject implements PythonValue {
     PythonClass classType;
     AbstractPythonStatement sourceLocation;
 
-    Map<String, PythonValue> memberMap = map();
+    Map<String, PythonVariable> memberMap = map();
 
     public PythonObject() {
 
@@ -69,7 +69,21 @@ public class PythonObject implements PythonValue {
     }
 
     public void setMemberValue(String name, PythonValue value) {
-        memberMap.put(name, value);
+        PythonVariable targetVar;
+        if (memberMap.containsKey(name)) {
+            targetVar = memberMap.get(name);
+        } else {
+            if (value instanceof PythonVariable) {
+                targetVar = (PythonVariable)value.clone();
+                targetVar.setLocalName(name);
+                memberMap.put(name, targetVar);
+            } else {
+                targetVar = new PythonVariable(name, value);
+                memberMap.put(name, targetVar);
+            }
+        }
+
+        targetVar.setValue(value);
     }
 
     public PythonValue getMemberValue(String name) {
@@ -100,11 +114,8 @@ public class PythonObject implements PythonValue {
         clone.memberPath = this.memberPath;
         clone.classType = this.classType;
         clone.sourceLocation = this.sourceLocation;
-        for (Map.Entry<String, PythonValue> entry : this.memberMap.entrySet()) {
-            clone.memberMap.put(
-                    entry.getKey(),
-                    entry.getValue().clone()
-            );
+        for (Map.Entry<String, PythonVariable> entry : this.memberMap.entrySet()) {
+            clone.setMemberValue(entry.getKey(), entry.getValue().clone());
         }
         return clone;
     }

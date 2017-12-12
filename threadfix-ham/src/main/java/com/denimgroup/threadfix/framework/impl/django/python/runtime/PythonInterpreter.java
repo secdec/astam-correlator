@@ -9,6 +9,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreter
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.InterpreterUtil;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import com.denimgroup.threadfix.framework.util.CondensedLinesMap;
 import com.denimgroup.threadfix.framework.util.FileReadUtils;
 
 import javax.annotation.Nonnull;
@@ -43,17 +44,21 @@ public class PythonInterpreter {
     }
 
     public PythonValue run(@Nonnull String code) {
-        return run(code, null);
+        return run(code, null, null);
     }
 
     public PythonValue run(@Nonnull String code, AbstractPythonStatement scope) {
+        return run(code, scope, null);
+    }
+
+    public PythonValue run(@Nonnull String code, AbstractPythonStatement scope, PythonValue selfValue) {
         code = Language.stripComments(code);
 
         PythonExpression expression = expressionParser.processString(code);
         if (expression instanceof IndeterminateExpression) {
             return valueBuilder.buildFromSymbol(code);
         } else {
-            PythonValue evaluated = run(expression, scope);
+            PythonValue evaluated = run(expression, scope, selfValue);
             if (!(evaluated instanceof PythonIndeterminateValue)) {
                 return evaluated;
             } else {
@@ -63,7 +68,7 @@ public class PythonInterpreter {
     }
 
     public PythonValue run(@Nonnull PythonExpression expression) {
-        return run(expression, null);
+        return run(expression, (AbstractPythonStatement) null);
     }
 
     public PythonValue run(@Nonnull File targetFile, int startLine, int endLine) {
@@ -71,10 +76,14 @@ public class PythonInterpreter {
     }
 
     public PythonValue run(@Nonnull File targetFile, int startLine, int endLine, AbstractPythonStatement scope) {
-        List<String> lines = FileReadUtils.readLinesCondensed(targetFile.getAbsolutePath(), startLine, endLine);
+        return run(targetFile, startLine, endLine, scope, null);
+    }
+
+    public PythonValue run(@Nonnull File targetFile, int startLine, int endLine, AbstractPythonStatement scope, PythonValue selfValue) {
+        CondensedLinesMap lines = FileReadUtils.readLinesCondensed(targetFile.getAbsolutePath(), startLine, endLine);
         PythonValue lastValue = null;
-        for (String line : lines) {
-            lastValue = run(line, scope);
+        for (String line : lines.getCondensedLines()) {
+            lastValue = run(line, scope, selfValue);
         }
         return lastValue;
     }
@@ -91,17 +100,43 @@ public class PythonInterpreter {
 
         boolean usesNewContext =
                 selfValue != this.executionContext.selfValue ||
-                scope != this.executionContext.scope;
+                        scope != this.executionContext.scope;
+
+            if (usesNewContext) {
+                pushExecutionContext(scope, selfValue);
+            }
+
+            PythonValue result = run(expression, this.executionContext);
+
+            if (usesNewContext) {
+                popExecutionContext();
+            }
+
+            if (result != null) {
+                return result;
+            } else {
+                return new PythonIndeterminateValue();
+            }
+    }
+
+    public PythonValue run(@Nonnull PythonExpression expression, ExecutionContext executionContext) {
+        //  Real run function
+
+        if (executionContext == null) {
+            executionContext = this.executionContext;
+        }
 
         ExpressionInterpreter interpreter = expression.makeInterpreter();
         if (interpreter == null) {
             return new PythonIndeterminateValue();
         } else {
-            if (usesNewContext) {
-                pushExecutionContext(scope, selfValue);
+            boolean usesNewContext = false;
+            if (executionContext != this.executionContext) {
+                pushExecutionContext(executionContext);
+                usesNewContext = true;
             }
 
-            resolveDependencies(expression, scope);
+            resolveDependencies(expression, executionContext.getScope());
 
             PythonValue result = interpreter.interpret(this, expression);
 
@@ -170,6 +205,11 @@ public class PythonInterpreter {
         ExecutionContext newContext = new ExecutionContext(this.executionContext.codebase, selfValue, scope);
         newContext.parentContext = this.executionContext;
         this.executionContext = newContext;
+    }
+
+    private void pushExecutionContext(ExecutionContext executionContext) {
+        executionContext.parentContext = this.executionContext;
+        this.executionContext = executionContext;
     }
 
     private void popExecutionContext() {

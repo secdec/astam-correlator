@@ -10,6 +10,7 @@ public class PythonVariable implements PythonValue {
 
     String localName;
     PythonValue value;
+    PythonValue owner;
     AbstractPythonStatement sourceLocation;
 
     public PythonVariable() {
@@ -33,12 +34,20 @@ public class PythonVariable implements PythonValue {
         return localName;
     }
 
+    public PythonValue getOwner() {
+        return owner;
+    }
+
     public void setLocalName(String localName) {
         this.localName = localName;
     }
 
     public void setValue(PythonValue value) {
         this.value = value;
+    }
+
+    public void setOwner(PythonValue owner) {
+        this.owner = owner;
     }
 
     @Override

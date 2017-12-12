@@ -5,6 +5,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
+import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,6 +21,8 @@ public class PythonExpressionParser {
 
     private PythonValueBuilder valueBuilder = new PythonValueBuilder();
     private ExpressionDeconstructor expressionDeconstructor = new ExpressionDeconstructor();
+
+    static final SanitizedLogger LOG = new SanitizedLogger(PythonExpressionParser.class);
 
     enum OperationType {
         UNKNOWN, INVALID,
@@ -167,9 +170,11 @@ public class PythonExpressionParser {
 
 
         if (result == null) {
+            LOG.debug("Parsing " + stringValue + " resulted in an IndeterminateExpression");
             return new IndeterminateExpression();
         } else {
             resolveSubValues(result);
+            LOG.debug("Finished parsing " + stringValue + " into its expression chain: " + result.toString());
             return result;
         }
     }

@@ -25,13 +25,13 @@ public class ExecutionContext {
 
     public ExecutionContext(PythonCodeCollection codebase, PythonValue selfValue) {
         this.codebase = codebase;
-        this.selfValue = selfValue;
+        setSelfValue(selfValue);
     }
 
     public ExecutionContext(PythonCodeCollection codebase, PythonValue selfValue, AbstractPythonStatement scope) {
         this.codebase = codebase;
-        this.selfValue = selfValue;
         this.scope = scope;
+        setSelfValue(selfValue);
     }
 
     public PythonValue getSelfValue() {
@@ -40,6 +40,7 @@ public class ExecutionContext {
 
     public void setSelfValue(PythonValue selfValue) {
         this.selfValue = selfValue;
+        this.workingMemory.put("self", selfValue);
     }
 
     public Map<String, PythonValue> getWorkingMemory() {

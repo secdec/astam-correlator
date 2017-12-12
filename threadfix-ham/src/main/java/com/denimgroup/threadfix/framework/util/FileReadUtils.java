@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.util;
 
+import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.omg.CORBA.Environment;
 
 import java.io.*;
@@ -8,10 +9,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static com.denimgroup.threadfix.CollectionUtils.list;
+
 public class FileReadUtils {
+
+    private static final SanitizedLogger LOG = new SanitizedLogger(FileReadUtils.class.getName());
 
     public static List<String> readLines(String filePath, int startLine, int endLine) {
         File file = new File(filePath);
+
+        LOG.debug("Reading lines " + startLine + " through " + endLine + " from " + filePath + " as a collection of strings");
 
         try {
             FileReader fileReader = new FileReader(file);
@@ -24,6 +31,8 @@ public class FileReadUtils {
                     results.add(line);
                 }
             }
+
+            LOG.debug("Read " + results.size() + " lines");
             return results;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -36,6 +45,8 @@ public class FileReadUtils {
 
     public static String readWholeLines(String filePath, int startLine, int endLine) {
         File file = new File(filePath);
+
+        LOG.debug("Reading lines " + startLine + " through " + endLine + " from " + filePath + " as a whole string");
 
         try {
             FileReader fileReader = new FileReader(file);
@@ -64,61 +75,64 @@ public class FileReadUtils {
     /**
      * @return All lines in the file @filePath from @startLine to @endLine, where lines have been collapsed to a single line when a block or string spans multiple lines.
      */
-    public static List<String> readLinesCondensed(String filePath, int startLine, int endLine) {
+    public static CondensedLinesMap readLinesCondensed(String filePath, int startLine, int endLine) {
         String contents = readWholeLines(filePath, startLine, endLine);
         if (contents == null) {
             return null;
         }
 
+        LOG.debug("Reading lines " + startLine + " through " + endLine + " from " + filePath + " with lines condensed");
+
         StringReader stringReader = new StringReader(contents);
         BufferedReader reader = new BufferedReader(stringReader);
 
+        ScopeTracker scopeTracker = new ScopeTracker();
+
         String currentLine = null;
         try {
-            List<String> result = new ArrayList<String>(endLine - startLine + 1);
+            CondensedLinesMap result = new CondensedLinesMap();
             StringBuilder workingLine = new StringBuilder();
-            int numOpenParen = 0, numOpenBrace = 0, numOpenBracket = 0;
-            int quoteStartType = -1;
-            boolean escapeNextChar = false;
+            int sourceLineNumber = 0;
+
+            List<CondensedLineEntry> currentLineEntries = list();
 
             currentLine = reader.readLine();
             while (currentLine != null) {
+                if (++sourceLineNumber < startLine) {
+                    continue;
+                }
+
+                CondensedLineEntry newEntry = new CondensedLineEntry();
+                newEntry.sourceLineNumber = ++sourceLineNumber;
+                newEntry.text = currentLine;
+                newEntry.condensedLineNumber = result.condensedLines.size() + 1;
+                newEntry.condensedLineStartIndex = workingLine.length();
+
                 for (int i = 0; i < currentLine.length(); i++) {
                     int c = currentLine.charAt(i);
-
-                    if (c == '\'' || c == '"' && !escapeNextChar) {
-                        if (quoteStartType > 0) {
-                            if (c == quoteStartType) {
-                                quoteStartType = -1;
-                            }
-                        } else {
-                            quoteStartType = c;
-                        }
-                    }
-
-                    escapeNextChar = (c == '\\' && !escapeNextChar);
-
-                    if (quoteStartType < 0) {
-                        if (c == '{') numOpenBrace++;
-                        if (c == '}') numOpenBrace--;
-                        if (c == '(') numOpenParen++;
-                        if (c == ')') numOpenParen--;
-                        if (c == '[') numOpenBracket++;
-                        if (c == ']') numOpenBracket--;
-                    }
-
+                    scopeTracker.interpretToken(c);
                     workingLine.append((char)c);
                 }
 
-                if (quoteStartType < 0 && numOpenBrace == 0 && numOpenBracket == 0 && numOpenParen == 0) {
-                    result.add(workingLine.toString());
+                currentLineEntries.add(newEntry);
+
+                if (!scopeTracker.isInScope() && !scopeTracker.isInString()) {
+                    result.addCondensedLine(workingLine.toString(), currentLineEntries);
+                    currentLineEntries.clear();
                     workingLine = new StringBuilder();
                 } else {
-                    workingLine.append('\n');
+                    workingLine.append(' ');
                 }
 
                 currentLine = reader.readLine();
+
+                if (sourceLineNumber + 1 > endLine && !scopeTracker.isInString() && !scopeTracker.isInString()) {
+                    break;
+                }
             }
+
+            LOG.debug("Finished reading condensed lines, condensed " + (sourceLineNumber - startLine) + " entries to " + result.lineEntries.size() + " lines");
+
             return result;
         } catch (IOException e) {
             e.printStackTrace();
