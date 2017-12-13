@@ -1,7 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters;
 
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.PrimitiveOperationExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.PrimitiveOperationType;
 import org.apache.commons.lang3.StringUtils;
@@ -29,10 +28,18 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
             case ASSIGNMENT:
 
                 if (subjects.size() > operands.size()) {
-                    PythonValue mainOperand = operands.get(0);
-                    if (mainOperand instanceof PythonArray) {
-                        operands = new ArrayList<PythonValue>(((PythonArray)mainOperand).getEntries());
+                    if (operands.size() > 0) {
+                        PythonValue mainOperand = operands.get(0);
+                        if (mainOperand instanceof PythonArray) {
+                            operands = new ArrayList<PythonValue>(((PythonArray) mainOperand).getEntries());
+                        }
+                    } else {
+                        operands.add(new PythonTuple());
                     }
+                }
+
+                if (subjects.size() != operands.size()) {
+                    break;
                 }
 
                 for (int i = 0; i < subjects.size(); i++) {

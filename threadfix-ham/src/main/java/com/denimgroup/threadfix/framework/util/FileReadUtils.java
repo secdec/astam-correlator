@@ -1,12 +1,9 @@
 package com.denimgroup.threadfix.framework.util;
 
 import com.denimgroup.threadfix.logging.SanitizedLogger;
-import org.omg.CORBA.Environment;
 
 import java.io.*;
-import java.nio.Buffer;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -53,14 +50,14 @@ public class FileReadUtils {
             BufferedReader reader = new BufferedReader(fileReader);
 
             StringBuilder results = new StringBuilder();
-            for (int i = 0; i <= endLine; i++) {
-                String line = reader.readLine();
-                if (i >= startLine && line != null) {
-                    if (results.length() == 0) {
-                        results.append("\n");
-                    }
+            String line = reader.readLine();
+            for (int i = 0; i <= endLine && line != null; i++) {
+                if (i >= startLine) {
                     results.append(line);
+                    results.append("\n");
                 }
+
+                line = reader.readLine();
             }
             return results.toString();
         } catch (FileNotFoundException e) {
@@ -103,20 +100,32 @@ public class FileReadUtils {
                 }
 
                 CondensedLineEntry newEntry = new CondensedLineEntry();
-                newEntry.sourceLineNumber = ++sourceLineNumber;
+                newEntry.sourceLineNumber = sourceLineNumber;
                 newEntry.text = currentLine;
                 newEntry.condensedLineNumber = result.condensedLines.size() + 1;
                 newEntry.condensedLineStartIndex = workingLine.length();
 
                 for (int i = 0; i < currentLine.length(); i++) {
                     int c = currentLine.charAt(i);
-                    scopeTracker.interpretToken(c);
+
+                    //  Check for comment characters
+                    if (!scopeTracker.isInString()) {
+                        // Python-style comments
+                        if (c == '#') {
+                            break;
+                            //  C/Java-style comments
+                        } else if (workingLine.toString().endsWith("//")) {
+                            break;
+                        }
+                    }
+
                     workingLine.append((char)c);
+                    scopeTracker.interpretToken(c);
                 }
 
                 currentLineEntries.add(newEntry);
 
-                if (!scopeTracker.isInScope() && !scopeTracker.isInString()) {
+                if (!scopeTracker.isInScopeOrString() && !scopeTracker.isInString()) {
                     result.addCondensedLine(workingLine.toString(), currentLineEntries);
                     currentLineEntries.clear();
                     workingLine = new StringBuilder();
@@ -129,6 +138,10 @@ public class FileReadUtils {
                 if (sourceLineNumber + 1 > endLine && !scopeTracker.isInString() && !scopeTracker.isInString()) {
                     break;
                 }
+            }
+
+            if (workingLine.length() > 0) {
+                result.addCondensedLine(workingLine.toString(), currentLineEntries);
             }
 
             LOG.debug("Finished reading condensed lines, condensed " + (sourceLineNumber - startLine) + " entries to " + result.lineEntries.size() + " lines");

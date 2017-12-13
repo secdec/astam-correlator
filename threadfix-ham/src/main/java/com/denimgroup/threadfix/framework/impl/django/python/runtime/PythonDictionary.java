@@ -1,7 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.InterpreterUtil;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 
 import java.util.ArrayList;

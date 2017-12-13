@@ -78,7 +78,7 @@ public class PythonPublicVariable extends AbstractPythonStatement {
 
                 this.addChildStatement(element);
 
-                PythonFunction.PythonVariableModification assignment = new PythonFunction.PythonVariableModification();
+                PythonVariableModification assignment = new PythonVariableModification();
                 assignment.setTarget(element.getFullName());
                 assignment.setSourceCodeStartLine(this.getSourceCodeStartLine());
                 assignment.setSourceCodePath(this.getSourceCodePath());

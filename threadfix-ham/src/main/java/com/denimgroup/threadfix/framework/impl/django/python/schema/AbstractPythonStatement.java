@@ -143,6 +143,18 @@ public abstract class AbstractPythonStatement {
         return result;
     }
 
+    public Collection<AbstractPythonStatement> getChildStatements(@Nonnull Class<?>... types) {
+        List<AbstractPythonStatement> result = list();
+        for (AbstractPythonStatement statement : childStatements) {
+            for (Class<?> type : types) {
+                if (type.isAssignableFrom(statement.getClass())) {
+                    result.add(statement);
+                }
+            }
+        }
+        return result;
+    }
+
     public AbstractPythonStatement findChild(String immediateChildName) {
         for (AbstractPythonStatement statement : childStatements) {
             if (statement.getName().equals(immediateChildName)) {

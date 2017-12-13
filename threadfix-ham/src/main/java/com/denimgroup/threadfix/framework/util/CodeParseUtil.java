@@ -1,6 +1,5 @@
 package com.denimgroup.threadfix.framework.util;
 
-import java.util.Collection;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -91,7 +90,7 @@ public class CodeParseUtil {
             if (i > 0)
                 p = codeLine.charAt(i - 1);
 
-            if (c == ',' && !scopeTracker.isInString() && !scopeTracker.isInScope()) {
+            if (c == ',' && !scopeTracker.isInString() && !scopeTracker.isInScopeOrString()) {
                 String line = currentString.toString().trim().replace("\n", "\\n");
                 splitString.add(line);
                 currentString = new StringBuilder();

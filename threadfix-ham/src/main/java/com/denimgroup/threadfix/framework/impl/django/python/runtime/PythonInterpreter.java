@@ -6,15 +6,12 @@ import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollectio
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.InterpreterUtil;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
-import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.CondensedLinesMap;
 import com.denimgroup.threadfix.framework.util.FileReadUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 
 public class PythonInterpreter {
@@ -26,22 +23,30 @@ public class PythonInterpreter {
     public PythonInterpreter(PythonCodeCollection codebase) {
         executionContext = new ExecutionContext(codebase);
         expressionParser = new PythonCachingExpressionParser();
+
+        this.executionContext.loadModuleDeclarations();
     }
 
     public PythonInterpreter(@Nonnull ExecutionContext executionContext) {
         this.executionContext = executionContext;
         expressionParser = new PythonCachingExpressionParser();
+
+        this.executionContext.loadModuleDeclarations();
     }
 
     public PythonInterpreter(@Nonnull PythonCodeCollection codebase, PythonValue valueContext) {
         this.executionContext = new ExecutionContext(codebase, valueContext);
         expressionParser = new PythonCachingExpressionParser();
+
+        this.executionContext.loadModuleDeclarations();
     }
 
 
     public ExecutionContext getExecutionContext() {
         return executionContext;
     }
+
+
 
     public PythonValue run(@Nonnull String code) {
         return run(code, null, null);
@@ -90,7 +95,6 @@ public class PythonInterpreter {
 
 
 
-
     public PythonValue run(@Nonnull PythonExpression expression, AbstractPythonStatement scope) {
         return run(expression, scope, null);
     }
@@ -126,7 +130,7 @@ public class PythonInterpreter {
             executionContext = this.executionContext;
         }
 
-        ExpressionInterpreter interpreter = expression.makeInterpreter();
+          ExpressionInterpreter interpreter = expression.makeInterpreter();
         if (interpreter == null) {
             return new PythonIndeterminateValue();
         } else {

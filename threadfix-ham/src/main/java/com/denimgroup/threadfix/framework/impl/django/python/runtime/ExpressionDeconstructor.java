@@ -35,7 +35,7 @@ public class ExpressionDeconstructor {
                 continue;
             }
 
-            if (!scopeTracker.isInString() && !scopeTracker.isInScope() && (!scopeTracker.enteredGlobalScope() || isSpecialExpression)) {
+            if (!scopeTracker.isInString() && !scopeTracker.isInScopeOrString() && (!scopeTracker.enteredGlobalScope() || isSpecialExpression)) {
                 if (SPECIAL_CHARS.contains(c)) {
                     if (workingSubExpression.length() > 0 && !isSpecialExpression) {
                         expressions.add(workingSubExpression.toString().trim());
@@ -63,9 +63,10 @@ public class ExpressionDeconstructor {
                     workingSubExpression.append(c);
                 }
             } else {
-                if (scopeTracker.exitedGlobalScope() && workingSubExpression.length() > 0) {
+                if (((scopeTracker.enteredString() && !scopeTracker.isInScope()) || scopeTracker.exitedGlobalScope()) && workingSubExpression.length() > 0) {
                     expressions.add(workingSubExpression.toString().trim());
                     workingSubExpression = new StringBuilder();
+                    isSpecialExpression = false;
                 }
                 workingSubExpression.append(c);
             }

@@ -23,6 +23,21 @@ public class CondensedLinesMap {
         return condensedLines;
     }
 
+    public List<CondensedLineEntry> getLineEntries() {
+        return lineEntries;
+    }
+
+    public int getLineIndexForSourceLine(int sourceLine) {
+        int line = -1;
+        for (CondensedLineEntry entry : lineEntries) {
+            if (entry.sourceLineNumber == sourceLine) {
+                line = entry.condensedLineNumber;
+                break;
+            }
+        }
+        return line;
+    }
+
     public List<CondensedLineEntry> getEntriesForCondensedLine(int lineNumber) {
         List<CondensedLineEntry> result = list();
         for (CondensedLineEntry entry : lineEntries) {

@@ -5,9 +5,6 @@ import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
 
 import javax.annotation.Nonnull;
-import java.util.List;
-
-import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class PythonValueBuilder {
 
@@ -58,7 +55,7 @@ public class PythonValueBuilder {
                     int token = symbols.charAt(i);
                     scopeTracker.interpretToken(token);
 
-                    if (token == ',' && !scopeTracker.isInString() && !scopeTracker.isInScope()) {
+                    if (token == ',' && !scopeTracker.isInString() && !scopeTracker.isInScopeOrString()) {
                         PythonValue entry = new PythonUnresolvedValue(elementBuilder.toString().trim());
                         arrayResult.addEntry(entry);
                         elementBuilder = new StringBuilder();
@@ -83,16 +80,16 @@ public class PythonValueBuilder {
                     int token = symbols.charAt(i);
                     scopeTracker.interpretToken(token);
 
-                    if (!scopeTracker.isInScope() && !scopeTracker.isInString()) {
+                    if (!scopeTracker.isInScopeOrString() && !scopeTracker.isInString()) {
                         if (token == ':') {
                             if (key == null) {
                                 key = elementBuilder.toString();
                                 elementBuilder = new StringBuilder();
-                            } else {
-                                dictionaryResult.add(new PythonUnresolvedValue(key), new PythonUnresolvedValue(elementBuilder.toString()));
-                                key = null;
-                                elementBuilder = new StringBuilder();
                             }
+                        } else if (token == ',') {
+                            dictionaryResult.add(new PythonUnresolvedValue(key), new PythonUnresolvedValue(elementBuilder.toString()));
+                            key = null;
+                            elementBuilder = new StringBuilder();
                         } else {
                             elementBuilder.append((char)token);
                         }

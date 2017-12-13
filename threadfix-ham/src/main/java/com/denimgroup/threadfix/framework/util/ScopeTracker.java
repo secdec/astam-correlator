@@ -15,7 +15,12 @@ public class ScopeTracker {
     boolean exitedString = false;
 
     public void interpretToken(int token) {
-        if (token == '"' || token == '\'' && !nextIsEscaped) {
+
+        enteredScope = false; exitedScope = false;
+        enteredGlobalScope = false; exitedGlobalScope = false;
+        enteredString = false; exitedString = false;
+
+        if ((token == '"' || token == '\'') && !nextIsEscaped) {
             if (stringStartToken < 0) {
                 stringStartToken = token;
                 enteredString = true;
@@ -25,14 +30,10 @@ public class ScopeTracker {
             }
         }
 
-        enteredScope = false; exitedScope = false;
-        enteredGlobalScope = false; exitedGlobalScope = false;
-        enteredString = false; exitedString = false;
-
         nextIsEscaped = token == '\\' && !nextIsEscaped;
 
         if (!isInString()) {
-            boolean wasGlobalScope = !isInScope();
+            boolean wasGlobalScope = !isInScopeOrString();
             boolean movedUpScope = false;
             boolean movedDownScope = false;
             if (token == '(') {
@@ -68,7 +69,7 @@ public class ScopeTracker {
             }
             if (movedDownScope) {
                 exitedScope = true;
-                if (!isInScope()) {
+                if (!isInScopeOrString()) {
                     enteredGlobalScope = true;
                 }
             }
@@ -80,6 +81,10 @@ public class ScopeTracker {
     }
 
     public boolean isInScope() {
+        return numOpenParen > 0 || numOpenBrace > 0 || numOpenBracket > 0;
+    }
+
+    public boolean isInScopeOrString() {
         return stringStartToken > 0 || numOpenParen > 0 || numOpenBrace > 0 || numOpenBracket > 0;
     }
 

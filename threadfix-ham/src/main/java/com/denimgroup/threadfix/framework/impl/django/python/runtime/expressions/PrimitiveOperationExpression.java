@@ -47,7 +47,12 @@ public class PrimitiveOperationExpression extends PythonBinaryExpression {
     public static PrimitiveOperationExpression rectifyOrderOfOperations(PrimitiveOperationExpression baseExpression) {
 
         //  Can only rectify OOO for single-var operations
-        if (baseExpression.numSubjects() != 1 && baseExpression.numOperands() != 1) {
+        if (baseExpression.numSubjects() != 1 || baseExpression.numOperands() != 1) {
+            return baseExpression;
+        }
+
+        //  Sanity check
+        if (baseExpression.numSubjects() == 0 || baseExpression.numOperands() == 0) {
             return baseExpression;
         }
 

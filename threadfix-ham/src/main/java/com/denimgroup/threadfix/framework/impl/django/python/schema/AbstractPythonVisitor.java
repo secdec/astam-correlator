@@ -18,11 +18,11 @@ public abstract class AbstractPythonVisitor {
 
     }
 
-    public void visitVariableModifier(PythonFunction.PythonVariableModification pyModification) {
+    public void visitVariableModifier(PythonVariableModification pyModification) {
 
     }
 
-    public void visitFunctionCall(PythonFunction.PythonFunctionCall pyFunctionCall) {
+    public void visitFunctionCall(PythonFunctionCall pyFunctionCall) {
 
     }
 

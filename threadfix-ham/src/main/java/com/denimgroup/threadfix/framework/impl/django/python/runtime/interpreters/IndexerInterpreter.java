@@ -11,6 +11,10 @@ public class IndexerInterpreter implements ExpressionInterpreter {
 
         ExecutionContext executionContext = host.getExecutionContext();
 
+        if (indexerExpression.numSubjects() == 0) {
+            return new PythonIndeterminateValue();
+        }
+
         PythonValue subject = indexerExpression.getSubject(0);
         PythonValue operand = indexerExpression.getIndexerValue();
 

@@ -1,12 +1,13 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.impl.django.python.Language;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
@@ -132,6 +133,91 @@ public class ExecutionContext {
 
     public PythonCodeCollection getCodebase() {
         return codebase;
+    }
+
+    public void loadModuleDeclarations() {
+        final PythonExpressionParser expressionParser = new PythonExpressionParser();
+        final Map<String, PythonValue> workingMemory = this.workingMemory;
+        final PythonCodeCollection codebase = this.codebase;
+        final PythonValueBuilder valueBuilder = new PythonValueBuilder();
+
+        codebase.traverse(new AbstractPythonVisitor() {
+            @Override
+            public void visitModule(PythonModule pyModule) {
+                super.visitModule(pyModule);
+
+                for (AbstractPythonStatement child : pyModule.getChildStatements(PythonPublicVariable.class, PythonVariableModification.class)) {
+                     String fullSymbol = null;
+                    String assignedValue = null;
+
+                    if (child instanceof PythonPublicVariable) {
+                        fullSymbol = child.getFullName();
+                        assignedValue = ((PythonPublicVariable) child).getValueString();
+                    } else if (child instanceof PythonVariableModification) {
+                        fullSymbol = ((PythonVariableModification) child).getTarget();
+                        AbstractPythonStatement resolvedTarget = codebase.resolveLocalSymbol(fullSymbol, child);
+                        if (resolvedTarget != null && resolvedTarget instanceof PythonPublicVariable) {
+                            fullSymbol = resolvedTarget.getFullName();
+                            assignedValue = ((PythonPublicVariable) resolvedTarget).getValueString();
+                        }
+                    }
+
+                    if (fullSymbol == null) {
+                        continue;
+                    }
+
+                    if (fullSymbol.contains("__init__")) {
+                        fullSymbol = fullSymbol.replace(".__init__", "");
+                    }
+
+                    AbstractPythonStatement resolvedValueStatement = null;
+                    if (assignedValue != null) {
+                        resolvedValueStatement = codebase.resolveLocalSymbol(assignedValue, child);
+                        if (resolvedValueStatement != null) {
+                            assignedValue = resolvedValueStatement.getFullName();
+                        } else if (assignedValue.contains("(")) {
+                            String referencedFunctionSymbol;
+                            referencedFunctionSymbol = assignedValue.substring(0, assignedValue.indexOf('('));
+                            resolvedValueStatement = codebase.resolveLocalSymbol(referencedFunctionSymbol, child);
+                            if (resolvedValueStatement != null) {
+                                String remainingValuePart = assignedValue.substring(assignedValue.indexOf('('));
+                                assignedValue = resolvedValueStatement.getFullName() + remainingValuePart;
+                            }
+                        }
+                    }
+
+                    PythonValue parsedAssignedValue = null;
+
+                    if (assignedValue != null) {
+                        assignedValue = StringUtils.replace(assignedValue, "\n", "").trim();
+
+                        if (assignedValue.length() == 0) {
+                            assignedValue = "None";
+                        }
+
+                        parsedAssignedValue = InterpreterUtil.tryMakeValue(assignedValue, null);
+
+                        InterpreterUtil.resolveSubValues(parsedAssignedValue);
+                    }
+
+                    PythonValue existingValue = workingMemory.get(fullSymbol);
+                    if (existingValue != null && existingValue instanceof PythonVariable) {
+                        PythonVariable existingVariable = (PythonVariable)existingValue;
+                        if (existingVariable.getValue() == null && assignedValue != null) {
+                            existingVariable.setValue(parsedAssignedValue);
+                        }
+
+                    } else {
+                        PythonPublicVariable targetVariable = codebase.findByFullName(fullSymbol, PythonPublicVariable.class);
+                        if (targetVariable != null) {
+                            PythonVariable newVariable = new PythonVariable(targetVariable.getName(), parsedAssignedValue);
+                            newVariable.resolveSourceLocation(targetVariable);
+                            workingMemory.put(fullSymbol, newVariable);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private PythonValue findSymbol(String fullSymbolName) {

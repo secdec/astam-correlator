@@ -381,12 +381,12 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
 
     boolean isInClass() {
-        return !scopeTracker.isInScope() &&
+        return !scopeTracker.isInScopeOrString() &&
                 spaceDepth > classEntrySpaceDepth && classEntrySpaceDepth >= 0;
     }
 
     boolean isInMethod() {
-        return !scopeTracker.isInScope() &&
+        return !scopeTracker.isInScopeOrString() &&
                 spaceDepth > functionEntrySpaceDepth && functionEntrySpaceDepth >= 0;
     }
 
@@ -593,7 +593,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         }
     }
 
-    PythonFunction.PythonFunctionCall workingFunctionCall = null;
+    PythonFunctionCall workingFunctionCall = null;
     StringBuilder workingFunctionCallParams = null;
     int functionCallStartNumParen = -1;
     private void processInvokeFunctionParams(int type, int lineNumber, String stringValue) {
@@ -605,7 +605,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         }
 
         if (workingFunctionCall == null) {
-            workingFunctionCall = new PythonFunction.PythonFunctionCall();
+            workingFunctionCall = new PythonFunctionCall();
             workingFunctionCallParams = new StringBuilder();
             workingFunctionCall.setSourceCodeStartLine(lineNumber);
             workingFunctionCall.setSourceCodePath(this.getThisModule().getSourceCodePath());
@@ -729,12 +729,12 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         }
     }
 
-    PythonFunction.PythonVariableModification workingVarChange;
+    PythonVariableModification workingVarChange;
     StringBuilder workingVarValue = null;
     int initialOperatorType = -1;
     private void processVariableAssignment(int type, int lineNumber, String stringValue) {
         if (workingVarChange == null) {
-            workingVarChange = new PythonFunction.PythonVariableModification();
+            workingVarChange = new PythonVariableModification();
             workingVarChange.setSourceCodeStartLine(lineNumber);
             workingVarChange.setSourceCodePath(this.thisModule.getSourceCodePath());
             workingVarChange.setTarget(lastValidString);

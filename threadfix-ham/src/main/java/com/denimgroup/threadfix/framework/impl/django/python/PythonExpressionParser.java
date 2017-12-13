@@ -2,17 +2,17 @@ package com.denimgroup.threadfix.framework.impl.django.python;
 
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.*;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedList;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.framework.impl.django.python.runtime.InterpreterUtil.isValidValue;
+import static com.denimgroup.threadfix.framework.impl.django.python.runtime.InterpreterUtil.resolveSubValues;
+import static com.denimgroup.threadfix.framework.impl.django.python.runtime.InterpreterUtil.tryMakeValue;
 
 /**
  * Parses individual python code strings to generate a binary expression tree.
@@ -66,7 +66,7 @@ public class PythonExpressionParser {
             OperationType subexprOperation = detectOperationType(subexpr);
 
             if (subexprOperation != OperationType.INVALID && subexprOperation != OperationType.UNKNOWN &&
-                    !scopeTracker.isInString() && !scopeTracker.isInScope()) {
+                    !scopeTracker.isInString() && !scopeTracker.isInScopeOrString()) {
 
                 if (i > 0) {
                     OperationType lastType = expressionOperations.get(i - 1);
@@ -111,6 +111,18 @@ public class PythonExpressionParser {
                     break;
                 }
             }
+        }
+
+        //  Function parameters parsed as a partial expression will have a subject defined, and
+        //  have the parameters interpreted as a TUPLE reference. Correct this case to be
+        //  a function call.
+        if (operationType == OperationType.TUPLE_REFERENCE && subjects != null && subjects.size() > 0) {
+            operationType = OperationType.FUNCTION_CALL;
+        }
+
+        //  An indexer expression MUST be parsed along with a set of subjects that it is indexing.
+        if (operationType == OperationType.INDEXER && (subjects == null || subjects.size() == 0)) {
+            operationType = OperationType.UNKNOWN;
         }
 
         switch (operationType) {
@@ -233,8 +245,10 @@ public class PythonExpressionParser {
                 if (nextOperation == OperationType.FUNCTION_CALL) {
                     String functionCall = reconstructExpression(expressions, nextOperationIdx - 1, nextOperationIdx + 1);
                     operand = processString(functionCall);
-                } else {
+                } else if (nextOperationIdx != primaryEndIndex) {
                     operand = tryMakeValue(expressions.get(nextOperationIdx), null);
+                } else {
+                    operand = new PythonIndeterminateValue();
                 }
                 operands = list((PythonValue)operand);
             }
@@ -341,7 +355,7 @@ public class PythonExpressionParser {
         }
 
         if (lastMemberAccessExpression != expressionTypes.size() - 1) {
-            String remainingExpression = reconstructExpression(expressions, lastMemberAccessExpression);
+            String remainingExpression = reconstructExpression(expressions, lastMemberAccessExpression + 1);
             PythonExpression trailingExpression = processString(remainingExpression, list((PythonValue)memberExpression));
             return trailingExpression;
         }
@@ -423,7 +437,6 @@ public class PythonExpressionParser {
         ScopingExpression result = new ScopingExpression();
 
         String tupleString = expressions.get(primaryEndIndex);
-        tupleString = CodeParseUtil.trim(tupleString, new String[] { "(", ")" }, 1);
         PythonValue tupleExpression = tryMakeValue(tupleString, null);
         result.addSubject(tupleExpression);
 
@@ -477,15 +490,6 @@ public class PythonExpressionParser {
         return reconstructExpression(expressionParts, startIndex, Integer.MAX_VALUE);
     }
 
-    PythonValue tryMakeValue(String expression, List<PythonValue> expressionSubject) {
-        PythonValue asValue = valueBuilder.buildFromSymbol(expression);
-        if (isValidValue(asValue)) {
-            return asValue;
-        } else {
-            return processString(expression, expressionSubject);
-        }
-    }
-
     List<PythonValue> tryMakeSubjectValues(List<String> expressions,
                                            List<OperationType> expressionTypes,
                                            int endIndex,
@@ -535,37 +539,5 @@ public class PythonExpressionParser {
         }
 
         return subjects;
-    }
-
-    void resolveSubValues(PythonValue value) {
-        List<PythonValue> subValues = value.getSubValues();
-        if (subValues == null) {
-            return;
-        } else {
-            subValues = new LinkedList<PythonValue>(value.getSubValues());
-        }
-        while (subValues.size() > 0) {
-            PythonValue subValue = subValues.get(0);
-            if (subValue instanceof PythonUnresolvedValue) {
-                PythonUnresolvedValue unresolvedValue = (PythonUnresolvedValue)subValue;
-                PythonValue resolvedValue = tryMakeValue(unresolvedValue.getStringValue(), null);
-                if (!(resolvedValue instanceof PythonUnresolvedValue)) {
-                    resolvedValue.resolveSourceLocation(unresolvedValue.getSourceLocation());
-                    value.resolveSubValue(subValue, resolvedValue);
-                    subValue = resolvedValue;
-                }
-            }
-
-            resolveSubValues(subValue);
-            subValues.remove(0);
-        }
-    }
-
-    boolean isValidValue(PythonValue value) {
-        return value != null && !(value instanceof PythonIndeterminateValue);
-    }
-
-    boolean isValidExpression(PythonExpression expression) {
-        return expression != null && !(expression instanceof IndeterminateExpression);
     }
 }

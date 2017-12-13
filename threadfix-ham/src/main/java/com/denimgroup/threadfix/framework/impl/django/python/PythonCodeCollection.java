@@ -4,6 +4,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
+import java.io.*;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -80,6 +81,7 @@ public class PythonCodeCollection {
     public void initialize() {
         this.expandImports();
         this.collapseSymbolReferences();
+        this.finalizeUnfinishedLines();
         this.executeInvocations();
     }
 
@@ -199,8 +201,8 @@ public class PythonCodeCollection {
         LOG.info("Resolved " + numResolvedTypes + " variable types in " + duration + "ms");
 
         int numResolvedModifications = 0;
-        Collection<PythonFunction.PythonVariableModification> variableModifications = this.get(PythonFunction.PythonVariableModification.class);
-        for (PythonFunction.PythonVariableModification var : variableModifications) {
+        Collection<PythonVariableModification> variableModifications = this.get(PythonVariableModification.class);
+        for (PythonVariableModification var : variableModifications) {
             String varName = var.getTarget();
             PythonPublicVariable resolvedVar = resolveLocalSymbol(varName, var, PythonPublicVariable.class);
             if (resolvedVar != null) {
@@ -214,8 +216,8 @@ public class PythonCodeCollection {
         startTime = System.currentTimeMillis();
 
         int numResolvedFunctionCalls = 0;
-        Collection<PythonFunction.PythonFunctionCall> functionCalls = this.get(PythonFunction.PythonFunctionCall.class);
-        for (PythonFunction.PythonFunctionCall call : functionCalls) {
+        Collection<PythonFunctionCall> functionCalls = this.get(PythonFunctionCall.class);
+        for (PythonFunctionCall call : functionCalls) {
             String invokee = call.getInvokeeName();
             String function = call.getFunctionName();
 
@@ -254,23 +256,53 @@ public class PythonCodeCollection {
         LOG.info("Finished collapsing symbol references");
     }
 
+    public void finalizeUnfinishedLines() {
+        //  In cases where a function or class ends at the end of a file, its end line
+        //  will not be detected. Assign the end line to the last line of the file.
+        traverse(new AbstractPythonVisitor() {
+            @Override
+            public void visitAny(AbstractPythonStatement statement) {
+                super.visitAny(statement);
+                if (statement.getSourceCodeStartLine() >= 0 && statement.getSourceCodeEndLine() < 0) {
+                    String filePath = statement.getSourceCodePath();
+                    try {
+                        FileReader fileReader = new FileReader(filePath);
+                        BufferedReader reader = new BufferedReader(fileReader);
+
+                        int i = 0;
+                        while (reader.readLine() != null) {
+                            ++i;
+                        }
+
+                        statement.setSourceCodeEndLine(i);
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
     public void executeInvocations() {
         LOG.info("Executing global-level function calls");
 
-        Collection<PythonFunction.PythonFunctionCall> functionCalls = new LinkedList<PythonFunction.PythonFunctionCall>();
+        Collection<PythonFunctionCall> functionCalls = new LinkedList<PythonFunctionCall>();
         Collection<PythonModule> modules = getModules();
 
         for (PythonModule module : modules) {
             for (AbstractPythonStatement child : module.getChildStatements()) {
-                if (child instanceof PythonFunction.PythonFunctionCall) {
-                    functionCalls.add((PythonFunction.PythonFunctionCall)child);
+                if (child instanceof PythonFunctionCall) {
+                    functionCalls.add((PythonFunctionCall)child);
                 }
             }
         }
 
         long startTime = System.currentTimeMillis();
 
-        for (PythonFunction.PythonFunctionCall call : functionCalls) {
+        for (PythonFunctionCall call : functionCalls) {
             PythonFunction function = call.getResolvedFunction();
             if (function != null) {
                 if (function.canInvoke()) {
@@ -391,7 +423,7 @@ public class PythonCodeCollection {
     }
 
     public AbstractPythonStatement findByPartialName(@Nonnull AbstractPythonStatement base, @Nonnull String partialName) {
-        if (partialName.length() == 0 || partialName.equals(base.getName())) {
+        if (partialName.length() == 0) {
             return base;
         }
 
@@ -432,6 +464,32 @@ public class PythonCodeCollection {
                 String sourcePath = pyModule.getSourceCodePath();
                 if (sourcePath != null && sourcePath.equals(filePath)) {
                     result.add(pyModule);
+                }
+            }
+        });
+
+        if (result.size() > 0) {
+            return result.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    public AbstractPythonStatement findByLineNumber(@Nonnull final String filePath, final int lineNumber) {
+        if (lineNumber < 0) {
+            return null;
+        }
+        final List<AbstractPythonStatement> result = new LinkedList<AbstractPythonStatement>();
+        traverse(new AbstractPythonVisitor() {
+            @Override
+            public void visitAny(AbstractPythonStatement statement) {
+                super.visitAny(statement);
+                if (result.size() == 0) {
+                    if (statement.getSourceCodePath().equals(filePath)) {
+                        if (statement.getSourceCodeStartLine() >= lineNumber && statement.getSourceCodeEndLine() <= lineNumber) {
+                            result.add(statement);
+                        }
+                    }
                 }
             }
         });

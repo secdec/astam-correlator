@@ -30,9 +30,8 @@ import com.denimgroup.threadfix.framework.impl.django.python.runtime.ExpressionD
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonInterpreter;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
+import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 
@@ -90,8 +89,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 + codebase.getClasses().size() + " classes, "
                 + codebase.getFunctions().size() + " functions, "
                 + codebase.getPublicVariables().size() + " public variables, "
-                + codebase.get(PythonFunction.PythonVariableModification.class).size() + " variable changes, and "
-                + codebase.get(PythonFunction.PythonFunctionCall.class).size() + " function calls.");
+                + codebase.get(PythonVariableModification.class).size() + " variable changes, and "
+                + codebase.get(PythonFunctionCall.class).size() + " function calls.");
 
         debugLog("Attaching known Django APIs");
         DjangoApiConfigurator.apply(codebase);
@@ -117,8 +116,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         subexpressions = ed.deconstruct("someCall(123).otherCall().member");
         subexpressions = ed.deconstruct("123 + 34.12 - x");
 
-        //PythonExpressionParser incrementalParser = new PythonExpressionParser();
-        PythonCachingExpressionParser incrementalParser = new PythonCachingExpressionParser();
+        PythonExpressionParser incrementalParser = new PythonExpressionParser();
+        //PythonCachingExpressionParser incrementalParser = new PythonCachingExpressionParser();
         PythonExpression expr;
         expr = incrementalParser.processString("x = 5");
         expr = incrementalParser.processString("x += 5");
@@ -148,6 +147,15 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         expr = incrementalParser.processString("return x = 5", null);
         expr = incrementalParser.processString("return", null);
         expr = incrementalParser.processString("return x, y", null);
+
+        expr = incrementalParser.processString("cms.utils.get_cms_setting(\"CACHE_PREFIX\") + 'CMS_PAGE_CACHE_VERSION'");
+        expr = incrementalParser.processString("cms.utils.get_cms_setting(\"CACHE_PREFIX\") + 'CMS_PAGE_CACHE_VERSION'");
+        expr = incrementalParser.processString("cms.utils.get_cms_setting(\"CACHE_PREFIX\") + 'CMS_PAGE_CACHE_VERSION'");
+        expr = incrementalParser.processString("cms.utils.get_cms_setting(\"CACHE_PREFIX\") + 'CMS_PAGE_CACHE_VERSION'");
+
+        expr = incrementalParser.processString("re.compile(r'[^a-zA-Z0-9_-]')");
+        expr = incrementalParser.processString("re.compile(r'[^a-zA-Z0-9_-]')");
+        expr = incrementalParser.processString("re.compile(r'[^a-zA-Z0-9_-]')");
 
         long executionDuration = System.currentTimeMillis() - executionStartTime;
         LOG.info("Executing test expressions took " + executionDuration + "ms");
@@ -186,6 +194,9 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         executionDuration = System.currentTimeMillis() - executionStartTime;
         LOG.info("Running text interpreter expressions " + testCount + " times took " + executionDuration + "ms");
+
+        interpreter = new PythonInterpreter(codebase);
+        runInterpreterOnNonDeclarations(codebase, interpreter);
 
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
         codebase.traverse(i18Detector);
@@ -287,6 +298,49 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             }
         }
         return urlFiles;
+    }
+
+    private void runInterpreterOnNonDeclarations(PythonCodeCollection codebase, PythonInterpreter interpreter) {
+        for (PythonModule module : codebase.getModules()) {
+            String sourcePath = module.getSourceCodePath();
+            if (sourcePath == null) {
+                continue;
+            } else if (!new File(sourcePath).exists()) {
+                continue;
+            } else if (!new File(sourcePath).isFile()) {
+                continue;
+            }
+
+            Collection<AbstractPythonStatement> childStatements = module.getChildStatements();
+
+            CondensedLinesMap moduleCode = FileReadUtils.readLinesCondensed(sourcePath, 0, Integer.MAX_VALUE);
+            List<String> condensedLines = moduleCode.getCondensedLines();
+            Map<Integer, Boolean> allowedLineIndices = map();
+            for (int i = 0; i < condensedLines.size(); i++) {
+                allowedLineIndices.put(i, true);
+            }
+
+            for (AbstractPythonStatement child : childStatements) {
+                if (child instanceof PythonClass || child instanceof PythonFunction) {
+                    int startLine = moduleCode.getLineIndexForSourceLine(child.getSourceCodeStartLine());
+                    int endLine = moduleCode.getLineIndexForSourceLine(child.getSourceCodeEndLine());
+                    if (startLine >= 0 && endLine >= 0) {
+                        for (int i = startLine; i <= endLine; i++) {
+                            allowedLineIndices.put(i, false);
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < condensedLines.size(); i++) {
+                if (!allowedLineIndices.get(i)) {
+                    continue;
+                }
+
+                String line = condensedLines.get(i);
+                interpreter.run(line, module);
+            }
+        }
     }
 
     @Nonnull

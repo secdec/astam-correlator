@@ -522,6 +522,8 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                         AbstractPythonStatement referencedStatement = parsedCodebase.resolveLocalSymbol(viewPath, thisModule);
                         if (referencedStatement != null && referencedStatement instanceof PythonPublicVariable) {
 
+                            PythonValue interpretedValues = interpreter.getExecutionContext().resolveSymbol(referencedStatement.getFullName());
+
                             PythonPublicVariable referencedVar = (PythonPublicVariable) referencedStatement;
                             String value = referencedVar.getValueString();
                             if (value.startsWith("[") && value.endsWith("]")) {
@@ -561,7 +563,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                                     routeMap.put(endpoint, newRoute);
                                 }
                             }
-                        } else if (referencedStatement instanceof PythonFunction) {
+                        } else if (referencedStatement instanceof PythonFunctionCall) {
 
                             if (referencedStatement.getSourceCodePath() != null && referencedStatement.getSourceCodeStartLine() > -1) {
 
