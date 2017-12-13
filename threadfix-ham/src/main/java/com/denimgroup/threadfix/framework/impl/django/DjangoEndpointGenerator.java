@@ -22,7 +22,6 @@ import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonCachingExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
@@ -326,7 +325,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                     int endLine = moduleCode.getLineIndexForSourceLine(child.getSourceCodeEndLine());
                     if (startLine >= 0 && endLine >= 0) {
                         for (int i = startLine; i <= endLine; i++) {
-                            allowedLineIndices.put(i, false);
+                            //  Line numbers start at 1
+                            allowedLineIndices.put(i - 1, false);
                         }
                     }
                 }

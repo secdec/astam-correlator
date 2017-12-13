@@ -1,11 +1,20 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
+import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.FunctionCallExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonPublicVariable;
 
+import javax.annotation.Nonnull;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class InterpreterUtil {
 
@@ -100,6 +109,44 @@ public class InterpreterUtil {
 
             resolveSubValues(subValue);
             subValues.remove(0);
+        }
+    }
+
+    public static void resolveSourceLocations(@Nonnull PythonValue value, @Nonnull AbstractPythonStatement scope, @Nonnull PythonCodeCollection codebase) {
+
+        AbstractPythonStatement source = null;
+        if (value.getSourceLocation() == null) {
+            if (value instanceof PythonVariable) {
+                String name = ((PythonVariable) value).getLocalName();
+                if (name != null) {
+                    source = codebase.resolveLocalSymbol(name, scope);
+                    PythonValue variableValue = ((PythonVariable) value).getValue();
+                    if (variableValue != null && variableValue.getSourceLocation() == null && source != null) {
+                        if (variableValue instanceof PythonObject && source instanceof PythonPublicVariable){
+                            PythonClass valueType = ((PythonPublicVariable) source).getResolvedTypeClass();
+                            variableValue.resolveSourceLocation(valueType);
+                            ((PythonObject) variableValue).setClassType(valueType);
+                        } else if (variableValue instanceof FunctionCallExpression) {
+
+                        }
+                    }
+                }
+            } else if (value instanceof PythonObject) {
+
+            } else {
+
+            }
+        }
+
+        if (source != null) {
+            value.resolveSourceLocation(source);
+        }
+
+        Collection<PythonValue> subValues = value.getSubValues();
+        if (subValues != null) {
+            for (PythonValue subValue : subValues) {
+                resolveSourceLocations(subValue, scope, codebase);
+            }
         }
     }
 

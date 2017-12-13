@@ -2,6 +2,7 @@ package com.denimgroup.threadfix.framework.impl.django.python;
 
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.*;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -10,9 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
-import static com.denimgroup.threadfix.framework.impl.django.python.runtime.InterpreterUtil.isValidValue;
-import static com.denimgroup.threadfix.framework.impl.django.python.runtime.InterpreterUtil.resolveSubValues;
-import static com.denimgroup.threadfix.framework.impl.django.python.runtime.InterpreterUtil.tryMakeValue;
+import static com.denimgroup.threadfix.framework.impl.django.python.runtime.InterpreterUtil.*;
 
 /**
  * Parses individual python code strings to generate a binary expression tree.
@@ -21,6 +20,7 @@ public class PythonExpressionParser {
 
     private PythonValueBuilder valueBuilder = new PythonValueBuilder();
     private ExpressionDeconstructor expressionDeconstructor = new ExpressionDeconstructor();
+    private PythonCodeCollection codebase;
 
     static final SanitizedLogger LOG = new SanitizedLogger(PythonExpressionParser.class);
 
@@ -32,11 +32,23 @@ public class PythonExpressionParser {
         FUNCTION_CALL
     }
 
+    public PythonExpressionParser() {
+
+    }
+
+    public PythonExpressionParser(PythonCodeCollection codebase) {
+        this.codebase = codebase;
+    }
+
     public PythonExpression processString(String stringValue) {
-        return processString(stringValue, null);
+        return processString(stringValue, null, null);
     }
 
     public PythonExpression processString(String stringValue, List<PythonValue> subjects) {
+        return processString(stringValue, subjects, null);
+    }
+
+    public PythonExpression processString(String stringValue, List<PythonValue> subjects, AbstractPythonStatement scope) {
 
         stringValue = Language.stripComments(stringValue);
 
@@ -186,6 +198,9 @@ public class PythonExpressionParser {
             return new IndeterminateExpression();
         } else {
             resolveSubValues(result);
+            if (this.codebase != null && scope != null) {
+                resolveSourceLocations(result, scope, codebase);
+            }
             LOG.debug("Finished parsing " + stringValue + " into its expression chain: " + result.toString());
             return result;
         }

@@ -1,7 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
 import com.denimgroup.threadfix.framework.impl.django.python.Language;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonCachingExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
@@ -22,21 +21,21 @@ public class PythonInterpreter {
 
     public PythonInterpreter(PythonCodeCollection codebase) {
         executionContext = new ExecutionContext(codebase);
-        expressionParser = new PythonCachingExpressionParser();
+        expressionParser = new PythonExpressionParser(codebase);
 
         this.executionContext.loadModuleDeclarations();
     }
 
     public PythonInterpreter(@Nonnull ExecutionContext executionContext) {
         this.executionContext = executionContext;
-        expressionParser = new PythonCachingExpressionParser();
+        expressionParser = new PythonExpressionParser(executionContext.getCodebase());
 
         this.executionContext.loadModuleDeclarations();
     }
 
     public PythonInterpreter(@Nonnull PythonCodeCollection codebase, PythonValue valueContext) {
         this.executionContext = new ExecutionContext(codebase, valueContext);
-        expressionParser = new PythonCachingExpressionParser();
+        expressionParser = new PythonExpressionParser(codebase);
 
         this.executionContext.loadModuleDeclarations();
     }
@@ -59,7 +58,7 @@ public class PythonInterpreter {
     public PythonValue run(@Nonnull String code, AbstractPythonStatement scope, PythonValue selfValue) {
         code = Language.stripComments(code);
 
-        PythonExpression expression = expressionParser.processString(code);
+        PythonExpression expression = expressionParser.processString(code, null, executionContext.getScope());
         if (expression instanceof IndeterminateExpression) {
             return valueBuilder.buildFromSymbol(code);
         } else {
@@ -140,7 +139,13 @@ public class PythonInterpreter {
                 usesNewContext = true;
             }
 
-            resolveDependencies(expression, executionContext.getScope());
+            AbstractPythonStatement currentScope = executionContext.getScope();
+            PythonCodeCollection codebase = executionContext.getCodebase();
+
+            resolveDependencies(expression, currentScope);
+            if (currentScope != null && codebase != null) {
+                InterpreterUtil.resolveSourceLocations(expression, executionContext.getScope(), executionContext.getCodebase());
+            }
 
             PythonValue result = interpreter.interpret(this, expression);
 
