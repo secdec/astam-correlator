@@ -98,6 +98,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         DjangoApiConfigurator.applyPostLink(codebase);
 
+        debugLog("Preparing Python interpreter...");
+
         long executionStartTime = System.currentTimeMillis();
 
         ExpressionDeconstructor ed = new ExpressionDeconstructor();
@@ -194,6 +196,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         executionDuration = System.currentTimeMillis() - executionStartTime;
         LOG.info("Running text interpreter expressions " + testCount + " times took " + executionDuration + "ms");
 
+        LOG.info("Executing module-level code...");
         interpreter = new PythonInterpreter(codebase);
         runInterpreterOnNonDeclarations(codebase, interpreter);
 

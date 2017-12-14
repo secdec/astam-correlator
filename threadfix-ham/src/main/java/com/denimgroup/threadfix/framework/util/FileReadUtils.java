@@ -30,6 +30,8 @@ public class FileReadUtils {
             }
 
             LOG.debug("Read " + results.size() + " lines");
+            reader.close();
+            fileReader.close();
             return results;
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -59,6 +61,8 @@ public class FileReadUtils {
 
                 line = reader.readLine();
             }
+            reader.close();
+            fileReader.close();
             return results.toString();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -145,6 +149,9 @@ public class FileReadUtils {
             }
 
             LOG.debug("Finished reading condensed lines, condensed " + (sourceLineNumber - startLine) + " entries to " + result.lineEntries.size() + " lines");
+
+            reader.close();
+            stringReader.close();
 
             return result;
         } catch (IOException e) {

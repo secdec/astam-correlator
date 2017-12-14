@@ -188,10 +188,6 @@ public class PythonCodeCollection {
                 PythonClass type = resolveLocalSymbol(methodName, var, PythonClass.class);
                 if (type != null) {
                     var.setResolvedTypeClass(type);
-                    Collection<PythonPublicVariable> members = type.getChildStatements(PythonPublicVariable.class);
-                    for (PythonPublicVariable mem : members) {
-                        var.addChildStatement(mem.clone());
-                    }
                     ++numResolvedTypes;
                 }
             }
@@ -275,6 +271,9 @@ public class PythonCodeCollection {
                         }
 
                         statement.setSourceCodeEndLine(i);
+
+                        reader.close();
+                        fileReader.close();
 
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
