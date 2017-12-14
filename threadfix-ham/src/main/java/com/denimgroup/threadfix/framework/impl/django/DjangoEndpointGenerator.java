@@ -23,6 +23,7 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonDebugUtil;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.ExpressionDeconstructor;
@@ -106,6 +107,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 + codebase.getPublicVariables().size() + " public variables, "
                 + codebase.get(PythonVariableModification.class).size() + " variable changes, and "
                 + codebase.get(PythonFunctionCall.class).size() + " function calls.");
+
+        //PythonDebugUtil.printDuplicateStatements(codebase);
 
         debugLog("Preparing Python interpreter...");
 
@@ -203,7 +206,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         //}
 
         executionDuration = System.currentTimeMillis() - executionStartTime;
-        LOG.info("Running text interpreter expressions " + testCount + " times took " + executionDuration + "ms");
+        LOG.info("Running test interpreter expressions " + testCount + " times took " + executionDuration + "ms");
 
         LOG.info("Executing module-level code...");
         interpreter = new PythonInterpreter(codebase);
