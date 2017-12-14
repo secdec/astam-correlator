@@ -135,7 +135,7 @@ public abstract class AbstractPythonStatement {
 
     public <T extends AbstractPythonStatement> Collection<T> getChildStatements(@Nonnull Class<T> type) {
         List<T> result = new LinkedList<T>();
-        for (AbstractPythonStatement statement : childStatements) {
+        for (AbstractPythonStatement statement : getChildStatements()) {
             if (type.isAssignableFrom(statement.getClass())) {
                 result.add((T)statement);
             }
@@ -145,7 +145,7 @@ public abstract class AbstractPythonStatement {
 
     public Collection<AbstractPythonStatement> getChildStatements(@Nonnull Class<?>... types) {
         List<AbstractPythonStatement> result = list();
-        for (AbstractPythonStatement statement : childStatements) {
+        for (AbstractPythonStatement statement : getChildStatements()) {
             for (Class<?> type : types) {
                 if (type.isAssignableFrom(statement.getClass())) {
                     result.add(statement);
@@ -156,7 +156,7 @@ public abstract class AbstractPythonStatement {
     }
 
     public AbstractPythonStatement findChild(String immediateChildName) {
-        for (AbstractPythonStatement statement : childStatements) {
+        for (AbstractPythonStatement statement : getChildStatements()) {
             if (statement.getName().equals(immediateChildName)) {
                 return statement;
             }
@@ -166,7 +166,7 @@ public abstract class AbstractPythonStatement {
 
     public <T extends AbstractPythonStatement> Collection<T> findChildren(Class<T> type) {
         List<T> result = list();
-        for (AbstractPythonStatement statement : childStatements) {
+        for (AbstractPythonStatement statement : getChildStatements()) {
             if (type.isAssignableFrom(statement.getClass())) {
                 result.add((T)statement);
             }

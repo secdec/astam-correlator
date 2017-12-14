@@ -94,6 +94,8 @@ public class PythonCodeCollection {
         LOG.info("Expanding statement imports");
         long start = System.currentTimeMillis();
 
+        final PythonCodeCollection codebase = this;
+
         //  Expand local imports
         traverse(new AbstractPythonVisitor() {
             @Override
@@ -125,20 +127,8 @@ public class PythonCodeCollection {
                     //  Import path should be fully expanded
                     String alias = entry.getKey();
                     String fullPath = entry.getValue();
-                    Collection<AbstractPythonStatement> importedStatements = resolveLocalImport(pyModule, fullPath);
-                    if (importedStatements == null || importedStatements.size() == 0) {
-                        continue;
-                    } else {
-                        for (AbstractPythonStatement child : importedStatements) {
-                            AbstractPythonStatement clone = child.clone();
 
-                            if (alias != null && !alias.endsWith("*") && importedStatements.size() == 0) {
-                                clone.setName(alias);
-                            }
-
-                            pyModule.addChildStatement(clone);
-                        }
-                    }
+                    pyModule.addImplicitImport(codebase.findByFullName(fullPath), alias);
                 }
             }
         });
@@ -437,17 +427,14 @@ public class PythonCodeCollection {
         }
 
 
-        for (AbstractPythonStatement child : base.getChildStatements()) {
-            if (child.getName().equals(currentPart)) {
-                if (nextPart == null) {
-                    return child;
-                } else {
-                    return findByPartialName(child, nextPart);
-                }
-            }
+        AbstractPythonStatement matchingChild = base.findChild(currentPart);
+        if (nextPart == null) {
+            return matchingChild;
+        } else if (matchingChild != null) {
+            return findByPartialName(matchingChild, nextPart);
+        } else {
+            return null;
         }
-
-        return null;
     }
 
     /**
@@ -615,6 +602,7 @@ public class PythonCodeCollection {
                 }
             }
         }
+
 
         for (Map.Entry<String, String> entry : imports.entrySet()) {
             String alias = entry.getKey();

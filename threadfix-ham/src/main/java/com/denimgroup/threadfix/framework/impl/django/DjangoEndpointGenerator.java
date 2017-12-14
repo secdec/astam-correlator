@@ -94,9 +94,18 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         debugLog("Attaching known Django APIs");
         DjangoApiConfigurator.apply(codebase);
 
+        debugLog("Initializing codebase...");
         codebase.initialize();
 
         DjangoApiConfigurator.applyPostLink(codebase);
+
+        LOG.info("Finished initializing codebase final entries are: "
+                + codebase.getModules().size() + " modules, "
+                + codebase.getClasses().size() + " classes, "
+                + codebase.getFunctions().size() + " functions, "
+                + codebase.getPublicVariables().size() + " public variables, "
+                + codebase.get(PythonVariableModification.class).size() + " variable changes, and "
+                + codebase.get(PythonFunctionCall.class).size() + " function calls.");
 
         debugLog("Preparing Python interpreter...");
 
