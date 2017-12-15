@@ -90,6 +90,21 @@ public class ExecutionContext {
         }
     }
 
+    public AbstractPythonStatement findSymbolDeclaration(String symbol) {
+        if (symbol == null || codebase == null || scope == null) {
+            return null;
+        }
+
+        AbstractPythonStatement result;
+        if ((result = codebase.findByFullName(symbol)) != null) {
+            return result;
+        } else if ((result = codebase.resolveLocalSymbol(symbol, scope)) != null) {
+            return result;
+        } else {
+            return null;
+        }
+    }
+
     public void assignSymbolValue(String symbolName, PythonValue newValue) {
         AbstractPythonStatement codebaseLocation;
         if (scope == null) {

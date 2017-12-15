@@ -4,6 +4,9 @@ import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.Adm
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteRegisterFunction;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteUrlsVariable;
 import com.denimgroup.threadfix.framework.impl.django.python.*;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.ExecutionContext;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonInterpreter;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonObject;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 
@@ -22,7 +25,7 @@ public class DjangoAdminApi extends AbstractDjangoApi {
     }
 
     @Override
-    public void apply(PythonCodeCollection codebase) {
+    public void applySchema(PythonCodeCollection codebase) {
         PythonModule admin = makeModulesFromFullName("django.contrib.admin");
 
         attachModelAdmin(admin);
@@ -43,7 +46,7 @@ public class DjangoAdminApi extends AbstractDjangoApi {
     }
 
     @Override
-    public void applyPostLink(PythonCodeCollection codebase) {
+    public void applySchemaPostLink(PythonCodeCollection codebase) {
 
         final Map<AbstractPythonStatement, PythonDecorator> decoratedModels = map();
         codebase.traverse(new AbstractPythonVisitor() {
@@ -81,10 +84,19 @@ public class DjangoAdminApi extends AbstractDjangoApi {
             String modelName = params.get(0);
             String adminName = admin.getName();
 
-            registerFunction.invoke(codebase, admin, site, new String[] { modelName, adminName });
+            //registerFunction.invoke(codebase, admin, site, new String[] { modelName, adminName });
 
         }
+    }
 
+    @Override
+    public void applyRuntime(PythonInterpreter runtime) {
+        ExecutionContext executionContext = runtime.getRootExecutionContext();
+        PythonCodeCollection codebase = executionContext.getCodebase();
+
+        AdminSiteClass adminSiteClass = codebase.findByFullName("django.contrib.admin.AdminSite", AdminSiteClass.class);
+
+        executionContext.assignSymbolValue("django.contrib.admin.site", new PythonObject(adminSiteClass));
     }
 
     private Collection<String> parseInheritedAdminEndpoints(PythonCodeCollection codebase, PythonPublicVariable sitesVariable) {

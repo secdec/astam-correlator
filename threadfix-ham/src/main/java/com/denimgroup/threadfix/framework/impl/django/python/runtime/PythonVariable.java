@@ -2,6 +2,7 @@ package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -24,6 +25,10 @@ public class PythonVariable implements PythonValue {
     public PythonVariable(String localName, PythonValue value) {
         this.localName = localName;
         this.value = value;
+    }
+
+    public boolean isType(@Nonnull Class<?> valueType) {
+        return value != null && valueType.isAssignableFrom(value.getClass());
     }
 
     public PythonValue getValue() {

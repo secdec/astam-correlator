@@ -129,11 +129,11 @@ public abstract class AbstractPythonStatement {
         }
     }
 
-    public Collection<AbstractPythonStatement> getChildStatements() {
+    public List<AbstractPythonStatement> getChildStatements() {
         return childStatements;
     }
 
-    public <T extends AbstractPythonStatement> Collection<T> getChildStatements(@Nonnull Class<T> type) {
+    public <T extends AbstractPythonStatement> List<T> getChildStatements(@Nonnull Class<T> type) {
         List<T> result = new LinkedList<T>();
         for (AbstractPythonStatement statement : getChildStatements()) {
             if (type.isAssignableFrom(statement.getClass())) {
@@ -143,7 +143,7 @@ public abstract class AbstractPythonStatement {
         return result;
     }
 
-    public Collection<AbstractPythonStatement> getChildStatements(@Nonnull Class<?>... types) {
+    public List<AbstractPythonStatement> getChildStatements(@Nonnull Class<?>... types) {
         List<AbstractPythonStatement> result = list();
         for (AbstractPythonStatement statement : getChildStatements()) {
             for (Class<?> type : types) {

@@ -139,16 +139,6 @@ public class PythonCodeCollection {
 
     public void collapseSymbolReferences() {
         LOG.info("Collapsing symbol references");
-        //  Various function and variable references have been made and captured. Neither
-        //  have been resolved to their fully-qualified names yet.
-        //
-        //  1. Fully-qualify variables declared directly in a module.
-        //  2. Fully-qualify variables referenced via 'self.ABC'.
-        //  3. Remove function-local variable references that have been qualified outside of the function.
-        //  4. Link variable modifications to their now-qualified references.
-        //  5. Link function calls to their fully-qualified references.
-
-        //  Lower-depth nodes are considered the definitions of a variable (unless defined in __init__)
 
         long startTime = System.currentTimeMillis();
         long duration;
@@ -291,21 +281,22 @@ public class PythonCodeCollection {
 
         long startTime = System.currentTimeMillis();
 
-        for (PythonFunctionCall call : functionCalls) {
-            PythonFunction function = call.getResolvedFunction();
-            if (function != null) {
-                if (function.canInvoke()) {
-                    Collection<String> params = call.getParameters();
-                    String[] arrayParams;
-                    if (params.size() == 0) {
-                        arrayParams = new String[0];
-                    } else {
-                        arrayParams = params.toArray(new String[params.size()]);
-                    }
-                    function.invoke(this, call, call.getResolvedInvokee(), arrayParams);
-                }
-            }
-        }
+        LOG.warn("SKIPPING GLOBAL-LEVEL FUNCTION CALLS - TEMPORARILY DISABLED (DEV)");
+//        for (PythonFunctionCall call : functionCalls) {
+//            PythonFunction function = call.getResolvedFunction();
+//            if (function != null) {
+//                if (function.canInvoke()) {
+//                    Collection<String> params = call.getParameters();
+//                    String[] arrayParams;
+//                    if (params.size() == 0) {
+//                        arrayParams = new String[0];
+//                    } else {
+//                        arrayParams = params.toArray(new String[params.size()]);
+//                    }
+//                    function.invoke(this, call, call.getResolvedInvokee(), arrayParams);
+//                }
+//            }
+//        }
 
         long duration = System.currentTimeMillis() - startTime;
         LOG.info("Executing " + functionCalls.size() + " function calls took " + duration + "ms");

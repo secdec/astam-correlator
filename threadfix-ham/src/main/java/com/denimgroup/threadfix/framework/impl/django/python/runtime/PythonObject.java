@@ -75,10 +75,12 @@ public class PythonObject implements PythonValue {
         } else {
             if (value instanceof PythonVariable) {
                 targetVar = (PythonVariable)value.clone();
+                targetVar.setOwner(this);
                 targetVar.setLocalName(name);
                 memberMap.put(name, targetVar);
             } else {
                 targetVar = new PythonVariable(name, value);
+                targetVar.setOwner(this);
                 memberMap.put(name, targetVar);
             }
         }
@@ -86,7 +88,7 @@ public class PythonObject implements PythonValue {
         targetVar.setValue(value);
     }
 
-    public PythonValue getMemberValue(String name) {
+    public PythonVariable getMemberVariable(String name) {
         if (memberMap.containsKey(name)) {
             return memberMap.get(name);
         } else {
@@ -94,10 +96,24 @@ public class PythonObject implements PythonValue {
         }
     }
 
+    public PythonValue getMemberValue(String name) {
+        PythonVariable var = getMemberVariable(name);
+        if (var != null) {
+            return var.getValue();
+        } else {
+            return null;
+        }
+    }
+
     public <T extends PythonValue> T getMemberValue(String name, Class<?> type) {
-        PythonValue value = getMemberValue(name);
-        if (type.isAssignableFrom(value.getClass())) {
-            return (T)value;
+        PythonVariable var = getMemberVariable(name);
+        PythonValue varValue = null;
+        if (var != null) {
+            varValue = var.getValue();
+        }
+
+        if (varValue != null && type.isAssignableFrom(varValue.getClass())) {
+            return (T)varValue;
         } else {
             return null;
         }

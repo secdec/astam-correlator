@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class FunctionCallInterpreter implements ExpressionInterpreter {
@@ -24,17 +25,20 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
         ExecutionContext executionContext = host.getExecutionContext();
 
         PythonValue subject = callExpression.getSubject(0);
-        subject = executionContext.resolveValue(subject);
 
-        if (subject.getSourceLocation() == null) {
+        String functionName = tryGetFunctionName(subject);
+        AbstractPythonStatement statement = null;
+        if (functionName != null) {
+            statement = executionContext.findSymbolDeclaration(functionName);
+        }
+
+        if (statement == null) {
             return new PythonIndeterminateValue();
         }
 
-        AbstractPythonStatement sourceLocation = subject.getSourceLocation();
+        if (statement instanceof PythonClass) {
 
-        if (sourceLocation instanceof PythonClass) {
-
-            PythonClass sourceClass = (PythonClass)sourceLocation;
+            PythonClass sourceClass = (PythonClass)statement;
             PythonObject newObject = new PythonObject(sourceClass);
 
             PythonCodeCollection codebase = executionContext.getCodebase();
@@ -43,7 +47,7 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
                         new File(exposedVars.getSourceCodePath()),
                         exposedVars.getSourceCodeStartLine(),
                         exposedVars.getSourceCodeEndLine(),
-                        sourceLocation,
+                        statement,
                         newObject
                 );
 
@@ -58,9 +62,9 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
 
             return newObject;
 
-        } else if (sourceLocation instanceof PythonFunction) {
+        } else if (statement instanceof PythonFunction) {
 
-            PythonFunction sourceFunction = (PythonFunction)sourceLocation;
+            PythonFunction sourceFunction = (PythonFunction)statement;
 
             PythonValue invokeSelfValue = null;
             ExecutionContext invokeContext;
@@ -98,21 +102,105 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
         }
     }
 
-    private PythonValue invokeFunction(PythonInterpreter interpreter, PythonFunction function, List<PythonValue> parameters, ExecutionContext newContext) {
-        List<String> paramNames = function.getParams();
-        for (int i = 0; i < parameters.size() && i < paramNames.size(); i++) {
-            String name = paramNames.get(i);
-            PythonValue paramValue = parameters.get(i);
+    List<PythonValue> reorderParameters(PythonFunction targetFunction, List<PythonValue> enumeratedParameters) {
+        Map<String, PythonValue> mappedParams = map();
+        List<String> functionParams = targetFunction.getParams();
 
-            newContext.assignSymbolValue(name, paramValue);
+        //  Ordered parameters
+        for (PythonValue param : enumeratedParameters) {
+            if (!(param instanceof PythonVariable)) {
+                String paramName = functionParams.get(mappedParams.size());
+                mappedParams.put(paramName, param);
+            } else {
+                String varName = ((PythonVariable) param).getLocalName();
+                if (functionParams.contains(varName)) {
+                    mappedParams.put(varName, param);
+                } else {
+                    String paramName = functionParams.get(mappedParams.size());
+                    mappedParams.put(paramName, param);
+                }
+            }
         }
 
-        PythonValue result = interpreter.run(
-                new File(function.getSourceCodePath()),
-                function.getSourceCodeStartLine(),
-                function.getSourceCodeEndLine()
-        );
+        List<PythonValue> result = list();
+        for (String paramName : functionParams) {
+            result.add(mappedParams.get(paramName));
+        }
+        return result;
+    }
+
+    private PythonValue invokeFunction(PythonInterpreter interpreter, PythonFunction function, List<PythonValue> parameters, ExecutionContext newContext) {
+
+        parameters = reorderParameters(function, parameters);
+        PythonValue result = null;
+
+        if (function.canInvoke()) {
+
+            String functionResult = function.invoke(newContext.getCodebase(), newContext.getScope(), null, null);
+            if (functionResult != null) {
+                result = interpreter.run(functionResult);
+            }
+
+        } else {
+
+            //  TODO - Assign default param values from function signature
+
+            List<String> paramNames = function.getParams();
+            for (int i = 0; i < parameters.size() && i < paramNames.size(); i++) {
+                String name = paramNames.get(i);
+                PythonValue paramValue = parameters.get(i);
+
+                newContext.assignSymbolValue(name, paramValue);
+            }
+
+            result = interpreter.run(
+                    new File(function.getSourceCodePath()),
+                    function.getSourceCodeStartLine(),
+                    function.getSourceCodeEndLine()
+            );
+        }
 
         return result;
+    }
+
+    private String tryGetFunctionName(PythonValue possibleFunction) {
+        PythonValue subject = null;
+        String subjectPath = null;
+        if (possibleFunction instanceof PythonUnaryExpression && ((PythonUnaryExpression) possibleFunction).numSubjects() > 0) {
+            subject = ((PythonUnaryExpression) possibleFunction).getSubject(0);
+            if (subject.getSourceLocation() != null) {
+                subjectPath = subject.getSourceLocation().getFullName();
+            }
+        } else if (possibleFunction instanceof PythonVariable) {
+            if (possibleFunction.getSourceLocation() != null) {
+                subjectPath = possibleFunction.getSourceLocation().getFullName();
+            } else {
+                PythonValue varValue = ((PythonVariable) possibleFunction).getValue();
+                if (varValue != null) {
+                    subjectPath = tryGetFunctionName(varValue);
+                }
+            }
+        }
+
+        String functionName = null;
+
+        if (possibleFunction instanceof PythonVariable) {
+            String varName = ((PythonVariable) possibleFunction).getLocalName();
+            if (varName != null) {
+                if (subjectPath != null) {
+                    if (!subjectPath.endsWith(varName)) {
+                        functionName = subjectPath + "." + varName;
+                    } else {
+                        functionName = subjectPath;
+                    }
+                } else {
+                    functionName = varName;
+                }
+            } else if (subjectPath != null) {
+                functionName = subjectPath;
+            }
+        }
+
+        return functionName;
     }
 }

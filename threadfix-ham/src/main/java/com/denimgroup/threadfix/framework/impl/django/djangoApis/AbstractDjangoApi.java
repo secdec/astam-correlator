@@ -6,6 +6,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonModule
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public abstract class AbstractDjangoApi implements DjangoApi {
 
@@ -16,7 +17,9 @@ public abstract class AbstractDjangoApi implements DjangoApi {
             targetScope = baseScope;
         }
 
-        for (AbstractPythonStatement child : baseScope.getChildStatements()) {
+        //  Make a copy to avoid concurrent access
+        List<AbstractPythonStatement> children = new ArrayList<AbstractPythonStatement>(baseScope.getChildStatements());
+        for (AbstractPythonStatement child : children) {
             child.setParentStatement(targetScope);
             tryAddScopeTree(codebase, child, targetScope);
         }

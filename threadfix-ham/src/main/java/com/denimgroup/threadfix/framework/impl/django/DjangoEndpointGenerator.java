@@ -23,7 +23,6 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonDebugUtil;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.ExpressionDeconstructor;
@@ -93,12 +92,12 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 + codebase.get(PythonFunctionCall.class).size() + " function calls.");
 
         debugLog("Attaching known Django APIs");
-        DjangoApiConfigurator.apply(codebase);
+        DjangoApiConfigurator.applySchema(codebase);
 
         debugLog("Initializing codebase...");
         codebase.initialize();
 
-        DjangoApiConfigurator.applyPostLink(codebase);
+        DjangoApiConfigurator.applySchemaPostLink(codebase);
 
         LOG.info("Finished initializing codebase final entries are: "
                 + codebase.getModules().size() + " modules, "

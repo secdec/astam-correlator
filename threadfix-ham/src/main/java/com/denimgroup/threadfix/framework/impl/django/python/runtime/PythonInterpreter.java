@@ -45,6 +45,14 @@ public class PythonInterpreter {
         return executionContext;
     }
 
+    public ExecutionContext getRootExecutionContext() {
+        ExecutionContext current = this.executionContext;
+        while (current.parentContext != null) {
+            current = current.parentContext;
+        }
+        return current;
+    }
+
 
 
     public PythonValue run(@Nonnull String code) {
@@ -142,10 +150,11 @@ public class PythonInterpreter {
             AbstractPythonStatement currentScope = executionContext.getScope();
             PythonCodeCollection codebase = executionContext.getCodebase();
 
-            resolveDependencies(expression, currentScope);
             if (currentScope != null && codebase != null) {
                 InterpreterUtil.resolveSourceLocations(expression, executionContext.getScope(), executionContext.getCodebase());
             }
+
+            resolveDependencies(expression, currentScope);
 
             PythonValue result = interpreter.interpret(this, expression);
 
@@ -202,7 +211,9 @@ public class PythonInterpreter {
                 if (resolvedValue != null) {
                     asVariable.setValue(resolvedValue);
                 } else {
-                    asVariable.setValue(new PythonIndeterminateValue());
+                    if (asVariable.getSourceLocation() == null) {
+                        asVariable.setValue(new PythonIndeterminateValue());
+                    }
                 }
             }
         }

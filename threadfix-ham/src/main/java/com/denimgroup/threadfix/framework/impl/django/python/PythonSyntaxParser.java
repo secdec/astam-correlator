@@ -470,7 +470,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         if (!ranScopingCheck && !isStringChar && !scopeTracker.isInString() && (stringValue != null || (type != ' ' && type != '\n' && type != '\t'))) {
             AbstractPythonStatement currentScope = getScope();
             while (currentScope != null && spaceDepth < currentScope.getIndentationLevel()) {
-                currentScope.setSourceCodeEndLine(lineNumber);
+                currentScope.setSourceCodeEndLine(lineNumber - 1);
                 popScope();
                 currentScope = getScope();
             }
@@ -672,7 +672,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
                 lambda_startNumOpenBracket == scopeTracker.getNumOpenBracket() && lambda_startNumOpenBrace == scopeTracker.getNumOpenBrace()) {
 
             workingLambda.setFunctionBody(workingLambdaBody.toString());
-            workingLambda.setSourceCodeEndLine(lineNumber);
+            workingLambda.setSourceCodeEndLine(lineNumber - 1);
 
             registerScopeOutput(workingLambda);
 
@@ -771,7 +771,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             String varValue = workingVarValue.toString();
 
             workingVarChange.setOperatorValue(varValue);
-            workingVarChange.setSourceCodeEndLine(lineNumber);
+            workingVarChange.setSourceCodeEndLine(lineNumber - 1);
             String varName = workingVarChange.getTarget();
 
             if (getScope().findChild(varName) == null) {

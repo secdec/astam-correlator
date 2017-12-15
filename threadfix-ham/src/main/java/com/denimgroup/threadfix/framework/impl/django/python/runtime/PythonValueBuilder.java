@@ -193,12 +193,12 @@ public class PythonValueBuilder {
             }
         }
 
-        if (possibleType == ValueType.UNKNOWN) {
-            String[] parts = CodeParseUtil.splitByComma(symbols);
-            if (parts.length > 1) {
-                //  It may be an implicit tuple, make sure the contents
-            }
-        }
+//        if (possibleType == ValueType.UNKNOWN) {
+//            String[] parts = CodeParseUtil.splitByComma(symbols);
+//            if (parts.length > 1) {
+//                //  It may be an implicit tuple, make sure the contents
+//            }
+//        }
 
         return possibleType;
     }

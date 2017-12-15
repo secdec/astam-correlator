@@ -2,7 +2,6 @@ package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonModule;
 
 import java.io.File;
@@ -44,8 +43,8 @@ public class DjangoInterpretingRouteParser {
             }
 
             PythonObject object = (PythonObject)entry;
-            PythonValue urlValue = object.getMemberValue("url");
-            PythonValue viewValue = object.getMemberValue("view");
+            PythonValue urlValue = object.getMemberVariable("url");
+            PythonValue viewValue = object.getMemberVariable("view");
 
             if (urlValue == null || viewValue == null || !(urlValue instanceof PythonStringPrimitive)) {
                 continue;
