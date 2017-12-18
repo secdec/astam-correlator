@@ -48,7 +48,7 @@ public class RemoteEndpointsButton extends EndpointsButton {
     }
 
     @Override
-    protected String getCompletedMessage() { return "The endpoints were successfully imported from ThreadFix. Starting scan.."; }
+    protected String getCompletedMessage() { return "The endpoints were successfully imported"; }
 
     @Override
     protected ConfigurationDialogs.DialogMode getDialogMode() {

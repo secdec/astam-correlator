@@ -102,7 +102,9 @@ public abstract class EndpointsButton extends JButton {
                                 for (String node: nodes) {
                                     URL nodeUrl = new URL(url + node);
                                     callbacks.includeInScope(nodeUrl);
-                                    callbacks.sendToSpider(nodeUrl);
+                                    if(BurpPropertiesManager.getBurpPropertiesManager().getAutoSpider())
+                                        callbacks.sendToSpider(nodeUrl);
+
                                 }
                                 completed = true;
                             } catch (MalformedURLException e1) {
@@ -116,8 +118,8 @@ public abstract class EndpointsButton extends JButton {
                 if (completed) {
                     JOptionPane.showMessageDialog(view, getCompletedMessage());
                 }
-
-                sendToScanner(callbacks);
+                if(BurpPropertiesManager.getBurpPropertiesManager().getAutoScan())
+                    sendToScanner(callbacks);
             }
         });
     }
