@@ -387,7 +387,7 @@ public class BurpExtender implements IBurpExtender, ITab
         };
 
         autoSpiderField = addCheckBoxToGridBagLayout("Automatically start spider after importing endpoints: ", autoOptionsPanel, yPosition++, applicationCheckBoxSpiderActionListener);
-        autoScanField = addCheckBoxToGridBagLayout("Automatically start active snaner after automatic spider: ", autoOptionsPanel, yPosition++, applicationCheckBoxScanActionListener);
+        autoScanField = addCheckBoxToGridBagLayout("Automatically start active scanner after automatic spider: ", autoOptionsPanel, yPosition++, applicationCheckBoxScanActionListener);
         autoScanField.setEnabled(false);
         if(callbacks.getBurpVersion()[0].toLowerCase().contains("professional"))
         {
