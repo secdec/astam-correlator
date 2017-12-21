@@ -80,7 +80,7 @@ public class BurpExtender implements IBurpExtender, ITab
         helpers = callbacks.getHelpers();
 
         // set our extension name
-        callbacks.setExtensionName("ThreadFix plugin");
+        callbacks.setExtensionName("Code PT");
 
         // create UI
         SwingUtilities.invokeLater(new Runnable()
