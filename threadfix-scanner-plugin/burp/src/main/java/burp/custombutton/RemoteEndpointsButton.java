@@ -39,12 +39,12 @@ public class RemoteEndpointsButton extends EndpointsButton {
 
     @Override
     protected String getButtonText() {
-        return "Import Endpoints from Coorelation Server";
+        return "Import Endpoints from Correlation Server";
     }
 
     @Override
     protected String getNoEndpointsMessage() {
-        return "Did not retrieve any endpoints from coorelation server. Check your server settings.";
+        return "Did not retrieve any endpoints from correlation server. Check your server settings.";
     }
 
     @Override
