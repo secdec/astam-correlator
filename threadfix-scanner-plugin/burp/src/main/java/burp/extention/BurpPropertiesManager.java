@@ -175,4 +175,6 @@ public class BurpPropertiesManager extends PropertiesManager {
 
     public void setAutoScan(boolean newAutoScan) {  AUTO_SCAN_KEY = newAutoScan; }
 
+    public boolean isProVersion() {return callbacks.getBurpVersion()[0].toLowerCase().contains("professional");}
+
 }

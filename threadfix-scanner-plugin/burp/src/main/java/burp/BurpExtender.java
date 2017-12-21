@@ -62,6 +62,7 @@ public class BurpExtender implements IBurpExtender, ITab
     private JCheckBox autoScanField;
     private JCheckBox autoSpiderField;
     private JLabel profMessage;
+    private JLabel autoScanText;
 
     //
     // implement IBurpExtender
@@ -266,9 +267,9 @@ public class BurpExtender implements IBurpExtender, ITab
             }
         };
 
-        final JLabel parametersPanelTitle = addPanelTitleToGridBagLayout("ThreadFix Server", parametersPanel, yPosition++);
-        final JLabel parametersPanelDescription = addPanelDescriptionToGridBagLayout("These settings let you connect to a ThreadFix server and choose an Application.", parametersPanel, yPosition++);
-        urlField = addTextFieldToGridBagLayout("ThreadFix Server URL:", parametersPanel, yPosition++, BurpPropertiesManager.THREADFIX_URL_KEY, applicationComboBoxRunnable);
+        final JLabel parametersPanelTitle = addPanelTitleToGridBagLayout("Correlation Server", parametersPanel, yPosition++);
+        final JLabel parametersPanelDescription = addPanelDescriptionToGridBagLayout("These settings let you connect to a Correlation server and choose an Application.", parametersPanel, yPosition++);
+        urlField = addTextFieldToGridBagLayout("Correlation Server URL:", parametersPanel, yPosition++, BurpPropertiesManager.THREADFIX_URL_KEY, applicationComboBoxRunnable);
         keyField = addTextFieldToGridBagLayout("API Key:", parametersPanel, yPosition++, BurpPropertiesManager.API_KEY_KEY, applicationComboBoxRunnable);
 
         final JButton applicationComboBoxRefreshButton = new JButton("Refresh application list");
@@ -363,18 +364,22 @@ public class BurpExtender implements IBurpExtender, ITab
         autoOptionsPanel.setLayout(new GridBagLayout());
         int yPosition = 0;
 
-        final JLabel autoOptionsPanelTitle = addPanelTitleToGridBagLayout("Configure Auto Scan and Spider options", autoOptionsPanel, yPosition++);
+        final JLabel autoOptionsPanelTitle = addPanelTitleToGridBagLayout("Code PT Plugin Behavior", autoOptionsPanel, yPosition++);
         ActionListener applicationCheckBoxSpiderActionListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 BurpPropertiesManager.getBurpPropertiesManager().setAutoSpider(autoSpiderField.isSelected());
                 if(BurpPropertiesManager.getBurpPropertiesManager().getAutoSpider() && callbacks.getBurpVersion()[0].toLowerCase().contains("professional"))
+                {
                     autoScanField.setEnabled(true);
+                    autoScanText.setForeground(Color.BLACK);
+                }
                 else
                 {
                     autoScanField.setEnabled(false);
                     BurpPropertiesManager.getBurpPropertiesManager().setAutoScan(false);
                     autoScanField.setSelected(false);
+                    autoScanText.setForeground(Color.GRAY);
                 }
             }
         };
@@ -385,17 +390,25 @@ public class BurpExtender implements IBurpExtender, ITab
                 BurpPropertiesManager.getBurpPropertiesManager().setAutoScan(autoScanField.isSelected());
             }
         };
-
+        autoScanText = new JLabel("Automatically start active scanner after automatic spider: ");
         autoSpiderField = addCheckBoxToGridBagLayout("Automatically start spider after importing endpoints: ", autoOptionsPanel, yPosition++, applicationCheckBoxSpiderActionListener);
-        autoScanField = addCheckBoxToGridBagLayout("Automatically start active scanner after automatic spider: ", autoOptionsPanel, yPosition++, applicationCheckBoxScanActionListener);
-        autoScanField.setEnabled(false);
         if(callbacks.getBurpVersion()[0].toLowerCase().contains("professional"))
-        {
+        {autoScanField = addCheckBoxToGridBagLayout(autoScanText, autoOptionsPanel, yPosition++, applicationCheckBoxScanActionListener);
             if (BurpPropertiesManager.getBurpPropertiesManager().getAutoSpider())
+            {
                 autoScanField.setEnabled(true);
+                autoScanText.setForeground(Color.BLACK);
+            }
+            else
+            {
+                autoScanText.setForeground(Color.GRAY);
+                autoScanField.setEnabled(false);
+            }
         }
         else
         {
+            autoScanField = addCheckBoxToGridBagLayout(autoScanText, autoOptionsPanel, yPosition++, applicationCheckBoxScanActionListener);
+            autoScanField.setEnabled(false);
             profMessage = addPanelLabelToGridBagLayout("\t *Note this option is only available with the Pro Version", autoOptionsPanel, yPosition++);
         }
 
@@ -409,7 +422,7 @@ public class BurpExtender implements IBurpExtender, ITab
     @Override
     public String getTabCaption()
     {
-        return "ThreadFix";
+        return "Code PT";
     }
 
     @Override
@@ -499,7 +512,7 @@ public class BurpExtender implements IBurpExtender, ITab
         }
         else if (possibilities.length == 0) {
             failedToConnect = true;
-            failureMessage = "Failed while trying to get a list of applications from ThreadFix.";
+            failureMessage = "Failed while trying to get a list of applications from the correlation server.";
         }
 
         String currentAppId = BurpPropertiesManager.getBurpPropertiesManager().getAppId();
@@ -533,6 +546,7 @@ public class BurpExtender implements IBurpExtender, ITab
         } catch (Exception e) {
             infos = new Application.Info[0];
         }
+
         applicationMap.clear();
         for (Application.Info info : infos) {
             applicationMap.put(info.getOrganizationName() + "/" + info.getApplicationName(),
@@ -726,9 +740,61 @@ public class BurpExtender implements IBurpExtender, ITab
         return addCheckBoxToGridBagLayout(labelText, gridBagContainer, yPosition, actionListener, null);
     }
 
+    private JCheckBox addCheckBoxToGridBagLayout(JLabel label, Container gridBagContainer, int yPosition, ActionListener actionListener) {
+        return addCheckBoxToGridBagLayout(label, gridBagContainer, yPosition, actionListener, null);
+    }
+
     private JCheckBox addCheckBoxToGridBagLayout(String labelText, Container gridBagContainer, int yPosition, ActionListener actionListener, JButton button) {
         JLabel textFieldLabel = new JLabel(labelText);
         callbacks.customizeUiComponent(textFieldLabel);
+
+        textFieldLabel.setHorizontalAlignment(SwingConstants.LEFT);
+        GridBagConstraints gridBagConstraints = new GridBagConstraints();
+        gridBagConstraints.gridwidth = 1;
+        gridBagConstraints.gridx = 1;
+        gridBagConstraints.gridy = yPosition;
+        gridBagConstraints.ipadx = 5;
+        gridBagConstraints.ipady = 5;
+        gridBagConstraints.fill = GridBagConstraints.BOTH;
+        gridBagContainer.add(textFieldLabel, gridBagConstraints);
+
+        JCheckBox checkBox = new JCheckBox();
+        callbacks.customizeUiComponent(checkBox);
+        gridBagConstraints = new GridBagConstraints();
+        if (button == null) {
+            gridBagConstraints.gridwidth = 2;
+        } else {
+            gridBagConstraints.gridwidth = 1;
+        }
+        gridBagConstraints.gridx = 2;
+        gridBagConstraints.gridy = yPosition;
+        gridBagConstraints.ipadx = 5;
+        gridBagConstraints.ipady = 5;
+        gridBagConstraints.fill = GridBagConstraints.HORIZONTAL;
+        gridBagConstraints.anchor = GridBagConstraints.NORTH;
+        gridBagContainer.add(checkBox, gridBagConstraints);
+
+        if (button != null) {
+            callbacks.customizeUiComponent(button);
+            gridBagConstraints = new GridBagConstraints();
+            gridBagConstraints.gridwidth = 1;
+            gridBagConstraints.gridx = 3;
+            gridBagConstraints.gridy = yPosition;
+            gridBagConstraints.ipadx = 5;
+            gridBagConstraints.ipady = 5;
+            gridBagConstraints.fill = GridBagConstraints.NONE;
+            gridBagConstraints.anchor = GridBagConstraints.NORTHEAST;
+            gridBagContainer.add(button, gridBagConstraints);
+        }
+
+        checkBox.addActionListener(actionListener);
+
+        return checkBox;
+    }
+
+    private JCheckBox addCheckBoxToGridBagLayout(JLabel textFieldLabel, Container gridBagContainer, int yPosition, ActionListener actionListener, JButton button) {
+        callbacks.customizeUiComponent(textFieldLabel);
+
         textFieldLabel.setHorizontalAlignment(SwingConstants.LEFT);
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridwidth = 1;

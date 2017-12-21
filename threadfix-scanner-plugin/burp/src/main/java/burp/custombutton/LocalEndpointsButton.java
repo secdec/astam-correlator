@@ -41,7 +41,7 @@ public class LocalEndpointsButton extends EndpointsButton {
 
     @Override
     protected String getButtonText() {
-        return "Import and Scan Endpoints From Source";
+        return "Import Endpoints from Source";
     }
 
     @Override

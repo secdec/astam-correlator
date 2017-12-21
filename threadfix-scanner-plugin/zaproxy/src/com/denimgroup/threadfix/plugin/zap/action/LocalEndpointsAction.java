@@ -47,7 +47,7 @@ public class LocalEndpointsAction extends EndpointsAction {
 
     @Override
     protected String getMenuItemText() {
-        return "ThreadFix: Import Endpoints From Source";
+        return "ThreadFix: Import Endpoints from Source";
     }
 
     @Override
