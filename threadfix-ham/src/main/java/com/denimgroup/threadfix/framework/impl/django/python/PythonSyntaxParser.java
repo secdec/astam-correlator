@@ -609,6 +609,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             workingFunctionCallParams = new StringBuilder();
             workingFunctionCall.setSourceCodeStartLine(lineNumber);
             workingFunctionCall.setSourceCodePath(this.getThisModule().getSourceCodePath());
+            workingFunctionCall.setIndentationLevel(spaceDepth);
 
             functionCallStartNumParen = scopeTracker.getNumOpenParen();
 
@@ -738,6 +739,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             workingVarChange.setSourceCodeStartLine(lineNumber);
             workingVarChange.setSourceCodePath(this.thisModule.getSourceCodePath());
             workingVarChange.setTarget(lastValidString);
+            workingVarChange.setIndentationLevel(spaceDepth);
             initialOperatorType = lastValidType;
         }
 
@@ -781,6 +783,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
                 variable.setSourceCodePath(workingVarChange.getSourceCodePath());
                 variable.setName(varName);
                 variable.setValueString(varValue);
+                variable.setIndentationLevel(workingVarChange.getIndentationLevel());
                 registerScopeOutput(variable);
             }
 
@@ -793,6 +796,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
             if (workingLambda == null) {
                 workingLambda = new PythonLambda();
+                workingLambda.setIndentationLevel(spaceDepth);
                 workingLambda.setSourceCodeStartLine(lineNumber);
                 workingLambda.setSourceCodePath(thisModule.getSourceCodePath());
             }

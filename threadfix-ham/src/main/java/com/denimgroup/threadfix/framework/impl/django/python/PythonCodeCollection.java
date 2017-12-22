@@ -137,6 +137,18 @@ public class PythonCodeCollection {
         LOG.info("Expanding statement imports took " + duration + "ms");
     }
 
+    public String expandSymbol(String localSymbol, AbstractPythonStatement scope) {
+        for (Map.Entry<String, String> entry : scope.getImports().entrySet()) {
+            String alias = entry.getKey();
+            String fullPath = entry.getValue();
+
+            if (localSymbol.startsWith(alias)) {
+                return localSymbol.replace(alias, fullPath);
+            }
+        }
+        return localSymbol;
+    }
+
     public void collapseSymbolReferences() {
         LOG.info("Collapsing symbol references");
 

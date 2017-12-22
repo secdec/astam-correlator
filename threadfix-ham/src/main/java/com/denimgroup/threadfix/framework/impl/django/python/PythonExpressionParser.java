@@ -192,16 +192,20 @@ public class PythonExpressionParser {
                 result = null;
         }
 
+        int scopingIndentation = InterpreterUtil.countSpacingLevel(stringValue);
 
         if (result == null) {
             LOG.debug("Parsing " + stringValue + " resulted in an IndeterminateExpression");
-            return new IndeterminateExpression();
+            result = new IndeterminateExpression();
+            result.setScopingIndentation(scopingIndentation);
+            return result;
         } else {
             resolveSubValues(result);
             if (this.codebase != null && scope != null) {
                 resolveSourceLocations(result, scope, codebase);
             }
             LOG.debug("Finished parsing " + stringValue + " into its expression chain: " + result.toString());
+            result.setScopingIndentation(scopingIndentation);
             return result;
         }
     }

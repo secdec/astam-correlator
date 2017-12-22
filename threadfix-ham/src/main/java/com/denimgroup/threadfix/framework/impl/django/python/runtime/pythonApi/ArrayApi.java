@@ -1,8 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime.pythonApi;
 
-import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.InterpreterUtil;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonArray;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonInterpreter;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
@@ -76,8 +75,8 @@ public class ArrayApi implements PythonApiProvider {
         }
 
         @Override
-        public String invoke(PythonCodeCollection codebase, AbstractPythonStatement context, PythonValue target, PythonValue[] params) {
-            return super.invoke(codebase, context, target, params);
+        public PythonValue invoke(PythonInterpreter host, AbstractPythonStatement context, PythonValue[] params) {
+            return super.invoke(host, context, params);
         }
     }
 

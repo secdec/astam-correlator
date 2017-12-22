@@ -1,9 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
-import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
-import com.denimgroup.threadfix.framework.impl.django.python.VariableModificationType;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonInterpreter;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonVariable;
 
 import java.util.*;
 
@@ -49,7 +47,7 @@ public class PythonFunction extends AbstractPythonStatement {
         return false;
     }
 
-    public String invoke(PythonCodeCollection codebase, AbstractPythonStatement context, PythonValue target, PythonValue[] params) {
+    public PythonValue invoke(PythonInterpreter host, AbstractPythonStatement context, PythonValue[] params) {
         return null;
     }
 

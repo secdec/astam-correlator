@@ -2,17 +2,17 @@ package com.denimgroup.threadfix.framework.util;
 
 public class ScopeTracker {
 
-    int numOpenParen = 0, numOpenBrace = 0, numOpenBracket = 0;
-    int stringStartToken = -1;
-    boolean nextIsEscaped = false;
-    boolean enteredScope = false;
-    boolean exitedScope = false;
+    private int numOpenParen = 0, numOpenBrace = 0, numOpenBracket = 0;
+    private int stringStartToken = -1;
+    private boolean nextIsEscaped = false;
+    private boolean enteredScope = false;
+    private boolean exitedScope = false;
 
-    boolean enteredGlobalScope = false;
-    boolean exitedGlobalScope = false;
+    private boolean enteredGlobalScope = false;
+    private boolean exitedGlobalScope = false;
 
-    boolean enteredString = false;
-    boolean exitedString = false;
+    private boolean enteredString = false;
+    private boolean exitedString = false;
 
     public void interpretToken(int token) {
 
@@ -122,5 +122,9 @@ public class ScopeTracker {
 
     public boolean exitedString() {
         return exitedString;
+    }
+
+    public boolean isNextEscaped() {
+        return nextIsEscaped;
     }
 }

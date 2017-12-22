@@ -48,4 +48,14 @@ public class IndeterminateExpression implements PythonExpression {
     public ExpressionInterpreter makeInterpreter() {
         return null;
     }
+
+    @Override
+    public int getScopingIndentation() {
+        return 0;
+    }
+
+    @Override
+    public void setScopingIndentation(int indentation) {
+
+    }
 }

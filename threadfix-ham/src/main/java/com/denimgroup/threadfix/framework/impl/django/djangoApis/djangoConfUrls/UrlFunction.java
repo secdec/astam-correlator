@@ -1,10 +1,14 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoConfUrls;
 
-import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonInterpreter;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonObject;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonPublicVariable;
+
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class UrlFunction extends PythonFunction {
 
@@ -19,7 +23,17 @@ public class UrlFunction extends PythonFunction {
     }
 
     @Override
-    public String invoke(PythonCodeCollection codebase, AbstractPythonStatement context, PythonValue target, PythonValue[] params) {
-        return super.invoke(codebase, context, target, params);
+    public List<String> getParams() {
+        return list("pattern", "view", "name");
+    }
+
+    @Override
+    public PythonValue invoke(PythonInterpreter host, AbstractPythonStatement context, PythonValue[] params) {
+        PythonObject result = new PythonObject();
+
+        result.setMemberValue("pattern", params[0]);
+        result.setMemberValue("view", params[1]);
+
+        return result;
     }
 }

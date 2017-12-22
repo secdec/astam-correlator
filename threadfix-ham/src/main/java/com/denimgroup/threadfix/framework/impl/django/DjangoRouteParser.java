@@ -520,9 +520,11 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                     } else {
 
                         AbstractPythonStatement referencedStatement = parsedCodebase.resolveLocalSymbol(viewPath, thisModule);
+                        //interpreter.getExecutionContext().res
                         if (referencedStatement != null && referencedStatement instanceof PythonPublicVariable) {
 
-                            PythonValue interpretedValues = interpreter.getExecutionContext().resolveSymbol(referencedStatement.getFullName());
+                            String fullReferencedPath = parsedCodebase.expandSymbol(viewPath, thisModule);
+                            PythonValue interpretedValues = interpreter.getExecutionContext().resolveSymbol(fullReferencedPath);
 
                             PythonPublicVariable referencedVar = (PythonPublicVariable) referencedStatement;
                             String value = referencedVar.getValueString();

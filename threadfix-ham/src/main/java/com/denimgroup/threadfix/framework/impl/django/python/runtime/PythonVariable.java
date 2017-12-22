@@ -27,6 +27,16 @@ public class PythonVariable implements PythonValue {
         this.value = value;
     }
 
+    public PythonVariable(AbstractPythonStatement source) {
+        this.localName = source.getName();
+        this.sourceLocation = source;
+    }
+
+    public PythonVariable(String localName, AbstractPythonStatement source) {
+        this.localName = localName;
+        this.sourceLocation = source;
+    }
+
     public boolean isType(@Nonnull Class<?> valueType) {
         return value != null && valueType.isAssignableFrom(value.getClass());
     }

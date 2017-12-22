@@ -11,6 +11,7 @@ public abstract class PythonUnaryExpression implements PythonExpression {
 
     List<PythonValue> subjects = list();
     AbstractPythonStatement sourceLocation;
+    int indentationLevel = 0;
 
     public void addSubject(PythonValue subject) {
         this.subjects.add(subject);
@@ -68,5 +69,15 @@ public abstract class PythonUnaryExpression implements PythonExpression {
     @Override
     public AbstractPythonStatement getSourceLocation() {
         return sourceLocation;
+    }
+
+    @Override
+    public int getScopingIndentation() {
+        return indentationLevel;
+    }
+
+    @Override
+    public void setScopingIndentation(int indentation) {
+        indentationLevel = indentation;
     }
 }

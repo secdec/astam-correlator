@@ -11,14 +11,19 @@ import java.util.List;
 public abstract class AbstractDjangoApi implements DjangoApi {
 
     protected void tryAddScopes(PythonCodeCollection codebase, AbstractPythonStatement baseScope) {
-        AbstractPythonStatement targetScope = codebase.findByFullName(baseScope.getFullName());
+        AbstractPythonStatement rootScope = baseScope;
+        while (rootScope.getParentStatement() != null) {
+            rootScope = rootScope.getParentStatement();
+        }
+
+        AbstractPythonStatement targetScope = codebase.findByFullName(rootScope.getFullName());
         if (targetScope == null) {
-            codebase.add(baseScope);
-            targetScope = baseScope;
+            codebase.add(rootScope);
+            targetScope = rootScope;
         }
 
         //  Make a copy to avoid concurrent access
-        List<AbstractPythonStatement> children = new ArrayList<AbstractPythonStatement>(baseScope.getChildStatements());
+        List<AbstractPythonStatement> children = new ArrayList<AbstractPythonStatement>(rootScope.getChildStatements());
         for (AbstractPythonStatement child : children) {
             child.setParentStatement(targetScope);
             tryAddScopeTree(codebase, child, targetScope);

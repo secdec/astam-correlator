@@ -29,7 +29,9 @@ public class MemberInterpreter implements ExpressionInterpreter {
                     break;
                 }
                 if (!currentObject.hasMemberValue(member)) {
-                    return new PythonIndeterminateValue();
+                    PythonVariable newVar = new PythonVariable(member, (PythonValue)null);
+                    currentObject.setMemberValue(member, newVar);
+                    selectedValue = newVar;
                 } else {
                     selectedValue = currentObject.getMemberValue(member);
                     if (selectedValue instanceof PythonObject) {
@@ -66,7 +68,14 @@ public class MemberInterpreter implements ExpressionInterpreter {
             }
 
             if (numSkippedPaths == memberPath.size()) {
-                return currentValue;
+                //  It may be an absolute reference
+                if (currentValue != null) {
+                    return currentValue;
+                } else if ( currentStatement != null) {
+                    PythonVariable result = new PythonVariable(currentStatement.getFullName());
+                    result.resolveSourceLocation(currentStatement);
+                    return result;
+                }
             }
 
             if (currentStatement == null) {
@@ -80,9 +89,10 @@ public class MemberInterpreter implements ExpressionInterpreter {
                     PythonObject asObject = (PythonObject)currentValue;
 
                     PythonVariable currentMemberVar = null;
-                    for (String part : remainingParts) {
+                    for (int i = 0; i < remainingParts.size(); i++) {
+                        String part = remainingParts.get(i);
                         currentMemberVar = asObject.getMemberVariable(part);
-                        if (!currentMemberVar.isType(PythonObject.class)) {
+                        if (currentMemberVar == null || (!currentMemberVar.isType(PythonObject.class) && i != remainingParts.size() - 1)) {
                             currentMemberVar = null;
                             asObject = null;
                             break;

@@ -209,6 +209,9 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         LOG.info("Executing module-level code...");
         interpreter = new PythonInterpreter(codebase);
+
+        DjangoApiConfigurator.applyRuntime(interpreter);
+
         runInterpreterOnNonDeclarations(codebase, interpreter);
 
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();

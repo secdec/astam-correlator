@@ -88,6 +88,19 @@ public class PythonObject implements PythonValue {
         targetVar.setValue(value);
     }
 
+    public void setMemberValue(String name, AbstractPythonStatement source) {
+        PythonVariable targetVar;
+        if (memberMap.containsKey(name)) {
+            targetVar = memberMap.get(name);
+        } else {
+            targetVar = new PythonVariable(name);
+            targetVar.setOwner(this);
+            memberMap.put(name, targetVar);
+        }
+
+        targetVar.resolveSourceLocation(source);
+    }
+
     public PythonVariable getMemberVariable(String name) {
         if (memberMap.containsKey(name)) {
             return memberMap.get(name);

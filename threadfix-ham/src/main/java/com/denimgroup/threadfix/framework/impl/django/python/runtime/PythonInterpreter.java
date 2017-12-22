@@ -6,8 +6,10 @@ import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionPar
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
 import com.denimgroup.threadfix.framework.util.CondensedLinesMap;
 import com.denimgroup.threadfix.framework.util.FileReadUtils;
+import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -15,9 +17,19 @@ import java.util.List;
 
 public class PythonInterpreter {
 
+
+    private static final SanitizedLogger LOG = new SanitizedLogger(PythonInterpreter.class);
+
+
     ExecutionContext executionContext;
     PythonExpressionParser expressionParser;
     PythonValueBuilder valueBuilder = new PythonValueBuilder();
+
+    int maxStackDepth = 15;
+
+    //  Whether or not the interpreter should run raised scopes (ie 'if' statements within
+    //      some logic)
+    boolean enableInnerScopes = false;
 
     public PythonInterpreter(PythonCodeCollection codebase) {
         executionContext = new ExecutionContext(codebase);
@@ -51,6 +63,16 @@ public class PythonInterpreter {
             current = current.parentContext;
         }
         return current;
+    }
+
+
+
+    public void setMaxStackDepth(int maxStackDepth) {
+        this.maxStackDepth = maxStackDepth;
+    }
+
+    public int getMaxStackDepth() {
+        return maxStackDepth;
     }
 
 
@@ -113,21 +135,21 @@ public class PythonInterpreter {
                 selfValue != this.executionContext.selfValue ||
                         scope != this.executionContext.scope;
 
-            if (usesNewContext) {
-                pushExecutionContext(scope, selfValue);
-            }
+        if (usesNewContext) {
+            pushExecutionContext(scope, selfValue);
+        }
 
-            PythonValue result = run(expression, this.executionContext);
+        PythonValue result = run(expression, this.executionContext);
 
-            if (usesNewContext) {
-                popExecutionContext();
-            }
+        if (usesNewContext) {
+            popExecutionContext();
+        }
 
-            if (result != null) {
-                return result;
-            } else {
-                return new PythonIndeterminateValue();
-            }
+        if (result != null) {
+            return result;
+        } else {
+            return new PythonIndeterminateValue();
+        }
     }
 
     public PythonValue run(@Nonnull PythonExpression expression, ExecutionContext executionContext) {
@@ -137,7 +159,20 @@ public class PythonInterpreter {
             executionContext = this.executionContext;
         }
 
-          ExpressionInterpreter interpreter = expression.makeInterpreter();
+        int currentStackDepth = executionContext.getStackDepth();
+        if (currentStackDepth >= getMaxStackDepth()) {
+            LOG.warn("Execution context stack size '" + currentStackDepth +
+                    "' exceeded the maximum support size '" + getMaxStackDepth() +
+                    "', prematurely terminating current expression: " +
+                    expression.toString());
+            return new PythonIndeterminateValue();
+        }
+
+        if (expression.getScopingIndentation() > executionContext.getPrimaryScopeLevel()) {
+            return new PythonIndeterminateValue();
+        }
+
+        ExpressionInterpreter interpreter = expression.makeInterpreter();
         if (interpreter == null) {
             return new PythonIndeterminateValue();
         } else {
@@ -175,7 +210,7 @@ public class PythonInterpreter {
 
         for (PythonValue subValue : dependencies) {
             if (subValue instanceof PythonExpression) {
-                PythonValue resolvedValue = run((PythonExpression) subValue, scope);
+                PythonValue resolvedValue = run((PythonExpression) subValue, scope, executionContext.getSelfValue());
                 expression.resolveSubValue(subValue, resolvedValue);
             } else if (subValue instanceof PythonVariable) {
                 PythonVariable asVariable = (PythonVariable)subValue;
@@ -203,7 +238,7 @@ public class PythonInterpreter {
                     if (resolvedValue instanceof PythonExpression) {
                         PythonExpression variableExpression = (PythonExpression) resolvedValue;
                         resolvedValue = run(variableExpression, scope);
-                    } else if (resolvedValue instanceof PythonVariable) {
+                    } else if (resolvedValue instanceof PythonVariable && ((PythonVariable) resolvedValue).getValue() != null) {
                         resolvedValue = ((PythonVariable) resolvedValue).getValue();
                     }
                 }
@@ -221,21 +256,30 @@ public class PythonInterpreter {
 
 
 
-    private void pushExecutionContext(AbstractPythonStatement scope, PythonValue selfValue) {
+    public void pushExecutionContext(AbstractPythonStatement scope, PythonValue selfValue) {
         ExecutionContext newContext = new ExecutionContext(this.executionContext.codebase, selfValue, scope);
+        if (scope != null) {
+            //  For functions, current scope should be set to the indentation of the function's body
+            if (scope instanceof PythonFunction && scope.getChildStatements().size() > 0) {
+                newContext.setPrimaryScopeLevel(scope.getChildStatements().get(0).getIndentationLevel());
+            } else {
+                newContext.setPrimaryScopeLevel(scope.getIndentationLevel());
+            }
+        }
         newContext.parentContext = this.executionContext;
         this.executionContext = newContext;
     }
 
-    private void pushExecutionContext(ExecutionContext executionContext) {
-        executionContext.parentContext = this.executionContext;
-        this.executionContext = executionContext;
+    public void pushExecutionContext(ExecutionContext executionContext) {
+        if (this.executionContext != executionContext) {
+            executionContext.parentContext = this.executionContext;
+            this.executionContext = executionContext;
+        }
     }
 
-    private void popExecutionContext() {
-        ExecutionContext parentContext = this.executionContext.parentContext;
-        if (parentContext != null) {
-            this.executionContext = parentContext;
+    public void popExecutionContext() {
+        if (this.executionContext != null && this.executionContext.parentContext != null) {
+            this.executionContext = this.executionContext.parentContext;
         }
     }
 

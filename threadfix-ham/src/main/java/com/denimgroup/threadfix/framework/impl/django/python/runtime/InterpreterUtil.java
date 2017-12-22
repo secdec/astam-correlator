@@ -150,4 +150,21 @@ public class InterpreterUtil {
         }
     }
 
+
+
+    public static int countSpacingLevel(String code) {
+        int spacing = 0;
+        for (int i = 0; i < code.length(); i++) {
+            char c = code.charAt(i);
+            if (c == ' ') {
+                spacing++;
+            } else if (c == '\t') {
+                spacing += 4;
+            } else if (c != '\n') {
+                break;
+            }
+        }
+        return spacing;
+    }
+
 }

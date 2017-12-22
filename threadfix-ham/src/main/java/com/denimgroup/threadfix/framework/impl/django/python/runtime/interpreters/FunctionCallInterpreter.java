@@ -57,6 +57,11 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
             PythonFunction initFunction = sourceClass.findChild("__init__", PythonFunction.class);
             if (initFunction != null) {
                 ExecutionContext invokeContext = new ExecutionContext(codebase, newObject, initFunction);
+                int scopeLevel = initFunction.getIndentationLevel();
+                if (initFunction.getChildStatements().size() > 0) {
+                    scopeLevel = initFunction.getChildStatements().get(0).getIndentationLevel();
+                }
+                invokeContext.setPrimaryScopeLevel(scopeLevel);
                 invokeFunction(host, initFunction, callExpression.getParameters(), invokeContext);
             }
 
@@ -81,11 +86,22 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
                             invokeSelfValue = owner;
                         }
                     }
+                } else if (subjectAsVariable.getOwner() != null) {
+                    PythonValue owner = subjectAsVariable.getOwner();
+                    if (owner instanceof PythonObject) {
+                        invokeSelfValue = owner;
+                    }
                 }
             }
 
             PythonCodeCollection codebase = executionContext.getCodebase();
             invokeContext = new ExecutionContext(codebase, invokeSelfValue, sourceFunction);
+            int indentationScope = sourceFunction.getIndentationLevel();
+            if (sourceFunction.getChildStatements().size() > 0) {
+                indentationScope = sourceFunction.getChildStatements().get(0).getIndentationLevel();
+            }
+
+            invokeContext.setPrimaryScopeLevel(indentationScope);
 
             PythonValue result = null;
             result = invokeFunction(host, sourceFunction, callExpression.getParameters(), invokeContext);
@@ -102,11 +118,15 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
         }
     }
 
-    List<PythonValue> reorderParameters(PythonFunction targetFunction, List<PythonValue> enumeratedParameters) {
+    private List<PythonValue> reorderParameters(PythonFunction targetFunction, List<PythonValue> enumeratedParameters) {
+
+        if (targetFunction.getParams().size() == 0) {
+            return enumeratedParameters;
+        }
+
         Map<String, PythonValue> mappedParams = map();
         List<String> functionParams = targetFunction.getParams();
 
-        //  Ordered parameters
         for (PythonValue param : enumeratedParameters) {
             if (!(param instanceof PythonVariable)) {
                 String paramName = functionParams.get(mappedParams.size());
@@ -134,12 +154,12 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
         parameters = reorderParameters(function, parameters);
         PythonValue result = null;
 
-        if (function.canInvoke()) {
+        interpreter.pushExecutionContext(newContext);
 
-            String functionResult = function.invoke(newContext.getCodebase(), newContext.getScope(), null, null);
-            if (functionResult != null) {
-                result = interpreter.run(functionResult);
-            }
+        if (function.canInvoke()) {
+            PythonValue[] paramsArray = new PythonValue[parameters.size()];
+            paramsArray = parameters.toArray(paramsArray);
+            result = function.invoke(interpreter, newContext.getScope(), paramsArray);
 
         } else {
 
@@ -148,6 +168,10 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
             List<String> paramNames = function.getParams();
             for (int i = 0; i < parameters.size() && i < paramNames.size(); i++) {
                 String name = paramNames.get(i);
+                if (name.equals("self")) {
+                    continue;
+                }
+
                 PythonValue paramValue = parameters.get(i);
 
                 newContext.assignSymbolValue(name, paramValue);
@@ -156,9 +180,13 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
             result = interpreter.run(
                     new File(function.getSourceCodePath()),
                     function.getSourceCodeStartLine(),
-                    function.getSourceCodeEndLine()
+                    function.getSourceCodeEndLine(),
+                    newContext.getScope(),
+                    newContext.getSelfValue()
             );
         }
+
+        interpreter.popExecutionContext();
 
         return result;
     }

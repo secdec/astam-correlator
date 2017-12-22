@@ -19,6 +19,7 @@ public class ExecutionContext {
     PythonValue selfValue;
     AbstractPythonStatement scope;
     ExecutionContext parentContext = null;
+    int primaryScopeLevel = 0;
 
     public ExecutionContext(PythonCodeCollection codebase) {
         this.codebase = codebase;
@@ -62,6 +63,27 @@ public class ExecutionContext {
 
     public void setParentContext(ExecutionContext parentContext) {
         this.parentContext = parentContext;
+    }
+
+    public int getStackDepth() {
+        int i = 0;
+        ExecutionContext current = this;
+        while (current != null) {
+            i++;
+            current = current.parentContext;
+        }
+        return i;
+    }
+
+    public void setPrimaryScopeLevel(int primaryScopeLevel) {
+        this.primaryScopeLevel = primaryScopeLevel;
+        if (this.primaryScopeLevel < 0) {
+            this.primaryScopeLevel = 0;
+        }
+    }
+
+    public int getPrimaryScopeLevel() {
+        return primaryScopeLevel;
     }
 
     public PythonValue resolveSymbol(String symbolName) {
@@ -236,7 +258,9 @@ public class ExecutionContext {
     }
 
     private PythonValue findSymbol(String fullSymbolName) {
-        if (workingMemory.containsKey(fullSymbolName)) {
+        if (fullSymbolName.endsWith("self") || fullSymbolName.endsWith(".self")) {
+           return selfValue;
+        } if (workingMemory.containsKey(fullSymbolName)) {
             return workingMemory.get(fullSymbolName);
         } else if (parentContext != null) {
             return parentContext.findSymbol(fullSymbolName);

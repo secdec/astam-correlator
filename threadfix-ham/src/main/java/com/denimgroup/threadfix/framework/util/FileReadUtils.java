@@ -129,7 +129,7 @@ public class FileReadUtils {
 
                 currentLineEntries.add(newEntry);
 
-                if (!scopeTracker.isInScopeOrString() && !scopeTracker.isInString()) {
+                if (!scopeTracker.isInScopeOrString() && !scopeTracker.isInString() && !scopeTracker.isNextEscaped()) {
                     result.addCondensedLine(workingLine.toString(), currentLineEntries);
                     currentLineEntries.clear();
                     workingLine = new StringBuilder();

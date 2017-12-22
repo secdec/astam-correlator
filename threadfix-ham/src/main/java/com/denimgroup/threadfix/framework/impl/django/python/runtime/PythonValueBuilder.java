@@ -10,6 +10,7 @@ public class PythonValueBuilder {
 
     private enum ValueType {
         ARRAY,
+        SET,
         TUPLE,
         IMPLICIT_TUPLE,
         MAP,
@@ -38,6 +39,7 @@ public class PythonValueBuilder {
         switch (valueType) {
             case TUPLE:
             case IMPLICIT_TUPLE:
+            case SET:
             case ARRAY:
                 PythonArray arrayResult;
                 if (valueType == ValueType.ARRAY) {
@@ -46,6 +48,9 @@ public class PythonValueBuilder {
                 } else if (valueType == ValueType.TUPLE) {
                     arrayResult = new PythonTuple();
                     symbols = CodeParseUtil.trim(symbols, new String[] { "(", ")" }, 1);
+                } else if (valueType == ValueType.SET) {
+                    arrayResult = new PythonSet();
+                    symbols = CodeParseUtil.trim(symbols, new String[] { "{", "}" });
                 } else {
                     // IMPLICIT_TUPLE
                     arrayResult = new PythonTuple();
@@ -168,7 +173,7 @@ public class PythonValueBuilder {
                             possibleType = ValueType.TUPLE;
                             break;
                         case '{':
-                            possibleType = ValueType.MAP;
+                            possibleType = ValueType.SET;
                             break;
                     }
                 } else {
@@ -183,9 +188,11 @@ public class PythonValueBuilder {
                                 possibleType = ValueType.UNKNOWN;
                             }
                             break;
-                        case MAP:
+                        case SET:
                             if (scopeTracker.getNumOpenBrace() == 0 && i != symbols.length() - 1) {
                                 possibleType = ValueType.UNKNOWN;
+                            } else if (!scopeTracker.isInString() && c == ':') {
+                                possibleType = ValueType.MAP;
                             }
                             break;
                     }
