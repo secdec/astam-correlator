@@ -135,6 +135,10 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
         }
     }
 
+    private void invokeConstructors(PythonObject object) {
+
+    }
+
     private List<PythonValue> reorderParameters(List<String> paramNames, List<PythonValue> enumeratedParameters) {
 
         if (paramNames.size() == 0) {

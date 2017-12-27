@@ -4,14 +4,11 @@ import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.*;
 import com.denimgroup.threadfix.framework.impl.django.python.*;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
-import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 
-import java.io.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class DjangoAdminApi extends AbstractDjangoApi {
@@ -27,7 +24,7 @@ public class DjangoAdminApi extends AbstractDjangoApi {
         attachModelAdmin(admin);
         attachAdminSite(admin);
         attachGlobalSite(admin);
-        attachFunctions(admin);
+        attachSiteFunctions(admin);
 
         AbstractPythonStatement result = getRootScope(admin);
         tryAddScopes(codebase, result);
@@ -112,8 +109,14 @@ public class DjangoAdminApi extends AbstractDjangoApi {
     }
 
     private void attachModelAdmin(AbstractPythonStatement target) {
-        PythonClass modelAdmin = new PythonClass();
-        modelAdmin.setName("ModelAdmin");
+        ModelAdminClass modelAdmin = new ModelAdminClass();
+
+        ModelAdminInit modelInit = new ModelAdminInit();
+        ModelAdminAdminSiteVariable siteVariable = new ModelAdminAdminSiteVariable();
+
+        modelAdmin.addChildStatement(modelInit);
+        modelAdmin.addChildStatement(siteVariable);
+
         target.addChildStatement(modelAdmin);
     }
 
@@ -136,7 +139,7 @@ public class DjangoAdminApi extends AbstractDjangoApi {
         target.addChildStatement(site);
     }
 
-    private void attachFunctions(AbstractPythonStatement target) {
+    private void attachSiteFunctions(AbstractPythonStatement target) {
         AdminSiteAdminViewFunction adminViewFunction = new AdminSiteAdminViewFunction();
         target.addChildStatement(adminViewFunction);
     }

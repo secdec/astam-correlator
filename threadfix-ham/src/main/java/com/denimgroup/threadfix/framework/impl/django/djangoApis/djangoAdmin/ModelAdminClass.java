@@ -1,16 +1,17 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin;
 
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonPublicVariable;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
 
-public class AdminSiteUrlsVariable extends PythonPublicVariable {
+public class ModelAdminClass extends PythonClass {
+
     @Override
     public String getName() {
-        return "urls";
+        return "ModelAdmin";
     }
 
     @Override
     public AbstractPythonStatement clone() {
-        return baseCloneTo(new AdminSiteUrlsVariable());
+        return baseCloneTo(new ModelAdminClass());
     }
 }

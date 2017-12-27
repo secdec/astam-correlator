@@ -4,7 +4,9 @@ import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollectio
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.MemberExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonModule;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonPublicVariable;
 
 import java.util.List;
 
@@ -34,9 +36,23 @@ public class MemberInterpreter implements ExpressionInterpreter {
                     break;
                 }
                 if (!currentObject.hasMemberValue(member)) {
-                    AbstractPythonStatement memberSource = codebase.resolveLocalSymbol(member, lastSource);
                     PythonVariable newVar = new PythonVariable(member, (PythonValue)null);
+                    PythonObject nextObject = null;
+
+                    AbstractPythonStatement memberSource = codebase.resolveLocalSymbol(member, lastSource);
+                    if (memberSource != null) {
+                        if (memberSource instanceof PythonPublicVariable) {
+                            PythonPublicVariable asSchemaVar = (PythonPublicVariable)memberSource;
+                            newVar.resolveSourceLocation(memberSource);
+                            if (asSchemaVar.getResolvedTypeClass() != null) {
+                                nextObject = new PythonObject(asSchemaVar.getResolvedTypeClass(), member);
+                                newVar.setValue(nextObject);
+                            }
+                        }
+                    }
+
                     currentObject.setMemberValue(member, newVar);
+                    currentObject = nextObject;
                     selectedValue = newVar;
                 } else {
                     selectedValue = currentObject.getMemberValue(member);
