@@ -6,6 +6,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionPar
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
 import com.denimgroup.threadfix.framework.util.CondensedLinesMap;
 import com.denimgroup.threadfix.framework.util.FileReadUtils;
@@ -121,8 +122,8 @@ public class PythonInterpreter {
     }
 
     public PythonValue run(@Nonnull File targetFile, int startLine, int endLine, AbstractPythonStatement scope, PythonValue selfValue) {
-        ExecutionContext tempContext = new ExecutionContext(executionContext.getCodebase(), selfValue, scope);
-        pushExecutionContext(tempContext);
+        pushExecutionContext(scope, selfValue);
+        ExecutionContext tempContext = getExecutionContext();
 
         CondensedLinesMap lines = FileReadUtils.readLinesCondensed(targetFile.getAbsolutePath(), startLine, endLine);
         PythonValue lastValue = null;
@@ -334,20 +335,14 @@ public class PythonInterpreter {
 
     public void pushExecutionContext(AbstractPythonStatement scope, PythonValue selfValue) {
         ExecutionContext newContext = new ExecutionContext(this.executionContext.getCodebase(), selfValue, scope);
-        if (scope != null) {
-            //  For functions, current scope should be set to the indentation of the function's body
-            if (scope instanceof PythonFunction && scope.getChildStatements().size() > 0) {
-                newContext.setPrimaryScopeLevel(scope.getChildStatements().get(0).getIndentationLevel());
-            } else {
-                newContext.setPrimaryScopeLevel(scope.getIndentationLevel());
-            }
-        }
+        updatePrimaryScopeLevel(scope, newContext);
         newContext.setParentContext(this.executionContext);
         this.executionContext = newContext;
     }
 
     public void pushExecutionContext(ExecutionContext executionContext) {
         if (this.executionContext != executionContext) {
+            updatePrimaryScopeLevel(executionContext.getScope(), executionContext);
             executionContext.setParentContext(this.executionContext);
             this.executionContext = executionContext;
         }
@@ -356,6 +351,19 @@ public class PythonInterpreter {
     public void popExecutionContext() {
         if (this.executionContext != null && this.executionContext.getParentContext() != null) {
             this.executionContext = this.executionContext.getParentContext();
+        }
+    }
+
+    private void updatePrimaryScopeLevel(AbstractPythonStatement newScope, ExecutionContext newContext) {
+        if (newScope == null || newContext == null) {
+            return;
+        }
+
+        //  For functions and classes, current scope should be set to the indentation of the function's body
+        if ((newScope instanceof PythonFunction || newScope instanceof PythonClass) && newScope.getChildStatements().size() > 0) {
+            newContext.setPrimaryScopeLevel(newScope.getChildStatements().get(0).getIndentationLevel());
+        } else {
+            newContext.setPrimaryScopeLevel(newScope.getIndentationLevel());
         }
     }
 

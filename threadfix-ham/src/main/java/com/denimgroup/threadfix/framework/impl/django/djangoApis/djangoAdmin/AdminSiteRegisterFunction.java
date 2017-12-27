@@ -98,7 +98,13 @@ public class AdminSiteRegisterFunction extends PythonFunction {
         if (controllerDecl != null) {
             PythonFunction getUrlsFunction = controllerDecl.findChild("get_urls", PythonFunction.class);
             if (getUrlsFunction != null) {
-                PythonValue controllerInstance = host.run(controllerDecl.getFullName() + "()", controllerDecl);
+                StringBuilder constructorCall = new StringBuilder();
+                constructorCall.append(controllerDecl.getFullName());
+                constructorCall.append("(");
+                constructorCall.append(modelDecl.getFullName());
+                constructorCall.append(")");
+
+                PythonValue controllerInstance = host.run(constructorCall.toString(), controllerDecl);
                 PythonValue subUrls = host.run(
                         new File(getUrlsFunction.getSourceCodePath()),
                         getUrlsFunction.getSourceCodeStartLine(),

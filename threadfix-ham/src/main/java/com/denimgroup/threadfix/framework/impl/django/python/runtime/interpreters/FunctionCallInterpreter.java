@@ -7,6 +7,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions
 import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,7 +32,7 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
             statement = executionContext.findSymbolDeclaration(functionName);
         }
 
-        if (statement == null) {
+        if (statement == null && (functionName == null || !functionName.equals("super"))) {
             return new PythonIndeterminateValue();
         }
 
@@ -44,8 +45,8 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
             for (PythonPublicVariable exposedVars : sourceClass.findChildren(PythonPublicVariable.class)) {
                 PythonValue initialValue = host.run(
                         new File(exposedVars.getSourceCodePath()),
-                        exposedVars.getSourceCodeStartLine(),
-                        exposedVars.getSourceCodeEndLine(),
+                        exposedVars.getSourceCodeStartLine() - 1,
+                        exposedVars.getSourceCodeEndLine() - 1,
                         statement,
                         newObject
                 );
@@ -53,16 +54,7 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
                 newObject.setMemberValue(exposedVars.getName(), initialValue);
             }
 
-            PythonFunction initFunction = sourceClass.findChild("__init__", PythonFunction.class);
-            if (initFunction != null) {
-                ExecutionContext invokeContext = new ExecutionContext(codebase, newObject, initFunction);
-                int scopeLevel = initFunction.getIndentationLevel();
-                if (initFunction.getChildStatements().size() > 0) {
-                    scopeLevel = initFunction.getChildStatements().get(0).getIndentationLevel();
-                }
-                invokeContext.setPrimaryScopeLevel(scopeLevel);
-                invokeFunction(host, initFunction, callExpression.getParameters(), invokeContext);
-            }
+            invokeConstructors(newObject, sourceClass, callExpression.getParameters(), host);
 
             return newObject;
 
@@ -111,6 +103,7 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
                 return result;
             }
         } else if (statement instanceof PythonLambda) {
+
             PythonLambda sourceLambda = (PythonLambda)statement;
             String lambdaBody = sourceLambda.getFunctionBody();
 
@@ -135,8 +128,42 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
         }
     }
 
-    private void invokeConstructors(PythonObject object) {
+    private void invokeConstructors(PythonObject object, PythonClass sourceClass, List<PythonValue> params, PythonInterpreter host) {
+        PythonCodeCollection codebase = host.getExecutionContext().getCodebase();
+        PythonFunction initFunction = sourceClass.findChild("__init__", PythonFunction.class);
+        List<PythonClass> baseTypes = findBaseTypes(sourceClass, codebase);
+        if (initFunction == null) {
+            for (PythonClass type : baseTypes) {
+                initFunction = type.findChild("__init__", PythonFunction.class);
+                if (initFunction != null) {
+                    break;
+                }
+            }
+        }
 
+        if (initFunction != null) {
+            ExecutionContext invokeContext = new ExecutionContext(codebase, object, initFunction);
+            int scopeLevel = initFunction.getIndentationLevel();
+            if (initFunction.getChildStatements().size() > 0) {
+                scopeLevel = initFunction.getChildStatements().get(0).getIndentationLevel();
+            }
+            invokeContext.setPrimaryScopeLevel(scopeLevel);
+            invokeFunction(host, initFunction, params, invokeContext);
+        }
+    }
+
+    private List<PythonClass> findBaseTypes(PythonClass pyClass, PythonCodeCollection codebase) {
+        List<PythonClass> baseTypes = list();
+
+        for (String baseTypeName : pyClass.getBaseTypes()) {
+            PythonClass baseType = codebase.resolveLocalSymbol(baseTypeName, pyClass, PythonClass.class);
+            if (baseType != null) {
+                baseTypes.add(baseType);
+                baseTypes.addAll(findBaseTypes(baseType, codebase));
+            }
+        }
+
+        return baseTypes;
     }
 
     private List<PythonValue> reorderParameters(List<String> paramNames, List<PythonValue> enumeratedParameters) {
