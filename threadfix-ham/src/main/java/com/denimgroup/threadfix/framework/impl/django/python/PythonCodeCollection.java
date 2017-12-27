@@ -175,7 +175,7 @@ public class PythonCodeCollection {
         variableDeclarations = this.getPublicVariables(); // use updated list of non-pruned variables
         for (PythonPublicVariable var : variableDeclarations) {
             String value = var.getValueString();
-            if (value.contains("(")) {
+            if (value != null && value.contains("(")) {
                 String methodName = value.substring(0, value.indexOf('('));
                 PythonClass type = resolveLocalSymbol(methodName, var, PythonClass.class);
                 if (type != null) {

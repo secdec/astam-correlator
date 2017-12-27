@@ -1,9 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
-import com.denimgroup.threadfix.framework.impl.django.python.Language;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 import org.apache.commons.lang3.StringUtils;
 
@@ -14,12 +12,12 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class ExecutionContext {
 
-    PythonCodeCollection codebase;
-    Map<String, PythonValue> workingMemory = map();
-    PythonValue selfValue;
-    AbstractPythonStatement scope;
-    ExecutionContext parentContext = null;
-    int primaryScopeLevel = 0;
+    private PythonCodeCollection codebase;
+    private Map<String, PythonValue> workingMemory = map();
+    private PythonValue selfValue;
+    private AbstractPythonStatement scope;
+    private ExecutionContext parentContext = null;
+    private int primaryScopeLevel = 0;
 
     public ExecutionContext(PythonCodeCollection codebase) {
         this.codebase = codebase;
@@ -32,7 +30,7 @@ public class ExecutionContext {
 
     public ExecutionContext(PythonCodeCollection codebase, PythonValue selfValue, AbstractPythonStatement scope) {
         this.codebase = codebase;
-        this.scope = scope;
+        setScope(scope);
         setSelfValue(selfValue);
     }
 
@@ -55,6 +53,13 @@ public class ExecutionContext {
 
     public void setScope(AbstractPythonStatement scope) {
         this.scope = scope;
+        if (scope != null) {
+            if (scope instanceof PythonFunction && scope.getChildStatements().size() > 0) {
+                setPrimaryScopeLevel(scope.getChildStatements().get(0).getIndentationLevel());
+            } else {
+                setPrimaryScopeLevel(scope.getIndentationLevel());
+            }
+        }
     }
 
     public ExecutionContext getParentContext() {
@@ -63,6 +68,7 @@ public class ExecutionContext {
 
     public void setParentContext(ExecutionContext parentContext) {
         this.parentContext = parentContext;
+        detectCircularChain();
     }
 
     public int getStackDepth() {
@@ -98,19 +104,53 @@ public class ExecutionContext {
         return findSymbol(symbolName);
     }
 
+    /**
+     * Resolves a PythonVariable to its contained value if its value is not null.
+     * @param value
+     * @return
+     */
+    public PythonValue resolveAbsoluteValue(PythonValue value) {
+        return resolveValue(value, true);
+    }
+
+
+    /**
+     * Resolves a PythonVariable to its contained value if its value is not null. This
+     * will resolve to the inner-most PythonVariable if the final variable does not have
+     * a value and has a source location.
+     * @param value
+     * @return
+     */
     public PythonValue resolveValue(PythonValue value) {
+        return resolveValue(value, false);
+    }
+
+    private PythonValue resolveValue(PythonValue value, boolean resolveAbsolute) {
         if (value instanceof PythonVariable) {
             PythonVariable asVariable = (PythonVariable)value;
             PythonValue result = asVariable.getValue();
-            if (result == null && workingMemory.containsKey(asVariable.getLocalName())) {
-                return resolveValue(workingMemory.get(asVariable.getLocalName()));
+            if (result == null) {
+                if (workingMemory.containsKey(asVariable.getLocalName())) {
+                    PythonValue existingVariable = workingMemory.get(asVariable.getLocalName());
+                    if (existingVariable == value) {
+                        return value;
+                    } else {
+                        return resolveValue(workingMemory.get(asVariable.getLocalName()), resolveAbsolute);
+                    }
+                } else if (asVariable.getSourceLocation() != null && !resolveAbsolute) {
+                    return value;
+                } else {
+                    return null;
+                }
             } else {
-                return result;
+                return resolveValue(result, resolveAbsolute);
             }
         } else {
             return value;
         }
     }
+
+
 
     public AbstractPythonStatement findSymbolDeclaration(String symbol) {
         if (symbol == null || codebase == null || scope == null) {
@@ -142,7 +182,7 @@ public class ExecutionContext {
         Map<String, PythonValue> valueMap = null;
         ExecutionContext currentContext = this;
         PythonValue currentValue = null;
-        while (currentContext!= null) {
+        while (currentContext != null) {
             if (currentContext.workingMemory.containsKey(symbolName)) {
                 valueMap = currentContext.workingMemory;
                 currentValue = valueMap.get(symbolName);
@@ -159,9 +199,9 @@ public class ExecutionContext {
             if (currentValue != null && (currentValue instanceof PythonVariable)) {
                 ((PythonVariable) currentValue).setValue(newValue);
             } else if (valueMap.containsKey(symbolName)) {
-                valueMap.put(symbolName, newValue);
+                valueMap.put(symbolName, resolveAbsoluteValue(newValue));
             } else {
-                valueMap.put(symbolName, new PythonVariable(symbolName, newValue));
+                valueMap.put(symbolName, new PythonVariable(symbolName, resolveAbsoluteValue(newValue)));
             }
         } else if (valueMap.containsKey(symbolName)) {
             valueMap.remove(symbolName);
@@ -184,7 +224,7 @@ public class ExecutionContext {
                 super.visitModule(pyModule);
 
                 for (AbstractPythonStatement child : pyModule.getChildStatements(PythonPublicVariable.class, PythonVariableModification.class)) {
-                     String fullSymbol = null;
+                    String fullSymbol = null;
                     String assignedValue = null;
 
                     if (child instanceof PythonPublicVariable) {
@@ -257,15 +297,84 @@ public class ExecutionContext {
         });
     }
 
+    public void loadClassMembers() {
+        final ExecutionContext ctx = this;
+        codebase.traverse(new AbstractPythonVisitor() {
+            @Override
+            public void visitClass(PythonClass pyClass) {
+                super.visitClass(pyClass);
+
+
+            }
+        });
+    }
+
     private PythonValue findSymbol(String fullSymbolName) {
         if (fullSymbolName.endsWith("self") || fullSymbolName.endsWith(".self")) {
-           return selfValue;
-        } if (workingMemory.containsKey(fullSymbolName)) {
+            return selfValue;
+        }
+        if (workingMemory.containsKey(fullSymbolName)) {
             return workingMemory.get(fullSymbolName);
-        } else if (parentContext != null) {
-            return parentContext.findSymbol(fullSymbolName);
         } else {
-            return null;
+            PythonValue subPathValue = findSymbolAsSubPath(fullSymbolName);
+            if (subPathValue != null) {
+                return subPathValue;
+            } else if (parentContext != null) {
+                return parentContext.findSymbol(fullSymbolName);
+            } else {
+                return null;
+            }
+        }
+    }
+
+    private PythonValue findSymbolAsSubPath(String fullSymbolName) {
+        String[] symbolPath = StringUtils.split(fullSymbolName, '.');
+
+        PythonValue result = null;
+
+        StringBuilder subPath = new StringBuilder();
+        for (String path : symbolPath) {
+            if (subPath.length() > 0) {
+                subPath.append('.');
+            }
+
+            subPath.append(path);
+            String workingPath = subPath.toString();
+            if (workingMemory.containsKey(workingPath)) {
+                result = workingMemory.get(workingPath);
+            } else {
+                break;
+            }
+        }
+
+        String remainingPath = fullSymbolName.replace(subPath.toString(), "");
+
+        if (remainingPath.length() > 0 && result != null && (result = resolveAbsoluteValue(result)) != null) {
+            if (remainingPath.startsWith(".")) {
+                remainingPath = remainingPath.substring(1);
+            }
+
+            //  Can only resolve member
+            if (!(result instanceof PythonObject)) {
+
+                int numMatched = StringUtils.countMatches(remainingPath, ".");
+                for (int i = numMatched; i < symbolPath.length; i++) {
+                    String path = symbolPath[i];
+
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private void detectCircularChain() {
+        List<ExecutionContext> detectedContexts = list();
+        ExecutionContext current = this;
+        while (current != null) {
+            assert !detectedContexts.contains(current) : "Circular execution context chain detected!";
+            detectedContexts.add(current);
+            current = current.parentContext;
         }
     }
 }

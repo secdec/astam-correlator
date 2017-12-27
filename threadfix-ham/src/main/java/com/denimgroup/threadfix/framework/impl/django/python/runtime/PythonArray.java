@@ -34,20 +34,52 @@ public class PythonArray implements PythonValue {
         return entries;
     }
 
+    public List<PythonValue> getValues() {
+        List<PythonValue> values = new ArrayList<PythonValue>(getEntries().size());
+        for (PythonVariable entry : getEntries()) {
+            values.add(entry.getValue());
+        }
+        return values;
+    }
+
+    public <T extends PythonValue> List<T> getValues(Class<T> type) {
+        List<T> result = new ArrayList<T>();
+        for (PythonVariable entry : getEntries()) {
+            PythonValue value = entry.getValue();
+            if (value != null && type.isAssignableFrom(value.getClass())) {
+                result.add((T)value);
+            }
+        }
+        return result;
+    }
+
     public PythonVariable entryAt(int index) {
         return entries.get(index);
     }
 
     @Override
     public void resolveSubValue(PythonValue previousValue, PythonValue newValue) {
-        if (!entries.contains(previousValue)) {
-            return;
+        int previousValueIndex = -1;
+        PythonVariable existingVariable = null;
+        List<PythonVariable> entries = getEntries();
+        for (int i = 0; i < entries.size(); i++) {
+            PythonVariable entry = entries.get(i);
+            if ((entry.getValue() != null && entry.getValue() == previousValue) || entry == previousValue) {
+                previousValueIndex = i;
+                existingVariable = entry;
+                break;
+            }
         }
 
-        int index = entries.indexOf(previousValue);
-        entries.remove(index);
+        if (previousValueIndex < 0) {
+            return;
+        } else {
+            if (newValue instanceof PythonVariable) {
+                newValue = ((PythonVariable) newValue).getValue();
+            }
 
-        entries.add(index, makeVariable(newValue));
+            existingVariable.setValue(newValue);
+        }
     }
 
     @Override

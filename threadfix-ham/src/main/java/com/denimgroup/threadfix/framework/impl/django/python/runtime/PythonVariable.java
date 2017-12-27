@@ -9,10 +9,10 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class PythonVariable implements PythonValue {
 
-    String localName;
-    PythonValue value;
-    PythonValue owner;
-    AbstractPythonStatement sourceLocation;
+    private String localName;
+    private PythonValue value;
+    private PythonValue owner;
+    private AbstractPythonStatement sourceLocation;
 
     public PythonVariable() {
 
@@ -57,7 +57,23 @@ public class PythonVariable implements PythonValue {
         this.localName = localName;
     }
 
+    /**
+     * Assigns the given value to this variable, resolving the final value
+     * if it is a PythonVariable.
+     * @param value
+     */
     public void setValue(PythonValue value) {
+        this.value = value;
+        while (this.value instanceof PythonVariable) {
+            this.value = ((PythonVariable) this.value).getValue();
+        }
+    }
+
+    /**
+     * Assigns the given value to this variable as-is.
+     * @param value
+     */
+    public void setRawValue(PythonValue value) {
         this.value = value;
     }
 

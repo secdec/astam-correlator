@@ -3,12 +3,11 @@ package com.denimgroup.threadfix.framework.impl.django.python.runtime.interprete
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.FunctionCallExpression;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonPublicVariable;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -69,14 +68,14 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
 
         } else if (statement instanceof PythonFunction) {
 
-            PythonFunction sourceFunction = (PythonFunction)statement;
+            PythonFunction sourceFunction = (PythonFunction) statement;
 
             PythonValue invokeSelfValue = null;
             ExecutionContext invokeContext;
             if (subject instanceof PythonObject) {
                 invokeSelfValue = subject;
             } else if (subject instanceof PythonVariable) {
-                PythonVariable subjectAsVariable = (PythonVariable)subject;
+                PythonVariable subjectAsVariable = (PythonVariable) subject;
                 if (subjectAsVariable.getValue() != null) {
                     if (subjectAsVariable.getValue() instanceof PythonObject) {
                         invokeSelfValue = subjectAsVariable.getValue();
@@ -111,6 +110,24 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
             } else {
                 return result;
             }
+        } else if (statement instanceof PythonLambda) {
+            PythonLambda sourceLambda = (PythonLambda)statement;
+            String lambdaBody = sourceLambda.getFunctionBody();
+
+            Map<String, PythonValue> parametersMap = map();
+            List<PythonValue> paramValues = reorderParameters(sourceLambda.getParamNames(), callExpression.getParameters());
+            for (int i = 0; i < paramValues.size(); i++) {
+                PythonValue param = paramValues.get(i);
+                String name = sourceLambda.getParamNames().get(i);
+                parametersMap.put(name, param);
+            }
+
+            PythonValue result = host.run(lambdaBody, sourceLambda, executionContext.getSelfValue(), parametersMap);
+            if (result == null) {
+                return new PythonIndeterminateValue();
+            } else {
+                return result;
+            }
 
         } else {
             //  TODO - Need to support variables that are assigned to functions
@@ -118,32 +135,35 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
         }
     }
 
-    private List<PythonValue> reorderParameters(PythonFunction targetFunction, List<PythonValue> enumeratedParameters) {
+    private List<PythonValue> reorderParameters(List<String> paramNames, List<PythonValue> enumeratedParameters) {
 
-        if (targetFunction.getParams().size() == 0) {
+        if (paramNames.size() == 0) {
             return enumeratedParameters;
         }
 
         Map<String, PythonValue> mappedParams = map();
-        List<String> functionParams = targetFunction.getParams();
 
         for (PythonValue param : enumeratedParameters) {
+            if (mappedParams.size() == paramNames.size()) {
+                break;
+            }
+
             if (!(param instanceof PythonVariable)) {
-                String paramName = functionParams.get(mappedParams.size());
+                String paramName = paramNames.get(mappedParams.size());
                 mappedParams.put(paramName, param);
             } else {
                 String varName = ((PythonVariable) param).getLocalName();
-                if (functionParams.contains(varName)) {
+                if (paramNames.contains(varName)) {
                     mappedParams.put(varName, param);
                 } else {
-                    String paramName = functionParams.get(mappedParams.size());
+                    String paramName = paramNames.get(mappedParams.size());
                     mappedParams.put(paramName, param);
                 }
             }
         }
 
         List<PythonValue> result = list();
-        for (String paramName : functionParams) {
+        for (String paramName : paramNames) {
             result.add(mappedParams.get(paramName));
         }
         return result;
@@ -151,7 +171,7 @@ public class FunctionCallInterpreter implements ExpressionInterpreter {
 
     private PythonValue invokeFunction(PythonInterpreter interpreter, PythonFunction function, List<PythonValue> parameters, ExecutionContext newContext) {
 
-        parameters = reorderParameters(function, parameters);
+        parameters = reorderParameters(function.getParams(), parameters);
         PythonValue result = null;
 
         interpreter.pushExecutionContext(newContext);

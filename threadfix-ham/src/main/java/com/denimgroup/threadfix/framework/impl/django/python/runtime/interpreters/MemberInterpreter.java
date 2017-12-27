@@ -16,19 +16,25 @@ public class MemberInterpreter implements ExpressionInterpreter {
         PythonCodeCollection codebase = executionContext.getCodebase();
 
         PythonValue subject = memberExpression.getSubject(0);
-        PythonValue resolvedSubject = executionContext.resolveValue(subject);
+        PythonValue resolvedSubject = executionContext.resolveAbsoluteValue(subject);
 
-        AbstractPythonStatement subjectSource = subject.getSourceLocation();
+        AbstractPythonStatement subjectSource;
+        if (resolvedSubject != null)
+            subjectSource = resolvedSubject.getSourceLocation();
+        else
+            subjectSource = subject.getSourceLocation();
 
         //  Try to directly resolve it as a PythonObject
         if (resolvedSubject != null && resolvedSubject instanceof PythonObject) {
             PythonObject currentObject = (PythonObject) resolvedSubject;
             PythonValue selectedValue = null;
+            AbstractPythonStatement lastSource = currentObject.getSourceLocation();
             for (String member : memberExpression.getMemberPath()) {
                 if (currentObject == null) {
                     break;
                 }
                 if (!currentObject.hasMemberValue(member)) {
+                    AbstractPythonStatement memberSource = codebase.resolveLocalSymbol(member, lastSource);
                     PythonVariable newVar = new PythonVariable(member, (PythonValue)null);
                     currentObject.setMemberValue(member, newVar);
                     selectedValue = newVar;
@@ -40,9 +46,14 @@ public class MemberInterpreter implements ExpressionInterpreter {
                         currentObject = null;
                     }
                 }
+
+                if (currentObject != null) {
+                    lastSource = currentObject.getSourceLocation();
+                }
             }
 
-            if (selectedValue == null) {
+            if (selectedValue == null ||
+               (selectedValue.getSourceLocation() != null && selectedValue.getSourceLocation().getFullName().endsWith(memberExpression.getFullMemberPath()))) {
                 return new PythonIndeterminateValue();
             } else {
                 return selectedValue;
@@ -82,7 +93,7 @@ public class MemberInterpreter implements ExpressionInterpreter {
                 //  The symbol isn't in the codebase (as far as we know)
                 return new PythonIndeterminateValue();
             } else if (currentValue != null) {
-                currentValue = executionContext.resolveValue(currentValue);
+                currentValue = executionContext.resolveAbsoluteValue(currentValue);
                 if (currentValue != null && currentValue instanceof PythonObject) {
 
                     List<String> remainingParts = memberPath.subList(numSkippedPaths, memberPath.size());
@@ -92,11 +103,14 @@ public class MemberInterpreter implements ExpressionInterpreter {
                     for (int i = 0; i < remainingParts.size(); i++) {
                         String part = remainingParts.get(i);
                         currentMemberVar = asObject.getMemberVariable(part);
+                        if (currentMemberVar == null) {
+
+                        }
                         if (currentMemberVar == null || (!currentMemberVar.isType(PythonObject.class) && i != remainingParts.size() - 1)) {
                             currentMemberVar = null;
                             asObject = null;
                             break;
-                        } else {
+                        } else if (currentMemberVar.isType(PythonObject.class)) {
                             asObject = (PythonObject)currentMemberVar.getValue();
                         }
                     }

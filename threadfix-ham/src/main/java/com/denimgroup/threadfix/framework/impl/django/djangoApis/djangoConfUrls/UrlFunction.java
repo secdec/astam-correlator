@@ -3,6 +3,7 @@ package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoConfUrls
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonInterpreter;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonObject;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonVariable;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
 
@@ -32,8 +33,18 @@ public class UrlFunction extends PythonFunction {
         PythonObject result = new PythonObject();
 
         result.setMemberValue("pattern", params[0]);
-        result.setMemberValue("view", params[1]);
+
+        PythonValue view = params[1];
+        while (view instanceof PythonVariable && ((PythonVariable) view).getValue() != null) {
+            view = ((PythonVariable) view).getValue();
+        }
+        result.setRawMemberValue("view", view);
 
         return result;
+    }
+
+    @Override
+    public AbstractPythonStatement clone() {
+        return baseCloneTo(new UrlFunction());
     }
 }

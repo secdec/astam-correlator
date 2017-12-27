@@ -18,8 +18,8 @@ public class IndexerInterpreter implements ExpressionInterpreter {
         PythonValue subject = indexerExpression.getSubject(0);
         PythonValue operand = indexerExpression.getIndexerValue();
 
-        subject = executionContext.resolveValue(subject);
-        operand = executionContext.resolveValue(operand);
+        subject = executionContext.resolveAbsoluteValue(subject);
+        operand = executionContext.resolveAbsoluteValue(operand);
 
 
         if (subject instanceof PythonArray) {

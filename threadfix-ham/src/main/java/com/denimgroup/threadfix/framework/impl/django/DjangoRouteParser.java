@@ -519,59 +519,85 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                         }
                     } else {
 
+                        String basePath = DjangoPathUtil.combine(rootPath, regexBuilder.toString());
                         AbstractPythonStatement referencedStatement = parsedCodebase.resolveLocalSymbol(viewPath, thisModule);
                         //interpreter.getExecutionContext().res
                         if (referencedStatement != null && referencedStatement instanceof PythonPublicVariable) {
 
                             String fullReferencedPath = parsedCodebase.expandSymbol(viewPath, thisModule);
-                            PythonValue interpretedValues = interpreter.getExecutionContext().resolveSymbol(fullReferencedPath);
+                            PythonValue interpretedValues = interpreter.run(fullReferencedPath);
 
-                            PythonPublicVariable referencedVar = (PythonPublicVariable) referencedStatement;
-                            String value = referencedVar.getValueString();
-                            if (value.startsWith("[") && value.endsWith("]")) {
-                                value = value.substring(1, value.length() - 1);
+                            if (interpretedValues instanceof PythonVariable) {
+                                interpretedValues = interpreter.getExecutionContext().resolveAbsoluteValue(interpretedValues);
                             }
 
-                            String[] parts = CodeParseUtil.splitByComma(value);
-                            for (String part : parts) {
-                                if (part.startsWith("url(")) {
-                                    part = part.substring("url(".length(), part.length() - 1);
-                                    String[] params = CodeParseUtil.splitByComma(part);
-                                    String endpoint = params[0].trim();
-                                    String controller = params[1].trim();
+                            if (interpretedValues instanceof PythonArray) {
+                                PythonArray array = (PythonArray)interpretedValues;
+                                for (PythonObject entry : array.getValues(PythonObject.class)) {
+                                    PythonValue pattern = entry.getMemberValue("pattern");
+                                    PythonValue view = entry.getMemberValue("view");
+                                    AbstractPythonStatement viewSource = InterpreterUtil.tryGetSource(view);
 
-                                    AbstractPythonStatement resolvedController = parsedCodebase.findByPartialName(thisModule, controller);
-                                    if (resolvedController == null) {
-                                        resolvedController = parsedCodebase.findByFullName(controller);
-                                    }
-                                    if (resolvedController == null) {
+                                    if (pattern == null || view == null ||
+                                            !(pattern instanceof PythonStringPrimitive) ||
+                                            !(view instanceof PythonVariable) ||
+                                            viewSource == null) {
                                         continue;
                                     }
 
-                                    if (endpoint.startsWith("r")) {
-                                        endpoint = endpoint.substring(2);
-                                    } else if (endpoint.startsWith("'") || endpoint.startsWith("\"")) {
-                                        endpoint = endpoint.substring(1);
-                                    }
-
-                                    if (endpoint.endsWith("'") || endpoint.endsWith("\"")) {
-                                        endpoint = endpoint.substring(0, endpoint.length() - 1);
-                                    }
-
-                                    String basePath = DjangoPathUtil.combine(rootPath, regexBuilder.toString());
-                                    endpoint = DjangoPathUtil.combine(basePath, endpoint);
-                                    DjangoRoute newRoute = new DjangoRoute(endpoint, resolvedController.getSourceCodePath());
-                                    newRoute.setLineNumbers(resolvedController.getSourceCodeStartLine(), resolvedController.getSourceCodeEndLine());
-                                    routeMap.put(endpoint, newRoute);
+                                    String patternText = ((PythonStringPrimitive) pattern).getValue();
+                                    String newEndpoint = DjangoPathUtil.combine(basePath, patternText);
+                                    DjangoRoute newRoute = new DjangoRoute(newEndpoint, viewSource.getSourceCodePath());
+                                    newRoute.setLineNumbers(viewSource.getSourceCodeStartLine(), viewSource.getSourceCodeEndLine());
+                                    routeMap.put(newEndpoint, newRoute);
                                 }
                             }
+
+//                            PythonPublicVariable referencedVar = (PythonPublicVariable) referencedStatement;
+//                            String value = referencedVar.getValueString();
+//                            if (value.startsWith("[") && value.endsWith("]")) {
+//                                value = value.substring(1, value.length() - 1);
+//                            }
+//
+//                            String[] parts = CodeParseUtil.splitByComma(value);
+//                            for (String part : parts) {
+//                                if (part.startsWith("url(")) {
+//                                    part = part.substring("url(".length(), part.length() - 1);
+//                                    String[] params = CodeParseUtil.splitByComma(part);
+//                                    String endpoint = params[0].trim();
+//                                    String controller = params[1].trim();
+//
+//                                    AbstractPythonStatement resolvedController = parsedCodebase.findByPartialName(thisModule, controller);
+//                                    if (resolvedController == null) {
+//                                        resolvedController = parsedCodebase.findByFullName(controller);
+//                                    }
+//                                    if (resolvedController == null) {
+//                                        continue;
+//                                    }
+//
+//                                    if (endpoint.startsWith("r")) {
+//                                        endpoint = endpoint.substring(2);
+//                                    } else if (endpoint.startsWith("'") || endpoint.startsWith("\"")) {
+//                                        endpoint = endpoint.substring(1);
+//                                    }
+//
+//                                    if (endpoint.endsWith("'") || endpoint.endsWith("\"")) {
+//                                        endpoint = endpoint.substring(0, endpoint.length() - 1);
+//                                    }
+//
+//                                    endpoint = DjangoPathUtil.combine(basePath, endpoint);
+//                                    DjangoRoute newRoute = new DjangoRoute(endpoint, resolvedController.getSourceCodePath());
+//                                    newRoute.setLineNumbers(resolvedController.getSourceCodeStartLine(), resolvedController.getSourceCodeEndLine());
+//                                    routeMap.put(endpoint, newRoute);
+//                                }
+//                            }
                         } else if (referencedStatement instanceof PythonFunctionCall) {
 
                             if (referencedStatement.getSourceCodePath() != null && referencedStatement.getSourceCodeStartLine() > -1) {
 
                                 PythonFunction referencedFunction = (PythonFunction)referencedStatement;
                                 PythonValue functionResult = interpreter.run(viewPath, referencedFunction, null);
-                                functionResult = interpreter.getExecutionContext().resolveValue(functionResult);
+                                functionResult = interpreter.getExecutionContext().resolveAbsoluteValue(functionResult);
 
                                 if (functionResult instanceof PythonArray) {
                                     log("Found PythonArray");

@@ -13,8 +13,6 @@ public class AdminSiteClass extends PythonClass {
 
     @Override
     public AbstractPythonStatement clone() {
-        AdminSiteClass clone = new AdminSiteClass();
-        baseCloneTo(clone);
-        return clone;
+        return baseCloneTo(new AdminSiteClass());
     }
 }

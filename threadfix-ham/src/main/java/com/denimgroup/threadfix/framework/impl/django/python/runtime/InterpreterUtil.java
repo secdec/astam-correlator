@@ -7,6 +7,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions.IndeterminateExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonPublicVariable;
 
 import javax.annotation.Nonnull;
@@ -71,6 +72,18 @@ public class InterpreterUtil {
         }
     }
 
+    public static AbstractPythonStatement tryGetSource(PythonValue value) {
+        AbstractPythonStatement source = null;
+        while (value instanceof PythonVariable) {
+            PythonVariable asVar = (PythonVariable)value;
+            if (asVar.getSourceLocation() != null) {
+                source = asVar.getSourceLocation();
+            }
+            value = asVar.getValue();
+        }
+        return source;
+    }
+
     public static PythonValue tryMakeValue(String expression, List<PythonValue> expressionSubject) {
         PythonValue asValue = sharedBuilder.buildFromSymbol(expression);
         if (isValidValue(asValue)) {
@@ -112,29 +125,37 @@ public class InterpreterUtil {
         }
     }
 
-    public static void resolveSourceLocations(@Nonnull PythonValue value, @Nonnull AbstractPythonStatement scope, @Nonnull PythonCodeCollection codebase) {
+    public static void resolveSourceLocations(@Nonnull PythonValue value, AbstractPythonStatement scope, @Nonnull PythonCodeCollection codebase) {
 
         AbstractPythonStatement source = null;
         if (value.getSourceLocation() == null) {
             if (value instanceof PythonVariable) {
                 String name = ((PythonVariable) value).getLocalName();
                 if (name != null) {
-                    source = codebase.resolveLocalSymbol(name, scope);
+                    if (scope != null) {
+                        source = codebase.resolveLocalSymbol(name, scope);
+                    } else {
+                        source = codebase.findByFullName(name);
+                    }
                     PythonValue variableValue = ((PythonVariable) value).getValue();
-                    if (variableValue != null && variableValue.getSourceLocation() == null && source != null) {
-                        if (variableValue instanceof PythonObject && source instanceof PythonPublicVariable){
-                            PythonClass valueType = ((PythonPublicVariable) source).getResolvedTypeClass();
-                            variableValue.resolveSourceLocation(valueType);
-                            ((PythonObject) variableValue).setClassType(valueType);
-                        } else if (variableValue instanceof FunctionCallExpression) {
-
+                    if (source != null) {
+                        if (variableValue != null) {
+                            if (variableValue instanceof PythonObject && source instanceof PythonPublicVariable) {
+                                PythonClass valueType = ((PythonPublicVariable) source).getResolvedTypeClass();
+                                variableValue.resolveSourceLocation(valueType);
+                                ((PythonObject) variableValue).setClassType(valueType);
+                            } else if (variableValue instanceof FunctionCallExpression) {
+                                variableValue.resolveSourceLocation(source);
+                            }
                         }
                     }
                 }
             } else if (value instanceof PythonObject) {
 
-            } else {
-
+            } else if (value instanceof FunctionCallExpression && ((FunctionCallExpression) value).getSubject(0) instanceof PythonVariable) {
+                PythonVariable subject = (PythonVariable)((FunctionCallExpression) value).getSubject(0);
+                resolveSourceLocations(subject, scope, codebase);
+                source = subject.getSourceLocation();
             }
         }
 
@@ -147,6 +168,25 @@ public class InterpreterUtil {
             for (PythonValue subValue : subValues) {
                 resolveSourceLocations(subValue, scope, codebase);
             }
+        }
+    }
+
+
+
+    public static boolean expressionContains(PythonValue expression, PythonValue searchValue) {
+        if (expression == searchValue) {
+            return true;
+        } else {
+            List<PythonValue> subValues = expression.getSubValues();
+            if (subValues != null) {
+                for (PythonValue subValue : subValues) {
+                    if (expressionContains(subValue, searchValue)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
     }
 
@@ -166,5 +206,4 @@ public class InterpreterUtil {
         }
         return spacing;
     }
-
 }

@@ -25,10 +25,7 @@ import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfig
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.ExpressionDeconstructor;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonExpression;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonInterpreter;
-import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -329,32 +326,11 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
             Collection<AbstractPythonStatement> childStatements = module.getChildStatements();
 
-            CondensedLinesMap moduleCode = FileReadUtils.readLinesCondensed(sourcePath, 0, Integer.MAX_VALUE);
-            List<String> condensedLines = moduleCode.getCondensedLines();
-            Map<Integer, Boolean> allowedLineIndices = map();
-            for (int i = 0; i < condensedLines.size(); i++) {
-                allowedLineIndices.put(i, true);
-            }
+            PythonSourceReader sourceReader = new PythonSourceReader(new File(sourcePath), true);
+            sourceReader.ignoreChildren(module, PythonClass.class, PythonFunction.class);
 
-            for (AbstractPythonStatement child : childStatements) {
-                if (child instanceof PythonClass || child instanceof PythonFunction) {
-                    int startLine = moduleCode.getLineIndexForSourceLine(child.getSourceCodeStartLine());
-                    int endLine = moduleCode.getLineIndexForSourceLine(child.getSourceCodeEndLine());
-                    if (startLine >= 0 && endLine >= 0) {
-                        for (int i = startLine; i <= endLine; i++) {
-                            //  Line numbers start at 1
-                            allowedLineIndices.put(i - 1, false);
-                        }
-                    }
-                }
-            }
-
-            for (int i = 0; i < condensedLines.size(); i++) {
-                if (!allowedLineIndices.get(i)) {
-                    continue;
-                }
-
-                String line = condensedLines.get(i);
+            List<String> lines = sourceReader.getLines();
+            for (String line : lines) {
                 interpreter.run(line, module);
             }
         }

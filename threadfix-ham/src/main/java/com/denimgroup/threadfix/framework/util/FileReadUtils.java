@@ -47,6 +47,14 @@ public class FileReadUtils {
 
         LOG.debug("Reading lines " + startLine + " through " + endLine + " from " + filePath + " as a whole string");
 
+        if (endLine < 0) {
+            endLine = Integer.MAX_VALUE;
+        }
+
+        if (startLine < 0) {
+            startLine = 0;
+        }
+
         try {
             FileReader fileReader = new FileReader(file);
             BufferedReader reader = new BufferedReader(fileReader);
@@ -80,6 +88,14 @@ public class FileReadUtils {
         String contents = readWholeLines(filePath, startLine, endLine);
         if (contents == null) {
             return null;
+        }
+
+        if (startLine < 0) {
+            startLine = 0;
+        }
+
+        if (endLine < 0) {
+            endLine = Integer.MAX_VALUE;
         }
 
         LOG.debug("Reading lines " + startLine + " through " + endLine + " from " + filePath + " with lines condensed");

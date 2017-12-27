@@ -21,4 +21,9 @@ public class IncludeFunction extends PythonFunction {
     public PythonValue invoke(PythonInterpreter host, AbstractPythonStatement context, PythonValue[] params) {
         return super.invoke(host, context, params);
     }
+
+    @Override
+    public AbstractPythonStatement clone() {
+        return baseCloneTo(new IncludeFunction());
+    }
 }

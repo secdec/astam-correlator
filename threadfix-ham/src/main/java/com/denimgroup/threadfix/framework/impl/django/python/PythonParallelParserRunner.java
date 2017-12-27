@@ -22,7 +22,7 @@ public class PythonParallelParserRunner implements Callable<PythonModule> {
     }
 
     @Override
-    public PythonModule call() throws Exception {
+    public PythonModule call() {
         PythonModule resultModule = new PythonModule();
         resultModule.setName(moduleName);
         resultModule.setSourceCodePath(targetFile.getAbsolutePath());

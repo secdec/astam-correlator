@@ -1,9 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis;
 
-import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteClass;
-import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteInit;
-import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteRegisterFunction;
-import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.AdminSiteUrlsVariable;
+import com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin.*;
 import com.denimgroup.threadfix.framework.impl.django.python.*;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
@@ -30,6 +27,7 @@ public class DjangoAdminApi extends AbstractDjangoApi {
         attachModelAdmin(admin);
         attachAdminSite(admin);
         attachGlobalSite(admin);
+        attachFunctions(admin);
 
         AbstractPythonStatement result = getRootScope(admin);
         tryAddScopes(codebase, result);
@@ -113,47 +111,6 @@ public class DjangoAdminApi extends AbstractDjangoApi {
         runtime.popExecutionContext();
     }
 
-    private Collection<String> parseInheritedAdminEndpoints(PythonCodeCollection codebase, PythonPublicVariable sitesVariable) {
-        // Any implementor of ModelAdmin can provide a get_urls method which is automatically called and inserted as sub-paths
-        // for that admin page.
-
-        //  TODO - Reimplement with new structure
-
-        return null;
-
-//        String originalUrlsString = sitesVariable.getValueString();
-//        originalUrlsString = originalUrlsString.substring(1, originalUrlsString.length() - 1);
-//
-//        String[] existingUrls = CodeParseUtil.splitByComma(originalUrlsString);
-//
-//        List<String> urlStrings = list();
-//
-//        for (String existingUrl : existingUrls) {
-//            String[] urlParams = CodeParseUtil.splitByComma(existingUrl);
-//            String endpoint = urlParams[0];
-//            String controllerName = urlParams[1];
-//
-//            PythonClass controller = codebase.findByFullName(controllerName, PythonClass.class);
-//            if (controller == null) {
-//                continue;
-//            }
-//
-//            AbstractPythonStatement get_urlsFunction = controller.findChild("get_urls");
-//            if (get_urlsFunction == null) {
-//                continue;
-//            }
-//
-//            Collection<String> currentUrls = parseUrlsFunction(codebase, (PythonFunction)get_urlsFunction);
-//            if (currentUrls != null) {
-//                urlStrings.addAll(currentUrls);
-//            }
-//        }
-//
-//
-//
-//        return urlStrings;
-    }
-
     private void attachModelAdmin(AbstractPythonStatement target) {
         PythonClass modelAdmin = new PythonClass();
         modelAdmin.setName("ModelAdmin");
@@ -179,5 +136,9 @@ public class DjangoAdminApi extends AbstractDjangoApi {
         target.addChildStatement(site);
     }
 
+    private void attachFunctions(AbstractPythonStatement target) {
+        AdminSiteAdminViewFunction adminViewFunction = new AdminSiteAdminViewFunction();
+        target.addChildStatement(adminViewFunction);
+    }
 
 }

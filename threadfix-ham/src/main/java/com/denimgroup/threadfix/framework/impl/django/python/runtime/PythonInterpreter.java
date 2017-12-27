@@ -14,6 +14,8 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
 public class PythonInterpreter {
 
@@ -24,8 +26,10 @@ public class PythonInterpreter {
     ExecutionContext executionContext;
     PythonExpressionParser expressionParser;
     PythonValueBuilder valueBuilder = new PythonValueBuilder();
+    Stack<PythonValue> currentDependencyChain = new Stack<PythonValue>();
 
-    int maxStackDepth = 15;
+
+    int maxStackDepth = 100;
 
     //  Whether or not the interpreter should run raised scopes (ie 'if' statements within
     //      some logic)
@@ -59,8 +63,8 @@ public class PythonInterpreter {
 
     public ExecutionContext getRootExecutionContext() {
         ExecutionContext current = this.executionContext;
-        while (current.parentContext != null) {
-            current = current.parentContext;
+        while (current.getParentContext() != null) {
+            current = current.getParentContext();
         }
         return current;
     }
@@ -88,17 +92,20 @@ public class PythonInterpreter {
     public PythonValue run(@Nonnull String code, AbstractPythonStatement scope, PythonValue selfValue) {
         code = Language.stripComments(code);
 
-        PythonExpression expression = expressionParser.processString(code, null, executionContext.getScope());
-        if (expression instanceof IndeterminateExpression) {
-            return valueBuilder.buildFromSymbol(code);
-        } else {
-            PythonValue evaluated = run(expression, scope, selfValue);
-            if (!(evaluated instanceof PythonIndeterminateValue)) {
-                return evaluated;
-            } else {
-                return valueBuilder.buildFromSymbol(code);
-            }
+        ExecutionContext newContext = new ExecutionContext(executionContext.getCodebase(), selfValue, scope);
+        return run(code, newContext);
+    }
+
+    public PythonValue run(@Nonnull String code, AbstractPythonStatement scope, PythonValue selfValue, Map<String, PythonValue> params) {
+        ExecutionContext newContext = new ExecutionContext(executionContext.getCodebase(), selfValue, scope);
+        for (Map.Entry<String, PythonValue> param : params.entrySet()) {
+            newContext.assignSymbolValue(param.getKey(), param.getValue());
         }
+
+        pushExecutionContext(newContext);
+        PythonValue result = run(code, newContext);
+        popExecutionContext();
+        return result;
     }
 
     public PythonValue run(@Nonnull PythonExpression expression) {
@@ -114,12 +121,21 @@ public class PythonInterpreter {
     }
 
     public PythonValue run(@Nonnull File targetFile, int startLine, int endLine, AbstractPythonStatement scope, PythonValue selfValue) {
+        ExecutionContext tempContext = new ExecutionContext(executionContext.getCodebase(), selfValue, scope);
+        pushExecutionContext(tempContext);
+
         CondensedLinesMap lines = FileReadUtils.readLinesCondensed(targetFile.getAbsolutePath(), startLine, endLine);
         PythonValue lastValue = null;
+        PythonValue returnValue = null;
         for (String line : lines.getCondensedLines()) {
-            lastValue = run(line, scope, selfValue);
+            lastValue = run(line, tempContext);
+            if (line.trim().startsWith("return")) {
+                returnValue = lastValue;
+            }
         }
-        return lastValue;
+
+        popExecutionContext();
+        return returnValue != null ? returnValue : lastValue;
     }
 
 
@@ -132,8 +148,8 @@ public class PythonInterpreter {
         //  Real run function
 
         boolean usesNewContext =
-                selfValue != this.executionContext.selfValue ||
-                        scope != this.executionContext.scope;
+                selfValue != this.executionContext.getSelfValue() ||
+                        scope != this.executionContext.getScope();
 
         if (usesNewContext) {
             pushExecutionContext(scope, selfValue);
@@ -149,6 +165,20 @@ public class PythonInterpreter {
             return result;
         } else {
             return new PythonIndeterminateValue();
+        }
+    }
+
+    public PythonValue run(@Nonnull String code, ExecutionContext executionContext) {
+        PythonExpression expression = expressionParser.processString(code, null, executionContext.getScope());
+        if (expression instanceof IndeterminateExpression) {
+            return valueBuilder.buildFromSymbol(code);
+        } else {
+            PythonValue evaluated = run(expression, executionContext);
+            if (!(evaluated instanceof PythonIndeterminateValue)) {
+                return evaluated;
+            } else {
+                return valueBuilder.buildFromSymbol(code);
+            }
         }
     }
 
@@ -168,7 +198,7 @@ public class PythonInterpreter {
             return new PythonIndeterminateValue();
         }
 
-        if (expression.getScopingIndentation() > executionContext.getPrimaryScopeLevel()) {
+        if (!enableInnerScopes && expression.getScopingIndentation() > executionContext.getPrimaryScopeLevel()) {
             return new PythonIndeterminateValue();
         }
 
@@ -185,13 +215,20 @@ public class PythonInterpreter {
             AbstractPythonStatement currentScope = executionContext.getScope();
             PythonCodeCollection codebase = executionContext.getCodebase();
 
-            if (currentScope != null && codebase != null) {
+            if (codebase != null) {
                 InterpreterUtil.resolveSourceLocations(expression, executionContext.getScope(), executionContext.getCodebase());
             }
 
             resolveDependencies(expression, currentScope);
 
-            PythonValue result = interpreter.interpret(this, expression);
+            PythonValue result = null;
+
+            try {
+                result = interpreter.interpret(this, expression);
+            } catch (StackOverflowError soe) {
+                LOG.warn("Stack overflow occurred while executing python interpreter," +
+                        " prematurely terminating current expression: " + expression.toString());
+            }
 
             if (usesNewContext) {
                 popExecutionContext();
@@ -205,10 +242,28 @@ public class PythonInterpreter {
         }
     }
 
-    private void resolveDependencies(PythonExpression expression, AbstractPythonStatement scope) {
+    private void resolveDependencies(PythonValue expression, AbstractPythonStatement scope) {
+        if (expression == null) {
+            return;
+        }
+
         List<PythonValue> dependencies = expression.getSubValues();
+        if (dependencies == null) {
+            return;
+        }
+
+        //  Terminate circular dependencies ie foo = bar(foo)
+        if (currentDependencyChain.contains(expression)) {
+            return;
+        }
+
+        currentDependencyChain.push(expression);
 
         for (PythonValue subValue : dependencies) {
+            if (currentDependencyChain.contains(subValue)) {
+                continue;
+            }
+
             if (subValue instanceof PythonExpression) {
                 PythonValue resolvedValue = run((PythonExpression) subValue, scope, executionContext.getSelfValue());
                 expression.resolveSubValue(subValue, resolvedValue);
@@ -216,14 +271,23 @@ public class PythonInterpreter {
                 PythonVariable asVariable = (PythonVariable)subValue;
 
                 if (asVariable.getValue() == null && asVariable.getLocalName() != null) {
-                    asVariable.setValue(executionContext.resolveSymbol(asVariable.getLocalName()));
+                    PythonValue resolvedValue = executionContext.resolveSymbol(asVariable.getLocalName());
+                    //  Prevent circular dependencies
+                    if (resolvedValue != null &&
+                            !InterpreterUtil.expressionContains(asVariable, resolvedValue) &&
+                            ((resolvedValue.getSourceLocation() != asVariable.getSourceLocation()) ||
+                            (resolvedValue.getSourceLocation() == null && asVariable.getSourceLocation() == null))) {
+                        asVariable.setValue(executionContext.resolveAbsoluteValue(resolvedValue));
+                    }
                 }
 
                 PythonValue resolvedValue = asVariable.getValue();
 
-                while (resolvedValue != null && resolvedValue instanceof PythonVariable) {
+                while (resolvedValue != null && resolvedValue instanceof PythonVariable && resolvedValue != asVariable) {
                     PythonVariable valueAsVariable = (PythonVariable)resolvedValue;
-                    if (valueAsVariable.getValue() != null) {
+                    if (valueAsVariable.getValue() != null ||
+                            (valueAsVariable.getSourceLocation() == asVariable.getSourceLocation()) ||
+                            (valueAsVariable.getLocalName().equals(asVariable.getLocalName()))) {
                         break;
                     }
 
@@ -237,7 +301,7 @@ public class PythonInterpreter {
                 if (resolvedValue != null) {
                     if (resolvedValue instanceof PythonExpression) {
                         PythonExpression variableExpression = (PythonExpression) resolvedValue;
-                        resolvedValue = run(variableExpression, scope);
+                        resolvedValue = run(variableExpression, scope, executionContext.getSelfValue());
                     } else if (resolvedValue instanceof PythonVariable && ((PythonVariable) resolvedValue).getValue() != null) {
                         resolvedValue = ((PythonVariable) resolvedValue).getValue();
                     }
@@ -252,12 +316,24 @@ public class PythonInterpreter {
                 }
             }
         }
+
+        if (expression.getSubValues() != null) {
+            // Run in a separate loop to resolve dependencies on expressions
+            //  that were just resolved
+            for (PythonValue subValue : expression.getSubValues()) {
+                if (!currentDependencyChain.contains(subValue)) {
+                    resolveDependencies(subValue, scope);
+                }
+            }
+        }
+
+        currentDependencyChain.pop();
     }
 
 
 
     public void pushExecutionContext(AbstractPythonStatement scope, PythonValue selfValue) {
-        ExecutionContext newContext = new ExecutionContext(this.executionContext.codebase, selfValue, scope);
+        ExecutionContext newContext = new ExecutionContext(this.executionContext.getCodebase(), selfValue, scope);
         if (scope != null) {
             //  For functions, current scope should be set to the indentation of the function's body
             if (scope instanceof PythonFunction && scope.getChildStatements().size() > 0) {
@@ -266,20 +342,20 @@ public class PythonInterpreter {
                 newContext.setPrimaryScopeLevel(scope.getIndentationLevel());
             }
         }
-        newContext.parentContext = this.executionContext;
+        newContext.setParentContext(this.executionContext);
         this.executionContext = newContext;
     }
 
     public void pushExecutionContext(ExecutionContext executionContext) {
         if (this.executionContext != executionContext) {
-            executionContext.parentContext = this.executionContext;
+            executionContext.setParentContext(this.executionContext);
             this.executionContext = executionContext;
         }
     }
 
     public void popExecutionContext() {
-        if (this.executionContext != null && this.executionContext.parentContext != null) {
-            this.executionContext = this.executionContext.parentContext;
+        if (this.executionContext != null && this.executionContext.getParentContext() != null) {
+            this.executionContext = this.executionContext.getParentContext();
         }
     }
 

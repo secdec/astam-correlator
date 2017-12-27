@@ -28,4 +28,9 @@ public class AdminSiteInit extends PythonFunction {
 
         return self;
     }
+
+    @Override
+    public AbstractPythonStatement clone() {
+        return baseCloneTo(new AdminSiteInit());
+    }
 }

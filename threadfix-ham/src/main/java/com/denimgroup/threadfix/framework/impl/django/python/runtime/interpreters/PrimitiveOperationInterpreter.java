@@ -44,16 +44,19 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
 
                 for (int i = 0; i < subjects.size(); i++) {
                     PythonValue subject = subjects.get(i);
-                    PythonValue operand = executionContext.resolveValue(operands.get(i));
+                    PythonValue operand = executionContext.resolveAbsoluteValue(operands.get(i));
 
                     String subjectSymbol = InterpreterUtil.tryGetValueSymbol(subject);
 
                     if (subjectSymbol != null) {
-                        executionContext.assignSymbolValue(subjectSymbol, operand);
+                        if (subject instanceof PythonVariable) {
+                            ((PythonVariable) subject).setValue(operand);
+                            executionContext.assignSymbolValue(subjectSymbol, subject);
+                        } else {
+                            executionContext.assignSymbolValue(subjectSymbol, operand);
+                        }
                         subjects.remove(i);
                         subjects.add(i, operand);
-                    } else if (subject instanceof PythonVariable) {
-                        ((PythonVariable) subject).setValue(operand);
                     }
                 }
 
@@ -82,7 +85,9 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
                 PythonValue concatenated = doMultiAddition(executionContext, subjects, operands);
                 sourceSymbol = InterpreterUtil.tryGetValueSymbol(mainSubject);
                 if (sourceSymbol != null) {
-                    executionContext.assignSymbolValue(sourceSymbol, concatenated);
+                    if (!(concatenated instanceof PythonIndeterminateValue)) {
+                        executionContext.assignSymbolValue(sourceSymbol, concatenated);
+                    }
                     result = concatenated;
                 } else {
                     result = mainSubject;
@@ -136,8 +141,8 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
     }
 
     private PythonValue doAddition(ExecutionContext executionContext, PythonValue subject, PythonValue operand) {
-        subject = executionContext.resolveValue(subject);
-        operand = executionContext.resolveValue(operand);
+        subject = executionContext.resolveAbsoluteValue(subject);
+        operand = executionContext.resolveAbsoluteValue(operand);
 
         if ((subject instanceof PythonStringPrimitive) && (operand instanceof PythonStringPrimitive)) {
             String subjectString = ((PythonStringPrimitive)subject).getValue();
@@ -197,8 +202,8 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
 
     private PythonValue doSubtraction(ExecutionContext executionContext, PythonValue subject, PythonValue operand) {
 
-        subject = executionContext.resolveValue(subject);
-        operand = executionContext.resolveValue(operand);
+        subject = executionContext.resolveAbsoluteValue(subject);
+        operand = executionContext.resolveAbsoluteValue(operand);
 
         if ((subject instanceof PythonNumericPrimitive) && (operand instanceof PythonNumericPrimitive)) {
             double subjectValue = ((PythonNumericPrimitive)subject).getValue();
@@ -210,7 +215,7 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
     }
 
     private PythonValue doStringInterpolation(ExecutionContext executionContext, List<PythonValue> subjects, List<PythonValue> operands) {
-        PythonValue subject = executionContext.resolveValue(subjects.get(0));
+        PythonValue subject = executionContext.resolveAbsoluteValue(subjects.get(0));
         String string = tryGetStringValue(subject);
 
         if (string == null) {
@@ -218,7 +223,7 @@ public class PrimitiveOperationInterpreter implements ExpressionInterpreter {
         }
 
         for (int i = 0; i < operands.size(); i++) {
-            PythonValue operand = executionContext.resolveValue(operands.get(i));
+            PythonValue operand = executionContext.resolveAbsoluteValue(operands.get(i));
             String operandValue = tryGetStringValue(operand);
             if (operandValue == null) {
                 return new PythonIndeterminateValue();

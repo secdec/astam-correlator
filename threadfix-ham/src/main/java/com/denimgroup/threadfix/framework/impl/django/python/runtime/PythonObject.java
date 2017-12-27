@@ -61,13 +61,23 @@ public class PythonObject implements PythonValue {
 
     @Override
     public AbstractPythonStatement getSourceLocation() {
-        return sourceLocation;
+        if (sourceLocation != null) {
+            return sourceLocation;
+        } else {
+            return classType;
+        }
     }
 
     public boolean hasMemberValue(String name) {
         return memberMap.containsKey(name);
     }
 
+    /**
+     * Assigns the member variable to the given value, which
+     * is resolved to its sub-values if the value is a PythonVariable.
+     * @param name
+     * @param value
+     */
     public void setMemberValue(String name, PythonValue value) {
         PythonVariable targetVar;
         if (memberMap.containsKey(name)) {
@@ -86,6 +96,24 @@ public class PythonObject implements PythonValue {
         }
 
         targetVar.setValue(value);
+    }
+
+
+    /**
+     * Assigns the member variable to the given value as-is.
+     * @param name
+     * @param value
+     */
+    public void setRawMemberValue(String name, PythonValue value) {
+        PythonVariable targetVar;
+        if (memberMap.containsKey(name)) {
+            targetVar = memberMap.get(name);
+        } else {
+            targetVar = new PythonVariable(name);
+            targetVar.setOwner(this);
+            memberMap.put(name, targetVar);
+        }
+        targetVar.setRawValue(value);
     }
 
     public void setMemberValue(String name, AbstractPythonStatement source) {

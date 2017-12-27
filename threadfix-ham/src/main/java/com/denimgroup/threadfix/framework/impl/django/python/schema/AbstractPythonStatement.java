@@ -24,7 +24,7 @@ public abstract class AbstractPythonStatement {
     /**
      * Clones all children and shared properties to the target 'clone'.
      */
-    protected void baseCloneTo(AbstractPythonStatement clone) {
+    protected AbstractPythonStatement baseCloneTo(AbstractPythonStatement clone) {
         clone.setName(this.getName());
         clone.setSourceCodeStartLine(this.getSourceCodeStartLine());
         clone.setSourceCodeEndLine(this.getSourceCodeEndLine());
@@ -32,6 +32,7 @@ public abstract class AbstractPythonStatement {
         for (AbstractPythonStatement child : childStatements) {
             clone.addChildStatement(child.clone());
         }
+        return clone;
     }
 
     public void setSourceCodePath(String sourceCodePath) {
