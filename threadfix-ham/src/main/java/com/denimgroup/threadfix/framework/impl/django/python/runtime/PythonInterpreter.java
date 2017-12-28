@@ -224,11 +224,18 @@ public class PythonInterpreter {
 
             PythonValue result = null;
 
+            int currentDependencyDepth = currentDependencyChain.size();
+
             try {
                 result = interpreter.interpret(this, expression);
             } catch (StackOverflowError soe) {
                 LOG.warn("Stack overflow occurred while executing python interpreter," +
                         " prematurely terminating current expression: " + expression.toString());
+            }
+
+            //  Dependency chain may contain old values if an exception occurred while interpreting
+            while (currentDependencyDepth > currentDependencyChain.size()) {
+                currentDependencyChain.pop();
             }
 
             if (usesNewContext) {
@@ -278,26 +285,27 @@ public class PythonInterpreter {
                             !InterpreterUtil.expressionContains(asVariable, resolvedValue) &&
                             ((resolvedValue.getSourceLocation() != asVariable.getSourceLocation()) ||
                             (resolvedValue.getSourceLocation() == null && asVariable.getSourceLocation() == null))) {
-                        asVariable.setValue(executionContext.resolveAbsoluteValue(resolvedValue));
+                        asVariable.setRawValue(executionContext.resolveAbsoluteValue(resolvedValue));
                     }
                 }
 
                 PythonValue resolvedValue = asVariable.getValue();
+                resolvedValue = executionContext.resolveAbsoluteValue(resolvedValue);
 
-                while (resolvedValue != null && resolvedValue instanceof PythonVariable && resolvedValue != asVariable) {
-                    PythonVariable valueAsVariable = (PythonVariable)resolvedValue;
-                    if (valueAsVariable.getValue() != null ||
-                            (valueAsVariable.getSourceLocation() == asVariable.getSourceLocation()) ||
-                            (valueAsVariable.getLocalName().equals(asVariable.getLocalName()))) {
-                        break;
-                    }
-
-                    if (valueAsVariable.getLocalName() != null) {
-                        resolvedValue = executionContext.resolveSymbol(valueAsVariable.getLocalName());
-                    } else {
-                        resolvedValue = valueAsVariable.getValue();
-                    }
-                }
+//                while (resolvedValue != null && resolvedValue instanceof PythonVariable && resolvedValue != asVariable) {
+//                    PythonVariable valueAsVariable = (PythonVariable)resolvedValue;
+//                    if (valueAsVariable.getValue() != null ||
+//                            (valueAsVariable.getSourceLocation() == asVariable.getSourceLocation()) ||
+//                            (valueAsVariable.getLocalName().equals(asVariable.getLocalName()))) {
+//                        break;
+//                    }
+//
+//                    if (valueAsVariable.getLocalName() != null) {
+//                        resolvedValue = executionContext.resolveSymbol(valueAsVariable.getLocalName());
+//                    } else {
+//                        resolvedValue = valueAsVariable.getValue();
+//                    }
+//                }
 
                 if (resolvedValue != null) {
                     if (resolvedValue instanceof PythonExpression) {
@@ -309,7 +317,11 @@ public class PythonInterpreter {
                 }
 
                 if (resolvedValue != null) {
-                    asVariable.setValue(resolvedValue);
+                    if (resolvedValue instanceof PythonVariable) {
+                        expression.resolveSubValue(subValue, resolvedValue);
+                    } else {
+                        asVariable.setValue(resolvedValue);
+                    }
                 } else {
                     if (asVariable.getSourceLocation() == null) {
                         asVariable.setValue(new PythonIndeterminateValue());

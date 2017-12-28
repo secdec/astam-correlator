@@ -207,9 +207,13 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         LOG.info("Executing module-level code...");
         interpreter = new PythonInterpreter(codebase);
 
-        DjangoApiConfigurator.applyRuntime(interpreter);
+        long interpreterStartTime = System.currentTimeMillis();
 
+        DjangoApiConfigurator.applyRuntime(interpreter);
         runInterpreterOnNonDeclarations(codebase, interpreter);
+
+        long interpreterDuration = System.currentTimeMillis() - interpreterStartTime;
+        LOG.info("Running Python Interpreter finished in " + interpreterDuration + "ms");
 
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
         codebase.traverse(i18Detector);

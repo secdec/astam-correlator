@@ -137,7 +137,7 @@ public class ExecutionContext {
                     } else {
                         return resolveValue(workingMemory.get(asVariable.getLocalName()), resolveAbsolute);
                     }
-                } else if (asVariable.getSourceLocation() != null && !resolveAbsolute) {
+                } else if (asVariable.getSourceLocation() != null && resolveAbsolute) {
                     return value;
                 } else {
                     return null;

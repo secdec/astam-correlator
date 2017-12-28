@@ -79,6 +79,10 @@ public class PythonObject implements PythonValue {
      * @param value
      */
     public void setMemberValue(String name, PythonValue value) {
+        setMemberValue(name, value, null);
+    }
+
+    public void setMemberValue(String name, PythonValue value, AbstractPythonStatement source) {
         PythonVariable targetVar;
         if (memberMap.containsKey(name)) {
             targetVar = memberMap.get(name);
@@ -95,6 +99,7 @@ public class PythonObject implements PythonValue {
             }
         }
 
+        targetVar.resolveSourceLocation(source);
         targetVar.setValue(value);
     }
 
@@ -105,6 +110,10 @@ public class PythonObject implements PythonValue {
      * @param value
      */
     public void setRawMemberValue(String name, PythonValue value) {
+        setRawMemberValue(name, value, null);
+    }
+
+    public void setRawMemberValue(String name, PythonValue value, AbstractPythonStatement source) {
         PythonVariable targetVar;
         if (memberMap.containsKey(name)) {
             targetVar = memberMap.get(name);
@@ -114,6 +123,7 @@ public class PythonObject implements PythonValue {
             memberMap.put(name, targetVar);
         }
         targetVar.setRawValue(value);
+        targetVar.resolveSourceLocation(source);
     }
 
     public void setMemberValue(String name, AbstractPythonStatement source) {

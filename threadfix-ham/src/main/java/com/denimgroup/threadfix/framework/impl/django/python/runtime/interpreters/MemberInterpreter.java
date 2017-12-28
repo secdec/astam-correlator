@@ -41,9 +41,9 @@ public class MemberInterpreter implements ExpressionInterpreter {
 
                     AbstractPythonStatement memberSource = codebase.resolveLocalSymbol(member, lastSource);
                     if (memberSource != null) {
+                        newVar.resolveSourceLocation(memberSource);
                         if (memberSource instanceof PythonPublicVariable) {
                             PythonPublicVariable asSchemaVar = (PythonPublicVariable)memberSource;
-                            newVar.resolveSourceLocation(memberSource);
                             if (asSchemaVar.getResolvedTypeClass() != null) {
                                 nextObject = new PythonObject(asSchemaVar.getResolvedTypeClass(), member);
                                 newVar.setValue(nextObject);
@@ -51,11 +51,15 @@ public class MemberInterpreter implements ExpressionInterpreter {
                         }
                     }
 
-                    currentObject.setMemberValue(member, newVar);
+                    currentObject.setRawMemberValue(member, executionContext.resolveAbsoluteValue(newVar), memberSource);
+                    selectedValue = currentObject.getMemberValue(member);
                     currentObject = nextObject;
-                    selectedValue = newVar;
                 } else {
                     selectedValue = currentObject.getMemberValue(member);
+                    if (selectedValue == null) {
+                        selectedValue = currentObject.getMemberVariable(member);
+                    }
+
                     if (selectedValue instanceof PythonObject) {
                         currentObject = (PythonObject) selectedValue;
                     } else {

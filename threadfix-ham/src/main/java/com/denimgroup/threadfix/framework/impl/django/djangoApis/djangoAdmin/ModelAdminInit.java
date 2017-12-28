@@ -57,7 +57,7 @@ public class ModelAdminInit extends PythonFunction {
 
         self.setMemberValue("admin_site", adminSite);
 
-        return super.invoke(host, context, params);
+        return self;
     }
 
     @Override

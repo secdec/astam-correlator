@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin;
 
+import com.denimgroup.threadfix.framework.impl.django.DjangoPathUtil;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
@@ -75,7 +76,7 @@ public class AdminSiteRegisterFunction extends PythonFunction {
             }
         }
 
-        String baseEndpoint = "r'/^";
+        String baseEndpoint = "/^";
         if (appName != null) {
             baseEndpoint += appName + "/^";
         }
@@ -117,7 +118,13 @@ public class AdminSiteRegisterFunction extends PythonFunction {
 
                 if (subUrls instanceof PythonArray) {
                     PythonArray urlsArray = (PythonArray)subUrls;
-                    for (PythonValue entry : urlsArray.getValues(PythonObject.class)) {
+                    for (PythonObject entry : urlsArray.getValues(PythonObject.class)) {
+                        PythonStringPrimitive patternVar = entry.getMemberValue("pattern", PythonStringPrimitive.class);
+                        if (patternVar != null) {
+                            String pattern = DjangoPathUtil.combine(baseEndpoint, patternVar.getValue());
+                            patternVar.setValue(pattern);
+                            entry.setMemberValue("pattern", patternVar);
+                        }
                         urls.addEntry(entry);
                     }
                 }
