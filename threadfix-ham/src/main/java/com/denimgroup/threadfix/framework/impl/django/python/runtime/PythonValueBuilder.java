@@ -81,11 +81,21 @@ public class PythonValueBuilder {
 
                 PythonDictionary dictionaryResult = new PythonDictionary();
 
+                boolean isInComment = false;
                 for (int i = 0; i < symbols.length(); i++) {
                     int token = symbols.charAt(i);
+
+                    if (token == '#' && !scopeTracker.isInString()) {
+                        isInComment = true;
+                    }
+
                     scopeTracker.interpretToken(token);
 
-                    if (!scopeTracker.isInScopeOrString() && !scopeTracker.isInString()) {
+                    if (token == '\n' && !scopeTracker.isInString()) {
+                        isInComment = false;
+                    }
+
+                    if (!isInComment && !scopeTracker.isInScopeOrString() && !scopeTracker.isInString()) {
                         if (token == ':') {
                             if (key == null) {
                                 key = elementBuilder.toString();

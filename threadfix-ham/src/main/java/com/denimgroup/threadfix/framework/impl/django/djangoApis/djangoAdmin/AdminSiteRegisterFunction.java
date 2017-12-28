@@ -141,7 +141,7 @@ public class AdminSiteRegisterFunction extends PythonFunction {
 
         PythonVariable viewReference = new PythonVariable(controllerSource.getFullName());
         viewReference.resolveSourceLocation(controllerSource);
-        newUrl.setMemberValue("view", viewReference);
+        newUrl.setRawMemberValue("view", viewReference);
 
         return newUrl;
     }

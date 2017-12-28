@@ -430,24 +430,38 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
     int lastLineNumber = -1;
     int quoteStartType = -1;
+    boolean isComment = false;
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
 
-        scopeTracker.interpretToken(type);
-        if (stringValue != null) {
-            for (int i = 0; i < stringValue.length(); i++) {
-                scopeTracker.interpretToken((int)stringValue.charAt(i));
-            }
+        if (stringValue != null && stringValue.equals("CharField")) {
+            LOG.info("Priority");
         }
 
         if (type == '\n') {
             spaceDepth = 0;
             ranScopingCheck = false;
+            isComment = false;
+        }
+
+        if (type == '#' && !scopeTracker.isInString()) {
+            isComment = true;
         }
 
         if (lineNumber != lastLineNumber) {
             lastLineNumber = lineNumber;
+        }
+
+        if (isComment) {
+            return;
+        } else {
+            scopeTracker.interpretToken(type);
+            if (stringValue != null) {
+                for (int i = 0; i < stringValue.length(); i++) {
+                    scopeTracker.interpretToken((int)stringValue.charAt(i));
+                }
+            }
         }
 
         if (type == ' ') spaceDepth++;

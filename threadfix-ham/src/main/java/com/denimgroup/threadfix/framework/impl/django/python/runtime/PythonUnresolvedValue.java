@@ -10,7 +10,10 @@ public class PythonUnresolvedValue implements PythonValue {
     AbstractPythonStatement sourceLocation;
 
     public PythonUnresolvedValue(String stringValue) {
-        this.stringValue = stringValue.trim();
+        this.stringValue = stringValue;
+        if (this.stringValue != null) {
+            this.stringValue = this.stringValue.trim();
+        }
     }
 
     public String getStringValue() {
