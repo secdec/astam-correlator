@@ -122,7 +122,7 @@ public class DjangoAdminApi extends AbstractDjangoApi {
 
     private void attachAdminSite(AbstractPythonStatement target) {
         AdminSiteClass adminSite = new AdminSiteClass();
-        PythonFunction register = new AdminSiteRegisterFunction();
+        PythonFunction register = new AdminSiteRegisterFunction(getProject());
         AdminSiteUrlsVariable urls = new AdminSiteUrlsVariable();
         adminSite.addChildStatement(register);
         adminSite.addChildStatement(urls);

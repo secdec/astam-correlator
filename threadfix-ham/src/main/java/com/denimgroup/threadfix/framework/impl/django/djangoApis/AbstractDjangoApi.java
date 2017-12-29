@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis;
 
+import com.denimgroup.threadfix.framework.impl.django.DjangoProject;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonModule;
@@ -9,6 +10,17 @@ import java.util.Collection;
 import java.util.List;
 
 public abstract class AbstractDjangoApi implements DjangoApi {
+
+    private DjangoProject attachedProject;
+
+    @Override
+    public void configure(DjangoProject project) {
+        this.attachedProject = project;
+    }
+
+    protected DjangoProject getProject() {
+        return attachedProject;
+    }
 
     protected void tryAddScopes(PythonCodeCollection codebase, AbstractPythonStatement baseScope) {
         AbstractPythonStatement rootScope = baseScope;

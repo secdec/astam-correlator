@@ -547,7 +547,12 @@ public class DjangoRouteParser implements EventBasedTokenizer{
 
                                     String patternText = ((PythonStringPrimitive) pattern).getValue();
                                     String newEndpoint = DjangoPathUtil.combine(basePath, patternText);
-                                    DjangoRoute newRoute = new DjangoRoute(newEndpoint, viewSource.getSourceCodePath());
+                                    String viewPath = viewSource.getSourceCodePath();
+                                    if (viewPath == null) {
+                                        // Can't use this route for HAM but still useful for endpoint detection
+                                        viewPath = "";
+                                    }
+                                    DjangoRoute newRoute = new DjangoRoute(newEndpoint, viewPath);
                                     newRoute.setLineNumbers(viewSource.getSourceCodeStartLine(), viewSource.getSourceCodeEndLine());
                                     routeMap.put(newEndpoint, newRoute);
                                 }

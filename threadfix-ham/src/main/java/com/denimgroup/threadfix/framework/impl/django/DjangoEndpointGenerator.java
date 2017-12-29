@@ -88,13 +88,19 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 + codebase.get(PythonVariableModification.class).size() + " variable changes, and "
                 + codebase.get(PythonFunctionCall.class).size() + " function calls.");
 
-        debugLog("Attaching known Django APIs");
-        DjangoApiConfigurator.applySchema(codebase);
-
-        debugLog("Initializing codebase...");
+        debugLog("Initializing codebase before attaching Django APIs...");
         codebase.initialize();
 
-        DjangoApiConfigurator.applySchemaPostLink(codebase);
+        DjangoProject project = DjangoProject.loadFrom(rootDirectory, codebase);
+        DjangoApiConfigurator djangoApis = new DjangoApiConfigurator(project);
+
+        debugLog("Attaching known Django APIs");
+        djangoApis.applySchema(codebase);
+
+        debugLog("Re-initializing codebase...");
+        codebase.initialize();
+
+        djangoApis.applySchemaPostLink(codebase);
 
         LOG.info("Finished initializing codebase final entries are: "
                 + codebase.getModules().size() + " modules, "
@@ -108,108 +114,12 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         debugLog("Preparing Python interpreter...");
 
-        long executionStartTime = System.currentTimeMillis();
-
-        ExpressionDeconstructor ed = new ExpressionDeconstructor();
-        List<String> subexpressions;
-        subexpressions = ed.deconstruct("abc = 123 + 23");
-        subexpressions = ed.deconstruct("[a, c, d]");
-        subexpressions = ed.deconstruct("a, c, d", 3);
-        subexpressions = ed.deconstruct("a == b");
-        subexpressions = ed.deconstruct("var += 2");
-        subexpressions = ed.deconstruct("var -= '2' - 5", 2);
-        subexpressions = ed.deconstruct("abc = [1, 2, 3] + [2]");
-        subexpressions = ed.deconstruct("12, '13', someCall(5 + 3, this.x), this.y, a.b.c.d");
-        subexpressions = ed.deconstruct("[1, 2, 3], 5", 1);
-        subexpressions = ed.deconstruct("someCall(123).member");
-        subexpressions = ed.deconstruct("someCall(123).otherCall().member");
-        subexpressions = ed.deconstruct("123 + 34.12 - x");
-
-        PythonExpressionParser incrementalParser = new PythonExpressionParser();
-        //PythonCachingExpressionParser incrementalParser = new PythonCachingExpressionParser();
-        PythonExpression expr;
-        expr = incrementalParser.processString("x = 5");
-        expr = incrementalParser.processString("x += 5");
-        expr = incrementalParser.processString("x.y += 5");
-        expr = incrementalParser.processString("x.y += a - b");
-        expr = incrementalParser.processString("x, y = (5, 6)");
-        expr = incrementalParser.processString("x, y = (5, 6,)");
-        expr = incrementalParser.processString("'abc %s' % ('123',)");
-        expr = incrementalParser.processString("abc(xyz)");
-        expr = incrementalParser.processString("a.b.c(xyz)");
-        expr = incrementalParser.processString("a.b.c(x, y)");
-        expr = incrementalParser.processString("a.b.c(x.y.z)");
-        expr = incrementalParser.processString("a.b.c(x, y.z) + 5");
-        expr = incrementalParser.processString("a.b.c(d(x), g(y).z) -= 2");
-        expr = incrementalParser.processString("a.b(d(x).y + 5, g(y) -= 5).x + 1 % 5 - g(x) + (z, b)");
-        expr = incrementalParser.processString("x - (y - (z - w)) + v");
-        expr = incrementalParser.processString("a[123]");
-        expr = incrementalParser.processString("[1], [2]");
-
-        expr = incrementalParser.processString("if page and page.parent_id:");
-        expr = incrementalParser.processString("title=_(u\"New page\")");
-        expr = incrementalParser.processString("context['has_change_permissions'] = user_can_change_page(request.user, page)");
-        expr = incrementalParser.processString("abc['123' + '456' - func() + func].func() + 2");
-
-        expr = incrementalParser.processString("abc %= ('1', '2', '3')");
-
-        expr = incrementalParser.processString("return x = 5", null);
-        expr = incrementalParser.processString("return", null);
-        expr = incrementalParser.processString("return x, y", null);
-
-        expr = incrementalParser.processString("cms.utils.get_cms_setting(\"CACHE_PREFIX\") + 'CMS_PAGE_CACHE_VERSION'");
-        expr = incrementalParser.processString("cms.utils.get_cms_setting(\"CACHE_PREFIX\") + 'CMS_PAGE_CACHE_VERSION'");
-        expr = incrementalParser.processString("cms.utils.get_cms_setting(\"CACHE_PREFIX\") + 'CMS_PAGE_CACHE_VERSION'");
-        expr = incrementalParser.processString("cms.utils.get_cms_setting(\"CACHE_PREFIX\") + 'CMS_PAGE_CACHE_VERSION'");
-
-        expr = incrementalParser.processString("re.compile(r'[^a-zA-Z0-9_-]')");
-        expr = incrementalParser.processString("re.compile(r'[^a-zA-Z0-9_-]')");
-        expr = incrementalParser.processString("re.compile(r'[^a-zA-Z0-9_-]')");
-
-        long executionDuration = System.currentTimeMillis() - executionStartTime;
-        LOG.info("Executing test expressions took " + executionDuration + "ms");
-
-        executionStartTime = System.currentTimeMillis();
-
-        PythonInterpreter interpreter = new PythonInterpreter(codebase);
-        int testCount = 200;
-        //for (int i = 0; i < testCount; i++) {
-            PythonValue intrpval;
-            intrpval = interpreter.run("a1, a2 = [1], [2]");
-            intrpval = interpreter.run("x = 5");
-            intrpval = interpreter.run("x, y = (1, 2)");
-            intrpval = interpreter.run("xx, yy = [3, 4]");
-            intrpval = interpreter.run("a, b = (x, y)");
-            intrpval = interpreter.run("b1, b2 = (x + xx, y + yy + 3)");
-            intrpval = interpreter.run("b1 += 5");
-            intrpval = interpreter.run("b1 -= 2");
-            intrpval = interpreter.run("c1 = [5]");
-            intrpval = interpreter.run("c1, c2 = (c1 + a1, '3')");
-            intrpval = interpreter.run("c1[1] = 'a'");
-            intrpval = interpreter.run("m = { 'a': 1 } ");
-            intrpval = interpreter.run("'abc %s' % (123)");
-            intrpval = interpreter.run("'abc %s, %s' % (123, '456')");
-            intrpval = interpreter.run("5 + 5");
-            intrpval = interpreter.run("'123' + 'abc'");
-            intrpval = interpreter.run("123 + 5 # - 5");
-            intrpval = interpreter.run("");
-            intrpval = interpreter.run("# asd");
-            intrpval = interpreter.run("5+2#asd");
-            intrpval = interpreter.run("4");
-            intrpval = interpreter.run("3#asd");
-            intrpval = interpreter.run("[1] + [2]");
-            intrpval = interpreter.run("a1 + a2");
-        //}
-
-        executionDuration = System.currentTimeMillis() - executionStartTime;
-        LOG.info("Running test interpreter expressions " + testCount + " times took " + executionDuration + "ms");
-
         LOG.info("Executing module-level code...");
-        interpreter = new PythonInterpreter(codebase);
+        PythonInterpreter interpreter = new PythonInterpreter(codebase);
 
         long interpreterStartTime = System.currentTimeMillis();
 
-        DjangoApiConfigurator.applyRuntime(interpreter);
+        djangoApis.applyRuntime(interpreter);
         runInterpreterOnNonDeclarations(codebase, interpreter);
 
         long interpreterDuration = System.currentTimeMillis() - interpreterStartTime;

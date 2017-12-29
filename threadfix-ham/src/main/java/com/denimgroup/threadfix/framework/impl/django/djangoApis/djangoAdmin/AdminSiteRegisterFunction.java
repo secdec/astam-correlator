@@ -1,12 +1,12 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin;
 
 import com.denimgroup.threadfix.framework.impl.django.DjangoPathUtil;
+import com.denimgroup.threadfix.framework.impl.django.DjangoProject;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
-import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonPublicVariable;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.List;
@@ -16,6 +16,11 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 public class AdminSiteRegisterFunction extends PythonFunction {
 
     List<String> params = list("model_or_iterable", "admin_class");
+    DjangoProject project;
+
+    public AdminSiteRegisterFunction(DjangoProject attachedProject) {
+        project = attachedProject;
+    }
 
     @Override
     public String getName() {
@@ -29,7 +34,7 @@ public class AdminSiteRegisterFunction extends PythonFunction {
 
     @Override
     public AbstractPythonStatement clone() {
-        return baseCloneTo(new AdminSiteRegisterFunction());
+        return baseCloneTo(new AdminSiteRegisterFunction(project));
     }
 
     @Override
@@ -57,22 +62,63 @@ public class AdminSiteRegisterFunction extends PythonFunction {
             return null;
         }
 
-        PythonClass modelMeta = modelDecl.findChild("Meta", PythonClass.class);
-        if (modelMeta == null) {
-            return null;
-        }
-
-        AbstractPythonStatement var_app_label = modelMeta.findChild("app_label");
         String appName = null;
 
-        if (var_app_label != null) {
-            appName = ((PythonPublicVariable)var_app_label).getValueString();
+        PythonClass modelMeta = modelDecl.findChild("Meta", PythonClass.class);
+        if (modelMeta != null) {
+            AbstractPythonStatement var_app_label = modelMeta.findChild("app_label");
 
-            if (appName.startsWith("'") || appName.startsWith("\"")) {
-                appName = appName.substring(1);
+            if (var_app_label != null) {
+                appName = ((PythonPublicVariable) var_app_label).getValueString();
+
+                if (appName.startsWith("'") || appName.startsWith("\"")) {
+                    appName = appName.substring(1);
+                }
+                if (appName.endsWith("'") || appName.endsWith("\"")) {
+                    appName = appName.substring(0, appName.length() - 1);
+                }
             }
-            if (appName.endsWith("'") || appName.endsWith("\"")) {
-                appName = appName.substring(0, appName.length() - 1);
+        }
+
+        if (appName == null) {
+            AbstractPythonStatement appConfigAssignment = modelDecl.getParentStatement().getParentStatement();
+            if (appConfigAssignment != null) {
+
+                appConfigAssignment = codebase.findByFullName(appConfigAssignment.getFullName() + ".__init__.default_app_config");
+
+                if (appConfigAssignment != null) {
+                    String defaultConfig =
+                            appConfigAssignment instanceof PythonPublicVariable ?
+                                    ((PythonPublicVariable) appConfigAssignment).getValueString() :
+                                    ((PythonVariableModification) appConfigAssignment).getOperatorValue();
+
+                    defaultConfig = CodeParseUtil.trim(defaultConfig, new String[] { "\"", "'" });
+
+                    PythonClass appConfigClass = codebase.findByFullName(defaultConfig, PythonClass.class);
+                    if (appConfigClass != null) {
+
+                        PythonPublicVariable labelVar = appConfigClass.findChild("label", PythonPublicVariable.class);
+                        PythonPublicVariable nameVar = appConfigClass.findChild("name", PythonPublicVariable.class);
+
+                        if (labelVar != null) {
+                            appName = labelVar.getValueString();
+                        } else if (nameVar != null) {
+                            String fullAppName = nameVar.getValueString();
+                            appName = fullAppName.substring(fullAppName.lastIndexOf('.') + 1);
+                        }
+
+                        if (appName != null) {
+                            appName = CodeParseUtil.trim(appName, new String[] { "\"", "'" });
+                        }
+                    }
+                }
+            }
+        }
+
+        if (appName == null) {
+            String containerApp = findAppForStatement(modelDecl);
+            if (containerApp != null) {
+                appName = containerApp.substring(containerApp.lastIndexOf('.') + 1);
             }
         }
 
@@ -144,5 +190,18 @@ public class AdminSiteRegisterFunction extends PythonFunction {
         newUrl.setRawMemberValue("view", viewReference);
 
         return newUrl;
+    }
+
+    private String findAppForStatement(AbstractPythonStatement statement) {
+        String bestApp = null;
+        String fullName = statement.getFullName();
+        for (String appName : project.getInstalledApps()) {
+            if (fullName.startsWith(appName)) {
+                if (bestApp == null || appName.length() > bestApp.length()) {
+                    bestApp = appName;
+                }
+            }
+        }
+        return bestApp;
     }
 }
