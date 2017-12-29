@@ -129,17 +129,32 @@ public class AdminSiteRegisterFunction extends PythonFunction {
 
         baseEndpoint += modelDecl.getName().toLowerCase();
 
-        String newEndpoint = baseEndpoint + "/$'";
-
         PythonArray urls = self.getMemberValue("urls", PythonArray.class);
         if (urls == null) {
             return null;
         }
 
         AbstractPythonStatement urlClass = codebase.findByFullName("django.conf.urls.url");
-        PythonObject newUrl = makeUrl(newEndpoint, controllerDecl != null ? controllerDecl : modelDecl);
-        newUrl.resolveSourceLocation(urlClass);
-        urls.addEntry(newUrl);
+
+        AbstractPythonStatement responderDecl = controllerDecl != null ? controllerDecl : modelDecl;
+
+        PythonObject directUrl = makeUrl(baseEndpoint + "/$", responderDecl);
+        directUrl.resolveSourceLocation(urlClass);
+        urls.addEntry(directUrl);
+
+        String idRegex = "(?<id>(.+))";
+
+        PythonObject changeUrl = makeUrl(DjangoPathUtil.combine(baseEndpoint, idRegex + "/change/$"), responderDecl);
+        changeUrl.resolveSourceLocation(urlClass);
+        urls.addEntry(changeUrl);
+
+        PythonObject historyUrl = makeUrl(DjangoPathUtil.combine(baseEndpoint, idRegex + "/history/$"), responderDecl);
+        historyUrl.resolveSourceLocation(urlClass);
+        urls.addEntry(historyUrl);
+
+        PythonObject deleteUrl = makeUrl(DjangoPathUtil.combine(baseEndpoint, idRegex + "/delete/$"), responderDecl);
+        deleteUrl.resolveSourceLocation(urlClass);
+        urls.addEntry(deleteUrl);
 
 
         if (controllerDecl != null) {
@@ -171,8 +186,23 @@ public class AdminSiteRegisterFunction extends PythonFunction {
                             patternVar.setValue(pattern);
                             entry.setMemberValue("pattern", patternVar);
                         }
+                        entry.resolveSourceLocation(urlClass);
                         urls.addEntry(entry);
                     }
+                }
+            }
+        }
+
+        for (PythonValue value : urls.getValues()) {
+            if (!(value instanceof PythonObject)) {
+                return null;
+            } else {
+                PythonObject asObject = (PythonObject)value;
+                PythonValue pattern = asObject.getMemberValue("pattern");
+                PythonValue view = asObject.getMemberValue("view");
+
+                if (pattern == null || pattern instanceof PythonIndeterminateValue || view instanceof PythonIndeterminateValue) {
+                    return null;
                 }
             }
         }
