@@ -1,8 +1,26 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin;
 
-import com.denimgroup.threadfix.framework.impl.django.python.*;
+import com.denimgroup.threadfix.framework.impl.django.DjangoPathUtil;
+import com.denimgroup.threadfix.framework.impl.django.DjangoProject;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class AdminSiteRegisterFunction extends PythonFunction {
+
+    List<String> params = list("model_or_iterable", "admin_class");
+    DjangoProject project;
+
+    public AdminSiteRegisterFunction(DjangoProject attachedProject) {
+        project = attachedProject;
+    }
 
     @Override
     public String getName() {
@@ -16,98 +34,204 @@ public class AdminSiteRegisterFunction extends PythonFunction {
 
     @Override
     public AbstractPythonStatement clone() {
-        AdminSiteRegisterFunction clone = new AdminSiteRegisterFunction();
-        baseCloneTo(clone);
-        return clone;
+        return baseCloneTo(new AdminSiteRegisterFunction(project));
     }
 
     @Override
-    public String invoke(PythonCodeCollection codebase, AbstractPythonStatement context, PythonPublicVariable target, String[] params) {
+    public List<String> getParams() {
+        return params;
+    }
 
+    @Override
+    public PythonValue invoke(PythonInterpreter host, AbstractPythonStatement context, PythonValue[] params) {
         if (params.length == 0) {
             return null;
         }
 
-        String modelObject;
-        String adminController = null;
-        modelObject = params[0].trim();
-        if (params.length > 1) {
-            adminController = params[1].trim();
-        }
+        ExecutionContext executionContext = host.getExecutionContext();
+        PythonCodeCollection codebase = executionContext.getCodebase();
 
-        PythonClass modelType = codebase.resolveLocalSymbol(modelObject, context, PythonClass.class);
-        if (modelType == null) {
-            //assert modelType != null : "Couldn't find the model object named: " + modelObject;
+        PythonObject self = (PythonObject)executionContext.resolveAbsoluteValue(executionContext.getSelfValue());
+        PythonValue modelObject = params[0];
+        PythonValue adminController = params.length > 1 ? params[1] : null;
+
+        AbstractPythonStatement modelDecl = modelObject.getSourceLocation();
+        AbstractPythonStatement controllerDecl = adminController != null ? adminController.getSourceLocation() : null;
+
+        if (modelDecl == null) {
             return null;
         }
-
-        AbstractPythonStatement foundObject = modelType.findChild("Meta");
-        if (foundObject == null) {
-            //  A "Meta" class isn't always required to define the app_label for the model,
-            //  but it is assumed here for simplicity (should be expanded upon)
-            return null;
-        }
-
-        PythonClass metaType = (PythonClass)foundObject;
-        AbstractPythonStatement app_label = metaType.findChild("app_label");
 
         String appName = null;
 
-        if (app_label != null) {
-            appName = ((PythonPublicVariable)app_label).getValueString();
+        PythonClass modelMeta = modelDecl.findChild("Meta", PythonClass.class);
+        if (modelMeta != null) {
+            AbstractPythonStatement var_app_label = modelMeta.findChild("app_label");
 
-            if (appName.startsWith("'") || appName.startsWith("\"")) {
-                appName = appName.substring(1);
-            }
-            if (appName.endsWith("'") || appName.endsWith("\"")) {
-                appName = appName.substring(0, appName.length() - 1);
+            if (var_app_label != null) {
+                appName = ((PythonPublicVariable) var_app_label).getValueString();
+
+                if (appName.startsWith("'") || appName.startsWith("\"")) {
+                    appName = appName.substring(1);
+                }
+                if (appName.endsWith("'") || appName.endsWith("\"")) {
+                    appName = appName.substring(0, appName.length() - 1);
+                }
             }
         }
 
-        String newEndpoint = "r'/^";
+        if (appName == null) {
+            AbstractPythonStatement appConfigAssignment = modelDecl.getParentStatement().getParentStatement();
+            if (appConfigAssignment != null) {
+
+                appConfigAssignment = codebase.findByFullName(appConfigAssignment.getFullName() + ".__init__.default_app_config");
+
+                if (appConfigAssignment != null) {
+                    String defaultConfig =
+                            appConfigAssignment instanceof PythonPublicVariable ?
+                                    ((PythonPublicVariable) appConfigAssignment).getValueString() :
+                                    ((PythonVariableModification) appConfigAssignment).getOperatorValue();
+
+                    defaultConfig = CodeParseUtil.trim(defaultConfig, new String[] { "\"", "'" });
+
+                    PythonClass appConfigClass = codebase.findByFullName(defaultConfig, PythonClass.class);
+                    if (appConfigClass != null) {
+
+                        PythonPublicVariable labelVar = appConfigClass.findChild("label", PythonPublicVariable.class);
+                        PythonPublicVariable nameVar = appConfigClass.findChild("name", PythonPublicVariable.class);
+
+                        if (labelVar != null) {
+                            appName = labelVar.getValueString();
+                        } else if (nameVar != null) {
+                            String fullAppName = nameVar.getValueString();
+                            appName = fullAppName.substring(fullAppName.lastIndexOf('.') + 1);
+                        }
+
+                        if (appName != null) {
+                            appName = CodeParseUtil.trim(appName, new String[] { "\"", "'" });
+                        }
+                    }
+                }
+            }
+        }
+
+        if (appName == null) {
+            String containerApp = findAppForStatement(modelDecl);
+            if (containerApp != null) {
+                appName = containerApp.substring(containerApp.lastIndexOf('.') + 1);
+            }
+        }
+
+        String baseEndpoint = "/^";
         if (appName != null) {
-            newEndpoint += appName + "/^";
+            baseEndpoint += appName + "/^";
         }
 
-        newEndpoint += modelType.getName().toLowerCase() + "/$'";
+        baseEndpoint += modelDecl.getName().toLowerCase();
 
-        PythonPublicVariable urlsVariable = (PythonPublicVariable)target.findChild("urls");
-        if (urlsVariable == null) {
+        PythonArray urls = self.getMemberValue("urls", PythonArray.class);
+        if (urls == null) {
             return null;
         }
-        String urls = urlsVariable.getValueString();
-        if (urls == null) {
-            urls = "[]";
-        } else {
-            urls = urls.substring(1, urls.length() - 1);
-        }
+
+        AbstractPythonStatement urlClass = codebase.findByFullName("django.conf.urls.url");
+
+        AbstractPythonStatement responderDecl = controllerDecl != null ? controllerDecl : modelDecl;
+
+        PythonObject directUrl = makeUrl(baseEndpoint + "/$", responderDecl);
+        directUrl.resolveSourceLocation(urlClass);
+        urls.addEntry(directUrl);
+
+        String idRegex = "(?<id>(.+))";
+
+        PythonObject changeUrl = makeUrl(DjangoPathUtil.combine(baseEndpoint, idRegex + "/change/$"), responderDecl);
+        changeUrl.resolveSourceLocation(urlClass);
+        urls.addEntry(changeUrl);
+
+        PythonObject historyUrl = makeUrl(DjangoPathUtil.combine(baseEndpoint, idRegex + "/history/$"), responderDecl);
+        historyUrl.resolveSourceLocation(urlClass);
+        urls.addEntry(historyUrl);
+
+        PythonObject deleteUrl = makeUrl(DjangoPathUtil.combine(baseEndpoint, idRegex + "/delete/$"), responderDecl);
+        deleteUrl.resolveSourceLocation(urlClass);
+        urls.addEntry(deleteUrl);
 
 
-        String controllerName = null;
-        if (adminController != null) {
-            foundObject = codebase.resolveLocalSymbol(adminController, context);
-            if (foundObject != null) {
-                controllerName = foundObject.getFullName();
+        if (controllerDecl != null) {
+            PythonFunction getUrlsFunction = controllerDecl.findChild("get_urls", PythonFunction.class);
+            if (getUrlsFunction != null) {
+                StringBuilder constructorCall = new StringBuilder();
+                constructorCall.append(controllerDecl.getFullName());
+                constructorCall.append("(");
+                constructorCall.append(modelDecl.getFullName());
+                constructorCall.append(")");
+
+                PythonValue controllerInstance = host.run(constructorCall.toString(), controllerDecl);
+                PythonValue subUrls = host.run(
+                        new File(getUrlsFunction.getSourceCodePath()),
+                        getUrlsFunction.getSourceCodeStartLine(),
+                        getUrlsFunction.getSourceCodeEndLine(),
+                        getUrlsFunction,
+                        controllerInstance
+                );
+
+                subUrls = executionContext.resolveAbsoluteValue(subUrls);
+
+                if (subUrls instanceof PythonArray) {
+                    PythonArray urlsArray = (PythonArray)subUrls;
+                    for (PythonObject entry : urlsArray.getValues(PythonObject.class)) {
+                        PythonStringPrimitive patternVar = entry.getMemberValue("pattern", PythonStringPrimitive.class);
+                        if (patternVar != null) {
+                            String pattern = DjangoPathUtil.combine(baseEndpoint, patternVar.getValue());
+                            patternVar.setValue(pattern);
+                            entry.setMemberValue("pattern", patternVar);
+                        }
+                        entry.resolveSourceLocation(urlClass);
+                        urls.addEntry(entry);
+                    }
+                }
             }
         }
 
-        if (controllerName == null) {
-            controllerName = modelObject;
+        for (PythonValue value : urls.getValues()) {
+            if (!(value instanceof PythonObject)) {
+                return null;
+            } else {
+                PythonObject asObject = (PythonObject)value;
+                PythonValue pattern = asObject.getMemberValue("pattern");
+                PythonValue view = asObject.getMemberValue("view");
+
+                if (pattern == null || pattern instanceof PythonIndeterminateValue || view instanceof PythonIndeterminateValue) {
+                    return null;
+                }
+            }
         }
-
-        String newUrl = "url(" + newEndpoint + ", " + controllerName + ")";
-
-        if (urls.length() > 0) {
-            urls += ",";
-        }
-
-        urls += newUrl;
-
-        urls = "[" + urls + "]";
-
-        urlsVariable.setValueString(urls);
-
 
         return null;
+    }
+
+    private PythonObject makeUrl(String pattern, AbstractPythonStatement controllerSource) {
+        PythonObject newUrl = new PythonObject();
+
+        newUrl.setMemberValue("pattern", new PythonStringPrimitive(pattern));
+
+        PythonVariable viewReference = new PythonVariable(controllerSource.getFullName());
+        viewReference.resolveSourceLocation(controllerSource);
+        newUrl.setRawMemberValue("view", viewReference);
+
+        return newUrl;
+    }
+
+    private String findAppForStatement(AbstractPythonStatement statement) {
+        String bestApp = null;
+        String fullName = statement.getFullName();
+        for (String appName : project.getInstalledApps()) {
+            if (fullName.startsWith(appName)) {
+                if (bestApp == null || appName.length() > bestApp.length()) {
+                    bestApp = appName;
+                }
+            }
+        }
+        return bestApp;
     }
 }

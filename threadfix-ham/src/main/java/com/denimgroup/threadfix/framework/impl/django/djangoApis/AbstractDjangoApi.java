@@ -1,22 +1,42 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis;
 
-import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.DjangoProject;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonModule;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public abstract class AbstractDjangoApi implements DjangoApi {
 
+    private DjangoProject attachedProject;
+
+    @Override
+    public void configure(DjangoProject project) {
+        this.attachedProject = project;
+    }
+
+    protected DjangoProject getProject() {
+        return attachedProject;
+    }
+
     protected void tryAddScopes(PythonCodeCollection codebase, AbstractPythonStatement baseScope) {
-        AbstractPythonStatement targetScope = codebase.findByFullName(baseScope.getFullName());
-        if (targetScope == null) {
-            codebase.add(baseScope);
-            targetScope = baseScope;
+        AbstractPythonStatement rootScope = baseScope;
+        while (rootScope.getParentStatement() != null) {
+            rootScope = rootScope.getParentStatement();
         }
 
-        for (AbstractPythonStatement child : baseScope.getChildStatements()) {
+        AbstractPythonStatement targetScope = codebase.findByFullName(rootScope.getFullName());
+        if (targetScope == null) {
+            codebase.add(rootScope);
+            targetScope = rootScope;
+        }
+
+        //  Make a copy to avoid concurrent access
+        List<AbstractPythonStatement> children = new ArrayList<AbstractPythonStatement>(rootScope.getChildStatements());
+        for (AbstractPythonStatement child : children) {
             child.setParentStatement(targetScope);
             tryAddScopeTree(codebase, child, targetScope);
         }

@@ -1,13 +1,14 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
 import java.util.Collection;
+import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class PythonLambda extends AbstractPythonStatement {
 
     String name;
-    Collection<String> paramNames = list();
+    List<String> paramNames = list();
     String functionBody = null;
 
     @Override
@@ -20,7 +21,13 @@ public class PythonLambda extends AbstractPythonStatement {
         name = newName;
     }
 
-    public Collection<String> getParamNames() {
+    @Override
+    public void accept(AbstractPythonVisitor visitor) {
+        visitor.visitLambda(this);
+        super.accept(visitor);
+    }
+
+    public List<String> getParamNames() {
         return paramNames;
     }
 
@@ -38,6 +45,9 @@ public class PythonLambda extends AbstractPythonStatement {
     }
 
     public void setFunctionBody(String functionBody) {
+        if (functionBody != null) {
+            functionBody = functionBody.trim();
+        }
         this.functionBody = functionBody;
     }
 

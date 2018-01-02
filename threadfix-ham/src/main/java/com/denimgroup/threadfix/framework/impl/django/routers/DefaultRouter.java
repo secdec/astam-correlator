@@ -1,7 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.routers;
 
 import com.denimgroup.threadfix.framework.impl.django.DjangoRoute;
-import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
 
 import java.util.Collection;

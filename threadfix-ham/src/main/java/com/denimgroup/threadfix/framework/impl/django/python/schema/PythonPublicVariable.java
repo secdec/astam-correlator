@@ -1,7 +1,9 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
+import com.denimgroup.threadfix.framework.impl.django.python.VariableModificationType;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 
+import java.util.Collection;
 import java.util.Map;
 
 public class PythonPublicVariable extends AbstractPythonStatement {
@@ -17,6 +19,15 @@ public class PythonPublicVariable extends AbstractPythonStatement {
 
     public PythonClass getResolvedTypeClass() {
         return resolvedTypeClass;
+    }
+
+    @Override
+    public AbstractPythonStatement findChild(String immediateChildName) {
+        AbstractPythonStatement result = super.findChild(immediateChildName);
+        if (result == null && resolvedTypeClass != null) {
+            result = resolvedTypeClass.findChild(immediateChildName);
+        }
+        return result;
     }
 
     @Override
@@ -49,10 +60,16 @@ public class PythonPublicVariable extends AbstractPythonStatement {
         return clone;
     }
 
+    @Override
+    public void accept(AbstractPythonVisitor visitor) {
+        visitor.visitPublicVariable(this);
+        super.accept(visitor);
+    }
+
     public void setValueString(String valueString) {
         this.valueString = valueString;
 
-        isArray = valueString.startsWith("[");
+        isArray = valueString.startsWith("[") && valueString.length() > 1;
 
         this.clearChildStatements();
 

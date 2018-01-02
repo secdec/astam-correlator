@@ -1,7 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin;
 
-import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonStatement;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonClass;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
 
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
@@ -13,8 +13,6 @@ public class AdminSiteClass extends PythonClass {
 
     @Override
     public AbstractPythonStatement clone() {
-        AdminSiteClass clone = new AdminSiteClass();
-        baseCloneTo(clone);
-        return clone;
+        return baseCloneTo(new AdminSiteClass());
     }
 }

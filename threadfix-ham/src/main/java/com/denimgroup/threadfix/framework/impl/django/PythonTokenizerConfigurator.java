@@ -16,7 +16,7 @@ public class PythonTokenizerConfigurator implements EventBasedTokenizerConfigura
         tokenizer.wordChars('_', '_');
         tokenizer.ordinaryChar('.');
         tokenizer.wordChars('.', '.');
-        tokenizer.commentChar('#');
+        //tokenizer.commentChar('#');
         tokenizer.ordinaryChar(':');
         tokenizer.ordinaryChar('"');
         tokenizer.ordinaryChar('\'');

@@ -1,4 +1,6 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
+
+import com.denimgroup.threadfix.framework.impl.django.python.VariableModificationType;
 
 public class PythonVariableModification extends AbstractPythonStatement {
 
@@ -44,6 +46,12 @@ public class PythonVariableModification extends AbstractPythonStatement {
         clone.resolvedTarget = this.resolvedTarget;
         clone.manualName = this.manualName;
         return clone;
+    }
+
+    @Override
+    public void accept(AbstractPythonVisitor visitor) {
+        visitor.visitVariableModifier(this);
+        super.accept(visitor);
     }
 
     public String getTarget() {

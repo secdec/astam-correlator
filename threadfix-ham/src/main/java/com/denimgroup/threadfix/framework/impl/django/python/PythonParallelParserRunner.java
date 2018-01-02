@@ -1,6 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.django.python;
 
 import com.denimgroup.threadfix.framework.impl.django.PythonTokenizerConfigurator;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonModule;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 
 import java.io.File;
@@ -21,7 +22,7 @@ public class PythonParallelParserRunner implements Callable<PythonModule> {
     }
 
     @Override
-    public PythonModule call() throws Exception {
+    public PythonModule call() {
         PythonModule resultModule = new PythonModule();
         resultModule.setName(moduleName);
         resultModule.setSourceCodePath(targetFile.getAbsolutePath());

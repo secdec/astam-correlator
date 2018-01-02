@@ -1,9 +1,9 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonInterpreter;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
+
+import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
@@ -37,11 +37,17 @@ public class PythonFunction extends AbstractPythonStatement {
         return clone;
     }
 
+    @Override
+    public void accept(AbstractPythonVisitor visitor) {
+        visitor.visitFunction(this);
+        super.accept(visitor);
+    }
+
     public boolean canInvoke() {
         return false;
     }
 
-    public String invoke(PythonCodeCollection codebase, AbstractPythonStatement context, PythonPublicVariable target, String[] params) {
+    public PythonValue invoke(PythonInterpreter host, AbstractPythonStatement context, PythonValue[] params) {
         return null;
     }
 

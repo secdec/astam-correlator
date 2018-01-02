@@ -1,4 +1,4 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +40,12 @@ public class PythonFunctionCall extends AbstractPythonStatement {
         clone.resolvedFunction = this.resolvedFunction;
         clone.args.addAll(this.args);
         return clone;
+    }
+
+    @Override
+    public void accept(AbstractPythonVisitor visitor) {
+        visitor.visitFunctionCall(this);
+        super.accept(visitor);
     }
 
     public String getInvokeeName() {
