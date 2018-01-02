@@ -117,9 +117,6 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         LOG.info("Executing module-level code...");
         PythonInterpreter interpreter = new PythonInterpreter(codebase);
 
-        PythonValue testResult = interpreter.run("__test = (\"abc\"\n    \"123\")", interpreter.getExecutionContext());
-        testResult = interpreter.run("__test = \"\"\"\nabc\n123\n\"\"\"", interpreter.getExecutionContext());
-
         long interpreterStartTime = System.currentTimeMillis();
 
         djangoApis.applyRuntime(interpreter);
