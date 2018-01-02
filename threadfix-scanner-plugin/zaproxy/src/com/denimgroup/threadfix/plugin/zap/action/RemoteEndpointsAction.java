@@ -46,17 +46,17 @@ public class RemoteEndpointsAction extends EndpointsAction {
 
     @Override
     protected String getMenuItemText() {
-        return "ThreadFix: Import Endpoints From ThreadFix";
+        return "Import Endpoints from Correlation Server";
     }
 
     @Override
     protected String getNoEndpointsMessage() {
-        return "Failed to retrieve endpoints from ThreadFix. Check your key and url.";
+        return "Failed to retrieve endpoints from correlation server. Check your key and url.";
     }
 
     @Override
     protected String getCompletedMessage() {
-        return "The endpoints were successfully imported from ThreadFix.";
+        return "The endpoints were successfully imported from correlation server.";
     }
 
     @Override

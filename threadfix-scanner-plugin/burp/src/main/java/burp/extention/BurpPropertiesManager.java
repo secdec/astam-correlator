@@ -52,6 +52,10 @@ public class BurpPropertiesManager extends PropertiesManager {
     private static Properties properties = new Properties();
     private static boolean hasChanges = false;
 
+    public static boolean
+        AUTO_SCAN_KEY = false,
+        AUTO_SPIDER_KEY = false;
+
     private BurpPropertiesManager(IBurpExtenderCallbacks callbacks) {
         super();
         this.callbacks = callbacks;
@@ -80,10 +84,12 @@ public class BurpPropertiesManager extends PropertiesManager {
         return value;
     }
 
+
     public void setPropertyValue(String key, String value) {
         properties.setProperty(key, value);
         hasChanges = true;
     }
+
 
     public void saveProperties() {
         if (hasChanges) {
@@ -160,4 +166,15 @@ public class BurpPropertiesManager extends PropertiesManager {
     public void setConfigFile(String newConfigFile) {
         setPropertyValue(CONFIG_FILE_KEY, newConfigFile);
     }
+
+    public boolean getAutoSpider() { return AUTO_SPIDER_KEY; }
+
+    public boolean getAutoScan() { return AUTO_SCAN_KEY; }
+
+    public void setAutoSpider(boolean newAutoSpider) {  AUTO_SPIDER_KEY = newAutoSpider; }
+
+    public void setAutoScan(boolean newAutoScan) {  AUTO_SCAN_KEY = newAutoScan; }
+
+    public boolean isProVersion() {return callbacks.getBurpVersion()[0].toLowerCase().contains("professional");}
+
 }

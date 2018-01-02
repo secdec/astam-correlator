@@ -39,16 +39,16 @@ public class RemoteEndpointsButton extends EndpointsButton {
 
     @Override
     protected String getButtonText() {
-        return "Import and Scan Endpoints From ThreadFix";
+        return "Import Endpoints from Correlation Server";
     }
 
     @Override
     protected String getNoEndpointsMessage() {
-        return "Did not retrieve any endpoints from ThreadFix. Check your Threadfix server settings.";
+        return "Did not retrieve any endpoints from correlation server. Check your server settings.";
     }
 
     @Override
-    protected String getCompletedMessage() { return "The endpoints were successfully imported from ThreadFix. Starting scan.."; }
+    protected String getCompletedMessage() { return "The endpoints were successfully imported"; }
 
     @Override
     protected ConfigurationDialogs.DialogMode getDialogMode() {

@@ -41,7 +41,7 @@ public class LocalEndpointsButton extends EndpointsButton {
 
     @Override
     protected String getButtonText() {
-        return "Import and Scan Endpoints From Source";
+        return "Import Endpoints from Source";
     }
 
     @Override
@@ -50,7 +50,7 @@ public class LocalEndpointsButton extends EndpointsButton {
     }
 
     @Override
-    protected String getCompletedMessage() { return "The endpoints were successfully generated from source. Starting scan.."; }
+    protected String getCompletedMessage() { return "The endpoints were successfully generated from source."; }
 
     @Override
     protected ConfigurationDialogs.DialogMode getDialogMode() {
