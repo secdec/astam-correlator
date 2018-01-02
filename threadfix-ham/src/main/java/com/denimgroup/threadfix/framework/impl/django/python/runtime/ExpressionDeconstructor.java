@@ -25,17 +25,33 @@ public class ExpressionDeconstructor {
 
         // TODO - Could definitely be optimized
 
+        boolean isMultilineString = false;
+        int numConsecutiveQuotes = 0;
+        int lastChar = -1;
         ScopeTracker scopeTracker = new ScopeTracker();
         for (int i = 0; i < fullExpression.length(); i++) {
             char c = fullExpression.charAt(i);
-            scopeTracker.interpretToken(c);
+
+            boolean wasMultilineString = false;
+            if (c == '"' && lastChar == '"' && scopeTracker.getStringStartToken() != '\'') {
+                if (++numConsecutiveQuotes == 2) {
+                    wasMultilineString = isMultilineString;
+                    isMultilineString = !isMultilineString;
+                }
+            } else {
+                numConsecutiveQuotes = 0;
+            }
+
+            if (!isMultilineString && !wasMultilineString) {
+                scopeTracker.interpretToken(c);
+            }
 
             if (expressions.size() >= maxExpressions) {
                 workingSubExpression.append(c);
                 continue;
             }
 
-            if (!scopeTracker.isInString() && !scopeTracker.isInScopeOrString() && (!scopeTracker.enteredGlobalScope() || isSpecialExpression)) {
+            if (!isMultilineString && !wasMultilineString && !scopeTracker.isInString() && !scopeTracker.isInScopeOrString() && (!scopeTracker.enteredGlobalScope() || isSpecialExpression)) {
                 if (SPECIAL_CHARS.contains(c)) {
                     if (workingSubExpression.length() > 0 && !isSpecialExpression) {
                         expressions.add(workingSubExpression.toString().trim());
@@ -70,6 +86,8 @@ public class ExpressionDeconstructor {
                 }
                 workingSubExpression.append(c);
             }
+
+            lastChar = c;
         }
 
         if (workingSubExpression.length() > 0) {

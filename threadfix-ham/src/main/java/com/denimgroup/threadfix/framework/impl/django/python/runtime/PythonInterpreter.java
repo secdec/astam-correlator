@@ -8,8 +8,8 @@ import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreter
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
-import com.denimgroup.threadfix.framework.util.CondensedLinesMap;
-import com.denimgroup.threadfix.framework.util.FileReadUtils;
+import com.denimgroup.threadfix.framework.impl.django.python.CondensedLinesMap;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonFileReadUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
@@ -125,7 +125,7 @@ public class PythonInterpreter {
         pushExecutionContext(scope, selfValue);
         ExecutionContext tempContext = getExecutionContext();
 
-        CondensedLinesMap lines = FileReadUtils.readLinesCondensed(targetFile.getAbsolutePath(), startLine, endLine);
+        CondensedLinesMap lines = PythonFileReadUtils.readLinesCondensed(targetFile.getAbsolutePath(), startLine, endLine);
         PythonValue lastValue = null;
         PythonValue returnValue = null;
         for (String line : lines.getCondensedLines()) {

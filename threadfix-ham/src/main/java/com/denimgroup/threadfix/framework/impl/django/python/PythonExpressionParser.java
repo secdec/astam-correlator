@@ -255,9 +255,14 @@ public class PythonExpressionParser {
         if (nextOperationIdx == expressions.size() - 1) {
             if (nextOperation == OperationType.TUPLE_REFERENCE) {
                 String group = expressions.get(nextOperationIdx);
-                PythonTuple pyGroup = valueBuilder.buildFromSymbol(group, PythonTuple.class);
+                PythonValue pyGroup = valueBuilder.buildFromSymbol(group);
                 if (pyGroup != null) {
-                    operands = new ArrayList<PythonValue>(pyGroup.getEntries());
+                    if (pyGroup instanceof PythonTuple) {
+                        operands = new ArrayList<PythonValue>(((PythonTuple) pyGroup).getEntries());
+                    } else if (pyGroup instanceof PythonStringPrimitive) {
+                        // Multiple string can be concatenated via ("a" "b" "c")
+                        operands = list(pyGroup);
+                    }
                 }
             } else {
                 PythonValue operand;

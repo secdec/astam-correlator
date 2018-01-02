@@ -76,6 +76,10 @@ public class ScopeTracker {
         }
     }
 
+    public int getStringStartToken() {
+        return stringStartToken;
+    }
+
     public boolean isInString() {
         return stringStartToken > 0;
     }

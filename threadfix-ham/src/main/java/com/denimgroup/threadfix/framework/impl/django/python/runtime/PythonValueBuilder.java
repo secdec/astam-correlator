@@ -5,6 +5,7 @@ import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 public class PythonValueBuilder {
 
@@ -15,6 +16,7 @@ public class PythonValueBuilder {
         IMPLICIT_TUPLE,
         MAP,
         STRING,
+        STRING_TUPLE,
         NUMBER,
         NONE,
         UNKNOWN
@@ -124,6 +126,53 @@ public class PythonValueBuilder {
                 result = new PythonStringPrimitive(CodeParseUtil.trim(symbols, new String[]{"\"", "'", "r'", "r\"", "u'", "u\""}));
                 break;
 
+            case STRING_TUPLE:
+                StringBuilder workingEntry = new StringBuilder();
+                StringBuilder totalLine = new StringBuilder();
+                String trimmedSymbols = CodeParseUtil.trim(symbols, new String[] { "(", ")" }, 1);
+                boolean isMultilineString = false;
+                int numConsecutiveQuotes = 0;
+                int lastChar = -1;
+                for (int i = 0; i < trimmedSymbols.length(); i++) {
+                    int c = trimmedSymbols.charAt(i);
+                    boolean wasMultilineString = false;
+                    if (c == '"' && lastChar == '"' && scopeTracker.getStringStartToken() != '\'') {
+                        if (++numConsecutiveQuotes == 2) {
+                            wasMultilineString = isMultilineString;
+                            isMultilineString = !isMultilineString;
+
+                            if (isMultilineString) {
+                                continue;
+                            } else  {
+                                String workingEntryText = workingEntry.toString();
+                                workingEntryText = workingEntryText.substring(0, workingEntryText.length() - 2);
+                                workingEntry = new StringBuilder(workingEntryText);
+                                continue;
+                            }
+                        }
+                    } else {
+                        numConsecutiveQuotes = 0;
+                    }
+
+                    if (!isMultilineString && !wasMultilineString) {
+                        scopeTracker.interpretToken((char) c);
+                    }
+
+                    if (isMultilineString || (scopeTracker.isInString() && !scopeTracker.enteredString())) {
+                        workingEntry.append((char)c);
+                    } else if (workingEntry.length() > 0) {
+                        totalLine.append(workingEntry.toString());
+                        workingEntry = new StringBuilder();
+                    }
+
+                     lastChar = c;
+                }
+                if (workingEntry.length() > 0) {
+                    totalLine.append(workingEntry.toString());
+                }
+                result = new PythonStringPrimitive(totalLine.toString());
+                break;
+
             case NUMBER:
                 result = new PythonNumericPrimitive(symbols);
                 break;
@@ -165,11 +214,12 @@ public class PythonValueBuilder {
         ScopeTracker scopeTracker = new ScopeTracker();
         if (symbols.equals("None")) {
             possibleType = ValueType.NONE;
-        } else if (Language.isString(symbols)) {
+        } else if (Language.isString(symbols) || (symbols.startsWith("\"\"\"") && symbols.endsWith("\"\"\""))) {
             possibleType = ValueType.STRING;
         } else if (Language.isNumber(symbols)) {
             possibleType = ValueType.NUMBER;
         } else {
+            boolean containsCommas = false;
             for (int i = 0; i < symbols.length(); i++) {
                 char c = symbols.charAt(i);
                 scopeTracker.interpretToken(c);
@@ -196,6 +246,8 @@ public class PythonValueBuilder {
                         case TUPLE:
                             if (scopeTracker.getNumOpenParen() == 0 && i != symbols.length() - 1) {
                                 possibleType = ValueType.UNKNOWN;
+                            } else if (!scopeTracker.isInString() && c == ',') {
+                                containsCommas = true;
                             }
                             break;
                         case SET:
@@ -208,14 +260,11 @@ public class PythonValueBuilder {
                     }
                 }
             }
-        }
 
-//        if (possibleType == ValueType.UNKNOWN) {
-//            String[] parts = CodeParseUtil.splitByComma(symbols);
-//            if (parts.length > 1) {
-//                //  It may be an implicit tuple, make sure the contents
-//            }
-//        }
+            if (possibleType == ValueType.TUPLE && !containsCommas && (symbols.contains("\"") || symbols.contains("'"))) {
+                possibleType = ValueType.STRING_TUPLE;
+            }
+        }
 
         return possibleType;
     }

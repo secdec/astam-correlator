@@ -1,9 +1,9 @@
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;
-import com.denimgroup.threadfix.framework.util.CondensedLineEntry;
-import com.denimgroup.threadfix.framework.util.CondensedLinesMap;
-import com.denimgroup.threadfix.framework.util.FileReadUtils;
+import com.denimgroup.threadfix.framework.impl.django.python.CondensedLineEntry;
+import com.denimgroup.threadfix.framework.impl.django.python.CondensedLinesMap;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonFileReadUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -25,7 +25,7 @@ public class PythonSourceReader {
     public PythonSourceReader(@Nonnull  File file, boolean acceptAllLines) {
         target = file;
 
-        linesMap = FileReadUtils.readLinesCondensed(file.getAbsolutePath(), -1, -1);
+        linesMap = PythonFileReadUtils.readLinesCondensed(file.getAbsolutePath(), -1, -1);
         int numLines = linesMap.getLineEntries().size();
         allowedLines = new boolean[numLines];
         for (int i = 0; i < numLines; i++) {

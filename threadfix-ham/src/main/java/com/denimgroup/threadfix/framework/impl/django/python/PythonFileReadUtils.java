@@ -1,5 +1,6 @@
-package com.denimgroup.threadfix.framework.util;
+package com.denimgroup.threadfix.framework.impl.django.python;
 
+import com.denimgroup.threadfix.framework.util.ScopeTracker;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import java.io.*;
@@ -8,9 +9,9 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-public class FileReadUtils {
+public class PythonFileReadUtils {
 
-    private static final SanitizedLogger LOG = new SanitizedLogger(FileReadUtils.class.getName());
+    private static final SanitizedLogger LOG = new SanitizedLogger(PythonFileReadUtils.class.getName());
 
     public static List<String> readLines(String filePath, int startLine, int endLine) {
         File file = new File(filePath);
@@ -104,6 +105,9 @@ public class FileReadUtils {
         BufferedReader reader = new BufferedReader(stringReader);
 
         ScopeTracker scopeTracker = new ScopeTracker();
+        boolean isMultilineString = false;
+        int lastChar = -1;
+        int numConsecutiveQuotes = 0;
 
         String currentLine = null;
         try {
@@ -126,26 +130,37 @@ public class FileReadUtils {
                 newEntry.condensedLineStartIndex = workingLine.length();
 
                 for (int i = 0; i < currentLine.length(); i++) {
+
+                    boolean wasMultilineString = false;
                     int c = currentLine.charAt(i);
+                    if (c == '"' && lastChar == '"' && scopeTracker.getStringStartToken() != '\'') {
+                        if (++numConsecutiveQuotes == 2) {
+                            isMultilineString = !isMultilineString;
+                            if (!isMultilineString) {
+                                wasMultilineString = true;
+                            }
+                        }
+                    } else {
+                        numConsecutiveQuotes = 0;
+                    }
 
                     //  Check for comment characters
-                    if (!scopeTracker.isInString()) {
-                        // Python-style comments
+                    if (!scopeTracker.isInString() && !isMultilineString) {
                         if (c == '#') {
-                            break;
-                            //  C/Java-style comments
-                        } else if (workingLine.toString().endsWith("//")) {
                             break;
                         }
                     }
 
                     workingLine.append((char)c);
-                    scopeTracker.interpretToken(c);
+                    if (!isMultilineString && !wasMultilineString) {
+                        scopeTracker.interpretToken(c);
+                    }
+                    lastChar = c;
                 }
 
                 currentLineEntries.add(newEntry);
 
-                if (!scopeTracker.isInScopeOrString() && !scopeTracker.isInString() && !scopeTracker.isNextEscaped()) {
+                if (!scopeTracker.isInScopeOrString() && !isMultilineString && !scopeTracker.isInString() && !scopeTracker.isNextEscaped()) {
                     result.addCondensedLine(workingLine.toString(), currentLineEntries);
                     currentLineEntries.clear();
                     workingLine = new StringBuilder();
@@ -155,7 +170,7 @@ public class FileReadUtils {
 
                 currentLine = reader.readLine();
 
-                if (sourceLineNumber + 1 > endLine && !scopeTracker.isInString() && !scopeTracker.isInString()) {
+                if (sourceLineNumber + 1 > endLine && !isMultilineString && !scopeTracker.isInString() && !scopeTracker.isInString()) {
                     break;
                 }
             }

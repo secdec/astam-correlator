@@ -446,8 +446,13 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             numConsecutiveQuotes = 0;
         }
 
+        boolean exitedMultilineString = false;
+
         //  There were two consecutive quotes after a first one
         if (numConsecutiveQuotes == 2) {
+            if (inMultilineString) {
+                exitedMultilineString = true;
+            }
             inMultilineString = !inMultilineString;
             numConsecutiveQuotes = 0;
         }
@@ -462,11 +467,16 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
 
         if (isComment) {
             return;
-        } else {
-            scopeTracker.interpretToken(type);
+        } else if (!exitedMultilineString && !inMultilineString) {
+            if (type >= 0) {
+                scopeTracker.interpretToken(type);
+            }
             if (stringValue != null) {
                 for (int i = 0; i < stringValue.length(); i++) {
                     scopeTracker.interpretToken((int)stringValue.charAt(i));
+                }
+                if (type >= 0) {
+                    scopeTracker.interpretToken(type);
                 }
             }
         }
