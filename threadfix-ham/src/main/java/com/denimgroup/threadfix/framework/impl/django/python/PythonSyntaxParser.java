@@ -72,8 +72,8 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         log("Running on " + rootDirectory.getAbsolutePath());
         PythonCodeCollection codebase = new PythonCodeCollection();
         // Use runRecursive when debugging, runParallel in release
-        runRecursive(rootDirectory, codebase);
-        //runParallel(rootDirectory, codebase);
+        //runRecursive(rootDirectory, codebase);
+        runParallel(rootDirectory, codebase);
         return codebase;
     }
 

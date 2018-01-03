@@ -80,6 +80,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         boolean foundUrlFiles = (rootUrlsFile != null && rootUrlsFile.exists()) || (possibleGuessedUrlFiles != null && possibleGuessedUrlFiles.size() > 0);
         assert foundUrlFiles : "Root URL file did not exist";
 
+        long startupStartTime = System.currentTimeMillis();
+
         LOG.info("Parsing codebase for modules, classes, and functions...");
         long codeParseStartTime = System.currentTimeMillis();
         PythonCodeCollection codebase = PythonSyntaxParser.run(rootDirectory);
@@ -130,6 +132,9 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         long interpreterDuration = System.currentTimeMillis() - interpreterStartTime;
         LOG.info("Running Python Interpreter finished in " + interpreterDuration + "ms");
+
+        long startupDuration = System.currentTimeMillis() - startupStartTime;
+        LOG.info("Initialization of Python metadata took " + startupDuration + "ms");
 
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
         codebase.traverse(i18Detector);
