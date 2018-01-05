@@ -27,9 +27,11 @@ package burp.custombutton;
 import burp.IBurpExtenderCallbacks;
 import burp.IHttpRequestResponse;
 import burp.IHttpService;
+import burp.IParameter;
 import burp.dialog.ConfigurationDialogs;
 import burp.dialog.UrlDialog;
 import burp.extention.BurpPropertiesManager;
+import burp.extention.RequestMakerThread;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import org.json.simple.JSONObject;
@@ -41,8 +43,8 @@ import java.awt.*;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -58,7 +60,6 @@ public abstract class EndpointsButton extends JButton {
     public EndpointsButton(final Component view, final IBurpExtenderCallbacks callbacks) {
 
         setText(getButtonText());
-
         addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
@@ -72,7 +73,7 @@ public abstract class EndpointsButton extends JButton {
                     }
 
                     Endpoint.Info[] endpoints = getEndpoints();
-
+                    logEndpoints(view, endpoints);
                     if (endpoints.length == 0) {
                         JOptionPane.showMessageDialog(view, getNoEndpointsMessage(), "Warning",
                                 JOptionPane.WARNING_MESSAGE);
@@ -94,20 +95,24 @@ public abstract class EndpointsButton extends JButton {
 
                         String url = UrlDialog.show(view);
 
-                        if (url != null) { // cancel not pressed
+                        if (url != null) {
                             try {
                                 if (!url.substring(url.length() - 1).equals("/")) {
                                     url = url+"/";
                                 }
-                                for (String node: nodes) {
+                                for (String node: nodes)
+                                {
                                     URL nodeUrl = new URL(url + node);
                                     callbacks.includeInScope(nodeUrl);
                                     if(BurpPropertiesManager.getBurpPropertiesManager().getAutoSpider())
                                         callbacks.sendToSpider(nodeUrl);
-
                                 }
+                                //can call the request method right here
+                                buildRequests(view, callbacks, endpoints, url);
                                 completed = true;
-                            } catch (MalformedURLException e1) {
+                            }
+                            catch (MalformedURLException e1)
+                            {
                                 JOptionPane.showMessageDialog(view, "Invalid URL.",
                                         "Warning", JOptionPane.WARNING_MESSAGE);
                             }
@@ -120,6 +125,9 @@ public abstract class EndpointsButton extends JButton {
                 }
                 if(BurpPropertiesManager.getBurpPropertiesManager().getAutoScan())
                     sendToScanner(callbacks);
+
+                RequestMakerThread rmt = new RequestMakerThread(callbacks,view);
+                new Thread(rmt).start();
             }
         });
     }
@@ -150,6 +158,84 @@ public abstract class EndpointsButton extends JButton {
         return "";
     }
 
+    private void buildRequests(final Component view, final IBurpExtenderCallbacks callbacks, Endpoint.Info[] endpoints, String url) {
+        HashMap<byte[], IHttpService> requests = BurpPropertiesManager.getBurpPropertiesManager().getRequests();
+        for (Endpoint.Info endpoint : endpoints)
+        {
+            if (endpoint != null)
+            {
+                String endpointPath = endpoint.getUrlPath();
+                if (endpointPath.startsWith("/"))
+                {
+                    endpointPath = endpointPath.substring(1);
+                }
+                endpointPath = endpointPath.replaceAll(GENERIC_INT_SEGMENT, "1");
+                Iterator<String> it = endpoint.getHttpMethods().iterator();
+                while (it.hasNext())
+                {
+                    String method = it.next();
+                    try
+                    {
+                       URL reqUrl = new URL(url + endpointPath);
+                       byte[] req = callbacks.getHelpers().buildHttpRequest(reqUrl);
+                       for (Map.Entry<String, ParameterDataType> parameter : endpoint.getParameters().entrySet())
+                       {
+                           IParameter param = null;
+                           if (parameter.getValue().toString().equalsIgnoreCase("string"))
+                           {
+                               param = callbacks.getHelpers().buildParameter(parameter.getKey(),"debug",(byte)0);
+                           }
+                           //case int
+                           else if (parameter.getValue().toString().equalsIgnoreCase("integer"))
+                           {
+                                callbacks.getHelpers().buildParameter(parameter.getKey(),"-1",(byte)0);
+                           }
+                           //case boolean
+                           else if (parameter.getValue().toString().equalsIgnoreCase("boolean"))
+                           {
+                                callbacks.getHelpers().buildParameter(parameter.getKey(),"true",(byte)0);
+                           }
+                           if (param != null)
+                              callbacks.getHelpers().addParameter(req, param);
+                        }
+                        if(method.toString().equalsIgnoreCase("post"))
+                            req = callbacks.getHelpers().toggleRequestMethod(req);
+
+                        requests.put(req, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
+                     }
+                     catch (MalformedURLException e1)
+                     {
+                         JOptionPane.showMessageDialog(view, "Invalid URL.",
+                                "Warning", JOptionPane.WARNING_MESSAGE);
+                     }
+                     catch (Exception ge)
+                     {
+                         JOptionPane.showMessageDialog(view, ge.getMessage(),
+                                  "Warning", JOptionPane.WARNING_MESSAGE);
+                     }
+                }
+            }
+        }
+    }
+
+    public void logEndpoints(final Component view, Endpoint.Info[] endpoints) {
+        try
+        {
+            FileWriter writer = new FileWriter(javax.swing.filechooser.FileSystemView.getFileSystemView().getHomeDirectory()+"/CodePTlogfile.txt", false);
+            PrintWriter printer = new PrintWriter(writer);
+            for(Endpoint.Info endpoint : endpoints)
+            {
+                printer.printf("%s" + "%n", endpoint.getUrlPath());
+            }
+
+            printer.close();
+
+        }
+        catch (Exception ge)
+        {
+            JOptionPane.showMessageDialog(view, ge.getMessage(),"Warning", JOptionPane.WARNING_MESSAGE);
+        }
+    }
     protected abstract String getButtonText();
 
     protected abstract String getNoEndpointsMessage();

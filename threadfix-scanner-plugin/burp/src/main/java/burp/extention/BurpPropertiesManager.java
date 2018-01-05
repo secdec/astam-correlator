@@ -26,9 +26,12 @@ package burp.extention;
 
 
 import burp.IBurpExtenderCallbacks;
+import burp.IHttpService;
 import com.denimgroup.threadfix.properties.PropertiesManager;
 
 import java.util.HashMap;
+import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Properties;
 
@@ -48,6 +51,7 @@ public class BurpPropertiesManager extends PropertiesManager {
         defaultPropertyValues.put(THREADFIX_URL_KEY, "http://localhost:8080/threadfix/rest");
     }
 
+    private static HashMap<byte[], IHttpService> requests = new HashMap<byte[], IHttpService>();
     private static IBurpExtenderCallbacks callbacks;
     private static Properties properties = new Properties();
     private static boolean hasChanges = false;
@@ -176,5 +180,9 @@ public class BurpPropertiesManager extends PropertiesManager {
     public void setAutoScan(boolean newAutoScan) {  AUTO_SCAN_KEY = newAutoScan; }
 
     public boolean isProVersion() {return callbacks.getBurpVersion()[0].toLowerCase().contains("professional");}
+
+    public HashMap<byte[], IHttpService> getRequests() {return requests;}
+
+    public void setRequests(HashMap<byte [], IHttpService> requests) {this.requests = requests;}
 
 }
