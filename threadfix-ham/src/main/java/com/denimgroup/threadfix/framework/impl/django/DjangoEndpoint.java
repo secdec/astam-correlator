@@ -1,20 +1,26 @@
-// Copyright 2017 Secure Decisions, a division of Applied Visions, Inc.
+////////////////////////////////////////////////////////////////////////
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+//     Copyright (C) 2017 Applied Visions - http://securedecisions.com
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//     The contents of this file are subject to the Mozilla Public License
+//     Version 2.0 (the "License"); you may not use this file except in
+//     compliance with the License. You may obtain a copy of the License at
+//     http://www.mozilla.org/MPL/
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+//     Software distributed under the License is distributed on an "AS IS"
+//     basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+//     License for the specific language governing rights and limitations
+//     under the License.
 //
-// This material is based on research sponsored by the Department of Homeland
-// Security (DHS) Science and Technology Directorate, Cyber Security Division
-// (DHS S&T/CSD) via contract number HHSP233201600058C.
+//     This material is based on research sponsored by the Department of Homeland
+//     Security (DHS) Science and Technology Directorate, Cyber Security Division
+//     (DHS S&T/CSD) via contract number HHSP233201600058C.
+//
+//     Contributor(s):
+//              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
+//
+////////////////////////////////////////////////////////////////////////
 
 package com.denimgroup.threadfix.framework.impl.django;
 
@@ -43,7 +49,7 @@ public class DjangoEndpoint extends AbstractEndpoint {
                     "et|eu|fa|fi|fr|fy|ga|gd|gl|he|hi|hr|hsb|hu|ia|id|io"   + "|" +
                     "is|it|ja|ka|kk|km|kn|ko|lb|lt|lv|mk|ml|mn|mr|my|ne|nl" + "|" +
                     "nn|os|pa|pl|pt|pt_BR|ro|ru|sk|sl|sq|sr|sr_Latn|sv|sw"  + "|" +
-                    "ta|te|th|tr|tt|udm|uk|ur|vi|zh_Hans|zh_Hant";
+                    "ta|te|th|tr|tt|udm|uk|ur|vi|zh_Hans|zh_Hant"; // for use in regex
 
     private final static List<String> I18_SUPPORTED_LANGS = list(
             "af", "ar", "ast", "bg", "bn", "br", "bs", "ca", "cs", "cy", "da", "de", "de_CH", "dsb",
@@ -57,6 +63,8 @@ public class DjangoEndpoint extends AbstractEndpoint {
     private String urlPath;
     private Pattern urlPattern;
     private boolean isInternationalized;
+    private int startLineNumber = -1;
+    private int endLineNumber = -1;
 
     private Set<String> httpMethods;
     private Map<String, ParameterDataType> parameters;
@@ -70,6 +78,10 @@ public class DjangoEndpoint extends AbstractEndpoint {
             this.httpMethods = setFrom(httpMethods);
         if (parameters != null)
             this.parameters = parameters;
+
+        if (!this.urlPath.startsWith("/")) {
+            this.urlPath = "/" + urlPath;
+        }
 
         //  Remove named groups, not supported by Java 6
         String pattern = urlPath;
@@ -96,12 +108,12 @@ public class DjangoEndpoint extends AbstractEndpoint {
 
         this.isInternationalized = isInternationalized;
 
-//        if (isInternationalized) {
-//            pattern = DjangoPathUtil.combine("/(?:" + I18_LANG_PATTERN + ")/", pattern);
-//            this.urlPath = DjangoPathUtil.combine("/(i18)", this.urlPath);
-//        }
-
         urlPattern = Pattern.compile(pattern);
+    }
+
+    public void setLineNumbers(int startLine, int endLine) {
+        startLineNumber = startLine;
+        endLineNumber = endLine;
     }
 
     @Override
@@ -151,7 +163,11 @@ public class DjangoEndpoint extends AbstractEndpoint {
     @Nonnull
     @Override
     public String getUrlPath() {
-        return urlPath;
+        if (!isInternationalized) {
+            return urlPath;
+        } else {
+            return "/^(?P<i18>[\\w\\-_]+)" + urlPath;
+        }
     }
 
     @Nonnull
@@ -162,7 +178,7 @@ public class DjangoEndpoint extends AbstractEndpoint {
 
     @Override
     public int getStartingLineNumber() {
-        return 0;
+        return startLineNumber;
     }
 
     @Override
@@ -172,7 +188,13 @@ public class DjangoEndpoint extends AbstractEndpoint {
 
     @Override
     public boolean matchesLineNumber(int lineNumber) {
-        return false;
+        if (startLineNumber < 0) {
+            return false;
+        } else if (endLineNumber < 0) {
+            return lineNumber == startLineNumber;
+        } else {
+            return lineNumber >= startLineNumber && lineNumber <= endLineNumber;
+        }
     }
 
     @Nonnull

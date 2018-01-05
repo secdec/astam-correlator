@@ -1,20 +1,26 @@
-// Copyright 2017 Secure Decisions, a division of Applied Visions, Inc.
+////////////////////////////////////////////////////////////////////////
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+//     Copyright (C) 2017 Applied Visions - http://securedecisions.com
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//     The contents of this file are subject to the Mozilla Public License
+//     Version 2.0 (the "License"); you may not use this file except in
+//     compliance with the License. You may obtain a copy of the License at
+//     http://www.mozilla.org/MPL/
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+//     Software distributed under the License is distributed on an "AS IS"
+//     basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+//     License for the specific language governing rights and limitations
+//     under the License.
 //
-// This material is based on research sponsored by the Department of Homeland
-// Security (DHS) Science and Technology Directorate, Cyber Security Division
-// (DHS S&T/CSD) via contract number HHSP233201600058C.
+//     This material is based on research sponsored by the Department of Homeland
+//     Security (DHS) Science and Technology Directorate, Cyber Security Division
+//     (DHS S&T/CSD) via contract number HHSP233201600058C.
+//
+//     Contributor(s):
+//              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
+//
+////////////////////////////////////////////////////////////////////////
 
 package com.denimgroup.threadfix.framework.impl.django;
 
@@ -23,11 +29,11 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonFunctionCall;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonVariableModification;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
+import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 
@@ -60,6 +66,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         assert rootDirectory.exists() : "Root file did not exist.";
         assert rootDirectory.isDirectory() : "Root file was not a directory.";
 
+
+
         long generationStartTime = System.currentTimeMillis();
 
         this.rootDirectory = rootDirectory;
@@ -71,6 +79,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         boolean foundUrlFiles = (rootUrlsFile != null && rootUrlsFile.exists()) || (possibleGuessedUrlFiles != null && possibleGuessedUrlFiles.size() > 0);
         assert foundUrlFiles : "Root URL file did not exist";
+
+        long startupStartTime = System.currentTimeMillis();
 
         LOG.info("Parsing codebase for modules, classes, and functions...");
         long codeParseStartTime = System.currentTimeMillis();
@@ -86,10 +96,45 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 + codebase.get(PythonVariableModification.class).size() + " variable changes, and "
                 + codebase.get(PythonFunctionCall.class).size() + " function calls.");
 
-        debugLog("Attaching known Django APIs");
-        DjangoApiConfigurator.apply(codebase);
-
+        debugLog("Initializing codebase before attaching Django APIs...");
         codebase.initialize();
+
+        DjangoProject project = DjangoProject.loadFrom(rootDirectory, codebase);
+        DjangoApiConfigurator djangoApis = new DjangoApiConfigurator(project);
+
+        debugLog("Attaching known Django APIs");
+        djangoApis.applySchema(codebase);
+
+        debugLog("Re-initializing codebase...");
+        codebase.initialize();
+
+        djangoApis.applySchemaPostLink(codebase);
+
+        LOG.info("Finished initializing codebase final entries are: "
+                + codebase.getModules().size() + " modules, "
+                + codebase.getClasses().size() + " classes, "
+                + codebase.getFunctions().size() + " functions, "
+                + codebase.getPublicVariables().size() + " public variables, "
+                + codebase.get(PythonVariableModification.class).size() + " variable changes, and "
+                + codebase.get(PythonFunctionCall.class).size() + " function calls.");
+
+        //PythonDebugUtil.printDuplicateStatements(codebase);
+
+        debugLog("Preparing Python interpreter...");
+
+        LOG.info("Executing module-level code...");
+        PythonInterpreter interpreter = new PythonInterpreter(codebase);
+
+        long interpreterStartTime = System.currentTimeMillis();
+
+        djangoApis.applyRuntime(interpreter);
+        runInterpreterOnNonDeclarations(codebase, interpreter);
+
+        long interpreterDuration = System.currentTimeMillis() - interpreterStartTime;
+        LOG.info("Running Python Interpreter finished in " + interpreterDuration + "ms");
+
+        long startupDuration = System.currentTimeMillis() - startupStartTime;
+        LOG.info("Initialization of Python metadata took " + startupDuration + "ms");
 
         DjangoInternationalizationDetector i18Detector = new DjangoInternationalizationDetector();
         codebase.traverse(i18Detector);
@@ -98,7 +143,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         }
 
         if (rootUrlsFile != null && rootUrlsFile.exists()) {
-            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", rootUrlsFile.getAbsolutePath(), codebase, rootUrlsFile);
+            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", rootUrlsFile.getAbsolutePath(), codebase, interpreter, rootUrlsFile);
         } else if (possibleGuessedUrlFiles != null && possibleGuessedUrlFiles.size() > 0) {
 
             debugLog("Found " + possibleGuessedUrlFiles.size() + " possible URL files:");
@@ -108,7 +153,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
             routeMap = map();
             for (File guessedUrlsFile : possibleGuessedUrlFiles) {
-                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", guessedUrlsFile.getAbsolutePath(), codebase, guessedUrlsFile);
+                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", guessedUrlsFile.getAbsolutePath(), codebase, interpreter, guessedUrlsFile);
                 for (Map.Entry<String, DjangoRoute> url : guessedUrls.entrySet()) {
                     DjangoRoute existingRoute = routeMap.get(url.getKey());
                     if (existingRoute != null) {
@@ -191,6 +236,29 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             }
         }
         return urlFiles;
+    }
+
+    private void runInterpreterOnNonDeclarations(PythonCodeCollection codebase, PythonInterpreter interpreter) {
+        for (PythonModule module : codebase.getModules()) {
+            String sourcePath = module.getSourceCodePath();
+            if (sourcePath == null) {
+                continue;
+            } else if (!new File(sourcePath).exists()) {
+                continue;
+            } else if (!new File(sourcePath).isFile()) {
+                continue;
+            }
+
+            Collection<AbstractPythonStatement> childStatements = module.getChildStatements();
+
+            PythonSourceReader sourceReader = new PythonSourceReader(new File(sourcePath), true);
+            sourceReader.ignoreChildren(module, PythonClass.class, PythonFunction.class);
+
+            List<String> lines = sourceReader.getLines();
+            for (String line : lines) {
+                interpreter.run(line, module);
+            }
+        }
     }
 
     @Nonnull

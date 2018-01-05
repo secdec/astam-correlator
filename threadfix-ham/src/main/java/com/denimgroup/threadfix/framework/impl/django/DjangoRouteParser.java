@@ -1,27 +1,33 @@
-// Copyright 2017 Secure Decisions, a division of Applied Visions, Inc.
+////////////////////////////////////////////////////////////////////////
 //
-// Licensed under the Apache License, Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
+//     Copyright (C) 2017 Applied Visions - http://securedecisions.com
 //
-//     http://www.apache.org/licenses/LICENSE-2.0
+//     The contents of this file are subject to the Mozilla Public License
+//     Version 2.0 (the "License"); you may not use this file except in
+//     compliance with the License. You may obtain a copy of the License at
+//     http://www.mozilla.org/MPL/
 //
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+//     Software distributed under the License is distributed on an "AS IS"
+//     basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+//     License for the specific language governing rights and limitations
+//     under the License.
 //
-// This material is based on research sponsored by the Department of Homeland
-// Security (DHS) Science and Technology Directorate, Cyber Security Division
-// (DHS S&T/CSD) via contract number HHSP233201600058C.
+//     This material is based on research sponsored by the Department of Homeland
+//     Security (DHS) Science and Technology Directorate, Cyber Security Division
+//     (DHS S&T/CSD) via contract number HHSP233201600058C.
+//
+//     Contributor(s):
+//              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
+//
+////////////////////////////////////////////////////////////////////////
 
 package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
-import com.denimgroup.threadfix.framework.impl.django.python.AbstractPythonStatement;
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
+import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonModule;
 import com.denimgroup.threadfix.framework.impl.django.routers.DjangoRouter;
 import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -47,6 +53,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
     private PythonCodeCollection parsedCodebase;
     private DjangoRouterFactory routerFactory;
     private PythonModule thisModule;
+    private PythonInterpreter interpreter;
 
     //alias, path
     private Map<String, String> importPathMap = map();
@@ -61,12 +68,13 @@ public class DjangoRouteParser implements EventBasedTokenizer{
 
     private String rootPath = "";
 
-    public DjangoRouteParser(String sourceRoot, String rootPath, String sourceFilePath, PythonCodeCollection sourcecode) {
+    public DjangoRouteParser(String sourceRoot, String rootPath, String sourceFilePath, PythonCodeCollection sourcecode, PythonInterpreter loadedInterpreter) {
         this.sourceRoot = sourceRoot;
         this.rootPath = rootPath;
         this.parsedCodebase = sourcecode;
         this.sourceFilePath = sourceFilePath;
         this.sourceFolderPath = FilePathUtils.getFolder(new File(sourceFilePath));
+        this.interpreter = loadedInterpreter;
         routerFactory = new DjangoRouterFactory(sourcecode);
 
         this.thisModule = sourcecode.findByFilePath(this.sourceFilePath);
@@ -77,8 +85,8 @@ public class DjangoRouteParser implements EventBasedTokenizer{
         importAliases = thisModule.getImports();
     }
 
-    public static Map<String, DjangoRoute> parse(String sourceRoot, String rootPath, String sourceFilePath, PythonCodeCollection sourcecode, @Nonnull File file) {
-        DjangoRouteParser routeParser = new DjangoRouteParser(sourceRoot, rootPath, sourceFilePath, sourcecode);
+    public static Map<String, DjangoRoute> parse(String sourceRoot, String rootPath, String sourceFilePath, PythonCodeCollection sourcecode, PythonInterpreter loadedInterpreter, @Nonnull File file) {
+        DjangoRouteParser routeParser = new DjangoRouteParser(sourceRoot, rootPath, sourceFilePath, sourcecode, loadedInterpreter);
         EventBasedTokenizerRunner.run(file, routeParser);
         return routeParser.routeMap;
     }
@@ -366,7 +374,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                     String filePath = DjangoPathUtil.combine(sourceFolderPath, path + ".py");
                     File codeFile = new File(filePath);
                     if (codeFile.exists()) {
-                        DjangoRouteParser parser = new DjangoRouteParser(sourceRoot, rootPath, codeFile.getAbsolutePath(), parsedCodebase);
+                        DjangoRouteParser parser = new DjangoRouteParser(sourceRoot, rootPath, codeFile.getAbsolutePath(), parsedCodebase, interpreter);
                         EventBasedTokenizerRunner.run(codeFile, PythonTokenizerConfigurator.INSTANCE, parser);
                         if (parser.namedRouters != null) {
                             namedRouters.putAll(parser.namedRouters);
@@ -509,29 +517,127 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                         for (DjangoRoute route : referencedRouter.getRoutes()) {
                             String fullPath = DjangoPathUtil.combine(basePath, route.getUrl());
                             DjangoRoute newRoute = new DjangoRoute(fullPath, route.getViewPath());
+                            newRoute.setLineNumbers(route.getStartLineNumber(), route.getEndLineNumber());
                             for (Map.Entry<String, ParameterDataType> param : newRoute.getParameters().entrySet()) {
                                 newRoute.addParameter(param.getKey(), param.getValue());
                             }
                             routeMap.put(fullPath, newRoute);
                         }
                     } else {
-                        String viewFile = null;
-                        if (importPathMap.containsKey(viewPath)) {
-                            viewFile = importPathMap.get(viewPath);
-                        } else {
-                            viewFile = viewPath.replaceAll("\\.", "\\/");
-                            if (!new File(DjangoPathUtil.combine(sourceRoot, viewFile)).exists()) {
-                                viewFile += ".py";
-                            }
-                        }
 
-                        File importFile = new File(DjangoPathUtil.combine(sourceRoot, viewFile));
-                        if (importFile.exists()) {
-                            if (importFile.isDirectory()) {
-                                for (File file : importFile.listFiles())
-                                    routeMap.putAll(DjangoRouteParser.parse(sourceRoot, DjangoPathUtil.combine(rootPath, regexBuilder.toString()), file.getAbsolutePath(), parsedCodebase, file));
+                        String basePath = DjangoPathUtil.combine(rootPath, regexBuilder.toString());
+                        AbstractPythonStatement referencedStatement = parsedCodebase.resolveLocalSymbol(viewPath, thisModule);
+                        //interpreter.getExecutionContext().res
+                        if (referencedStatement != null && referencedStatement instanceof PythonPublicVariable) {
+
+                            String fullReferencedPath = parsedCodebase.expandSymbol(viewPath, thisModule);
+                            PythonValue interpretedValues = interpreter.run(fullReferencedPath);
+
+                            if (interpretedValues instanceof PythonVariable) {
+                                interpretedValues = interpreter.getExecutionContext().resolveAbsoluteValue(interpretedValues);
+                            }
+
+                            if (interpretedValues instanceof PythonArray) {
+                                PythonArray array = (PythonArray)interpretedValues;
+                                for (PythonObject entry : array.getValues(PythonObject.class)) {
+                                    PythonValue pattern = entry.getMemberValue("pattern");
+                                    PythonValue view = entry.getMemberValue("view");
+                                    AbstractPythonStatement viewSource = InterpreterUtil.tryGetSource(view);
+
+                                    if (pattern == null || view == null ||
+                                            !(pattern instanceof PythonStringPrimitive) ||
+                                            !(view instanceof PythonVariable)) {
+                                        continue;
+                                    }
+
+                                    String patternText = ((PythonStringPrimitive) pattern).getValue();
+                                    String newEndpoint = DjangoPathUtil.combine(basePath, patternText);
+                                    String viewPath = viewSource == null ? null : viewSource.getSourceCodePath();
+                                    if (viewPath == null) {
+                                        // Can't use this route for HAM but still useful for endpoint detection
+                                        viewPath = "";
+                                    }
+                                    DjangoRoute newRoute = new DjangoRoute(newEndpoint, viewPath);
+                                    if (viewSource != null) {
+                                        newRoute.setLineNumbers(viewSource.getSourceCodeStartLine(), viewSource.getSourceCodeEndLine());
+                                    }
+                                    routeMap.put(newEndpoint, newRoute);
+                                }
+                            }
+
+//                            PythonPublicVariable referencedVar = (PythonPublicVariable) referencedStatement;
+//                            String value = referencedVar.getValueString();
+//                            if (value.startsWith("[") && value.endsWith("]")) {
+//                                value = value.substring(1, value.length() - 1);
+//                            }
+//
+//                            String[] parts = CodeParseUtil.splitByComma(value);
+//                            for (String part : parts) {
+//                                if (part.startsWith("url(")) {
+//                                    part = part.substring("url(".length(), part.length() - 1);
+//                                    String[] params = CodeParseUtil.splitByComma(part);
+//                                    String endpoint = params[0].trim();
+//                                    String controller = params[1].trim();
+//
+//                                    AbstractPythonStatement resolvedController = parsedCodebase.findByPartialName(thisModule, controller);
+//                                    if (resolvedController == null) {
+//                                        resolvedController = parsedCodebase.findByFullName(controller);
+//                                    }
+//                                    if (resolvedController == null) {
+//                                        continue;
+//                                    }
+//
+//                                    if (endpoint.startsWith("r")) {
+//                                        endpoint = endpoint.substring(2);
+//                                    } else if (endpoint.startsWith("'") || endpoint.startsWith("\"")) {
+//                                        endpoint = endpoint.substring(1);
+//                                    }
+//
+//                                    if (endpoint.endsWith("'") || endpoint.endsWith("\"")) {
+//                                        endpoint = endpoint.substring(0, endpoint.length() - 1);
+//                                    }
+//
+//                                    endpoint = DjangoPathUtil.combine(basePath, endpoint);
+//                                    DjangoRoute newRoute = new DjangoRoute(endpoint, resolvedController.getSourceCodePath());
+//                                    newRoute.setLineNumbers(resolvedController.getSourceCodeStartLine(), resolvedController.getSourceCodeEndLine());
+//                                    routeMap.put(endpoint, newRoute);
+//                                }
+//                            }
+                        } else if (referencedStatement instanceof PythonFunctionCall) {
+
+                            if (referencedStatement.getSourceCodePath() != null && referencedStatement.getSourceCodeStartLine() > -1) {
+
+                                PythonFunction referencedFunction = (PythonFunction)referencedStatement;
+                                PythonValue functionResult = interpreter.run(viewPath, referencedFunction, null);
+                                functionResult = interpreter.getExecutionContext().resolveAbsoluteValue(functionResult);
+
+                                if (functionResult instanceof PythonArray) {
+                                    log("Found PythonArray");
+                                } else if (functionResult instanceof PythonObject) {
+                                    log("Found PythonObject");
+                                }
+                            }
+
+                        } else {
+
+                            String viewFile = null;
+                            if (importPathMap.containsKey(viewPath)) {
+                                viewFile = importPathMap.get(viewPath);
                             } else {
-                                routeMap.putAll(DjangoRouteParser.parse(sourceRoot, DjangoPathUtil.combine(rootPath, regexBuilder.toString()), importFile.getAbsolutePath(), parsedCodebase, importFile));
+                                viewFile = viewPath.replaceAll("\\.", "\\/");
+                                if (!new File(DjangoPathUtil.combine(sourceRoot, viewFile)).exists()) {
+                                    viewFile += ".py";
+                                }
+                            }
+
+                            File importFile = new File(DjangoPathUtil.combine(sourceRoot, viewFile));
+                            if (importFile.exists()) {
+                                if (importFile.isDirectory()) {
+                                    for (File file : importFile.listFiles())
+                                        routeMap.putAll(DjangoRouteParser.parse(sourceRoot, DjangoPathUtil.combine(rootPath, regexBuilder.toString()), file.getAbsolutePath(), parsedCodebase, interpreter, file));
+                                } else {
+                                    routeMap.putAll(DjangoRouteParser.parse(sourceRoot, DjangoPathUtil.combine(rootPath, regexBuilder.toString()), importFile.getAbsolutePath(), parsedCodebase, interpreter, importFile));
+                                }
                             }
                         }
                     }

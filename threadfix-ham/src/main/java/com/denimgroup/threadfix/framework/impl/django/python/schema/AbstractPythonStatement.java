@@ -1,4 +1,28 @@
-package com.denimgroup.threadfix.framework.impl.django.python;
+////////////////////////////////////////////////////////////////////////
+//
+//     Copyright (C) 2017 Applied Visions - http://securedecisions.com
+//
+//     The contents of this file are subject to the Mozilla Public License
+//     Version 2.0 (the "License"); you may not use this file except in
+//     compliance with the License. You may obtain a copy of the License at
+//     http://www.mozilla.org/MPL/
+//
+//     Software distributed under the License is distributed on an "AS IS"
+//     basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+//     License for the specific language governing rights and limitations
+//     under the License.
+//
+//     This material is based on research sponsored by the Department of Homeland
+//     Security (DHS) Science and Technology Directorate, Cyber Security Division
+//     (DHS S&T/CSD) via contract number HHSP233201600058C.
+//
+//     Contributor(s):
+//              Secure Decisions, a division of Applied Visions, Inc
+//
+////////////////////////////////////////////////////////////////////////
+
+
+package com.denimgroup.threadfix.framework.impl.django.python.schema;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -11,9 +35,9 @@ public abstract class AbstractPythonStatement {
     private AbstractPythonStatement parentStatement;
     private List<AbstractPythonStatement> childStatements = list();
     private String sourceCodePath;
-    private int sourceCodeLine;
+    private int sourceCodeStartLine = -1;
+    private int sourceCodeEndLine = -1;
     private Map<String, String> imports = map();
-    private Map<String, String> urlsModifications = map();
     private int indentationLevel = -1;
 
     public abstract String getName();
@@ -24,13 +48,15 @@ public abstract class AbstractPythonStatement {
     /**
      * Clones all children and shared properties to the target 'clone'.
      */
-    protected void baseCloneTo(AbstractPythonStatement clone) {
+    protected AbstractPythonStatement baseCloneTo(AbstractPythonStatement clone) {
         clone.setName(this.getName());
-        clone.setSourceCodeLine(this.getSourceCodeLine());
+        clone.setSourceCodeStartLine(this.getSourceCodeStartLine());
+        clone.setSourceCodeEndLine(this.getSourceCodeEndLine());
         clone.setSourceCodePath(this.getSourceCodePath());
         for (AbstractPythonStatement child : childStatements) {
             clone.addChildStatement(child.clone());
         }
+        return clone;
     }
 
     public void setSourceCodePath(String sourceCodePath) {
@@ -41,20 +67,20 @@ public abstract class AbstractPythonStatement {
         return sourceCodePath;
     }
 
-    public void setSourceCodeLine(int sourceCodeLine) {
-        this.sourceCodeLine = sourceCodeLine;
+    public void setSourceCodeStartLine(int sourceCodeStartLine) {
+        this.sourceCodeStartLine = sourceCodeStartLine;
     }
 
-    public int getSourceCodeLine() {
-        return sourceCodeLine;
+    public int getSourceCodeStartLine() {
+        return sourceCodeStartLine;
     }
 
-    public void addUrlModification(String endpoint, String targetController) {
-        urlsModifications.put(endpoint, targetController);
+    public int getSourceCodeEndLine() {
+        return sourceCodeEndLine;
     }
 
-    public Map<String, String> getUrlsModifications() {
-        return urlsModifications;
+    public void setSourceCodeEndLine(int sourceCodeEndLine) {
+        this.sourceCodeEndLine = sourceCodeEndLine;
     }
 
     public void setIndentationLevel(int indentationLevel) {
@@ -83,6 +109,16 @@ public abstract class AbstractPythonStatement {
     }
 
     public void setParentStatement(AbstractPythonStatement parentModule) {
+
+        if (this.parentStatement != null) {
+            this.parentStatement.childStatements.remove(this);
+        }
+
+        if (parentModule == null) {
+            this.parentStatement = null;
+            return;
+        }
+
         assert this != parentModule: "Cannot set parent to itself!";
         this.parentStatement = parentModule;
         if (!parentModule.childStatements.contains(this)) {
@@ -105,19 +141,26 @@ public abstract class AbstractPythonStatement {
         }
     }
 
+    public void clearChildStatements() {
+        while (childStatements.size() > 0) {
+            AbstractPythonStatement child = childStatements.get(0);
+            child.setParentStatement(null);
+        }
+    }
+
     public void detach() {
         if (this.parentStatement != null) {
             this.parentStatement.removeChildStatement(this);
         }
     }
 
-    public Collection<AbstractPythonStatement> getChildStatements() {
+    public List<AbstractPythonStatement> getChildStatements() {
         return childStatements;
     }
 
-    public <T extends AbstractPythonStatement> Collection<T> getChildStatements(@Nonnull Class<T> type) {
+    public <T extends AbstractPythonStatement> List<T> getChildStatements(@Nonnull Class<T> type) {
         List<T> result = new LinkedList<T>();
-        for (AbstractPythonStatement statement : childStatements) {
+        for (AbstractPythonStatement statement : getChildStatements()) {
             if (type.isAssignableFrom(statement.getClass())) {
                 result.add((T)statement);
             }
@@ -125,13 +168,48 @@ public abstract class AbstractPythonStatement {
         return result;
     }
 
+    public List<AbstractPythonStatement> getChildStatements(@Nonnull Class<?>... types) {
+        List<AbstractPythonStatement> result = list();
+        for (AbstractPythonStatement statement : getChildStatements()) {
+            for (Class<?> type : types) {
+                if (type.isAssignableFrom(statement.getClass())) {
+                    result.add(statement);
+                }
+            }
+        }
+        return result;
+    }
+
     public AbstractPythonStatement findChild(String immediateChildName) {
-        for (AbstractPythonStatement statement : childStatements) {
+        for (AbstractPythonStatement statement : getChildStatements()) {
             if (statement.getName().equals(immediateChildName)) {
                 return statement;
             }
         }
         return null;
+    }
+
+    public <T extends AbstractPythonStatement> Collection<T> findChildren(Class<T> type) {
+        List<T> result = list();
+        for (AbstractPythonStatement statement : getChildStatements()) {
+            if (type.isAssignableFrom(statement.getClass())) {
+                result.add((T)statement);
+            }
+        }
+        return result;
+    }
+
+    public <T extends AbstractPythonStatement> T findChild(String immediateChildName, Class<T> type) {
+        AbstractPythonStatement result = findChild(immediateChildName);
+        if (result == null) {
+            return null;
+        } else {
+            if (type.isAssignableFrom(result.getClass())) {
+                return (T)result;
+            } else {
+                return null;
+            }
+        }
     }
 
 
@@ -165,8 +243,8 @@ public abstract class AbstractPythonStatement {
     }
 
     public void accept(AbstractPythonVisitor visitor) {
+        visitor.visitAny(this);
         for (AbstractPythonStatement statement : childStatements) {
-            AbstractPythonVisitor.visitSingle(visitor, statement);
             statement.accept(visitor);
         }
     }

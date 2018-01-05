@@ -1,8 +1,34 @@
+////////////////////////////////////////////////////////////////////////
+//
+//     Copyright (C) 2017 Applied Visions - http://securedecisions.com
+//
+//     The contents of this file are subject to the Mozilla Public License
+//     Version 2.0 (the "License"); you may not use this file except in
+//     compliance with the License. You may obtain a copy of the License at
+//     http://www.mozilla.org/MPL/
+//
+//     Software distributed under the License is distributed on an "AS IS"
+//     basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+//     License for the specific language governing rights and limitations
+//     under the License.
+//
+//     This material is based on research sponsored by the Department of Homeland
+//     Security (DHS) Science and Technology Directorate, Cyber Security Division
+//     (DHS S&T/CSD) via contract number HHSP233201600058C.
+//
+//     Contributor(s):
+//              Secure Decisions, a division of Applied Visions, Inc
+//
+////////////////////////////////////////////////////////////////////////
+
+
 package com.denimgroup.threadfix.framework.impl.django.python;
 
+import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
+import java.io.*;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -26,9 +52,8 @@ public class PythonCodeCollection {
     private void expandStatementImports(AbstractPythonStatement statement) {
 
         Map<String, String> imports = statement.getImports();
-        Collection<Map.Entry<String, String>> importEntries = imports.entrySet();
-
-        log("Expanding: " + statement.toString());
+        //  Work on copy to avoid concurrent modification
+        Collection<Map.Entry<String, String>> importEntries = new HashMap<String, String>(imports).entrySet();
 
         for (Map.Entry<String, String> entry : importEntries) {
             String alias = entry.getKey();
@@ -80,6 +105,7 @@ public class PythonCodeCollection {
     public void initialize() {
         this.expandImports();
         this.collapseSymbolReferences();
+        this.finalizeUnfinishedLines();
         this.executeInvocations();
     }
 
@@ -91,6 +117,8 @@ public class PythonCodeCollection {
     public void expandImports() {
         LOG.info("Expanding statement imports");
         long start = System.currentTimeMillis();
+
+        final PythonCodeCollection codebase = this;
 
         //  Expand local imports
         traverse(new AbstractPythonVisitor() {
@@ -123,20 +151,8 @@ public class PythonCodeCollection {
                     //  Import path should be fully expanded
                     String alias = entry.getKey();
                     String fullPath = entry.getValue();
-                    Collection<AbstractPythonStatement> importedStatements = resolveLocalImport(pyModule, fullPath);
-                    if (importedStatements == null || importedStatements.size() == 0) {
-                        continue;
-                    } else {
-                        for (AbstractPythonStatement child : importedStatements) {
-                            AbstractPythonStatement clone = child.clone();
 
-                            if (alias != null && !alias.endsWith("*") && importedStatements.size() == 0) {
-                                clone.setName(alias);
-                            }
-
-                            pyModule.addChildStatement(clone);
-                        }
-                    }
+                    pyModule.addImplicitImport(codebase.findByFullName(fullPath), alias);
                 }
             }
         });
@@ -145,20 +161,20 @@ public class PythonCodeCollection {
         LOG.info("Expanding statement imports took " + duration + "ms");
     }
 
+    public String expandSymbol(String localSymbol, AbstractPythonStatement scope) {
+        for (Map.Entry<String, String> entry : scope.getImports().entrySet()) {
+            String alias = entry.getKey();
+            String fullPath = entry.getValue();
+
+            if (localSymbol.startsWith(alias)) {
+                return localSymbol.replace(alias, fullPath);
+            }
+        }
+        return localSymbol;
+    }
+
     public void collapseSymbolReferences() {
         LOG.info("Collapsing symbol references");
-        //  Various function and variable references have been made and captured. Neither
-        //  have been resolved to their fully-qualified names yet.
-        //
-        //  1. Fully-qualify variables declared directly in a module.
-        //  2. Fully-qualify variables referenced via 'self.ABC'.
-        //  3. Remove function-local variable references that have been qualified outside of the function.
-        //  4. Link variable modifications to their now-qualified references.
-        //  5. Link function calls to their fully-qualified references.
-
-        //  Lower-depth nodes are considered the definitions of a variable (unless defined in __init__)
-
-        // OR
 
         long startTime = System.currentTimeMillis();
         long duration;
@@ -183,16 +199,11 @@ public class PythonCodeCollection {
         variableDeclarations = this.getPublicVariables(); // use updated list of non-pruned variables
         for (PythonPublicVariable var : variableDeclarations) {
             String value = var.getValueString();
-            if (value.contains("(")) {
-                String methodName = value.substring(0, value.indexOf("("));
+            if (value != null && value.contains("(")) {
+                String methodName = value.substring(0, value.indexOf('('));
                 PythonClass type = resolveLocalSymbol(methodName, var, PythonClass.class);
                 if (type != null) {
                     var.setResolvedTypeClass(type);
-                    //  Copy immediate children (would like to do a deep clone but circular dependencies make it hard)
-                    Collection<PythonPublicVariable> members = type.getChildStatements(PythonPublicVariable.class);
-                    for (PythonPublicVariable mem : members) {
-                        var.addChildStatement(mem.clone());
-                    }
                     ++numResolvedTypes;
                 }
             }
@@ -252,9 +263,42 @@ public class PythonCodeCollection {
         }
 
         duration = System.currentTimeMillis() - startTime;
-        LOG.info("Resolved " + numResolvedFunctionCalls + " function calls in " + duration + "ms");
+        LOG.info("Resolved " + numResolvedFunctionCalls + " function and lambda calls in " + duration + "ms");
 
         LOG.info("Finished collapsing symbol references");
+    }
+
+    public void finalizeUnfinishedLines() {
+        //  In cases where a function or class ends at the end of a file, its end line
+        //  will not be detected. Assign the end line to the last line of the file.
+        traverse(new AbstractPythonVisitor() {
+            @Override
+            public void visitAny(AbstractPythonStatement statement) {
+                super.visitAny(statement);
+                if (statement.getSourceCodeStartLine() >= 0 && statement.getSourceCodeEndLine() < 0) {
+                    String filePath = statement.getSourceCodePath();
+                    try {
+                        FileReader fileReader = new FileReader(filePath);
+                        BufferedReader reader = new BufferedReader(fileReader);
+
+                        int i = 0;
+                        while (reader.readLine() != null) {
+                            ++i;
+                        }
+
+                        statement.setSourceCodeEndLine(i);
+
+                        reader.close();
+                        fileReader.close();
+
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
     }
 
     public void executeInvocations() {
@@ -273,21 +317,22 @@ public class PythonCodeCollection {
 
         long startTime = System.currentTimeMillis();
 
-        for (PythonFunctionCall call : functionCalls) {
-            PythonFunction function = call.getResolvedFunction();
-            if (function != null) {
-                if (function.canInvoke()) {
-                    Collection<String> params = call.getParameters();
-                    String[] arrayParams;
-                    if (params.size() == 0) {
-                        arrayParams = new String[0];
-                    } else {
-                        arrayParams = params.toArray(new String[params.size()]);
-                    }
-                    function.invoke(this, call, call.getResolvedInvokee(), arrayParams);
-                }
-            }
-        }
+        LOG.warn("SKIPPING GLOBAL-LEVEL FUNCTION CALLS - TEMPORARILY DISABLED (DEV)");
+//        for (PythonFunctionCall call : functionCalls) {
+//            PythonFunction function = call.getResolvedFunction();
+//            if (function != null) {
+//                if (function.canInvoke()) {
+//                    Collection<String> params = call.getParameters();
+//                    String[] arrayParams;
+//                    if (params.size() == 0) {
+//                        arrayParams = new String[0];
+//                    } else {
+//                        arrayParams = params.toArray(new String[params.size()]);
+//                    }
+//                    function.invoke(this, call, call.getResolvedInvokee(), arrayParams);
+//                }
+//            }
+//        }
 
         long duration = System.currentTimeMillis() - startTime;
         LOG.info("Executing " + functionCalls.size() + " function calls took " + duration + "ms");
@@ -363,7 +408,7 @@ public class PythonCodeCollection {
 
         if (!fullName.contains(".")) {
             for (AbstractPythonStatement child : statements) {
-                if (child.getFullName().equals(fullName)) {
+                if (child.getName().equals(fullName)) {
                     return child;
                 }
             }
@@ -372,7 +417,7 @@ public class PythonCodeCollection {
 
         AbstractPythonStatement result = null;
         String firstPart = fullName.substring(0, fullName.indexOf('.'));
-        String remainingPart = fullName.substring(fullName.indexOf(".") + 1);
+        String remainingPart = fullName.substring(fullName.indexOf('.') + 1);
         for (AbstractPythonStatement child : statements) {
             if (child.getName().equals(firstPart)) {
                 result = findByPartialName(child, remainingPart);
@@ -394,50 +439,29 @@ public class PythonCodeCollection {
     }
 
     public AbstractPythonStatement findByPartialName(@Nonnull AbstractPythonStatement base, @Nonnull String partialName) {
-        if (partialName.length() == 0 || partialName.equals(base.getName())) {
+        if (partialName.length() == 0) {
             return base;
         }
 
         String currentPart;
         String nextPart;
         if (partialName.contains(".")) {
-            currentPart = partialName.substring(0, partialName.indexOf("."));
-            nextPart = partialName.substring(partialName.indexOf(".") + 1);
+            currentPart = partialName.substring(0, partialName.indexOf('.'));
+            nextPart = partialName.substring(partialName.indexOf('.') + 1);
         } else {
             currentPart = partialName;
             nextPart = null;
         }
 
 
-        for (AbstractPythonStatement child : base.getChildStatements()) {
-            if (child.getName().equals(currentPart)) {
-                if (nextPart == null) {
-                    return child;
-                } else {
-                    return findByPartialName(child, nextPart);
-                }
-            }
+        AbstractPythonStatement matchingChild = base.findChild(currentPart);
+        if (nextPart == null) {
+            return matchingChild;
+        } else if (matchingChild != null) {
+            return findByPartialName(matchingChild, nextPart);
+        } else {
+            return null;
         }
-
-        return null;
-    }
-
-    /**
-     * @param fileName The name of the base file to begin searching through.
-     * @return The set of AbstractPythonStatements contained within the file and its children (if it's a folder)
-     */
-    public Collection<AbstractPythonStatement> findInFile(@Nonnull final String fileName) {
-        final List<AbstractPythonStatement> result = new LinkedList<AbstractPythonStatement>();
-        traverse(new AbstractPythonVisitor() {
-            @Override
-            public void visitAny(AbstractPythonStatement statement) {
-                super.visitAny(statement);
-                if (statement.getSourceCodePath().startsWith(fileName)) {
-                    result.add(statement);
-                }
-            }
-        });
-        return result;
     }
 
     /**
@@ -464,24 +488,27 @@ public class PythonCodeCollection {
         }
     }
 
-    public <T extends AbstractPythonStatement> T findFirstByFilePath(@Nonnull final String filePath, final Class<T> type) {
-        final List<AbstractPythonStatement> result = new ArrayList<AbstractPythonStatement>();
-
+    public AbstractPythonStatement findByLineNumber(@Nonnull final String filePath, final int lineNumber) {
+        if (lineNumber < 0) {
+            return null;
+        }
+        final List<AbstractPythonStatement> result = new LinkedList<AbstractPythonStatement>();
         traverse(new AbstractPythonVisitor() {
             @Override
             public void visitAny(AbstractPythonStatement statement) {
                 super.visitAny(statement);
-                Class<?> statementType = statement.getClass();
-                if (result.size() == 0 &&
-                        (type == null || type.isAssignableFrom(statementType)) &&
-                        statement.getSourceCodePath().equals(filePath)) {
-                    result.add(statement);
+                if (result.size() == 0) {
+                    if (statement.getSourceCodePath().equals(filePath)) {
+                        if (statement.getSourceCodeStartLine() >= lineNumber && statement.getSourceCodeEndLine() <= lineNumber) {
+                            result.add(statement);
+                        }
+                    }
                 }
             }
         });
 
         if (result.size() > 0) {
-            return (T)result.get(0);
+            return result.get(0);
         } else {
             return null;
         }
@@ -518,18 +545,18 @@ public class PythonCodeCollection {
 
         } else if (importRelativeToScope.startsWith(".")) {
             String currentName = scope.getFullName();
-            basePath = currentName + "." + importRelativeToScope.substring(1);
+            basePath = currentName + importRelativeToScope;
         } else {
             basePath = importRelativeToScope;
         }
 
         boolean wildcard = false;
-        if (basePath.endsWith("*")) {
+        if (basePath.charAt(basePath.length() - 1) == '*') {
             wildcard = true;
             basePath = basePath.substring(0, basePath.length() - 1);
         }
 
-        if (basePath.endsWith(".")) {
+        if (basePath.charAt(basePath.length() - 1) == '.') {
             basePath = basePath.substring(0, basePath.length() - 1);
         }
 
@@ -568,11 +595,19 @@ public class PythonCodeCollection {
             return findByFullName(ownerClass.getFullName() + "." + symbol);
         }
 
-        result = findByFullName(localScope.getFullName() + "." + symbol);
+        boolean symbolIsEmbedded = symbol.contains(".");
+
+        // Try to find the symbol as a direct child
+        if (!symbolIsEmbedded) {
+            result = localScope.findChild(symbol);
+        } else {
+            result = findByPartialName(localScope, symbol);
+        }
         if (result != null) {
             return result;
         }
 
+        // Try to find the symbol as an absolute reference
         result = findByFullName(symbol);
         if (result != null) {
             return result;
@@ -584,12 +619,17 @@ public class PythonCodeCollection {
             imports = currentImportScope.getImports();
             currentImportScope = currentImportScope.getParentStatement();
             if (currentImportScope != null) {
-                result = findByFullName(currentImportScope.getFullName() + "." + symbol);
+                if (!symbolIsEmbedded) {
+                    result = currentImportScope.findChild(symbol);
+                } else {
+                    result = findByPartialName(currentImportScope, symbol);
+                }
                 if (result != null) {
                     return result;
                 }
             }
         }
+
 
         for (Map.Entry<String, String> entry : imports.entrySet()) {
             String alias = entry.getKey();
@@ -607,6 +647,7 @@ public class PythonCodeCollection {
             return result;
         }
 
+        // Couldn't resolve based on current scope, try in parent scopes
         AbstractPythonStatement currentScope = localScope;
         do {
             currentScope = currentScope.getParentStatement();
@@ -633,7 +674,6 @@ public class PythonCodeCollection {
 
     public void traverse(AbstractPythonVisitor visitor) {
         for (AbstractPythonStatement child : statements) {
-            AbstractPythonVisitor.visitSingle(visitor, child);
             child.accept(visitor);
         }
     }
