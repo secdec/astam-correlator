@@ -1,6 +1,6 @@
 # ASTAM Correlator
 
-The ASTAM Correlator is a vulnerability navigation and consolidation tool for web applications, capable of correlating
+The ASTAM Correlator is a vulnerability consolidation and management tool for web applications, capable of correlating
 and merging different Static and Dynamic scans indicating the same vulnerability. This improves
 scan results by combining findings that are symptoms of the same weakness, providing:
 
