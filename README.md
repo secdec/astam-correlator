@@ -1,7 +1,3 @@
-_*This material is based on research sponsored by the Department of Homeland
-Security (DHS) Science and Technology Directorate, Cyber Security Division
-(DHS S&T/CSD) via contract number HHSP233201600058C.*_
-
 # ASTAM Correlator
 
 The ASTAM Correlator is a vulnerability navigation and consolidation tool for web applications, capable of correlating
@@ -34,3 +30,8 @@ Decisions, a subdivision of Applied Visions Inc., has improved upon the open-sou
 with a focused interface and improved HAM capabilities.
 
 The original ThreadFix project can be found here: https://github.com/denimgroup/threadfix
+
+
+_*This material is based on research sponsored by the Department of Homeland
+Security (DHS) Science and Technology Directorate, Cyber Security Division
+(DHS S&T/CSD) via contract number HHSP233201600058C.*_
