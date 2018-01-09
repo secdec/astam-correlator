@@ -18,9 +18,7 @@
 //     Portions created by Denim Group, Ltd. are Copyright (C)
 //     Denim Group, Ltd. All Rights Reserved.
 //
-//     Contributor(s):
-//             Denim Group, Ltd.
-//             Secure Decisions, a division of Applied Visions, Inc
+//     Contributor(s): Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.jsp;
