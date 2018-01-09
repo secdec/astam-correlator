@@ -18,7 +18,9 @@
 //     Portions created by Denim Group, Ltd. are Copyright (C)
 //     Denim Group, Ltd. All Rights Reserved.
 //
-//     Contributor(s): Denim Group, Ltd.
+//     Contributor(s):
+//              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
 //
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
@@ -32,9 +34,6 @@ import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.*;
 
-/**
- * Created by mac on 9/4/14.
- */
 /*
  * Represents endpoints including a resource name without an extension, such as /some/path/resource.
  */
