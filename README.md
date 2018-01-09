@@ -12,12 +12,6 @@ scan results by combining findings that are symptoms of the same weakness, provi
 - Reduced duplicate vulnerabilities from multiple SAST/DAST scans
 
 
-
-# Plugins
-
-This project also comes with plugins for various dynamic scanning tools to improve the performance of those tools. Plugins 
-are capable of parsing the source code for a project to detect endpoints configured by that project. This can provide a starting point for most, if not all, of the exposed endpoints of a target application, improving performance and coverage.
-
 # Supported Web Frameworks
 The following frameworks are supported by the Correlator route detection process:
 
