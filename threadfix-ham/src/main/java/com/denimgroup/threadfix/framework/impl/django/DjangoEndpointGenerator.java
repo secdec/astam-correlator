@@ -69,7 +69,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         long generationStartTime = System.currentTimeMillis();
 
-        this.rootDirectory = rootDirectory;
+        this.rootDirectory = rootDirectory.getAbsoluteFile();
 
         findRootUrlsFile();
         if (rootUrlsFile == null || !rootUrlsFile.exists()) {
@@ -178,6 +178,17 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         }
 
         this.endpoints = generateMappings(i18Detector.isLocalized());
+
+        //  Ensure that all file paths are relative to project root
+        //  Python interpreter requires that file paths be absolute so that the files can be loaded
+        for (Endpoint endpoint : this.endpoints) {
+            DjangoEndpoint djangoEndpoint = (DjangoEndpoint)endpoint;
+            String filePath = djangoEndpoint.getFilePath();
+            if (filePath.startsWith(rootDirectory.getAbsolutePath())) {
+                String relativePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+                djangoEndpoint.setFilePath(relativePath);
+            }
+        }
 
         long generationDuration = System.currentTimeMillis() - generationStartTime;
         debugLog("Finished python endpoint generation in " + generationDuration + "ms");

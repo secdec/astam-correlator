@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -174,6 +175,10 @@ public class DjangoEndpoint extends AbstractEndpoint {
     @Override
     public String getFilePath() {
         return filePath;
+    }
+
+    public void setFilePath(@Nonnull String filePath) {
+        this.filePath = filePath;
     }
 
     @Override
