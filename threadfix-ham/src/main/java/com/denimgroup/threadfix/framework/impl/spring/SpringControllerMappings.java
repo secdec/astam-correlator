@@ -137,7 +137,7 @@ public class SpringControllerMappings implements EndpointGenerator {
 			if (file != null && file.exists() && file.isFile() &&
 					file.getAbsolutePath().contains(rootDirectory.getAbsolutePath())) {
 
-                SpringControllerEndpointParser endpointParser = new SpringControllerEndpointParser(file.getAbsolutePath());
+                SpringControllerEndpointParser endpointParser = new SpringControllerEndpointParser(rootDirectory, file.getAbsolutePath());
                 EntityParser entityParser = new EntityParser();
                 SpringDataBinderParser dataBinderParser = new SpringDataBinderParser();
                 EventBasedTokenizerRunner.run(file, entityParser, endpointParser, dataBinderParser);

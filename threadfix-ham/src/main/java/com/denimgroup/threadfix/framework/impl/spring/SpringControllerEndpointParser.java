@@ -27,6 +27,7 @@ import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 
 import javax.annotation.Nonnull;
@@ -56,7 +57,11 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             secondToLastValue = null, lastParam, lastParamType;
 
     @Nonnull
-    private final String rootFilePath;
+    private final String filePath;
+    @Nonnull
+    private final String relativeFilePath;
+    @Nullable
+    private final File rootDirectory;
     @Nullable
     private ModelField currentModelObject = null;
     @Nonnull
@@ -101,20 +106,35 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
     }
 
     @Nonnull
-    public static Set<SpringControllerEndpoint> parse(@Nonnull File file, @Nullable EntityMappings entityMappings) {
-        SpringControllerEndpointParser parser = new SpringControllerEndpointParser(file.getAbsolutePath(), entityMappings);
+    public static Set<SpringControllerEndpoint> parse(@Nullable File rootDirectory, @Nonnull File file, @Nullable EntityMappings entityMappings) {
+        SpringControllerEndpointParser parser = new SpringControllerEndpointParser(rootDirectory, file.getAbsolutePath(), entityMappings);
         EventBasedTokenizerRunner.run(file, parser);
         return parser.endpoints;
     }
 
-    SpringControllerEndpointParser(@Nonnull String rootFilePath) {
-        this.rootFilePath = rootFilePath;
+    SpringControllerEndpointParser(@Nullable File rootDirectory, @Nonnull String filePath) {
+        this.filePath = filePath;
+        this.rootDirectory = rootDirectory;
+
+        if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
+            this.relativeFilePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+        } else {
+            this.relativeFilePath = filePath;
+        }
     }
 
-    private SpringControllerEndpointParser(@Nonnull String rootFilePath,
+    private SpringControllerEndpointParser(@Nullable File rootDirectory,
+                                           @Nonnull String filePath,
                                            @Nullable EntityMappings entityMappings) {
-        this.rootFilePath = rootFilePath;
+        this.rootDirectory = rootDirectory;
+        this.filePath = filePath;
         this.entityMappings = entityMappings;
+
+        if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
+            this.relativeFilePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+        } else {
+            this.relativeFilePath = filePath;
+        }
     }
 
     @Override
@@ -382,7 +402,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
 
         assert currentMapping != null : "Current mapping should not be null at this point. Check the state machine.";
 
-        SpringControllerEndpoint endpoint = new SpringControllerEndpoint(rootFilePath, currentMapping,
+        SpringControllerEndpoint endpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
                 methodMethods,
                 currentParameters,
                 currentPathParameters,

@@ -63,10 +63,10 @@ public class DotNetMappings implements EndpointGenerator {
         cSharpFiles = FileUtils.listFiles(rootDirectory,
                 new FileExtensionFileFilter("cs"), TrueFileFilter.INSTANCE);
 
-        generateMappings();
+        generateMappings(rootDirectory);
     }
 
-    private void generateMappings() {
+    private void generateMappings(File rootDirectory) {
 
         List<ViewModelParser> modelParsers = list();
 
@@ -96,7 +96,7 @@ public class DotNetMappings implements EndpointGenerator {
 
         DotNetModelMappings modelMappings = new DotNetModelMappings(modelParsers);
 
-        generator = new DotNetEndpointGenerator(routeMappings, modelMappings, controllerMappingsList);
+        generator = new DotNetEndpointGenerator(rootDirectory, routeMappings, modelMappings, controllerMappingsList);
     }
 
     @Nonnull

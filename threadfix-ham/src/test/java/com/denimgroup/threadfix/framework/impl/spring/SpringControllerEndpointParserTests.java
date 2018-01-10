@@ -59,7 +59,7 @@ public class SpringControllerEndpointParserTests {
         File file = ResourceManager.getSpringFile(TestConstants.SPRING_CONTROLLER_WITH_CLASS_REQUEST_MAPPING);
 
         Set<? extends Endpoint> endpoints =
-                SpringControllerEndpointParser.parse(file, mappings);
+                SpringControllerEndpointParser.parse(null, file, mappings);
 
         assertTrue("File didn't exist at " + file.getAbsolutePath(), file.exists());
 
@@ -135,7 +135,7 @@ public class SpringControllerEndpointParserTests {
 
     @Test
     public void testMethodAuthParsing() {
-        Set<SpringControllerEndpoint> endpoints = SpringControllerEndpointParser.parse(
+        Set<SpringControllerEndpoint> endpoints = SpringControllerEndpointParser.parse(null,
                 ResourceManager.getSpringFile("ControllerWithAuthentication.java"), null);
 
         boolean hasAuth = false, hasNoAuth = false;
@@ -158,7 +158,7 @@ public class SpringControllerEndpointParserTests {
 
     @Test
     public void testClassAuthParsing() {
-        Set<SpringControllerEndpoint> endpoints = SpringControllerEndpointParser.parse(
+        Set<SpringControllerEndpoint> endpoints = SpringControllerEndpointParser.parse(null,
                 ResourceManager.getSpringFile("ControllerWithClassAuthorization.java"), null);
 
         boolean hasAuth = false, hasNoAuth = false;
@@ -180,7 +180,7 @@ public class SpringControllerEndpointParserTests {
     }
 
     Set<SpringControllerEndpoint> parseEndpoints(String controllerName, String rootFolderName) {
-        return SpringControllerEndpointParser.parse(ResourceManager.getSpringFile(controllerName),
+        return SpringControllerEndpointParser.parse(null, ResourceManager.getSpringFile(controllerName),
                 new EntityMappings(new File(TestConstants.getFolderName(rootFolderName))));
     }
 

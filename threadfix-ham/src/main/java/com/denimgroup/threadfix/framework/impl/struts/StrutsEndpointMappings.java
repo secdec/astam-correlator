@@ -108,7 +108,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         StrutsXmlParser strutsXmlParser = new StrutsXmlParser(configFiles);
         strutsPackages = strutsXmlParser.parse(strutsConfigFile);
 
-        StrutsProject project = new StrutsProject();
+        StrutsProject project = new StrutsProject(rootDirectory.getAbsolutePath());
         project.setConfiguration(configurationProperties);
 
         //  Add default action mappers

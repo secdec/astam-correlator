@@ -30,9 +30,11 @@ import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -52,13 +54,15 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 
     public static final SanitizedLogger LOG = new SanitizedLogger(DotNetEndpointGenerator.class);
 
-    public DotNetEndpointGenerator(DotNetRouteMappings routeMappings,
+    public DotNetEndpointGenerator(File rootDirectory,
+                                   DotNetRouteMappings routeMappings,
                                    DotNetModelMappings modelMappings,
                                    DotNetControllerMappings... controllerMappings) {
-        this(routeMappings, modelMappings, Arrays.asList(controllerMappings));
+        this(rootDirectory, routeMappings, modelMappings, Arrays.asList(controllerMappings));
     }
 
-    public DotNetEndpointGenerator(DotNetRouteMappings routeMappings,
+    public DotNetEndpointGenerator(File rootDirectory,
+                                   DotNetRouteMappings routeMappings,
                                    DotNetModelMappings modelMappings,
                                    List<DotNetControllerMappings> controllerMappings) {
         assert routeMappings != null : "routeMappings was null. Check route parsing code.";
@@ -71,10 +75,10 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         dotNetRouteMappings = routeMappings;
         dotNetModelMappings = modelMappings;
 
-        assembleEndpoints();
+        assembleEndpoints(rootDirectory);
     }
 
-    private void assembleEndpoints() {
+    private void assembleEndpoints(File rootDirectory) {
         if (dotNetRouteMappings == null || dotNetRouteMappings.routes == null) {
             LOG.error("No mappings found for project. Exiting.");
             return; // can't do anything without routes
@@ -145,7 +149,11 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 
                 LOG.debug("Got result " + result);
 
-                endpoints.add(new DotNetEndpoint(result, mappings.getFilePath(), action));
+                String filePath = mappings.getFilePath();
+                if (filePath.startsWith(rootDirectory.getAbsolutePath())) {
+                    filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+                }
+                endpoints.add(new DotNetEndpoint(result, filePath, action));
             }
         }
     }

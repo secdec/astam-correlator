@@ -117,6 +117,7 @@ public class DotNetModelBindingTests {
     @Test
     public void testSuperclassPropertiesIncluded() {
         DotNetEndpointGenerator generator = new DotNetEndpointGenerator(
+                null,
                 DotNetRoutesParser.parse(ResourceManager.getDotNetMvcFile("RouteConfig.cs")),
                 new DotNetModelMappings(getContosoLocation()),
                 DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile("SuperclassBindingController.cs"))

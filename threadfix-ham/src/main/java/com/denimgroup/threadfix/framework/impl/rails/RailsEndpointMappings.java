@@ -36,6 +36,7 @@ import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteR
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRoutingTreeBuilder;
 import com.denimgroup.threadfix.framework.impl.rails.routerDetection.RouterDetector;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 
@@ -90,12 +91,17 @@ public class RailsEndpointMappings implements EndpointGenerator {
             RailsController controller = getController(route);
             String controllerPath;
             if (controller != null) {
-                controllerPath = getRelativePath(controller.getControllerFile());
+                controllerPath = controller.getControllerFile().getAbsolutePath();
             } else {
                 controllerPath = route.getController();
             }
 
             if (controllerPath != null) {
+
+                if (controllerPath.startsWith(rootDirectory.getAbsolutePath())) {
+                    controllerPath = FilePathUtils.getRelativePath(controllerPath, rootDirectory);
+                }
+
                 RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethods(), new HashMap<String, ParameterDataType>());
                 endpoints.add(endpoint);
             }
