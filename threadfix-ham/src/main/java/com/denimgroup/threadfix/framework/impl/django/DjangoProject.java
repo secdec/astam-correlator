@@ -49,7 +49,7 @@ public class DjangoProject {
         String result = null;
 
         if (value instanceof PythonUnresolvedValue) {
-            PythonValue resolvedValue = interpreter.run(((PythonUnresolvedValue) value).getStringValue());
+            PythonValue resolvedValue = interpreter.run(((PythonUnresolvedValue) value).getStringValue(), null, null);
             if (resolvedValue instanceof PythonIndeterminateValue) {
                 result = ((PythonUnresolvedValue) value).getStringValue();
             } else {
@@ -58,7 +58,7 @@ public class DjangoProject {
         } else if (value instanceof PythonStringPrimitive) {
             result = ((PythonStringPrimitive) value).getValue();
         } else if (value instanceof PythonExpression) {
-            PythonValue resolvedValue = interpreter.run((PythonExpression)value);
+            PythonValue resolvedValue = interpreter.run((PythonExpression)value, null, null);
             result = tryGetStringValue(resolvedValue, interpreter);
         }
 
@@ -155,7 +155,7 @@ public class DjangoProject {
                 continue;
             }
 
-            PythonValue interpretedValue = interpreter.run(value);
+            PythonValue interpretedValue = interpreter.run(value, null, null);
 
             boolean replace = false;
             if (interpretedValue instanceof PythonArray) {
@@ -188,7 +188,7 @@ public class DjangoProject {
                 continue;
             }
 
-            PythonValue interpretedValue = interpreter.run(value);
+            PythonValue interpretedValue = interpreter.run(value, null, null);
 
             if (interpretedValue.getSourceLocation() == null) {
                 interpretedValue.resolveSourceLocation(ref);

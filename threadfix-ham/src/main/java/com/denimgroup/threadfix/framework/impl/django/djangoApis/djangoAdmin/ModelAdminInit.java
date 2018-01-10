@@ -72,10 +72,10 @@ public class ModelAdminInit extends PythonFunction {
         String modelName = modelSource.getFullName();
 
         self.setRawMemberValue("model", model);
-        self.setMemberValue("opts", host.run(modelName + ".Meta()", modelSource));
+        self.setMemberValue("opts", host.run(modelName + ".Meta()", modelSource, null));
 
         if (adminSite == null) {
-            adminSite = (PythonVariable)host.run("django.contrib.admin.site");
+            adminSite = (PythonVariable)host.run("django.contrib.admin.site", null);
         }
 
         self.setMemberValue("admin_site", adminSite);

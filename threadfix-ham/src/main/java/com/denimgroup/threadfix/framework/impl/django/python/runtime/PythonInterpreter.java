@@ -53,7 +53,8 @@ public class PythonInterpreter {
     Stack<PythonValue> currentDependencyChain = new Stack<PythonValue>();
 
 
-    int maxStackDepth = 100;
+    // Prevents stack overflow exceptions and wasted cycles processing an infinitely-recursive expression
+    int maxStackDepth = 50;
 
     //  Whether or not the interpreter should run raised scopes (ie 'if' statements within
     //      some logic)
@@ -104,15 +105,6 @@ public class PythonInterpreter {
     }
 
 
-
-    public PythonValue run(@Nonnull String code) {
-        return run(code, null, null);
-    }
-
-    public PythonValue run(@Nonnull String code, AbstractPythonStatement scope) {
-        return run(code, scope, null);
-    }
-
     public PythonValue run(@Nonnull String code, AbstractPythonStatement scope, PythonValue selfValue) {
         code = Language.stripComments(code);
 
@@ -130,18 +122,6 @@ public class PythonInterpreter {
         PythonValue result = run(code, newContext);
         popExecutionContext();
         return result;
-    }
-
-    public PythonValue run(@Nonnull PythonExpression expression) {
-        return run(expression, (AbstractPythonStatement) null);
-    }
-
-    public PythonValue run(@Nonnull File targetFile, int startLine, int endLine) {
-        return run(targetFile, startLine, endLine, null);
-    }
-
-    public PythonValue run(@Nonnull File targetFile, int startLine, int endLine, AbstractPythonStatement scope) {
-        return run(targetFile, startLine, endLine, scope, null);
     }
 
     public PythonValue run(@Nonnull File targetFile, int startLine, int endLine, AbstractPythonStatement scope, PythonValue selfValue) {
@@ -162,14 +142,7 @@ public class PythonInterpreter {
         return returnValue != null ? returnValue : lastValue;
     }
 
-
-
-    public PythonValue run(@Nonnull PythonExpression expression, AbstractPythonStatement scope) {
-        return run(expression, scope, null);
-    }
-
     public PythonValue run(@Nonnull PythonExpression expression, AbstractPythonStatement scope, PythonValue selfValue) {
-        //  Real run function
 
         boolean usesNewContext =
                 selfValue != this.executionContext.getSelfValue() ||
@@ -193,6 +166,9 @@ public class PythonInterpreter {
     }
 
     public PythonValue run(@Nonnull String code, ExecutionContext executionContext) {
+        if (executionContext == null) {
+            executionContext = this.executionContext;
+        }
         PythonExpression expression = expressionParser.processString(code, null, executionContext.getScope());
         if (expression instanceof IndeterminateExpression) {
             return valueBuilder.buildFromSymbol(code);
@@ -274,96 +250,93 @@ public class PythonInterpreter {
     }
 
     private void resolveDependencies(PythonValue expression, AbstractPythonStatement scope) {
-        if (expression == null) {
-            return;
-        }
 
-        List<PythonValue> dependencies = expression.getSubValues();
-        if (dependencies == null) {
-            return;
-        }
+        boolean pushedDependencyChain = false;
 
-        //  Terminate circular dependencies ie foo = bar(foo)
-        if (currentDependencyChain.contains(expression)) {
-            return;
-        }
+        try {
 
-        currentDependencyChain.push(expression);
-
-        for (PythonValue subValue : dependencies) {
-            if (currentDependencyChain.contains(subValue)) {
-                continue;
+            if (expression == null) {
+                return;
             }
 
-            if (subValue instanceof PythonExpression) {
-                PythonValue resolvedValue = run((PythonExpression) subValue, scope, executionContext.getSelfValue());
-                expression.resolveSubValue(subValue, resolvedValue);
-            } else if (subValue instanceof PythonVariable) {
-                PythonVariable asVariable = (PythonVariable)subValue;
+            List<PythonValue> dependencies = expression.getSubValues();
+            if (dependencies == null) {
+                return;
+            }
 
-                if (asVariable.getValue() == null && asVariable.getLocalName() != null) {
-                    PythonValue resolvedValue = executionContext.resolveSymbol(asVariable.getLocalName());
-                    //  Prevent circular dependencies
-                    if (resolvedValue != null &&
-                            !InterpreterUtil.expressionContains(asVariable, resolvedValue) &&
-                            ((resolvedValue.getSourceLocation() != asVariable.getSourceLocation()) ||
-                            (resolvedValue.getSourceLocation() == null && asVariable.getSourceLocation() == null))) {
-                        asVariable.setRawValue(executionContext.resolveAbsoluteValue(resolvedValue));
-                    }
+            //  Terminate circular dependencies ie foo = bar(foo)
+            if (currentDependencyChain.contains(expression)) {
+                return;
+            }
+
+            currentDependencyChain.push(expression);
+            pushedDependencyChain = true;
+
+            for (PythonValue subValue : dependencies) {
+                if (currentDependencyChain.contains(subValue)) {
+                    continue;
                 }
 
-                PythonValue resolvedValue = asVariable.getValue();
-                resolvedValue = executionContext.resolveAbsoluteValue(resolvedValue);
+                if (subValue instanceof PythonExpression) {
+                    PythonValue resolvedValue = run((PythonExpression) subValue, scope, executionContext.getSelfValue());
+                    expression.resolveSubValue(subValue, resolvedValue);
+                } else if (subValue instanceof PythonVariable) {
+                    PythonVariable asVariable = (PythonVariable) subValue;
 
-//                while (resolvedValue != null && resolvedValue instanceof PythonVariable && resolvedValue != asVariable) {
-//                    PythonVariable valueAsVariable = (PythonVariable)resolvedValue;
-//                    if (valueAsVariable.getValue() != null ||
-//                            (valueAsVariable.getSourceLocation() == asVariable.getSourceLocation()) ||
-//                            (valueAsVariable.getLocalName().equals(asVariable.getLocalName()))) {
-//                        break;
-//                    }
-//
-//                    if (valueAsVariable.getLocalName() != null) {
-//                        resolvedValue = executionContext.resolveSymbol(valueAsVariable.getLocalName());
-//                    } else {
-//                        resolvedValue = valueAsVariable.getValue();
-//                    }
-//                }
-
-                if (resolvedValue != null) {
-                    if (resolvedValue instanceof PythonExpression) {
-                        PythonExpression variableExpression = (PythonExpression) resolvedValue;
-                        resolvedValue = run(variableExpression, scope, executionContext.getSelfValue());
-                    } else if (resolvedValue instanceof PythonVariable && ((PythonVariable) resolvedValue).getValue() != null) {
-                        resolvedValue = ((PythonVariable) resolvedValue).getValue();
+                    if (asVariable.getValue() == null && asVariable.getLocalName() != null) {
+                        PythonValue resolvedValue = executionContext.resolveSymbol(asVariable.getLocalName());
+                        //  Prevent circular dependencies
+                        if (resolvedValue != null &&
+                                !InterpreterUtil.expressionContains(asVariable, resolvedValue) &&
+                                ((resolvedValue.getSourceLocation() != asVariable.getSourceLocation()) ||
+                                        (resolvedValue.getSourceLocation() == null && asVariable.getSourceLocation() == null))) {
+                            asVariable.setRawValue(executionContext.resolveAbsoluteValue(resolvedValue));
+                        }
                     }
-                }
 
-                if (resolvedValue != null) {
-                    if (resolvedValue instanceof PythonVariable) {
-                        expression.resolveSubValue(subValue, resolvedValue);
+                    PythonValue resolvedValue = asVariable.getValue();
+                    resolvedValue = executionContext.resolveAbsoluteValue(resolvedValue);
+
+                    if (resolvedValue != null) {
+                        if (resolvedValue instanceof PythonExpression) {
+                            PythonExpression variableExpression = (PythonExpression) resolvedValue;
+                            resolvedValue = run(variableExpression, scope, executionContext.getSelfValue());
+                        } else if (resolvedValue instanceof PythonVariable && ((PythonVariable) resolvedValue).getValue() != null) {
+                            resolvedValue = ((PythonVariable) resolvedValue).getValue();
+                        }
+                    }
+
+                    if (resolvedValue != null) {
+                        if (resolvedValue instanceof PythonVariable) {
+                            expression.resolveSubValue(subValue, resolvedValue);
+                        } else {
+                            asVariable.setValue(resolvedValue);
+                        }
                     } else {
-                        asVariable.setValue(resolvedValue);
-                    }
-                } else {
-                    if (asVariable.getSourceLocation() == null) {
-                        asVariable.setValue(new PythonIndeterminateValue());
+                        if (asVariable.getSourceLocation() == null) {
+                            asVariable.setValue(new PythonIndeterminateValue());
+                        }
                     }
                 }
             }
-        }
 
-        if (expression.getSubValues() != null) {
-            // Run in a separate loop to resolve dependencies on expressions
-            //  that were just resolved
-            for (PythonValue subValue : expression.getSubValues()) {
-                if (!currentDependencyChain.contains(subValue)) {
-                    resolveDependencies(subValue, scope);
+            if (expression.getSubValues() != null) {
+                // Run in a separate loop to resolve dependencies on expressions
+                //  that were just resolved
+                for (PythonValue subValue : expression.getSubValues()) {
+                    if (!currentDependencyChain.contains(subValue)) {
+                        resolveDependencies(subValue, scope);
+                    }
                 }
             }
-        }
 
-        currentDependencyChain.pop();
+        } catch (StackOverflowError soe) {
+            LOG.warn("Stack overflow occurred while resolving python expression dependencies");
+        } finally {
+            if (pushedDependencyChain) {
+                currentDependencyChain.pop();
+            }
+        }
     }
 
 

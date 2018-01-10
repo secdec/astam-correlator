@@ -255,7 +255,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
             List<String> lines = sourceReader.getLines();
             for (String line : lines) {
-                interpreter.run(line, module);
+                interpreter.run(line, module, null);
             }
         }
     }
