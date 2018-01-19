@@ -25,6 +25,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
@@ -102,7 +103,7 @@ public class RailsEndpointMappings implements EndpointGenerator {
                     controllerPath = FilePathUtils.getRelativePath(controllerPath, rootDirectory);
                 }
 
-                RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethods(), new HashMap<String, ParameterDataType>());
+                RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethods(), new HashMap<String, RouteParameter>());
                 endpoints.add(endpoint);
             }
         }

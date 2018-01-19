@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ModelFieldSet;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.InformationSourceType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
@@ -74,7 +75,7 @@ public class DotNetModelBindingTests {
 
         assert allMatches.size() == 1 : "No endpoint was found.";
 
-        Map<String, ParameterDataType> parameters = allMatches.iterator().next().getParameters();
+        Map<String, RouteParameter> parameters = allMatches.iterator().next().getParameters();
 
         assert parameters.keySet().contains("UserName") :
                 "Endpoint didn't have the UserName parameter.";
@@ -102,7 +103,7 @@ public class DotNetModelBindingTests {
 
         assert allMatches.size() == 1 : allMatches.size() + " endpoint(s) found.";
 
-        Map<String, ParameterDataType> parameters = allMatches.iterator().next().getParameters();
+        Map<String, RouteParameter> parameters = allMatches.iterator().next().getParameters();
 
         assert parameters.size() == 3 :
                 "Got " + parameters.size() + " parameters instead of 3: " + parameters;
@@ -126,7 +127,7 @@ public class DotNetModelBindingTests {
         List<Endpoint> endpoints = generator.generateEndpoints();
         assert endpoints.size() == 1 : endpoints.size() + " endpoints found instead of 1.";
 
-        Map<String, ParameterDataType> parameters = endpoints.get(0).getParameters();
+        Map<String, RouteParameter> parameters = endpoints.get(0).getParameters();
 
         System.out.println("Parameters: " + parameters);
 
@@ -148,7 +149,7 @@ public class DotNetModelBindingTests {
     public void testObjectPropertiesNotIncluded() {
         DotNetModelMappings mappings = new DotNetModelMappings(getContosoLocation());
 
-        Map<String, ParameterDataType> enrollmentFields =
+        Map<String, RouteParameter> enrollmentFields =
                 mappings.getPossibleParametersForModelType("Enrollment").getPossibleParameters();
 
         assert !enrollmentFields.keySet().contains("Student"):

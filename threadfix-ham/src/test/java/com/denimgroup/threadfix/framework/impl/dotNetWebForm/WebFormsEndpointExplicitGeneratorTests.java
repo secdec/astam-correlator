@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.TestConstants;
@@ -49,7 +50,7 @@ public class WebFormsEndpointExplicitGeneratorTests {
         List<Endpoint> endpoints = endpointGenerator.generateEndpoints();
         assert !endpoints.isEmpty() : "Got empty endpoints for " + TestConstants.WEB_FORMS_SAMPLE;
 
-        Map<String, ParameterDataType> parameters = endpoints.get(0).getParameters();
+        Map<String, RouteParameter> parameters = endpoints.get(0).getParameters();
         assert parameters.keySet().contains("newitem") :
             "Parameters didn't contain newitem: " + parameters;
     }

@@ -25,6 +25,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -204,11 +205,11 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Map<String, ParameterDataType> getParameters() {
-        Map<String, ParameterDataType> parameterMap = map();
+    public Map<String, RouteParameter> getParameters() {
+        Map<String, RouteParameter> parameterMap = map();
 
         for (String param : map.keySet())
-            parameterMap.put(param, ParameterDataType.STRING);
+            parameterMap.put(param, RouteParameter.fromDataType(ParameterDataType.STRING));
 
         return parameterMap;
     }

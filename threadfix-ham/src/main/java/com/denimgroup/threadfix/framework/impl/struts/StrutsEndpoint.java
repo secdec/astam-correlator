@@ -25,6 +25,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 
@@ -45,10 +46,10 @@ public class StrutsEndpoint extends AbstractEndpoint {
     private Pattern pathRegex = null;
 
     private Set<String> methods;
-    private Map<String, ParameterDataType> parameters;
+    private Map<String, RouteParameter> parameters;
 
     public StrutsEndpoint(String filePath, String urlPath,
-                          Collection<String> methods, Map<String, ParameterDataType> parameters) {
+                          Collection<String> methods, Map<String, RouteParameter> parameters) {
         this.filePath = filePath;
         this.urlPath = urlPath;
         this.methods = setFrom(methods);
@@ -79,7 +80,7 @@ public class StrutsEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Map<String, ParameterDataType> getParameters() {
+    public Map<String, RouteParameter> getParameters() {
         return parameters;
     }
 

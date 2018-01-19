@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.django;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
@@ -157,13 +158,13 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                     DjangoRoute existingRoute = routeMap.get(url.getKey());
                     if (existingRoute != null) {
                         Collection<String> existingHttpMethods = existingRoute.getHttpMethods();
-                        Map<String, ParameterDataType> existingParams = existingRoute.getParameters();
+                        Map<String, RouteParameter> existingParams = existingRoute.getParameters();
                         for (String httpMethod : url.getValue().getHttpMethods()) {
                             if (!existingHttpMethods.contains(httpMethod)) {
                                 existingHttpMethods.add(httpMethod);
                             }
                         }
-                        for (Map.Entry<String, ParameterDataType> param : url.getValue().getParameters().entrySet()) {
+                        for (Map.Entry<String, RouteParameter> param : url.getValue().getParameters().entrySet()) {
                             if (!existingParams.containsKey(param.getKey())) {
                                 existingParams.put(param.getKey(), param.getValue());
                             }
@@ -228,7 +229,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             String filePath = route.getViewPath();
 
             Collection<String> httpMethods = route.getHttpMethods();
-            Map<String, ParameterDataType> parameters = route.getParameters();
+            Map<String, RouteParameter> parameters = route.getParameters();
             mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters, false));
             if (i18) {
                 mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters, true));

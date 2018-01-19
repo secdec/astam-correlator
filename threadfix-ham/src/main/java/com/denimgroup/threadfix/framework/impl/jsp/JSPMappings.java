@@ -25,6 +25,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.jsp;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
@@ -271,14 +272,14 @@ public class JSPMappings implements EndpointGenerator {
             if (endpointEntry != null && endpointEntry.getKey() != null) {
                 endpointEntry.getValue().getParameters().putAll(
                         getParametersFor(endpointEntry.getKey(),
-                                new HashSet<String>(), new HashMap<String, ParameterDataType>()));
+                                new HashSet<String>(), new HashMap<String, RouteParameter>()));
             }
         }
     }
 
     // TODO memoize results
-    Map<String, ParameterDataType> getParametersFor(String key, Set<String> alreadyVisited,
-                                                    Map<String, ParameterDataType> soFar) {
+    Map<String, RouteParameter> getParametersFor(String key, Set<String> alreadyVisited,
+                                                    Map<String, RouteParameter> soFar) {
 
         if (alreadyVisited.contains(key)) {
             return soFar;
@@ -286,7 +287,7 @@ public class JSPMappings implements EndpointGenerator {
 
         alreadyVisited.add(key);
 
-        Map<String, ParameterDataType> params = map();
+        Map<String, RouteParameter> params = map();
 
         if (includeMap.get(key) != null) {
             for (String fileKey : includeMap.get(key)) {

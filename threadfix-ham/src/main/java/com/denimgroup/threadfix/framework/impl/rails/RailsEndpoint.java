@@ -25,6 +25,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 
@@ -48,10 +49,10 @@ public class RailsEndpoint extends AbstractEndpoint {
     private Pattern urlPattern;
 
     private Set<String> httpMethods;
-    private Map<String, ParameterDataType> parameters;
+    private Map<String, RouteParameter> parameters;
 
     public RailsEndpoint(String filePath, String urlPath,
-                          Collection<String> httpMethods, Map<String, ParameterDataType> parameters) {
+                          Collection<String> httpMethods, Map<String, RouteParameter> parameters) {
         this.filePath = filePath;
         this.urlPath = urlPath;
         if (httpMethods != null)
@@ -92,7 +93,7 @@ public class RailsEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Map<String, ParameterDataType> getParameters() {
+    public Map<String, RouteParameter> getParameters() {
         return parameters;
     }
 

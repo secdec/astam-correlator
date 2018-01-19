@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.framework.impl.spring;
 import com.denimgroup.threadfix.data.entities.AuthenticationRequired;
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.ModelFieldSet;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.util.RegexUtils;
@@ -51,7 +52,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 	@Nonnull
     private final Set<String> methods, pathParameters;
 	@Nonnull
-    private final Map<String, ParameterDataType> parameters;
+    private final Map<String, RouteParameter> parameters;
 	private final int startLineNumber, endLineNumber;
 	
 	@Nullable
@@ -69,7 +70,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     public SpringControllerEndpoint(@Nonnull String filePath,
                                     @Nonnull String urlPath,
                                     @Nonnull Collection<String> methods,
-                                    @Nonnull Map<String, ParameterDataType> parameters,
+                                    @Nonnull Map<String, RouteParameter> parameters,
                                     @Nonnull Collection<String> pathParameters,
                                     int startLineNumber,
                                     int endLineNumber,
@@ -128,7 +129,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         }
 
         for (String param : pathParameters) {
-            parameters.put(param, ParameterDataType.STRING);
+            parameters.put(param, RouteParameter.fromDataType(ParameterDataType.STRING));
         }
     }
 
@@ -161,7 +162,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-	public Map<String, ParameterDataType> getParameters() {
+	public Map<String, RouteParameter> getParameters() {
 		return parameters;
 	}
 

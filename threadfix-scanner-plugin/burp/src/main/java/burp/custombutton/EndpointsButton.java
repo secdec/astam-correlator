@@ -34,6 +34,7 @@ import burp.dialog.ConfigurationDialogs;
 import burp.dialog.UrlDialog;
 import burp.extention.BurpPropertiesManager;
 import burp.extention.RequestMakerThread;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import org.json.simple.JSONObject;
@@ -89,7 +90,7 @@ public abstract class EndpointsButton extends JButton {
                                 endpointPath = endpointPath.replaceAll(GENERIC_INT_SEGMENT, "1");
                                 nodes.add(endpointPath);
 
-                                for(Map.Entry<String, ParameterDataType> parameter : endpoint.getParameters().entrySet()) {
+                                for(Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet()) {
                                     nodes.add(endpointPath + "?" + parameter.getKey() + "=" + parameter.getValue());
                                 }
                             }
@@ -180,7 +181,7 @@ public abstract class EndpointsButton extends JButton {
                     {
                        URL reqUrl = new URL(url + endpointPath);
                        byte[] req = callbacks.getHelpers().buildHttpRequest(reqUrl);
-                       for (Map.Entry<String, ParameterDataType> parameter : endpoint.getParameters().entrySet())
+                       for (Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())
                        {
                            IParameter param = null;
                            if (parameter.getValue().toString().equalsIgnoreCase("string"))

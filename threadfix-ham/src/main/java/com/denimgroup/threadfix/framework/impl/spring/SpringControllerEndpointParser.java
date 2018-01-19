@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.spring;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -70,7 +71,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             methodMethods = list(),
             currentPathParameters = list();
     @Nonnull
-    private Map<String, ParameterDataType> currentParameters = map();
+    private Map<String, RouteParameter> currentParameters = map();
 
     private static final String
             VALUE           = "value",
@@ -198,7 +199,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                     if (isPathParameter) {
                         currentPathParameters.add(stringValue);
                     } else {
-                        currentParameters.put(stringValue, ParameterDataType.STRING);
+                        currentParameters.put(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
                     }
                     setState(SignatureState.START);
                 } else if ("value".equals(stringValue)) {
@@ -216,7 +217,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 break;
             case VALUE:
                 if (type == DOUBLE_QUOTE) {
-                    currentParameters.put(stringValue, ParameterDataType.STRING);
+                    currentParameters.put(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
                     setState(SignatureState.START);
                 } else if (type != EQUALS) {
                     setState(SignatureState.GET_VARIABLE_NAME);
@@ -225,7 +226,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             case GET_VARIABLE_NAME:
                 if (openParenCount == -1) { // this means we're not in an annotation
                     if (type == COMMA || type == CLOSE_PAREN) {
-                        currentParameters.put(lastValue, ParameterDataType.STRING);
+                        currentParameters.put(lastValue, RouteParameter.fromDataType(ParameterDataType.STRING));
                         setState(SignatureState.START);
                     } else {
                         lastValue = stringValue;

@@ -23,6 +23,7 @@
 
 package com.denimgroup.threadfix.framework.impl.struts.mappers;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.PathUtil;
@@ -118,10 +119,10 @@ public class RestPluginActionMapper implements ActionMapper {
                     possibleMethodNames.add(PathUtil.combine("/{" + idParamName + "}", actionMethod));
                 }
 
-                Map<String, ParameterDataType> params = map();
+                Map<String, RouteParameter> params = map();
                 if (action.getParams() != null) {
                     for (Map.Entry<String, String> entry : action.getParams().entrySet()) {
-                        params.put(entry.getKey(), ParameterDataType.getType(entry.getValue()));
+                        params.put(entry.getKey(), RouteParameter.fromDataType(ParameterDataType.getType(entry.getValue())));
                     }
                 }
 

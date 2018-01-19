@@ -27,6 +27,7 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.ModelFieldSet;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
@@ -166,7 +167,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 if (!parameters.getFieldSet().isEmpty()) {
                     action.parameters.remove(field.getParameterKey());
                     for (ModelField possibleParameter : parameters) {
-                        action.parameters.put(possibleParameter.getParameterKey(), ParameterDataType.getType(possibleParameter.getType()));
+                        action.parameters.put(possibleParameter.getParameterKey(), RouteParameter.fromDataType(ParameterDataType.getType(possibleParameter.getType())));
                     }
                 }
             }

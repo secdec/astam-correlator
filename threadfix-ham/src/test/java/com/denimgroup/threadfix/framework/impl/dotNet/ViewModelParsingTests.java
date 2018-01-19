@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.ResourceManager;
 import org.junit.Test;
@@ -69,7 +70,7 @@ public class ViewModelParsingTests {
     public void testDirectorySpidering() {
         DotNetModelMappings mappings = getDotNetModelMappings();
 
-        Map<String, ParameterDataType> parameters = mappings.getPossibleParametersForModelType("Course").getPossibleParameters();
+        Map<String, RouteParameter> parameters = mappings.getPossibleParametersForModelType("Course").getPossibleParameters();
         int courseFieldSize = parameters.size();
 
         assert courseFieldSize > 0 : "Got 0 fields for Course.";
@@ -85,7 +86,7 @@ public class ViewModelParsingTests {
     public void testFieldSpidering() {
         DotNetModelMappings mappings = getDotNetModelMappings();
 
-        Map<String, ParameterDataType> parameters = mappings.getPossibleParametersForModelType("Course").getPossibleParameters();
+        Map<String, RouteParameter> parameters = mappings.getPossibleParametersForModelType("Course").getPossibleParameters();
         int courseFieldSize = parameters.size();
 
         assert courseFieldSize > 0 : "Got 0 fields for Course.";
@@ -130,7 +131,7 @@ public class ViewModelParsingTests {
     public void testMultiValueProperty() {
         DotNetModelMappings mappings = getDotNetModelMappings();
 
-        Map<String, ParameterDataType> parameters = mappings.getPossibleParametersForModelType("Student").getPossibleParameters();
+        Map<String, RouteParameter> parameters = mappings.getPossibleParametersForModelType("Student").getPossibleParameters();
         int courseFieldSize = parameters.size();
 
         assert courseFieldSize > 0 : "Got 0 fields for Course.";

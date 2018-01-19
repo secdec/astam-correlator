@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.struts.mappers;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.PathUtil;
@@ -55,14 +56,14 @@ public class DefaultActionMapper implements ActionMapper {
         //  Handle basic content files
         for (String file : primaryWebPack.getRelativeFilePaths()) {
             String fullPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), file);
-            Map<String, ParameterDataType> params = new HashMap<String, ParameterDataType>();
+            Map<String, RouteParameter> params = new HashMap<String, RouteParameter>();
             StrutsEndpoint endpoint = new StrutsEndpoint(makeRelativePath(fullPath, project), PathUtil.combine(namespace, file), list("GET"), params);
             endpoints.add(endpoint);
         }
 
         for (String file : primaryWebPack.getWelcomeFiles()) {
             String fullPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), file);
-            Map<String, ParameterDataType> params = new HashMap<String, ParameterDataType>();
+            Map<String, RouteParameter> params = new HashMap<String, RouteParameter>();
             StrutsEndpoint endpoint;
             endpoint = new StrutsEndpoint(makeRelativePath(fullPath, project), namespace, list("GET"), params);
             endpoints.add(endpoint);
@@ -121,7 +122,7 @@ public class DefaultActionMapper implements ActionMapper {
                     fieldMappings = classForAction.getProperties();
                 }
                 List<String> httpMethods = list();
-                Map<String, ParameterDataType> parameters = map();
+                Map<String, RouteParameter> parameters = map();
 
                 String basePath = sbUrl.toString();
 
@@ -143,7 +144,7 @@ public class DefaultActionMapper implements ActionMapper {
                                 path = path.replace("*", method.getName());
                                 httpMethods.add("POST");
                                 for (ModelField mf : fieldMappings) {
-                                    parameters.put(mf.getParameterKey(), ParameterDataType.getType(mf.getType()));
+                                    parameters.put(mf.getParameterKey(), RouteParameter.fromDataType(ParameterDataType.getType(mf.getType())));
                                 }
                                 endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, httpMethods, parameters));
                             }
@@ -151,7 +152,7 @@ public class DefaultActionMapper implements ActionMapper {
                     } else {
                         httpMethods.add("POST");
                         for (ModelField mf : fieldMappings) {
-                            parameters.put(mf.getParameterKey(), ParameterDataType.getType(mf.getType()));
+                            parameters.put(mf.getParameterKey(), RouteParameter.fromDataType(ParameterDataType.getType(mf.getType())));
                         }
                         endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, httpMethods, parameters));
                     }
@@ -166,7 +167,7 @@ public class DefaultActionMapper implements ActionMapper {
                         if (filePath != null) {
                             if (primaryWebPack.contains(filePath)) {
                                 String exposedContentPath = PathUtil.combine(basePath, actionName);
-                                endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), exposedContentPath, list("GET"), new HashMap<String, ParameterDataType>()));
+                                endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), exposedContentPath, list("GET"), new HashMap<String, RouteParameter>()));
                             }
                         }
                     }

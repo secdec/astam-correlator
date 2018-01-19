@@ -24,6 +24,7 @@
 
 package com.denimgroup.threadfix.framework.impl.django;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
@@ -518,7 +519,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                             String fullPath = DjangoPathUtil.combine(basePath, route.getUrl());
                             DjangoRoute newRoute = new DjangoRoute(fullPath, route.getViewPath());
                             newRoute.setLineNumbers(route.getStartLineNumber(), route.getEndLineNumber());
-                            for (Map.Entry<String, ParameterDataType> param : newRoute.getParameters().entrySet()) {
+                            for (Map.Entry<String, RouteParameter> param : newRoute.getParameters().entrySet()) {
                                 newRoute.addParameter(param.getKey(), param.getValue());
                             }
                             routeMap.put(fullPath, newRoute);

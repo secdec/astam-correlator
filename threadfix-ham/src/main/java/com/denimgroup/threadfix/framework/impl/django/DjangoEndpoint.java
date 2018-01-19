@@ -24,6 +24,7 @@
 
 package com.denimgroup.threadfix.framework.impl.django;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
@@ -68,10 +69,10 @@ public class DjangoEndpoint extends AbstractEndpoint {
     private int endLineNumber = -1;
 
     private Set<String> httpMethods;
-    private Map<String, ParameterDataType> parameters;
+    private Map<String, RouteParameter> parameters;
 
     public DjangoEndpoint(String filePath, String urlPath,
-                          Collection<String> httpMethods, Map<String, ParameterDataType> parameters,
+                          Collection<String> httpMethods, Map<String, RouteParameter> parameters,
                           boolean isInternationalized) {
         this.filePath = filePath;
         this.urlPath = urlPath;
@@ -151,7 +152,7 @@ public class DjangoEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Map<String, ParameterDataType> getParameters() {
+    public Map<String, RouteParameter> getParameters() {
         return parameters;
     }
 

@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,7 +47,7 @@ class Action {
     @Nonnull
     Integer     endLineNumber;
     @Nonnull
-    Map<String, ParameterDataType> parameters = map();
+    Map<String, RouteParameter> parameters = map();
     @Nonnull
     Set<ModelField> parametersWithTypes;
 
@@ -70,10 +71,10 @@ class Action {
         for (ModelField field : parametersWithTypes) {
             if (field.getType().equals("Include")) {
                 for (String s : StringUtils.split(field.getParameterKey(), ',')) {
-                    action.parameters.put(s.trim(), ParameterDataType.getType(field.getType()));
+                    action.parameters.put(s.trim(), RouteParameter.fromDataType(ParameterDataType.getType(field.getType())));
                 }
             } else {
-                action.parameters.put(field.getParameterKey(), ParameterDataType.getType(field.getType()));
+                action.parameters.put(field.getParameterKey(), RouteParameter.fromDataType(ParameterDataType.getType(field.getType())));
             }
         }
 
