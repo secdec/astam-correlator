@@ -51,8 +51,19 @@ class Action {
     Set<ModelField> parametersWithTypes;
 
     String getMethod() {
-        return attributes.contains("HttpPost") ?
-                "POST" : "GET";
+        if (attributes.contains("HttpGet")) {
+            return "GET";
+        } else if (attributes.contains("HttpPost")) {
+            return "POST";
+        } else if (attributes.contains("HttpPatch")) {
+            return "PATCH";
+        } else if (attributes.contains("HttpPut")) {
+            return "PUT";
+        } else if (attributes.contains("HttpDelete")) {
+            return "DELETE";
+        } else {
+            return "GET";
+        }
     }
 
     static Action action(@Nonnull String name,
