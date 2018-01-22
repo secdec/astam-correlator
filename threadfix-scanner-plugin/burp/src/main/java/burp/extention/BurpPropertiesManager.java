@@ -30,7 +30,9 @@ package burp.extention;
 import burp.IBurpExtenderCallbacks;
 import burp.IHttpService;
 import com.denimgroup.threadfix.properties.PropertiesManager;
+import org.hibernate.resource.transaction.backend.jta.internal.JtaIsolationDelegate;
 
+import javax.swing.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ArrayList;
@@ -57,6 +59,7 @@ public class BurpPropertiesManager extends PropertiesManager {
     private static IBurpExtenderCallbacks callbacks;
     private static Properties properties = new Properties();
     private static boolean hasChanges = false;
+    private static JTable endpointsTable;
 
     public static boolean
         AUTO_SCAN_KEY = false,
@@ -187,4 +190,7 @@ public class BurpPropertiesManager extends PropertiesManager {
 
     public void setRequests(HashMap<byte [], IHttpService> requests) {this.requests = requests;}
 
+    public void setEndpointsTable(JTable table){endpointsTable = table;}
+
+    public static JTable getEndpointsTable() {return endpointsTable;}
 }

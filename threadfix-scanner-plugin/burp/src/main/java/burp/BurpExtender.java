@@ -32,13 +32,19 @@ import burp.custombutton.RemoteEndpointsButton;
 import burp.extention.BurpPropertiesManager;
 import burp.extention.RestUtils;
 import com.denimgroup.threadfix.data.entities.Application;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import org.hibernate.resource.transaction.backend.jta.internal.JtaIsolationDelegate;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -65,6 +71,7 @@ public class BurpExtender implements IBurpExtender, ITab
     private JCheckBox autoSpiderField;
     private JLabel profMessage;
     private JLabel autoScanText;
+    private JTextArea displayArea = new JTextArea();
 
     //
     // implement IBurpExtender
@@ -109,28 +116,58 @@ public class BurpExtender implements IBurpExtender, ITab
         });
     }
 
-    private JPanel buildMainPanel() {
-        JPanel mainPanel = new JPanel();
+    private JPanel buildMainPanel()
+    {
+        final JPanel mainPanel = new JPanel();
 
-        JButton localEndpointsButton = new LocalEndpointsButton(getUiComponent(), callbacks);
-        callbacks.customizeUiComponent(localEndpointsButton);
+        mainPanel.setLayout(new GridBagLayout());
+        Insets mainPanelInsets = new Insets(10, 10, 10, 10);
+        int yPosition = 0;
 
-        JButton remoteEndpointsButton = new RemoteEndpointsButton(getUiComponent(), callbacks);
-        callbacks.customizeUiComponent(remoteEndpointsButton);
+        JPanel importExportPanel = buildImportExportPanel();
+        GridBagConstraints importExportPanelConstraints = new GridBagConstraints();
+        importExportPanelConstraints.gridx = 0;
+        importExportPanelConstraints.gridy = yPosition++;
+        importExportPanelConstraints.ipadx = 5;
+        importExportPanelConstraints.ipady = 5;
+        importExportPanelConstraints.insets = mainPanelInsets;
+        importExportPanelConstraints.anchor = GridBagConstraints.NORTHWEST;
+        mainPanel.add(importExportPanel, importExportPanelConstraints);
 
-        JButton exportButton = new ExportButton(getUiComponent(), callbacks);
-        callbacks.customizeUiComponent(exportButton);
+        JScrollPane endpointTablePain = buildEndpointsTable();
+        callbacks.customizeUiComponent(endpointTablePain);
+        GridBagConstraints endpointTablePainConstraints = new GridBagConstraints();
+        endpointTablePainConstraints.gridx = 0;
+        endpointTablePainConstraints.gridy = yPosition++;
+        endpointTablePainConstraints.insets = mainPanelInsets;
+        endpointTablePainConstraints.fill = GridBagConstraints.HORIZONTAL;
+        endpointTablePainConstraints.anchor = GridBagConstraints.NORTHWEST;
+        mainPanel.add(endpointTablePain, endpointTablePainConstraints);
 
-        localEndpointsButton.setLocation(10, 10);
-        localEndpointsButton.setSize(300, 30);
-        remoteEndpointsButton.setLocation(10, 50);
-        remoteEndpointsButton.setSize(300, 30);
-        exportButton.setLocation(10, 90);
-        exportButton.setSize(300, 30);
-        mainPanel.setLayout(null);
-        mainPanel.add(localEndpointsButton);
-        mainPanel.add(remoteEndpointsButton);
-        mainPanel.add(exportButton);
+        JSeparator importExportPanelSeparator = new JSeparator(JSeparator.HORIZONTAL);
+        callbacks.customizeUiComponent(importExportPanelSeparator);
+        GridBagConstraints importExportPanelSeparatorConstraints = new GridBagConstraints();
+        importExportPanelSeparatorConstraints.gridx = 0;
+        importExportPanelSeparatorConstraints.gridy = yPosition++;
+        importExportPanelSeparatorConstraints.insets = mainPanelInsets;
+        importExportPanelSeparatorConstraints.fill = GridBagConstraints.HORIZONTAL;
+        importExportPanelSeparatorConstraints.anchor = GridBagConstraints.NORTH;
+        mainPanel.add(importExportPanelSeparator, importExportPanelSeparatorConstraints);
+
+        JScrollPane displayPane = buildDisplayPane();
+        callbacks.customizeUiComponent(displayPane);
+        GridBagConstraints displayConstraints = new GridBagConstraints();
+        displayConstraints.gridx = 0;
+        displayConstraints.gridy = yPosition++;
+        displayConstraints.insets = mainPanelInsets;
+        displayConstraints.fill = GridBagConstraints.HORIZONTAL;
+        displayConstraints.weightx = 1.0;
+        displayConstraints.weighty = 1.0;
+        displayConstraints.anchor = GridBagConstraints.NORTH;
+        //displayConstraints.gridheight = 200;
+        mainPanel.add(displayPane, displayConstraints);
+
+
 
         return mainPanel;
     }
@@ -247,6 +284,165 @@ public class BurpExtender implements IBurpExtender, ITab
         loadOptionsProperties();
 
         return optionsPanel;
+    }
+
+
+    private JScrollPane buildDisplayPane()
+    {
+        displayArea.setText("\n" + "\n" + "\n" + "\n" + "\n" + "\n");
+        callbacks.customizeUiComponent(displayArea);
+        displayArea.setEditable(false);
+        return new JScrollPane(displayArea);
+
+    }
+
+    private JScrollPane buildEndpointsTable()
+    {
+        Object[][] data = {};
+        String[] columnNames =
+                {"Detected Endpoints",
+                "Number of Detected Parameters",
+                "GET Method",
+                "POST Method",
+                "Endpoint"
+                };
+
+        DefaultTableModel dtm = new DefaultTableModel(data, columnNames){
+
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                //all cells false
+                return false;
+            }
+        };
+
+        JTable endpointsTable = new JTable(dtm);
+        endpointsTable.addMouseListener(new MouseListener()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                //displayArea.setText(endpointsTable.getModel().getValueAt(endpointsTable.getSelectedRow(), 4).toString());
+                Endpoint.Info endpoint = (Endpoint.Info)endpointsTable.getModel().getValueAt(endpointsTable.getSelectedRow(), 4);
+                displayArea.setText("URL:" + "\n");
+                displayArea.append(endpoint.getUrlPath() + "\n" + "\n");
+                displayArea.append("Methods: " + "\n" );
+                Iterator<String> it = endpoint.getHttpMethods().iterator();
+                while (it.hasNext())
+                {
+                    displayArea.append(it.next() + "\n");
+                }
+
+                displayArea.append("\n" + "Parameters and type:" + "\n");
+                for(Map.Entry<String, ParameterDataType> parameter : endpoint.getParameters().entrySet())
+                {
+                   displayArea.append(parameter.getKey() + " - " + parameter.getValue() + "\n");
+                }
+
+
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e)
+            {
+
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e)
+            {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e)
+            {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e)
+            {
+
+            }
+        });
+
+        TableColumn tc = endpointsTable.getColumnModel().getColumn(2);
+        tc.setCellEditor(endpointsTable.getDefaultEditor(Boolean.class));
+        tc.setCellRenderer(endpointsTable.getDefaultRenderer(Boolean.class));
+        tc = endpointsTable.getColumnModel().getColumn(3);
+        tc.setCellEditor(endpointsTable.getDefaultEditor(Boolean.class));
+        tc.setCellRenderer(endpointsTable.getDefaultRenderer(Boolean.class));
+        endpointsTable.getColumnModel().getColumn(4).setMinWidth(0);
+        endpointsTable.getColumnModel().getColumn(4).setMaxWidth(0);
+        endpointsTable.getColumnModel().getColumn(4).setWidth(0);
+        JScrollPane endpointsTablePane = new JScrollPane(endpointsTable);
+        endpointsTable.setFillsViewportHeight(true);
+        callbacks.customizeUiComponent(endpointsTable);
+        BurpPropertiesManager.getBurpPropertiesManager().setEndpointsTable(endpointsTable);
+        return endpointsTablePane;
+    }
+
+    private JPanel buildImportExportPanel()
+    {
+        JPanel importExportPanel = new JPanel();
+        importExportPanel.setLayout(new GridBagLayout());
+        int yPosition = 0;
+
+        addPanelTitleToGridBagLayout("Code PT Source Code Analysis", importExportPanel, yPosition++);
+        addPanelDescriptionToGridBagLayout("Use Code PT to analyize the server side source code to detect endpoints and parameters and import them into Burp." , importExportPanel, yPosition++);
+        addPanelDescriptionToGridBagLayout("These results may include URL endpoints and optional parameters a spider may not find." , importExportPanel, yPosition++);
+
+        JButton localEndpointsButton = new LocalEndpointsButton(getUiComponent(), callbacks);
+        callbacks.customizeUiComponent(localEndpointsButton);
+
+        JButton remoteEndpointsButton = new RemoteEndpointsButton(getUiComponent(), callbacks);
+        callbacks.customizeUiComponent(remoteEndpointsButton);
+
+        JButton exportButton = new ExportButton(getUiComponent(), callbacks);
+        callbacks.customizeUiComponent(exportButton);
+
+        localEndpointsButton.setSize(300, 30);
+        localEndpointsButton.setLocation(10,400);
+        remoteEndpointsButton.setSize(300, 30);
+        remoteEndpointsButton.setLocation(320,400);
+        exportButton.setSize(300, 30);
+        exportButton.setLocation(630,400);
+
+        GridBagConstraints gridBagConstraintsLocal = new GridBagConstraints();
+        gridBagConstraintsLocal.gridwidth = 1;
+        gridBagConstraintsLocal.gridx = 1;
+        gridBagConstraintsLocal.gridy = ++yPosition;
+        gridBagConstraintsLocal.ipadx = 5;
+        gridBagConstraintsLocal.ipady = 5;
+        gridBagConstraintsLocal.anchor = GridBagConstraints.NORTHWEST;
+
+
+
+        GridBagConstraints gridBagConstraintsRemote = new GridBagConstraints();
+        gridBagConstraintsRemote.gridwidth = 1;
+        gridBagConstraintsRemote.gridx = 2;
+        gridBagConstraintsRemote.gridy = yPosition;
+        gridBagConstraintsRemote.ipadx = 5;
+        gridBagConstraintsRemote.ipady = 5;
+        gridBagConstraintsRemote.anchor = GridBagConstraints.NORTHWEST;
+
+        GridBagConstraints gridBagConstraintsExport = new GridBagConstraints();
+        gridBagConstraintsExport.gridwidth = 0;
+        gridBagConstraintsExport.gridx = 3;
+        gridBagConstraintsExport.gridy = yPosition;
+        gridBagConstraintsExport.ipadx = 5;
+        gridBagConstraintsExport.ipady = 5;
+        gridBagConstraintsExport.anchor = GridBagConstraints.NORTHWEST;
+        gridBagConstraintsExport.weightx = 1;
+
+
+        importExportPanel.add(localEndpointsButton, gridBagConstraintsLocal);
+        importExportPanel.add(remoteEndpointsButton, gridBagConstraintsRemote);
+        importExportPanel.add(exportButton, gridBagConstraintsExport);
+
+
+        return importExportPanel;
     }
 
     private JPanel buildParametersPanel() {
