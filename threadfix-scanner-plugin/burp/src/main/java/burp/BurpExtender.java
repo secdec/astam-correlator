@@ -32,6 +32,7 @@ import burp.custombutton.RemoteEndpointsButton;
 import burp.extention.BurpPropertiesManager;
 import burp.extention.RestUtils;
 import com.denimgroup.threadfix.data.entities.Application;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import org.hibernate.resource.transaction.backend.jta.internal.JtaIsolationDelegate;
@@ -334,9 +335,10 @@ public class BurpExtender implements IBurpExtender, ITab
                 }
 
                 displayArea.append("\n" + "Parameters and type:" + "\n");
-                for(Map.Entry<String, ParameterDataType> parameter : endpoint.getParameters().entrySet())
+                for(Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())
                 {
-                   displayArea.append(parameter.getKey() + " - " + parameter.getValue() + "\n");
+                   displayArea.append(parameter.getKey() + " - " + parameter.getValue().getDataType().getDisplayName()
+                           + "\n");
                 }
 
 

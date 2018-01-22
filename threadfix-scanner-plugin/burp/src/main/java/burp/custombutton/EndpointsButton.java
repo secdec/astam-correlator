@@ -218,6 +218,7 @@ public abstract class EndpointsButton extends JButton {
                        byte[] req = callbacks.getHelpers().buildHttpRequest(reqUrl);
                        for (Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())
                        {
+                           //JOptionPane.showMessageDialog(view, "Parameter key : " + parameter.getKey() + "Parameter Value " + parameter.getValue());
                            if (first)
                            {
                                first = false;
@@ -229,19 +230,32 @@ public abstract class EndpointsButton extends JButton {
                            }
                            IParameter param = null;
                            //JOptionPane.showMessageDialog(view, "key = " + parameter.getKey() + " value: " + parameter.getValue());
-                           if (parameter.getValue().toString().equalsIgnoreCase("string"))
+
+                           if (parameter.getValue().getDataType() == ParameterDataType.STRING)
                            {
                                reqString = reqString + parameter.getKey() + "="+"debug";
                            }
                            //case int
-                           else if (parameter.getValue().toString().equalsIgnoreCase("integer"))
+                           else if (parameter.getValue().getDataType() == ParameterDataType.INTEGER)
                            {
                                reqString = reqString + parameter.getKey() + "="+"-1";
                            }
                            //case boolean
-                           else if (parameter.getValue().toString().equalsIgnoreCase("boolean"))
+                           else if (parameter.getValue().getDataType() == ParameterDataType.BOOLEAN)
                            {
                                reqString = reqString + parameter.getKey() + "="+"true";
+                           }
+                           else if (parameter.getValue().getDataType() == ParameterDataType.DECIMAL)
+                           {
+                               reqString = reqString + parameter.getKey() + "="+".1";
+                           }
+                           else if (parameter.getValue().getDataType() == ParameterDataType.DATE_TIME)
+                           {
+                               reqString = reqString + parameter.getKey() + "="+ new Date();
+                           }
+                           else if (parameter.getValue().getDataType() == ParameterDataType.LOCAL_DATE)
+                           {
+                               reqString = reqString + parameter.getKey() + "="+new Date();
                            }
                            if (param != null)
                               callbacks.getHelpers().addParameter(req, param);
