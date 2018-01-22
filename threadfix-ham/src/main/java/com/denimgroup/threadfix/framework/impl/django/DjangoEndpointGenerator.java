@@ -272,6 +272,12 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         }
     }
 
+    private void generateParameters(PythonCodeCollection codebase, Collection<Endpoint> endpoints) {
+        for (Endpoint tfxEndpoint : endpoints) {
+            DjangoEndpoint endpoint = (DjangoEndpoint)tfxEndpoint;
+        }
+    }
+
     @Nonnull
     @Override
     public List<Endpoint> generateEndpoints() {
