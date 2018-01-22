@@ -1,29 +1,23 @@
-
-_*This material is based on research sponsored by the Department of Homeland
-Security (DHS) Science and Technology Directorate, Cyber Security Division
-(DHS S&T/CSD) via contract number HHSP233201600058C.*_
-
 # ASTAM Correlator
 
-The ASTAM Correlator is a vulnerability navigation and consolidation tool capable of correlating
+The ASTAM Correlator is a vulnerability consolidation and management tool for web applications, capable of correlating
 and merging different Static and Dynamic scans indicating the same vulnerability. This improves
-scan results by combining findings that are symptoms of the same weakness, providing more
-information on the vulnerability as a whole.
+scan results by combining findings that are symptoms of the same weakness, providing:
 
-This project is a modification of Denim Group's software ThreadFix, which provides the Hybrid
-Analysis Mapping (HAM) that runs the correlation. A collaboration between Denim Group and Secure
-Decisions, a subdivision of Applied Visions, Inc., has improved upon the open-source ThreadFix tool
-with a focused interface and improved HAM capabilities.
+- More information on a vulnerability as a whole
+- Reduced duplicate vulnerabilities from multiple SAST/DAST scans
 
-The original ThreadFix project can be found here: https://github.com/denimgroup/threadfix
 
----
+# Supported Web Frameworks
+The following frameworks are supported by the Correlator route detection process:
 
-## Disclaimer
-
-The ASTAM Correlator is originally designed for integration into various other ASTAM components. Due to
-external factors, this integration is no longer in development and no longer supported. This is with respect to
-the `threadfix-astam` module and any ActiveMQ or Protobuf dependencies.
+- ASP.NET MVC
+- ASP.NET Web Forms
+- Struts
+- Django
+- Ruby on Rails
+- Spring MVC
+- JSP
 
 # Documentation
 
