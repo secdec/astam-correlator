@@ -42,6 +42,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.*;
 import java.net.MalformedURLException;
@@ -69,7 +70,6 @@ public abstract class EndpointsButton extends JButton {
                 boolean configured = ConfigurationDialogs.show(view, getDialogMode());
                 boolean completed = false;
                 java.util.List<String> nodes = new ArrayList<>();
-
                 if (configured) {
                     if (BurpPropertiesManager.getBurpPropertiesManager().getConfigFile() != null ) {
                         callbacks.loadConfigFromJson(getBurpConfigAsString());
@@ -77,9 +77,11 @@ public abstract class EndpointsButton extends JButton {
 
                     Endpoint.Info[] endpoints = getEndpoints();
                     logEndpoints(view, endpoints);
+                    fillEndpointsToTable(endpoints);
                     if (endpoints.length == 0) {
                         JOptionPane.showMessageDialog(view, getNoEndpointsMessage(), "Warning",
                                 JOptionPane.WARNING_MESSAGE);
+
                     } else {
                         for (Endpoint.Info endpoint : endpoints) {
                             if (endpoint != null) {
@@ -93,6 +95,7 @@ public abstract class EndpointsButton extends JButton {
                                 for(Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet()) {
                                     nodes.add(endpointPath + "?" + parameter.getKey() + "=" + parameter.getValue());
                                 }
+
                             }
                         }
 
@@ -128,7 +131,6 @@ public abstract class EndpointsButton extends JButton {
                 }
                 if(BurpPropertiesManager.getBurpPropertiesManager().getAutoScan())
                     sendToScanner(callbacks);
-
                 RequestMakerThread rmt = new RequestMakerThread(callbacks,view);
                 new Thread(rmt).start();
             }
@@ -161,6 +163,36 @@ public abstract class EndpointsButton extends JButton {
         return "";
     }
 
+    private void fillEndpointsToTable(Endpoint.Info[] endpoints)
+    {
+        JTable endpointTable = BurpPropertiesManager.getBurpPropertiesManager().getEndpointsTable();
+        DefaultTableModel dtm = (DefaultTableModel)endpointTable.getModel();
+        for (Endpoint.Info endpoint : endpoints)
+        {
+            boolean hasGet = false;
+            boolean hasPost = false;
+            Iterator<String> it = endpoint.getHttpMethods().iterator();
+            while (it.hasNext())
+            {
+                String method = it.next();
+                if(method.toString().equalsIgnoreCase("post"))
+                    hasPost = true;
+                else if (method.toString().equalsIgnoreCase("get"))
+                    hasGet = true;
+            }
+            dtm.addRow(new Object[]
+            {
+                endpoint.getUrlPath(),
+                endpoint.getParameters().size(),
+                hasGet,
+                hasPost,
+                endpoint
+            });
+
+        }
+
+    }
+
     private void buildRequests(final Component view, final IBurpExtenderCallbacks callbacks, Endpoint.Info[] endpoints, String url) {
         HashMap<byte[], IHttpService> requests = BurpPropertiesManager.getBurpPropertiesManager().getRequests();
         for (Endpoint.Info endpoint : endpoints)
@@ -176,35 +208,70 @@ public abstract class EndpointsButton extends JButton {
                 Iterator<String> it = endpoint.getHttpMethods().iterator();
                 while (it.hasNext())
                 {
+                    boolean first = true;
+                    String reqString = endpointPath;
                     String method = it.next();
                     try
                     {
+
                        URL reqUrl = new URL(url + endpointPath);
                        byte[] req = callbacks.getHelpers().buildHttpRequest(reqUrl);
                        for (Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())
                        {
-                           IParameter param = null;
-                           if (parameter.getValue().toString().equalsIgnoreCase("string"))
+                           //JOptionPane.showMessageDialog(view, "Parameter key : " + parameter.getKey() + "Parameter Value " + parameter.getValue());
+                           if (first)
                            {
-                               param = callbacks.getHelpers().buildParameter(parameter.getKey(),"debug",(byte)0);
+                               first = false;
+                                      reqString = reqString + "?";
+                           }
+                           else
+                           {
+                               reqString = reqString + "&";
+                           }
+                           IParameter param = null;
+                           //JOptionPane.showMessageDialog(view, "key = " + parameter.getKey() + " value: " + parameter.getValue());
+
+                           if (parameter.getValue().getDataType() == ParameterDataType.STRING)
+                           {
+                               reqString = reqString + parameter.getKey() + "="+"debug";
                            }
                            //case int
-                           else if (parameter.getValue().toString().equalsIgnoreCase("integer"))
+                           else if (parameter.getValue().getDataType() == ParameterDataType.INTEGER)
                            {
-                                callbacks.getHelpers().buildParameter(parameter.getKey(),"-1",(byte)0);
+                               reqString = reqString + parameter.getKey() + "="+"-1";
                            }
                            //case boolean
-                           else if (parameter.getValue().toString().equalsIgnoreCase("boolean"))
+                           else if (parameter.getValue().getDataType() == ParameterDataType.BOOLEAN)
                            {
-                                callbacks.getHelpers().buildParameter(parameter.getKey(),"true",(byte)0);
+                               reqString = reqString + parameter.getKey() + "="+"true";
+                           }
+                           else if (parameter.getValue().getDataType() == ParameterDataType.DECIMAL)
+                           {
+                               reqString = reqString + parameter.getKey() + "="+".1";
+                           }
+                           else if (parameter.getValue().getDataType() == ParameterDataType.DATE_TIME)
+                           {
+                               reqString = reqString + parameter.getKey() + "="+ new Date();
+                           }
+                           else if (parameter.getValue().getDataType() == ParameterDataType.LOCAL_DATE)
+                           {
+                               reqString = reqString + parameter.getKey() + "="+new Date();
                            }
                            if (param != null)
                               callbacks.getHelpers().addParameter(req, param);
                         }
+                        byte[] manReq = callbacks.getHelpers().buildHttpRequest(new URL(url + reqString));
                         if(method.toString().equalsIgnoreCase("post"))
-                            req = callbacks.getHelpers().toggleRequestMethod(req);
+                        {
 
-                        requests.put(req, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
+                            manReq = callbacks.getHelpers().toggleRequestMethod(manReq);
+                            requests.put(manReq, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
+                        }
+
+                            requests.put(manReq, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
+
+
+                        //requests.put(req, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
                      }
                      catch (MalformedURLException e1)
                      {
