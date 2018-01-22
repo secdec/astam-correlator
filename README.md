@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 _*This material is based on research sponsored by the Department of Homeland
 Security (DHS) Science and Technology Directorate, Cyber Security Division
 (DHS S&T/CSD) via contract number HHSP233201600058C.*_
@@ -244,4 +244,3 @@ The original ThreadFix project can be found here: https://github.com/denimgroup/
 _*This material is based on research sponsored by the Department of Homeland
 Security (DHS) Science and Technology Directorate, Cyber Security Division
 (DHS S&T/CSD) via contract number HHSP233201600058C.*_
->>>>>>> 164fded5905ada17ed15c8e2140ce37c02fca6bd
