@@ -25,17 +25,6 @@ The ASTAM Correlator is originally designed for integration into various other A
 external factors, this integration is no longer in development and no longer supported. This is with respect to
 the `threadfix-astam` module and any ActiveMQ or Protobuf dependencies.
 
-
-## Requirements
-
-The ASTAM Correlator may be built from source or installed using the provided WAR file. It has the following
-dependencies:
-
-- Java 8
-- Tomcat 7.0.75
-- MySQL Server
-- Linux- or Windows-based host
-
 # Documentation
 
 Instructions for the usage and installation of the ASTAM Correlator can be found in this project's [Wiki](https://github.com/secdec/astam-correlator/wiki).
