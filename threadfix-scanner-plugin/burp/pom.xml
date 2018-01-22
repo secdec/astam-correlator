@@ -55,11 +55,6 @@
             <artifactId>json-simple</artifactId>
             <version>1.1.1</version>
         </dependency>
-        <dependency>
-            <groupId>com.microsoft.tfs.sdk</groupId>
-            <artifactId>com.microsoft.tfs.sdk</artifactId>
-            <version>RELEASE</version>
-        </dependency>
     </dependencies>
     <profiles>
         <profile>
