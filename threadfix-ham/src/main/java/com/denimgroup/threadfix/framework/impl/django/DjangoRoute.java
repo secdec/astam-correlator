@@ -24,6 +24,7 @@
 
 package com.denimgroup.threadfix.framework.impl.django;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public class DjangoRoute {
     private String url;
     private String viewPath;
     private List<String> httpMethods = list();
-    private Map<String, ParameterDataType> parameters = map();
+    private Map<String, RouteParameter> parameters = map();
     private int startLineNumber = -1, endLineNumber = -1;
 
     public DjangoRoute(String url, String viewPath) {
@@ -72,7 +73,7 @@ public class DjangoRoute {
         return httpMethods;
     }
 
-    public Map<String, ParameterDataType> getParameters() {
+    public Map<String, RouteParameter> getParameters() {
         return parameters;
     }
 
@@ -80,7 +81,7 @@ public class DjangoRoute {
         httpMethods.add(httpMethod);
     }
 
-    public void addParameter(String parameter, ParameterDataType dataType) {
+    public void addParameter(String parameter, RouteParameter dataType) {
         parameters.put(parameter, dataType);
     }
 }

@@ -20,7 +20,6 @@
 //              Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-
 package com.denimgroup.threadfix.cds.service.integration;
 
 import com.denimgroup.threadfix.cds.service.UuidUpdater;

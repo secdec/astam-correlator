@@ -21,7 +21,6 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-
 package com.denimgroup.threadfix.framework.impl.django.python;
 
 import java.util.Collection;

@@ -20,7 +20,6 @@
 //              Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-
 package com.denimgroup.threadfix.cds.service;
 
 import com.denimgroup.threadfix.data.entities.Scan;

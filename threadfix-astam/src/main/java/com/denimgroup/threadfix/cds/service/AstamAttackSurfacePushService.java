@@ -20,7 +20,6 @@
 //              Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-
 package com.denimgroup.threadfix.cds.service;
 
 import com.secdec.astam.common.data.models.Attacksurface;

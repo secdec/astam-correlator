@@ -21,6 +21,7 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
+
 package com.denimgroup.threadfix.framework.impl.struts.model;
 
 import com.denimgroup.threadfix.data.entities.ModelField;

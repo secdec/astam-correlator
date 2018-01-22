@@ -19,12 +19,13 @@
 //     Denim Group, Ltd. All Rights Reserved.
 //
 //     Contributor(s):
-//             Denim Group, Ltd.
-//             Secure Decisions, a division of Applied Visions, Inc
+//              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
 //
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 
@@ -62,7 +63,7 @@ class DotNetEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Map<String, ParameterDataType> getParameters() {
+    public Map<String, RouteParameter> getParameters() {
         return action.parameters;
     }
 

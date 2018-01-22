@@ -24,6 +24,7 @@
 
 package com.denimgroup.threadfix.framework.impl.django;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
@@ -518,7 +519,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                             String fullPath = DjangoPathUtil.combine(basePath, route.getUrl());
                             DjangoRoute newRoute = new DjangoRoute(fullPath, route.getViewPath());
                             newRoute.setLineNumbers(route.getStartLineNumber(), route.getEndLineNumber());
-                            for (Map.Entry<String, ParameterDataType> param : newRoute.getParameters().entrySet()) {
+                            for (Map.Entry<String, RouteParameter> param : newRoute.getParameters().entrySet()) {
                                 newRoute.addParameter(param.getKey(), param.getValue());
                             }
                             routeMap.put(fullPath, newRoute);
@@ -527,11 +528,10 @@ public class DjangoRouteParser implements EventBasedTokenizer{
 
                         String basePath = DjangoPathUtil.combine(rootPath, regexBuilder.toString());
                         AbstractPythonStatement referencedStatement = parsedCodebase.resolveLocalSymbol(viewPath, thisModule);
-                        //interpreter.getExecutionContext().res
                         if (referencedStatement != null && referencedStatement instanceof PythonPublicVariable) {
 
                             String fullReferencedPath = parsedCodebase.expandSymbol(viewPath, thisModule);
-                            PythonValue interpretedValues = interpreter.run(fullReferencedPath);
+                            PythonValue interpretedValues = interpreter.run(fullReferencedPath, null);
 
                             if (interpretedValues instanceof PythonVariable) {
                                 interpretedValues = interpreter.getExecutionContext().resolveAbsoluteValue(interpretedValues);
@@ -565,50 +565,18 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                                 }
                             }
 
-//                            PythonPublicVariable referencedVar = (PythonPublicVariable) referencedStatement;
-//                            String value = referencedVar.getValueString();
-//                            if (value.startsWith("[") && value.endsWith("]")) {
-//                                value = value.substring(1, value.length() - 1);
-//                            }
-//
-//                            String[] parts = CodeParseUtil.splitByComma(value);
-//                            for (String part : parts) {
-//                                if (part.startsWith("url(")) {
-//                                    part = part.substring("url(".length(), part.length() - 1);
-//                                    String[] params = CodeParseUtil.splitByComma(part);
-//                                    String endpoint = params[0].trim();
-//                                    String controller = params[1].trim();
-//
-//                                    AbstractPythonStatement resolvedController = parsedCodebase.findByPartialName(thisModule, controller);
-//                                    if (resolvedController == null) {
-//                                        resolvedController = parsedCodebase.findByFullName(controller);
-//                                    }
-//                                    if (resolvedController == null) {
-//                                        continue;
-//                                    }
-//
-//                                    if (endpoint.startsWith("r")) {
-//                                        endpoint = endpoint.substring(2);
-//                                    } else if (endpoint.startsWith("'") || endpoint.startsWith("\"")) {
-//                                        endpoint = endpoint.substring(1);
-//                                    }
-//
-//                                    if (endpoint.endsWith("'") || endpoint.endsWith("\"")) {
-//                                        endpoint = endpoint.substring(0, endpoint.length() - 1);
-//                                    }
-//
-//                                    endpoint = DjangoPathUtil.combine(basePath, endpoint);
-//                                    DjangoRoute newRoute = new DjangoRoute(endpoint, resolvedController.getSourceCodePath());
-//                                    newRoute.setLineNumbers(resolvedController.getSourceCodeStartLine(), resolvedController.getSourceCodeEndLine());
-//                                    routeMap.put(endpoint, newRoute);
-//                                }
-//                            }
                         } else if (referencedStatement instanceof PythonFunctionCall) {
 
                             if (referencedStatement.getSourceCodePath() != null && referencedStatement.getSourceCodeStartLine() > -1) {
 
+                                String selfName = ((PythonFunctionCall) referencedStatement).getInvokeeName();
+                                PythonValue selfValue = interpreter.getExecutionContext().resolveSymbol(selfName);
+                                if (selfValue instanceof PythonIndeterminateValue) {
+                                    selfValue = null;
+                                }
+
                                 PythonFunction referencedFunction = (PythonFunction)referencedStatement;
-                                PythonValue functionResult = interpreter.run(viewPath, referencedFunction, null);
+                                PythonValue functionResult = interpreter.run(viewPath, referencedFunction, selfValue);
                                 functionResult = interpreter.getExecutionContext().resolveAbsoluteValue(functionResult);
 
                                 if (functionResult instanceof PythonArray) {

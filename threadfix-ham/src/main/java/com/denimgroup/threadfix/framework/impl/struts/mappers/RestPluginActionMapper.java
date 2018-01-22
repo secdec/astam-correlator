@@ -23,7 +23,9 @@
 
 package com.denimgroup.threadfix.framework.impl.struts.mappers;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsConfigurationProperties;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
@@ -117,10 +119,10 @@ public class RestPluginActionMapper implements ActionMapper {
                     possibleMethodNames.add(PathUtil.combine("/{" + idParamName + "}", actionMethod));
                 }
 
-                Map<String, ParameterDataType> params = map();
+                Map<String, RouteParameter> params = map();
                 if (action.getParams() != null) {
                     for (Map.Entry<String, String> entry : action.getParams().entrySet()) {
-                        params.put(entry.getKey(), ParameterDataType.getType(entry.getValue()));
+                        params.put(entry.getKey(), RouteParameter.fromDataType(ParameterDataType.getType(entry.getValue())));
                     }
                 }
 
@@ -134,7 +136,11 @@ public class RestPluginActionMapper implements ActionMapper {
                             url = PathUtil.combine(url, possibleName);
                         if (extension.length() > 0)
                             url += "." + extension;
-                        StrutsEndpoint endpoint = new StrutsEndpoint(action.getActClassLocation(), url, list(httpMethod), params);
+                        String filePath = action.getActClassLocation();
+                        if (project.getRootDirectory() != null && filePath.startsWith(project.getRootDirectory())) {
+                            filePath = FilePathUtils.getRelativePath(filePath, project.getRootDirectory());
+                        }
+                        StrutsEndpoint endpoint = new StrutsEndpoint(filePath, url, list(httpMethod), params);
                         endpoints.add(endpoint);
                     }
                 }

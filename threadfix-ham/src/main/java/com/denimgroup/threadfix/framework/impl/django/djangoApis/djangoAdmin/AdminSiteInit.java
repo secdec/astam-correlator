@@ -21,7 +21,6 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-
 package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin;
 
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;

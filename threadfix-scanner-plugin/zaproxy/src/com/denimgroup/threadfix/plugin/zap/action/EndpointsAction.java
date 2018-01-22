@@ -24,6 +24,7 @@
 
 package com.denimgroup.threadfix.plugin.zap.action;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.plugin.zap.dialog.ConfigurationDialogs;
@@ -104,10 +105,10 @@ public abstract class EndpointsAction extends JMenuItem {
 
                 nodes.add(urlPath);
 
-                Map<String, ParameterDataType> params = endpoint.getParameters();
+                Map<String, RouteParameter> params = endpoint.getParameters();
 
                 if (!params.isEmpty()) {
-                    for(Map.Entry<String, ParameterDataType> parameter : params.entrySet()){
+                    for(Map.Entry<String, RouteParameter> parameter : params.entrySet()){
                         nodes.add(urlPath + "?" + parameter.getKey() + "=" + parameter.getValue());
                     }
                 }

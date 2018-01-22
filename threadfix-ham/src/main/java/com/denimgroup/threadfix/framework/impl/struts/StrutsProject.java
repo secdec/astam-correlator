@@ -46,6 +46,12 @@ public class StrutsProject {
     StrutsConfigurationProperties config;
     List<StrutsPlugin> plugins = list();
     List<StrutsWebPack> webPacks = list();
+    String rootDirectory = null;
+
+
+    public StrutsProject(String rootDirectory) {
+        this.rootDirectory = rootDirectory;
+    }
 
 
     public void addPackages(Collection<StrutsPackage> packages) {
@@ -113,6 +119,10 @@ public class StrutsProject {
 
     public Collection<StrutsWebPack> getWebPacks() {
         return webPacks;
+    }
+
+    public String getRootDirectory() {
+        return this.rootDirectory;
     }
 
     public boolean hasPlugin(Class cls) {

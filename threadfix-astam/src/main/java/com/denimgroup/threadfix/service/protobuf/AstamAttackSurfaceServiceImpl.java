@@ -20,7 +20,6 @@
 //              Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-
 package com.denimgroup.threadfix.service.protobuf;
 
 import com.denimgroup.threadfix.data.dao.ScanDao;

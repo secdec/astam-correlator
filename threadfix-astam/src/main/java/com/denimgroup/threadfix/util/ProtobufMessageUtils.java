@@ -20,7 +20,6 @@
 //              Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-
 package com.denimgroup.threadfix.util;
 
 import com.denimgroup.threadfix.data.entities.astam.AstamAuditableEntity;

@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 //
-//     Copyright (c) 2009-2014 Denim Group, Ltd.
+//     Copyright (c) 2009-2015 Denim Group, Ltd.
 //
 //     The contents of this file are subject to the Mozilla Public License
 //     Version 2.0 (the "License"); you may not use this file except in
@@ -19,12 +19,13 @@
 //     Denim Group, Ltd. All Rights Reserved.
 //
 //     Contributor(s):
-//             Denim Group, Ltd.
-//             Secure Decisions, a division of Applied Visions, Inc
+//              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
 //
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 
@@ -45,10 +46,10 @@ public class StrutsEndpoint extends AbstractEndpoint {
     private Pattern pathRegex = null;
 
     private Set<String> methods;
-    private Map<String, ParameterDataType> parameters;
+    private Map<String, RouteParameter> parameters;
 
     public StrutsEndpoint(String filePath, String urlPath,
-                          Collection<String> methods, Map<String, ParameterDataType> parameters) {
+                          Collection<String> methods, Map<String, RouteParameter> parameters) {
         this.filePath = filePath;
         this.urlPath = urlPath;
         this.methods = setFrom(methods);
@@ -79,7 +80,7 @@ public class StrutsEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Map<String, ParameterDataType> getParameters() {
+    public Map<String, RouteParameter> getParameters() {
         return parameters;
     }
 

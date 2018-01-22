@@ -20,7 +20,6 @@
 //              Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-
 package com.denimgroup.threadfix.cds.rest;
 
 import com.denimgroup.threadfix.cds.rest.response.RestResponse;

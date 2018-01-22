@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 //
-//     Copyright (c) 2009-2014 Denim Group, Ltd.
+//     Copyright (c) 2009-2015 Denim Group, Ltd.
 //
 //     The contents of this file are subject to the Mozilla Public License
 //     Version 2.0 (the "License"); you may not use this file except in
@@ -19,8 +19,8 @@
 //     Denim Group, Ltd. All Rights Reserved.
 //
 //     Contributor(s):
-//             Denim Group, Ltd.
-//             Secure Decisions, a division of Applied Visions, Inc
+//              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
 //
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;

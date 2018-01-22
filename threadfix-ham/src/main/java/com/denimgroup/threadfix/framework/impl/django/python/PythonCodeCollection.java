@@ -21,7 +21,6 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-
 package com.denimgroup.threadfix.framework.impl.django.python;
 
 import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
@@ -81,7 +80,7 @@ public class PythonCodeCollection {
                     }
 
                     if (baseScope == null) {
-                        log("Unable to expand wildcard import with unknown Python statement '" + basePath + "'");
+                        //log("Unable to expand wildcard import with unknown Python statement '" + basePath + "'");
                         continue;
                     }
 
@@ -90,23 +89,22 @@ public class PythonCodeCollection {
                         imports.put(name, child.getFullName());
                     }
 
-                    log("Expanded " + alias + " to " + baseScope.getChildStatements().size() + " statements");
+                    //log("Expanded " + alias + " to " + baseScope.getChildStatements().size() + " statements");
 
                 } else {
                     imports.put(alias, importPath);
-                    log("Expanded " + alias + " to " + importPath);
+                    //log("Expanded " + alias + " to " + importPath);
                 }
             }
         }
 
-        log("Finished expanding: " + statement.toString());
+        //log("Finished expanding: " + statement.toString());
     }
 
     public void initialize() {
         this.expandImports();
         this.collapseSymbolReferences();
         this.finalizeUnfinishedLines();
-        this.executeInvocations();
     }
 
     /**
@@ -299,43 +297,6 @@ public class PythonCodeCollection {
                 }
             }
         });
-    }
-
-    public void executeInvocations() {
-        LOG.info("Executing global-level function calls");
-
-        Collection<PythonFunctionCall> functionCalls = new LinkedList<PythonFunctionCall>();
-        Collection<PythonModule> modules = getModules();
-
-        for (PythonModule module : modules) {
-            for (AbstractPythonStatement child : module.getChildStatements()) {
-                if (child instanceof PythonFunctionCall) {
-                    functionCalls.add((PythonFunctionCall)child);
-                }
-            }
-        }
-
-        long startTime = System.currentTimeMillis();
-
-        LOG.warn("SKIPPING GLOBAL-LEVEL FUNCTION CALLS - TEMPORARILY DISABLED (DEV)");
-//        for (PythonFunctionCall call : functionCalls) {
-//            PythonFunction function = call.getResolvedFunction();
-//            if (function != null) {
-//                if (function.canInvoke()) {
-//                    Collection<String> params = call.getParameters();
-//                    String[] arrayParams;
-//                    if (params.size() == 0) {
-//                        arrayParams = new String[0];
-//                    } else {
-//                        arrayParams = params.toArray(new String[params.size()]);
-//                    }
-//                    function.invoke(this, call, call.getResolvedInvokee(), arrayParams);
-//                }
-//            }
-//        }
-
-        long duration = System.currentTimeMillis() - startTime;
-        LOG.info("Executing " + functionCalls.size() + " function calls took " + duration + "ms");
     }
 
     public <T extends AbstractPythonStatement> Collection<T> get(final Class<T> type) {

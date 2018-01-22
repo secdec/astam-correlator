@@ -21,9 +21,9 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-
 package com.denimgroup.threadfix.framework.impl.django.python.runtime.expressions;
 
+import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonBinaryExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonExpression;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.PythonValue;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters.ExpressionInterpreter;

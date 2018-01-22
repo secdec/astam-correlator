@@ -39,7 +39,7 @@ public class EndpointPermissionParsingTests {
 
     @Test
     public void testClassAuthParsing() {
-        Set<SpringControllerEndpoint> endpoints = SpringControllerEndpointParser.parse(
+        Set<SpringControllerEndpoint> endpoints = SpringControllerEndpointParser.parse(null,
                 ResourceManager.getSpringFile("ControllerWithClassAuthorization.java"), null);
 
         boolean hasAuth = false, hasNoAuth = false;
@@ -64,7 +64,7 @@ public class EndpointPermissionParsingTests {
 
     @Test
     public void testHasAny() {
-        Set<SpringControllerEndpoint> endpoints = SpringControllerEndpointParser.parse(
+        Set<SpringControllerEndpoint> endpoints = SpringControllerEndpointParser.parse(null,
                 ResourceManager.getSpringFile("ControllerWithClassAuthorization.java"), null);
 
         boolean hasAuth = false, hasNoAuth = false;

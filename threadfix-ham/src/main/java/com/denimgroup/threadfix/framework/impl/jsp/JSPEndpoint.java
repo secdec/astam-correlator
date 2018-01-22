@@ -19,12 +19,13 @@
 //     Denim Group, Ltd. All Rights Reserved.
 //
 //     Contributor(s):
-//             Denim Group, Ltd.
-//             Secure Decisions, a division of Applied Visions, Inc
+//              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
 //
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.jsp;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.engine.CodePoint;
@@ -46,7 +47,7 @@ class JSPEndpoint extends AbstractEndpoint {
 	private final String dynamicPath, staticPath;
 
     @Nonnull
-	private final Map<String, ParameterDataType> parameters = map();
+	private final Map<String, RouteParameter> parameters = map();
     @Nonnull
 	private final Set<String> methods;
 
@@ -67,7 +68,7 @@ class JSPEndpoint extends AbstractEndpoint {
 		
         for (List<String> values : parameterMap.values()) {
         	for (String param : values) {
-				parameters.put(param, ParameterDataType.STRING);
+				parameters.put(param, RouteParameter.fromDataType(ParameterDataType.STRING));
 			}
         }
 
@@ -170,7 +171,7 @@ class JSPEndpoint extends AbstractEndpoint {
 
 	@Nonnull
     @Override
-	public Map<String, ParameterDataType> getParameters() {
+	public Map<String, RouteParameter> getParameters() {
 		return parameters;
 	}
 

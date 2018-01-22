@@ -16,10 +16,10 @@
 //     Security (DHS) Science and Technology Directorate, Cyber Security Division
 //     (DHS S&T/CSD) via contract number HHSP233201600058C.
 //
-//     Contributor(s): Denim Group, Ltd.
+//     Contributor(s):
+//              Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-
 package com.denimgroup.threadfix.cds.messaging;
 
 import com.denimgroup.threadfix.logging.SanitizedLogger;

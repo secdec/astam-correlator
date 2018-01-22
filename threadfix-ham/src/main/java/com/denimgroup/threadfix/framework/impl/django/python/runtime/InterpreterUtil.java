@@ -21,7 +21,6 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
@@ -33,6 +32,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPyth
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonClass;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonFunction;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.PythonPublicVariable;
+import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -42,6 +42,8 @@ import java.util.List;
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class InterpreterUtil {
+
+    private static final SanitizedLogger LOG = new SanitizedLogger(InterpreterUtil.class);
 
     private static final PythonExpressionParser sharedParser = new PythonExpressionParser();
     private static final PythonValueBuilder sharedBuilder = new PythonValueBuilder();
@@ -113,7 +115,7 @@ public class InterpreterUtil {
         if (isValidValue(asValue)) {
             return asValue;
         } else {
-            return sharedParser.processString(expression, expressionSubject);
+            return sharedParser.processString(expression, expressionSubject, null);
         }
     }
 
@@ -126,72 +128,81 @@ public class InterpreterUtil {
     }
 
     public static void resolveSubValues(PythonValue value) {
-        List<PythonValue> subValues = value.getSubValues();
-        if (subValues == null) {
-            return;
-        } else {
-            subValues = new LinkedList<PythonValue>(value.getSubValues());
-        }
-        while (subValues.size() > 0) {
-            PythonValue subValue = subValues.get(0);
-            if (subValue instanceof PythonUnresolvedValue) {
-                PythonUnresolvedValue unresolvedValue = (PythonUnresolvedValue)subValue;
-                PythonValue resolvedValue = tryMakeValue(unresolvedValue.getStringValue(), null);
-                if (!(resolvedValue instanceof PythonUnresolvedValue)) {
-                    resolvedValue.resolveSourceLocation(unresolvedValue.getSourceLocation());
-                    value.resolveSubValue(subValue, resolvedValue);
-                    subValue = resolvedValue;
-                }
+        try {
+            List<PythonValue> subValues = value.getSubValues();
+            if (subValues == null) {
+                return;
+            } else {
+                subValues = new LinkedList<PythonValue>(value.getSubValues());
             }
+            while (subValues.size() > 0) {
+                PythonValue subValue = subValues.get(0);
+                if (subValue instanceof PythonUnresolvedValue) {
+                    PythonUnresolvedValue unresolvedValue = (PythonUnresolvedValue)subValue;
+                    PythonValue resolvedValue = tryMakeValue(unresolvedValue.getStringValue(), null);
+                    if (!(resolvedValue instanceof PythonUnresolvedValue)) {
+                        resolvedValue.resolveSourceLocation(unresolvedValue.getSourceLocation());
+                        value.resolveSubValue(subValue, resolvedValue);
+                        subValue = resolvedValue;
+                    }
+                }
 
-            resolveSubValues(subValue);
-            subValues.remove(0);
+                resolveSubValues(subValue);
+                subValues.remove(0);
+            }
+        } catch (StackOverflowError soe) {
+            LOG.warn("Stack overflow occurred while resolving python sub-values");
         }
     }
 
     public static void resolveSourceLocations(@Nonnull PythonValue value, AbstractPythonStatement scope, @Nonnull PythonCodeCollection codebase) {
 
-        AbstractPythonStatement source = null;
-        if (value.getSourceLocation() == null) {
-            if (value instanceof PythonVariable) {
-                String name = ((PythonVariable) value).getLocalName();
-                if (name != null) {
-                    if (scope != null) {
-                        source = codebase.resolveLocalSymbol(name, scope);
-                    } else {
-                        source = codebase.findByFullName(name);
-                    }
-                    PythonValue variableValue = ((PythonVariable) value).getValue();
-                    if (source != null) {
-                        if (variableValue != null) {
-                            if (variableValue instanceof PythonObject && source instanceof PythonPublicVariable) {
-                                PythonClass valueType = ((PythonPublicVariable) source).getResolvedTypeClass();
-                                variableValue.resolveSourceLocation(valueType);
-                                ((PythonObject) variableValue).setClassType(valueType);
-                            } else if (variableValue instanceof FunctionCallExpression) {
-                                variableValue.resolveSourceLocation(source);
+        try {
+
+            AbstractPythonStatement source = null;
+            if (value.getSourceLocation() == null) {
+                if (value instanceof PythonVariable) {
+                    String name = ((PythonVariable) value).getLocalName();
+                    if (name != null) {
+                        if (scope != null) {
+                            source = codebase.resolveLocalSymbol(name, scope);
+                        } else {
+                            source = codebase.findByFullName(name);
+                        }
+                        PythonValue variableValue = ((PythonVariable) value).getValue();
+                        if (source != null) {
+                            if (variableValue != null) {
+                                if (variableValue instanceof PythonObject && source instanceof PythonPublicVariable) {
+                                    PythonClass valueType = ((PythonPublicVariable) source).getResolvedTypeClass();
+                                    variableValue.resolveSourceLocation(valueType);
+                                    ((PythonObject) variableValue).setClassType(valueType);
+                                } else if (variableValue instanceof FunctionCallExpression) {
+                                    variableValue.resolveSourceLocation(source);
+                                }
                             }
                         }
                     }
+                } else if (value instanceof PythonObject) {
+
+                } else if (value instanceof FunctionCallExpression && ((FunctionCallExpression) value).getSubject(0) instanceof PythonVariable) {
+                    PythonVariable subject = (PythonVariable) ((FunctionCallExpression) value).getSubject(0);
+                    resolveSourceLocations(subject, scope, codebase);
+                    source = subject.getSourceLocation();
                 }
-            } else if (value instanceof PythonObject) {
-
-            } else if (value instanceof FunctionCallExpression && ((FunctionCallExpression) value).getSubject(0) instanceof PythonVariable) {
-                PythonVariable subject = (PythonVariable)((FunctionCallExpression) value).getSubject(0);
-                resolveSourceLocations(subject, scope, codebase);
-                source = subject.getSourceLocation();
             }
-        }
 
-        if (source != null) {
-            value.resolveSourceLocation(source);
-        }
-
-        Collection<PythonValue> subValues = value.getSubValues();
-        if (subValues != null) {
-            for (PythonValue subValue : subValues) {
-                resolveSourceLocations(subValue, scope, codebase);
+            if (source != null) {
+                value.resolveSourceLocation(source);
             }
+
+            Collection<PythonValue> subValues = value.getSubValues();
+            if (subValues != null) {
+                for (PythonValue subValue : subValues) {
+                    resolveSourceLocations(subValue, scope, codebase);
+                }
+            }
+        } catch (StackOverflowError soe) {
+            LOG.warn("Stack overflow occurred while resolving source locations for python expressions");
         }
     }
 

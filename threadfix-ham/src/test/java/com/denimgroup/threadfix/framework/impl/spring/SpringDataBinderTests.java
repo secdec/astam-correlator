@@ -96,7 +96,7 @@ public class SpringDataBinderTests {
                 new EntityMappings(new File(TestConstants.THREADFIX_SOURCE_ROOT));
 
         Set<SpringControllerEndpoint> endpointSet =
-                SpringControllerEndpointParser.parse(editAppController, threadfixMappings);
+                SpringControllerEndpointParser.parse(null, editAppController, threadfixMappings);
 
         // we have to initialize the databinder and add to the endpoints
         SpringDataBinderParser dataBinderParser = new SpringDataBinderParser();

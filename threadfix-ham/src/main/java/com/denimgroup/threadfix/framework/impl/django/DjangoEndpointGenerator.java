@@ -21,9 +21,9 @@
 //              Secure Decisions, a division of Applied Visions, Inc
 //
 ////////////////////////////////////////////////////////////////////////
-
 package com.denimgroup.threadfix.framework.impl.django;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
@@ -70,7 +70,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         long generationStartTime = System.currentTimeMillis();
 
-        this.rootDirectory = rootDirectory;
+        this.rootDirectory = rootDirectory.getAbsoluteFile();
 
         findRootUrlsFile();
         if (rootUrlsFile == null || !rootUrlsFile.exists()) {
@@ -158,13 +158,13 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                     DjangoRoute existingRoute = routeMap.get(url.getKey());
                     if (existingRoute != null) {
                         Collection<String> existingHttpMethods = existingRoute.getHttpMethods();
-                        Map<String, ParameterDataType> existingParams = existingRoute.getParameters();
+                        Map<String, RouteParameter> existingParams = existingRoute.getParameters();
                         for (String httpMethod : url.getValue().getHttpMethods()) {
                             if (!existingHttpMethods.contains(httpMethod)) {
                                 existingHttpMethods.add(httpMethod);
                             }
                         }
-                        for (Map.Entry<String, ParameterDataType> param : url.getValue().getParameters().entrySet()) {
+                        for (Map.Entry<String, RouteParameter> param : url.getValue().getParameters().entrySet()) {
                             if (!existingParams.containsKey(param.getKey())) {
                                 existingParams.put(param.getKey(), param.getValue());
                             }
@@ -179,6 +179,17 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         }
 
         this.endpoints = generateMappings(i18Detector.isLocalized());
+
+        //  Ensure that all file paths are relative to project root
+        //  Python interpreter requires that file paths be absolute so that the files can be loaded
+        for (Endpoint endpoint : this.endpoints) {
+            DjangoEndpoint djangoEndpoint = (DjangoEndpoint)endpoint;
+            String filePath = djangoEndpoint.getFilePath();
+            if (filePath.startsWith(rootDirectory.getAbsolutePath())) {
+                String relativePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+                djangoEndpoint.setFilePath(relativePath);
+            }
+        }
 
         long generationDuration = System.currentTimeMillis() - generationStartTime;
         debugLog("Finished python endpoint generation in " + generationDuration + "ms");
@@ -218,7 +229,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             String filePath = route.getViewPath();
 
             Collection<String> httpMethods = route.getHttpMethods();
-            Map<String, ParameterDataType> parameters = route.getParameters();
+            Map<String, RouteParameter> parameters = route.getParameters();
             mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters, false));
             if (i18) {
                 mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters, true));
@@ -256,7 +267,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
             List<String> lines = sourceReader.getLines();
             for (String line : lines) {
-                interpreter.run(line, module);
+                interpreter.run(line, module, null);
             }
         }
     }

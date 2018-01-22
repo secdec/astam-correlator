@@ -21,7 +21,6 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-
 package com.denimgroup.threadfix.framework.impl.django.python.runtime.interpreters;
 
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;

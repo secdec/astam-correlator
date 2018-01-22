@@ -23,11 +23,20 @@
 
 package com.denimgroup.threadfix.framework.impl.rails.model;
 
-import javax.annotation.Nonnull;
-
 public class PathHttpMethod {
 
     String path, method, action, controllerName;
+
+//    public PathHttpMethod(@Nonnull String path, @Nonnull String method) {
+//        this.path = path;
+//        this.method = method;
+//    }
+//
+//    public PathHttpMethod(@Nonnull String path, String method, @Nonnull String action) {
+//        this.path = path;
+//        this.method = method;
+//        this.action = action;
+//    }
 
     public PathHttpMethod(String path, String method, String action, String controllerName) {
         this.path = path;

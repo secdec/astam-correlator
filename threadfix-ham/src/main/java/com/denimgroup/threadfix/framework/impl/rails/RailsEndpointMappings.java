@@ -19,12 +19,13 @@
 //     Denim Group, Ltd. All Rights Reserved.
 //
 //     Contributor(s):
-//             Denim Group, Ltd.
-//             Secure Decisions, a division of Applied Visions, Inc
+//              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
 //
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
@@ -36,6 +37,7 @@ import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteR
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRoutingTreeBuilder;
 import com.denimgroup.threadfix.framework.impl.rails.routerDetection.RouterDetector;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 
@@ -90,13 +92,18 @@ public class RailsEndpointMappings implements EndpointGenerator {
             RailsController controller = getController(route);
             String controllerPath;
             if (controller != null) {
-                controllerPath = getRelativePath(controller.getControllerFile());
+                controllerPath = controller.getControllerFile().getAbsolutePath();
             } else {
                 controllerPath = route.getController();
             }
 
             if (controllerPath != null) {
-                RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethods(), new HashMap<String, ParameterDataType>());
+
+                if (controllerPath.startsWith(rootDirectory.getAbsolutePath())) {
+                    controllerPath = FilePathUtils.getRelativePath(controllerPath, rootDirectory);
+                }
+
+                RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethods(), new HashMap<String, RouteParameter>());
                 endpoints.add(endpoint);
             }
         }

@@ -20,7 +20,6 @@
 //              Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-
 package com.denimgroup.threadfix.service;
 
 import com.denimgroup.threadfix.mapper.AstamAttackSurfaceMapper;

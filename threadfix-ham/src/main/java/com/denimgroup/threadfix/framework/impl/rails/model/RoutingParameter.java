@@ -17,22 +17,14 @@
 //     (DHS S&T/CSD) via contract number HHSP233201600058C.
 //
 //     Contributor(s):
-//              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
 //
 ////////////////////////////////////////////////////////////////////////
 
-package com.denimgroup.threadfix.service;
+package com.denimgroup.threadfix.framework.impl.rails.model;
 
-import com.denimgroup.threadfix.data.entities.Application;
-import com.denimgroup.threadfix.data.entities.ScheduledGitPoll;
+public interface RoutingParameter {
 
-public interface ScheduledGitPollService extends ScheduledJobService<ScheduledGitPoll>{
-
-    public ScheduledGitPoll loadByApplication(Application application);
-
-    public void updatePoll(ScheduledGitPoll poll);
-
-    public ScheduledGitPoll loadByApplicationOrDefault(Application application);
-
+    void modify(RailsRoutingEntry entry);
 
 }

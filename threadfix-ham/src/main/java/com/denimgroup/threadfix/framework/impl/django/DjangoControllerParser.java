@@ -24,6 +24,7 @@
 
 package com.denimgroup.threadfix.framework.impl.django;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -117,7 +118,7 @@ public class DjangoControllerParser implements EventBasedTokenizer {
                 else if (type == StreamTokenizer.TT_WORD){
                     if (REQUEST.equals(stringValue))
                         break;
-                    djangoRoute.addParameter(stringValue, ParameterDataType.STRING);
+                    djangoRoute.addParameter(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
                 }
                 break;
             case BODY:
@@ -136,7 +137,7 @@ public class DjangoControllerParser implements EventBasedTokenizer {
                     currentPhase = Phase.IN_METHOD;
                     currentMethodState = MethodState.BODY;
                 } else if (stringValue != null && !stringValue.isEmpty()) {
-                    djangoRoute.addParameter(stringValue, ParameterDataType.STRING);
+                    djangoRoute.addParameter(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
                     currentPhase = Phase.IN_METHOD;
                     currentMethodState = MethodState.BODY;
                 }

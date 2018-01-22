@@ -21,7 +21,6 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-
 package com.denimgroup.threadfix.framework.impl.django.python.runtime;
 
 import com.denimgroup.threadfix.framework.impl.django.python.schema.AbstractPythonStatement;

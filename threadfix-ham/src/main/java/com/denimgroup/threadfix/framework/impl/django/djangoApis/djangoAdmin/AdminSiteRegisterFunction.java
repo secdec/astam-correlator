@@ -21,7 +21,6 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-
 package com.denimgroup.threadfix.framework.impl.django.djangoApis.djangoAdmin;
 
 import com.denimgroup.threadfix.framework.impl.django.DjangoPathUtil;
@@ -190,7 +189,7 @@ public class AdminSiteRegisterFunction extends PythonFunction {
                 constructorCall.append(modelDecl.getFullName());
                 constructorCall.append(")");
 
-                PythonValue controllerInstance = host.run(constructorCall.toString(), controllerDecl);
+                PythonValue controllerInstance = host.run(constructorCall.toString(), controllerDecl, null);
                 PythonValue subUrls = host.run(
                         new File(getUrlsFunction.getSourceCodePath()),
                         getUrlsFunction.getSourceCodeStartLine(),

@@ -20,8 +20,6 @@
 //              Denim Group, Ltd.
 //
 ////////////////////////////////////////////////////////////////////////
-
-
 package com.denimgroup.threadfix.cds.messaging;
 
 import com.secdec.astam.common.messaging.Messaging;

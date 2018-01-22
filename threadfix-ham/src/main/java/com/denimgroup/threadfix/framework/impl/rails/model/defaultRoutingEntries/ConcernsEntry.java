@@ -34,8 +34,6 @@ import java.util.Collection;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-
-//  A shorthand for multiple 'concern' declarations
 public class ConcernsEntry extends AbstractRailsRoutingEntry implements Concernable {
 
     Collection<String> concernIds = list();

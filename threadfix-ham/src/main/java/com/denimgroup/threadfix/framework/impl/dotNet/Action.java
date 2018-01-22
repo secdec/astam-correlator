@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import org.apache.commons.lang3.StringUtils;
 
@@ -46,13 +47,24 @@ class Action {
     @Nonnull
     Integer     endLineNumber;
     @Nonnull
-    Map<String, ParameterDataType> parameters = map();
+    Map<String, RouteParameter> parameters = map();
     @Nonnull
     Set<ModelField> parametersWithTypes;
 
     String getMethod() {
-        return attributes.contains("HttpPost") ?
-                "POST" : "GET";
+        if (attributes.contains("HttpGet")) {
+            return "GET";
+        } else if (attributes.contains("HttpPost")) {
+            return "POST";
+        } else if (attributes.contains("HttpPatch")) {
+            return "PATCH";
+        } else if (attributes.contains("HttpPut")) {
+            return "PUT";
+        } else if (attributes.contains("HttpDelete")) {
+            return "DELETE";
+        } else {
+            return "GET";
+        }
     }
 
     static Action action(@Nonnull String name,
@@ -70,10 +82,10 @@ class Action {
         for (ModelField field : parametersWithTypes) {
             if (field.getType().equals("Include")) {
                 for (String s : StringUtils.split(field.getParameterKey(), ',')) {
-                    action.parameters.put(s.trim(), ParameterDataType.getType(field.getType()));
+                    action.parameters.put(s.trim(), RouteParameter.fromDataType(ParameterDataType.getType(field.getType())));
                 }
             } else {
-                action.parameters.put(field.getParameterKey(), ParameterDataType.getType(field.getType()));
+                action.parameters.put(field.getParameterKey(), RouteParameter.fromDataType(ParameterDataType.getType(field.getType())));
             }
         }
 

@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.TestConstants;
@@ -58,11 +59,11 @@ public class RailsEndpointMappingsTest {
                 "/app/controllers/password_resets_controller.rb",   // filePath
                 "/forgot_password",                                 // urlPath
                 set("GET"),
-                map("confirm_password", ParameterDataType.STRING,
-                        "email", ParameterDataType.STRING,
-                        "token", ParameterDataType.STRING,
-                        "password", ParameterDataType.STRING,
-                        "user", ParameterDataType.STRING)
+                map("confirm_password", RouteParameter.fromDataType(ParameterDataType.STRING),
+                        "email", RouteParameter.fromDataType(ParameterDataType.STRING),
+                        "token", RouteParameter.fromDataType(ParameterDataType.STRING),
+                        "password", RouteParameter.fromDataType(ParameterDataType.STRING),
+                        "user", RouteParameter.fromDataType(ParameterDataType.STRING))
             );
 
         confirmEndpointExistsIn(testEndpoint, endpoints);
@@ -74,7 +75,7 @@ public class RailsEndpointMappingsTest {
         String filePath = testEndpoint.getFilePath();
         String urlPath = testEndpoint.getUrlPath();
         Set<String> httpMethods = testEndpoint.getHttpMethods();
-        Map<String, ParameterDataType> parameters = testEndpoint.getParameters();
+        Map<String, RouteParameter> parameters = testEndpoint.getParameters();
 
         for (Endpoint endpoint : endpoints) {
             if (filePath.equals(endpoint.getFilePath())

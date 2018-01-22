@@ -21,7 +21,6 @@
 //
 ////////////////////////////////////////////////////////////////////////
 
-
 package com.denimgroup.threadfix.framework.impl.django.python;
 
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
@@ -64,173 +63,171 @@ public class PythonExpressionParser {
         this.codebase = codebase;
     }
 
-    public PythonExpression processString(String stringValue) {
-        return processString(stringValue, null, null);
-    }
-
-    public PythonExpression processString(String stringValue, List<PythonValue> subjects) {
-        return processString(stringValue, subjects, null);
-    }
-
     public PythonExpression processString(String stringValue, List<PythonValue> subjects, AbstractPythonStatement scope) {
 
-        stringValue = Language.stripComments(stringValue);
+        try {
 
-        PythonExpression result = null;
+            stringValue = Language.stripComments(stringValue);
 
-        List<String> expressions = expressionDeconstructor.deconstruct(stringValue);
+            PythonExpression result = null;
 
-        //  Ensure this is a supported expression
-        for (String subexpr : expressions) {
-            if (Language.PYTHON_KEYWORDS.contains(subexpr)) {
-                return new IndeterminateExpression();
+            List<String> expressions = expressionDeconstructor.deconstruct(stringValue);
+
+            //  Ensure this is a supported expression
+            for (String subexpr : expressions) {
+                if (Language.PYTHON_KEYWORDS.contains(subexpr)) {
+                    return new IndeterminateExpression();
+                }
             }
-        }
 
-        OperationType operationType = OperationType.UNKNOWN;
-        List<OperationType> expressionOperations = new ArrayList<OperationType>(expressions.size());
-        String operationTypeIndicator = null;
+            OperationType operationType = OperationType.UNKNOWN;
+            List<OperationType> expressionOperations = new ArrayList<OperationType>(expressions.size());
+            String operationTypeIndicator = null;
 
-        ScopeTracker scopeTracker = new ScopeTracker();
+            ScopeTracker scopeTracker = new ScopeTracker();
 
-        int primaryEndIndex = 0;
-        for (int i = 0; i < expressions.size(); i++) {
-            String subexpr = expressions.get(i);
-            for (int m = 0; m < subexpr.length(); m++) {
-                scopeTracker.interpretToken(subexpr.charAt(m));
-            }
-            OperationType subexprOperation = detectOperationType(subexpr);
+            int primaryEndIndex = 0;
+            for (int i = 0; i < expressions.size(); i++) {
+                String subexpr = expressions.get(i);
+                for (int m = 0; m < subexpr.length(); m++) {
+                    scopeTracker.interpretToken(subexpr.charAt(m));
+                }
+                OperationType subexprOperation = detectOperationType(subexpr);
 
-            if (subexprOperation != OperationType.INVALID && subexprOperation != OperationType.UNKNOWN &&
-                    !scopeTracker.isInString() && !scopeTracker.isInScopeOrString()) {
+                if (subexprOperation != OperationType.INVALID && subexprOperation != OperationType.UNKNOWN &&
+                        !scopeTracker.isInString() && !scopeTracker.isInScopeOrString()) {
 
-                if (i > 0) {
-                    OperationType lastType = expressionOperations.get(i - 1);
-                    if (subexprOperation == OperationType.TUPLE_REFERENCE && lastType == OperationType.UNKNOWN || lastType == OperationType.MEMBER_ACCESS) {
-                        // Any '(..)'-format expression is treated as a TUPLE_REFERENCE. A function call would
-                        // have a symbol name detected as an UNKNOWN or MEMBER_ACCESS operation followed by a TUPLE_REFERENCE.
-                        // ie 'someFunc(..)' -> 'someFunc', '(..)' -> 'UNKNOWN', 'TUPLE_REFERENCE'
-                        subexprOperation = OperationType.FUNCTION_CALL;
+                    if (i > 0) {
+                        OperationType lastType = expressionOperations.get(i - 1);
+                        if (subexprOperation == OperationType.TUPLE_REFERENCE && lastType == OperationType.UNKNOWN || lastType == OperationType.MEMBER_ACCESS) {
+                            // Any '(..)'-format expression is treated as a TUPLE_REFERENCE. A function call would
+                            // have a symbol name detected as an UNKNOWN or MEMBER_ACCESS operation followed by a TUPLE_REFERENCE.
+                            // ie 'someFunc(..)' -> 'someFunc', '(..)' -> 'UNKNOWN', 'TUPLE_REFERENCE'
+                            subexprOperation = OperationType.FUNCTION_CALL;
+                        }
+
+                        //  An indexer expression 'arr[0]' will have an UNKNOWN token 'arr' followed by the INDEXER token '[0]'
+                        if (subexprOperation == OperationType.INDEXER && lastType != OperationType.UNKNOWN) {
+                            subexprOperation = OperationType.UNKNOWN;
+                        }
                     }
 
-                    //  An indexer expression 'arr[0]' will have an UNKNOWN token 'arr' followed by the INDEXER token '[0]'
-                    if (subexprOperation == OperationType.INDEXER && lastType != OperationType.UNKNOWN) {
-                        subexprOperation = OperationType.UNKNOWN;
+                    if (operationType == OperationType.UNKNOWN && subexprOperation != OperationType.PARAMETER_ENTRY &&
+                            (subexprOperation != OperationType.INDEXER) &&
+                            (subexprOperation != OperationType.TUPLE_REFERENCE || i == 0)) {
+                        operationType = subexprOperation;
+                        operationTypeIndicator = subexpr;
+                        primaryEndIndex = i;
+                    }
+
+                    expressionOperations.add(subexprOperation);
+
+                } else {
+                    expressionOperations.add(subexprOperation);
+                }
+            }
+
+            //  If no high-level expressions have been detected it may be a partial expression, attempt to use that
+            //  as the primary operation.
+
+            if (operationType == OperationType.UNKNOWN) {
+                for (int i = 0; i < expressionOperations.size(); i++) {
+                    OperationType type = expressionOperations.get(i);
+                    if (type != OperationType.UNKNOWN && type != OperationType.INVALID) {
+                        operationType = type;
+                        primaryEndIndex = i;
+                        operationTypeIndicator = expressions.get(i);
+                        break;
                     }
                 }
-
-                if (operationType == OperationType.UNKNOWN && subexprOperation != OperationType.PARAMETER_ENTRY &&
-                        (subexprOperation != OperationType.INDEXER) &&
-                        (subexprOperation != OperationType.TUPLE_REFERENCE || i == 0)) {
-                    operationType = subexprOperation;
-                    operationTypeIndicator = subexpr;
-                    primaryEndIndex = i;
-                }
-
-                expressionOperations.add(subexprOperation);
-
-            } else {
-                expressionOperations.add(subexprOperation);
             }
-        }
 
-        //  If no high-level expressions have been detected it may be a partial expression, attempt to use that
-        //  as the primary operation.
+            //  Function parameters parsed as a partial expression will have a subject defined, and
+            //  have the parameters interpreted as a TUPLE reference. Correct this case to be
+            //  a function call.
+            if (operationType == OperationType.TUPLE_REFERENCE && subjects != null && subjects.size() > 0) {
+                operationType = OperationType.FUNCTION_CALL;
+            }
 
-        if (operationType == OperationType.UNKNOWN) {
-            for (int i = 0; i < expressionOperations.size(); i++) {
-                OperationType type = expressionOperations.get(i);
-                if (type != OperationType.UNKNOWN && type != OperationType.INVALID) {
-                    operationType = type;
-                    primaryEndIndex = i;
-                    operationTypeIndicator = expressions.get(i);
+            //  An indexer expression MUST be parsed along with a set of subjects that it is indexing.
+            if (operationType == OperationType.INDEXER && (subjects == null || subjects.size() == 0)) {
+                operationType = OperationType.UNKNOWN;
+            }
+
+            switch (operationType) {
+                case PRIMITIVE_OPERATION:
+                    result = parsePrimitiveOperation(
+                            expressions,
+                            subjects,
+                            expressionOperations,
+                            primaryEndIndex,
+                            operationType,
+                            operationTypeIndicator
+                    );
                     break;
+                case FUNCTION_CALL:
+                    result = parseFunctionCall(
+                            expressions,
+                            subjects,
+                            expressionOperations,
+                            primaryEndIndex
+                    );
+                    break;
+                case MEMBER_ACCESS:
+                    result = parseMemberAccess(
+                            expressions,
+                            subjects,
+                            expressionOperations,
+                            primaryEndIndex
+                    );
+                    break;
+                case INDEXER:
+                    result = parseIndexer(
+                            expressions,
+                            subjects,
+                            expressionOperations,
+                            primaryEndIndex
+                    );
+                    break;
+                case RETURN_STATEMENT:
+                    result = parseReturnStatement(
+                            expressions,
+                            subjects,
+                            expressionOperations,
+                            primaryEndIndex
+                    );
+                    break;
+                case TUPLE_REFERENCE:
+                    result = parseTupleReference(
+                            expressions,
+                            subjects,
+                            expressionOperations,
+                            primaryEndIndex
+                    );
+                    break;
+                default:
+                    result = null;
+            }
+
+            int scopingIndentation = InterpreterUtil.countSpacingLevel(stringValue);
+
+            if (result == null) {
+                LOG.debug("Parsing " + stringValue + " resulted in an IndeterminateExpression");
+                result = new IndeterminateExpression();
+                result.setScopingIndentation(scopingIndentation);
+                return result;
+            } else {
+                resolveSubValues(result);
+                if (this.codebase != null && scope != null) {
+                    resolveSourceLocations(result, scope, codebase);
                 }
+                LOG.debug("Finished parsing " + stringValue + " into its expression chain: " + result.toString());
+                result.setScopingIndentation(scopingIndentation);
+                return result;
             }
-        }
-
-        //  Function parameters parsed as a partial expression will have a subject defined, and
-        //  have the parameters interpreted as a TUPLE reference. Correct this case to be
-        //  a function call.
-        if (operationType == OperationType.TUPLE_REFERENCE && subjects != null && subjects.size() > 0) {
-            operationType = OperationType.FUNCTION_CALL;
-        }
-
-        //  An indexer expression MUST be parsed along with a set of subjects that it is indexing.
-        if (operationType == OperationType.INDEXER && (subjects == null || subjects.size() == 0)) {
-            operationType = OperationType.UNKNOWN;
-        }
-
-        switch (operationType) {
-            case PRIMITIVE_OPERATION:
-                result = parsePrimitiveOperation(
-                        expressions,
-                        subjects,
-                        expressionOperations,
-                        primaryEndIndex,
-                        operationType,
-                        operationTypeIndicator
-                );
-                break;
-            case FUNCTION_CALL:
-                result = parseFunctionCall(
-                        expressions,
-                        subjects,
-                        expressionOperations,
-                        primaryEndIndex
-                );
-                break;
-            case MEMBER_ACCESS:
-                result = parseMemberAccess(
-                        expressions,
-                        subjects,
-                        expressionOperations,
-                        primaryEndIndex
-                );
-                break;
-            case INDEXER:
-                result = parseIndexer(
-                        expressions,
-                        subjects,
-                        expressionOperations,
-                        primaryEndIndex
-                );
-                break;
-            case RETURN_STATEMENT:
-                result = parseReturnStatement(
-                        expressions,
-                        subjects,
-                        expressionOperations,
-                        primaryEndIndex
-                );
-                break;
-            case TUPLE_REFERENCE:
-                result = parseTupleReference(
-                        expressions,
-                        subjects,
-                        expressionOperations,
-                        primaryEndIndex
-                );
-                break;
-            default:
-                result = null;
-        }
-
-        int scopingIndentation = InterpreterUtil.countSpacingLevel(stringValue);
-
-        if (result == null) {
-            LOG.debug("Parsing " + stringValue + " resulted in an IndeterminateExpression");
-            result = new IndeterminateExpression();
-            result.setScopingIndentation(scopingIndentation);
-            return result;
-        } else {
-            resolveSubValues(result);
-            if (this.codebase != null && scope != null) {
-                resolveSourceLocations(result, scope, codebase);
-            }
-            LOG.debug("Finished parsing " + stringValue + " into its expression chain: " + result.toString());
-            result.setScopingIndentation(scopingIndentation);
-            return result;
+        } catch (StackOverflowError soe) {
+            LOG.warn("Stack overflow occurred while executing expression parser");
+            return new IndeterminateExpression();
         }
     }
 
@@ -292,7 +289,7 @@ public class PythonExpressionParser {
                 PythonValue operand;
                 if (nextOperation == OperationType.FUNCTION_CALL) {
                     String functionCall = reconstructExpression(expressions, nextOperationIdx - 1, nextOperationIdx + 1);
-                    operand = processString(functionCall);
+                    operand = processString(functionCall, null, null);
                 } else if (nextOperationIdx != primaryEndIndex) {
                     operand = tryMakeValue(expressions.get(nextOperationIdx), null);
                 } else {
@@ -360,7 +357,7 @@ public class PythonExpressionParser {
             if (primaryEndIndex != expressions.size() - 1) {
                 //  There are trailing expressions, generate it with this as the subject
                 String remainingExpressions = reconstructExpression(expressions, primaryEndIndex + 1);
-                PythonExpression trailingExpression = processString(remainingExpressions, list((PythonValue)callExpression));
+                PythonExpression trailingExpression = processString(remainingExpressions, list((PythonValue)callExpression), null);
                 return trailingExpression;
             }
 
@@ -404,7 +401,7 @@ public class PythonExpressionParser {
 
         if (lastMemberAccessExpression != expressionTypes.size() - 1) {
             String remainingExpression = reconstructExpression(expressions, lastMemberAccessExpression + 1);
-            PythonExpression trailingExpression = processString(remainingExpression, list((PythonValue)memberExpression));
+            PythonExpression trailingExpression = processString(remainingExpression, list((PythonValue)memberExpression), null);
             return trailingExpression;
         }
 
@@ -426,7 +423,7 @@ public class PythonExpressionParser {
             PythonValue indexerValue = tryMakeValue(indexerText, null);
             indexerExpression.setIndexerValue(indexerValue);
         } else {
-            PythonValue indexerValue = processString(indexerText);
+            PythonValue indexerValue = processString(indexerText, null, null);
             indexerExpression.setIndexerValue(indexerValue);
         }
 
@@ -445,7 +442,7 @@ public class PythonExpressionParser {
 
         if (primaryEndIndex != expressions.size() - 1) {
             String remainingExpressionText = reconstructExpression(expressions, primaryEndIndex + 1);
-            PythonExpression remainingExpression = processString(remainingExpressionText, list((PythonValue)indexerExpression));
+            PythonExpression remainingExpression = processString(remainingExpressionText, list((PythonValue)indexerExpression), null);
             return remainingExpression;
         }
 
@@ -580,7 +577,7 @@ public class PythonExpressionParser {
                 if (isValidValue(asValue)) {
                     subjects = list(asValue);
                 } else {
-                    PythonExpression asExpression = processString(subjectExpression, expressionSubject);
+                    PythonExpression asExpression = processString(subjectExpression, expressionSubject, null);
                     subjects = list((PythonValue)asExpression);
                 }
                 break;

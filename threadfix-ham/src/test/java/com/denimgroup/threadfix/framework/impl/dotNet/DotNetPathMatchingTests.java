@@ -46,7 +46,7 @@ public class DotNetPathMatchingTests {
                 DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile("InstructorController.cs"));
 
         DotNetEndpointGenerator generator =
-                new DotNetEndpointGenerator(routeMappings, null, mappings);
+                new DotNetEndpointGenerator(null, routeMappings, null, mappings);
 
         EndpointDatabase database = EndpointDatabaseFactory.getDatabase(
                 generator, FrameworkType.DOT_NET_MVC, new DotNetPathCleaner());

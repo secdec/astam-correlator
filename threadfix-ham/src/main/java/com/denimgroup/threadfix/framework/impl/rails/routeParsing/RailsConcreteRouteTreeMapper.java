@@ -55,7 +55,7 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
         this.applyShorthands();
 
         this.routeTree.walkTree(this);
-        mappedRoutes = mergeDuplicates(mappedRoutes);
+        //mappedRoutes = mergeDuplicates(mappedRoutes);
     }
 
     public List<RailsRoute> getMappings() {

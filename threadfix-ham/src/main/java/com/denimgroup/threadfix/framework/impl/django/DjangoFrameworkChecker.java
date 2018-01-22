@@ -18,6 +18,7 @@
 //
 //     Contributor(s):
 //              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
 //
 ////////////////////////////////////////////////////////////////////////
 
