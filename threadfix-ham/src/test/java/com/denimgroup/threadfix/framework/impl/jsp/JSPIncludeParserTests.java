@@ -72,7 +72,7 @@ public class JSPIncludeParserTests {
     // Since header.jsp is in every page, the debug parameter should also be in every page.
     @Test
     public void testParameters() {
-        EndpointGenerator generator = new JSPMappings(new File(TestConstants.BODGEIT_SOURCE_LOCATION));
+        EndpointGenerator generator = new JSPEndpointGenerator(new File(TestConstants.BODGEIT_SOURCE_LOCATION));
 
         for (Endpoint endpoint : generator) {
 

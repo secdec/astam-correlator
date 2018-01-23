@@ -49,9 +49,9 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.CollectionUtils.set;
 
 // TODO figure out HTTP methods perhaps from form analysis
-public class JSPMappings implements EndpointGenerator {
+public class JSPEndpointGenerator implements EndpointGenerator {
 	
-	private static final SanitizedLogger LOG = new SanitizedLogger("JSPMappings");
+	private static final SanitizedLogger LOG = new SanitizedLogger(JSPEndpointGenerator.class);
 
 	private JSPWebXmlConfiguration xmlConfiguration;
 
@@ -63,7 +63,7 @@ public class JSPMappings implements EndpointGenerator {
     private final File projectRoot, jspRoot;
 	
 	@SuppressWarnings("unchecked")
-	public JSPMappings(@Nonnull File rootFile) {
+	public JSPEndpointGenerator(@Nonnull File rootFile) {
 		if (rootFile.exists()) {
 
 			this.projectRoot = rootFile;

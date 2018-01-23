@@ -33,7 +33,7 @@ import org.junit.Test;
 import com.denimgroup.threadfix.framework.TestConstants;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 
-public class JSPMappingsTests {
+public class JSPEndpointGeneratorTests {
 	@Nonnull
     String[] pages = { "/root/about.jsp",
 			"/root/admin.jsp",
@@ -54,7 +54,7 @@ public class JSPMappingsTests {
 
 	@Test
 	public void testSize() {
-		JSPMappings mappings = new JSPMappings(new File(
+		JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
 				TestConstants.BODGEIT_SOURCE_LOCATION));
 		assertTrue("Size was " + mappings.generateEndpoints().size()
 				+ " but should have been " + 13, mappings.generateEndpoints()
@@ -63,7 +63,7 @@ public class JSPMappingsTests {
 
 	@Test
 	public void testKeys() {
-		JSPMappings mappings = new JSPMappings(new File(
+		JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
 				TestConstants.BODGEIT_SOURCE_LOCATION));
 		for (String page : pages) {
 			assertTrue("Endpoint for " + page
@@ -82,7 +82,7 @@ public class JSPMappingsTests {
 
 	@Test
 	public void testParameters() {
-		JSPMappings mappings = new JSPMappings(new File(
+		JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
 				TestConstants.BODGEIT_SOURCE_LOCATION));
 		for (String[] test : tests) {
 			JSPEndpoint endpoint = mappings.getEndpoint(test[0]);
@@ -95,7 +95,7 @@ public class JSPMappingsTests {
 	
 	@Test
 	public void testEndpointCSVCommas() {
-		JSPMappings mappings = new JSPMappings(new File(
+		JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
 				TestConstants.BODGEIT_SOURCE_LOCATION));
 		
 		for (Endpoint endpoint : mappings.generateEndpoints()) {

@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 public class JSPDataFlowParser implements ParameterParser {
 	
 	@Nullable
-    private final JSPMappings jspMappings;
+    private final JSPEndpointGenerator jspMappings;
 
     @Nonnull
 	private final SourceCodeAccessLevel sourceCodeAccessLevel;
@@ -52,7 +52,7 @@ public class JSPDataFlowParser implements ParameterParser {
 
         File rootFile = projectConfig.getRootFile();
 		if (rootFile != null) {
-			jspMappings = new JSPMappings(rootFile);
+			jspMappings = new JSPEndpointGenerator(rootFile);
 		} else {
 			jspMappings = null;
 		}
