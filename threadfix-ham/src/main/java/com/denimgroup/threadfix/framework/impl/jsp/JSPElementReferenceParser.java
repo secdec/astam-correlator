@@ -2,13 +2,23 @@ package com.denimgroup.threadfix.framework.impl.jsp;
 
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
+import org.apache.commons.io.FileUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Attribute;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Node;
 
+import javax.annotation.Nonnull;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Stack;
+import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-public class JSPElementReferenceParser implements EventBasedTokenizer {
+public class JSPElementReferenceParser {
 
     public JSPElementReferenceParser() {
 
@@ -18,122 +28,87 @@ public class JSPElementReferenceParser implements EventBasedTokenizer {
         watchedElements = new ArrayList<String>(watchedElementTypes);
     }
 
-    @Override
-    public boolean shouldContinue() {
-        return false;
+    private List<String> watchedElements = list("a", "input", "form", "textarea", "select");
+
+    public List<JSPElementReference> parse(@Nonnull File file) {
+        String fileContents = null;
+
+        Stack<JSPElementReference> elementStack = new Stack<JSPElementReference>();
+        List<JSPElementReference> rootElements = list();
+
+        try {
+            fileContents = FileUtils.readFileToString(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        fileContents = stripJspElements(fileContents);
+        Document doc;
+
+        try {
+            doc = Jsoup.parse(fileContents);
+        } catch (Exception anyException) {
+            anyException.printStackTrace();
+            return null;
+        }
+
+        if (doc == null) {
+            return null;
+        }
+
+        for (Node child : doc.childNodes()) {
+            processNode(child, elementStack, rootElements);
+        }
+
+        assignSourceFileToElements(rootElements, file.getAbsolutePath());
+        return rootElements;
     }
 
-    private enum ParserPhase { PHASE_CAPTURE_ELEMENT, PHASE_CAPTURE_ATTRIBUTES }
-    private ParserPhase parserPhase = ParserPhase.PHASE_CAPTURE_ELEMENT;
+    private void processNode(Node htmlNode, Stack<JSPElementReference> elementStack, List<JSPElementReference> rootElements) {
+        boolean pushedStack = false;
+        if (watchedElements.contains(htmlNode.nodeName())) {
 
-    private boolean isInString = false;
-    private boolean nextIsEscaped = false;
-    private int stringStartType = -1;
-    List<String> watchedElements = list("a", "input", "form");
+            JSPElementReference newElement = new JSPElementReference();
+            newElement.setElementType(htmlNode.nodeName());
 
-    private List<JSPElementReference> elementStack = list();
-    JSPElementReference currentElement = null;
-
-    @Override
-    public void processToken(int type, int lineNumber, String stringValue) {
-        if (type == '\'' || type == '"' && !nextIsEscaped) {
-            if (stringStartType < 0) {
-                stringStartType = type;
-                isInString = true;
-            } else if (type == stringStartType) {
-                stringStartType = -1;
-                isInString = false;
+            for (Attribute attr : htmlNode.attributes()) {
+                newElement.addAttribute(attr.getKey(), attr.getValue());
             }
+
+            if (elementStack.isEmpty()) {
+                rootElements.add(newElement);
+            } else {
+                elementStack.peek().addChild(newElement);
+            }
+
+            elementStack.push(newElement);
+
+            pushedStack = true;
         }
-        nextIsEscaped = !nextIsEscaped && type == '\\';
 
-        switch (parserPhase) {
-            case PHASE_CAPTURE_ELEMENT:
-                processCaptureElement(type, lineNumber, stringValue);
-                break;
-
-            case PHASE_CAPTURE_ATTRIBUTES:
-                processCaptureAttributes(type, lineNumber, stringValue);
-                break;
+        for (Node childNode : htmlNode.childNodes()) {
+            processNode(childNode, elementStack, rootElements);
         }
-    }
 
-    private enum CaptureElementPhase { START, NAME, CLOSE }
-    private CaptureElementPhase captureElementPhase = CaptureElementPhase.START;
-
-    private void processCaptureElement(int type, int lineNumber, String stringValue) {
-        switch (captureElementPhase) {
-            case START:
-                if (type == '<') {
-                    captureElementPhase = CaptureElementPhase.NAME;
-                }
-                break;
-            case NAME:
-                if (type != '%' && stringValue != null && watchedElements.contains(stringValue)) {
-                    currentElement = new JSPElementReference();
-                    currentElement.setElementType(stringValue);
-                    parserPhase = ParserPhase.PHASE_CAPTURE_ATTRIBUTES;
-                } else if (type == '/') {
-
-                } else {
-                    currentElement = null;
-                }
-                captureElementPhase = CaptureElementPhase.START;
-                break;
+        if (pushedStack) {
+            elementStack.pop();
         }
     }
 
-    private enum CaptureAttributesPhase {START, ATTR_VAL_START, ATTR_VAL, ATTR_VAL_END }
-    private CaptureAttributesPhase captureAttributesPhase = CaptureAttributesPhase.START;
+    private void assignSourceFileToElements(List<JSPElementReference> elements, String sourceFilePath) {
+        Stack<JSPElementReference> pendingElements = new Stack<JSPElementReference>();
+        pendingElements.addAll(elements);
 
-    String currentAttrName = null;
-    String currentAttrVal = null;
-    private void processCaptureAttributes(int type, int lineNumber, String stringValue) {
-        switch (captureAttributesPhase) {
-            case START:
-                if (currentAttrName != null && currentAttrVal != null) {
-                    currentElement.addAttribute(currentAttrName, currentAttrVal);
-                }
+        while (!pendingElements.isEmpty()) {
+            JSPElementReference current = pendingElements.pop();
+            current.setSourceFile(sourceFilePath);
 
-                if (currentAttrName == null) {
-                    if (stringValue != null) {
-                        currentAttrName = CodeParseUtil.buildTokenString(type, stringValue);
-                    } else if (!isValidInnerHtmlChar(type)) {
-                        //  Must not be in an element, possibly CSS
-                        parserPhase = ParserPhase.PHASE_CAPTURE_ELEMENT;
-                        captureAttributesPhase = CaptureAttributesPhase.START;
-                    }
-                } else {
-                    if (type == '=') {
-                        captureAttributesPhase = CaptureAttributesPhase.ATTR_VAL_START;
-                    } else {
-                        currentAttrName += CodeParseUtil.buildTokenString(type, stringValue);
-                    }
-                }
-                break;
-            case ATTR_VAL_START:
-                captureAttributesPhase = CaptureAttributesPhase.ATTR_VAL;
-                break;
-            case ATTR_VAL:
-                if (!isInString) {
-                    captureAttributesPhase = CaptureAttributesPhase.ATTR_VAL_END;
-                } else {
-                    currentAttrVal += CodeParseUtil.buildTokenString(type, stringValue);
-                }
-                break;
-            case ATTR_VAL_END:
-                currentElement.addAttribute(currentAttrName, currentAttrVal);
-                currentAttrName = null;
-                currentAttrVal = null;
-                if (type == '>') {
-                    parserPhase = ParserPhase.PHASE_CAPTURE_ELEMENT;
-                }
-                captureAttributesPhase = CaptureAttributesPhase.START;
-                break;
+            pendingElements.addAll(current.getChildren());
         }
     }
 
-    private boolean isValidInnerHtmlChar(int type) {
-        return type == '=' || type == '\"' || type == '\'' || type == '-';
+    private String stripJspElements(String jspFileContents) {
+        return Pattern.compile("<%[^%>]*%>", Pattern.DOTALL).matcher(jspFileContents).replaceAll("");
     }
 }

@@ -97,6 +97,12 @@ public class JSPMappings implements EndpointGenerator {
 				parseFile(file);
 			}
 
+            Collection<File> jspAndHtmlFiles = FileUtils.listFiles(rootFile, new String[] { "jsp", "html" }, true);
+			for (File file : jspAndHtmlFiles) {
+			    JSPElementReferenceParser referenceParser = new JSPElementReferenceParser();
+			    referenceParser.parse(file);
+            }
+
             addParametersFromIncludedFiles();
 
 			if (xmlConfiguration != null) {
@@ -300,6 +306,22 @@ public class JSPMappings implements EndpointGenerator {
         }
 
         return params;
+    }
+
+    private void parseElementReferences(List<JSPElementReference> references) {
+	    for (JSPElementReference reference : references) {
+	        if (reference.getElementType().equals("input")) {
+
+            } else if (reference.getElementType().equals("form")) {
+
+            } else if (reference.getElementType().equals("a")) {
+
+            } else if (reference.getElementType().equals("textarea")) {
+
+            } else {
+	            LOG.warn("Got unexpected reference element '<" + reference.getElementType() + ">'");
+            }
+        }
     }
 
     @Nonnull
