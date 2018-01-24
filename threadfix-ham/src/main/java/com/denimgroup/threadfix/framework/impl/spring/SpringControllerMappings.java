@@ -74,11 +74,15 @@ public class SpringControllerMappings implements EndpointGenerator {
         urlToControllerMethodsMap = map();
         controllerToUrlsMap = map();
 
+        LOG.info("Gathering files...");
+
 		if (rootDirectory.exists()) {
+		    LOG.info("Confirmed that directory exists: " + rootDirectory.getAbsolutePath());
 			javaFiles = getFiles(rootDirectory, "java");
             xmlFiles  = getFiles(rootDirectory, "xml");
 		    generateMaps();
 		} else {
+		    LOG.warn("Requested directory does not exist: " + rootDirectory.getAbsolutePath());
 			javaFiles = Collections.emptyList();
             xmlFiles  = Collections.emptyList();
 		}
@@ -108,6 +112,9 @@ public class SpringControllerMappings implements EndpointGenerator {
 	}
 	
 	private void generateMaps() {
+
+	    LOG.info("Generating Spring MVC controller mappings...");
+	    
         List<EntityParser> entityParsers = list();
 
         SpringDataBinderParser globalDataBinderParser = null;

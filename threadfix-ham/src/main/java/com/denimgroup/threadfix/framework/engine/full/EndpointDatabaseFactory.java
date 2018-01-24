@@ -132,7 +132,7 @@ public class EndpointDatabaseFactory {
                 assert false : logError;
 		}
 		
-		log.info("Returning database with generator: " + generator);
+		log.info("Returning database with generator (" + (generator == null ? "null" : generator.getClass().getName()) +"): " + generator);
 
         if (cleaner != null) {
             cleaner.setEndpointGenerator(generator);
