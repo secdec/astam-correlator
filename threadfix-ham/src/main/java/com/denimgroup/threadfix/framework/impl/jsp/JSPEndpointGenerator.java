@@ -26,14 +26,13 @@
 package com.denimgroup.threadfix.framework.impl.jsp;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.NoDotDirectoryFileFilter;
-import com.denimgroup.threadfix.framework.util.CommonPathFinder;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
-import com.denimgroup.threadfix.framework.util.FilePathUtils;
+import com.denimgroup.threadfix.framework.util.*;
+import com.denimgroup.threadfix.framework.util.htmlParsing.ElementReference;
+import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetector;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
@@ -42,7 +41,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
@@ -98,18 +99,33 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 			}
 
             Collection<File> jspAndHtmlFiles = FileUtils.listFiles(rootFile, new String[] { "jsp", "html" }, true);
+			List<ElementReference> elementReferences = list();
 			for (File file : jspAndHtmlFiles) {
-			    JSPElementReferenceParser referenceParser = new JSPElementReferenceParser();
-			    referenceParser.parse(file);
+			    HyperlinkParameterDetector parameterDetector = new HyperlinkParameterDetector();
+			    String fileContents;
+                try {
+                    fileContents = FileUtils.readFileToString(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
+                }
+                fileContents = stripJspElements(fileContents);
+                List<ElementReference> parsedReferences = parameterDetector.parse(fileContents, file);
+			    if (parsedReferences != null) {
+			        elementReferences.addAll(parsedReferences);
+                }
             }
 
-            addParametersFromIncludedFiles();
+
 
 			if (xmlConfiguration != null) {
                 loadWebXmlWelcomeFiles();
                 loadAnnotatedServlets(servletParser);
                 loadWebXmlServletMappings(servletParser);
             }
+
+            //detectOptionalParameters(inferredEndpointParameters);
+			//mergeParsedImplicitParameters(endpoints, inferredEndpointParameters);
 
 		} else {
             LOG.error("Root file didn't exist. Exiting.");
@@ -308,20 +324,8 @@ public class JSPEndpointGenerator implements EndpointGenerator {
         return params;
     }
 
-    private void parseElementReferences(List<JSPElementReference> references) {
-	    for (JSPElementReference reference : references) {
-	        if (reference.getElementType().equals("input")) {
-
-            } else if (reference.getElementType().equals("form")) {
-
-            } else if (reference.getElementType().equals("a")) {
-
-            } else if (reference.getElementType().equals("textarea")) {
-
-            } else {
-	            LOG.warn("Got unexpected reference element '<" + reference.getElementType() + ">'");
-            }
-        }
+    private String stripJspElements(String jspFileContents) {
+        return Pattern.compile("<%((?!%>).)*%>", Pattern.DOTALL).matcher(jspFileContents).replaceAll("");
     }
 
     @Nonnull

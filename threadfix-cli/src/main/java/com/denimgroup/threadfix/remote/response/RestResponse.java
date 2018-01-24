@@ -24,6 +24,7 @@
 
 package com.denimgroup.threadfix.remote.response;
 
+import com.denimgroup.threadfix.logging.SanitizedLogger;
 import com.denimgroup.threadfix.util.Result;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonView;
@@ -32,6 +33,8 @@ import com.fasterxml.jackson.annotation.JsonView;
  * This is the basic RestResponse which is returned by all the methods on the ThreadFix server side.
  */
 public class RestResponse<T> {
+
+    private static final SanitizedLogger LOG = new SanitizedLogger(RestResponse.class);
 
     @JsonView(Object.class)
     public String message = "";
@@ -45,6 +48,7 @@ public class RestResponse<T> {
     String jsonString = null;
 
     public static <T> RestResponse<T> failure(String response) {
+        LOG.warn("Emitting failure message to client: " + response);
         RestResponse<T> restResponse = new RestResponse<T>();
         restResponse.message = response;
         return restResponse;
@@ -58,7 +62,9 @@ public class RestResponse<T> {
     }
 
     public static <T> RestResponse<T> resultError(Result result) {
-        return failure(result.getErrorMessage());
+        String errorMessage = result.getErrorMessage();
+        LOG.warn("Emitting error message to client: " + errorMessage);
+        return failure(errorMessage);
     }
 
     @JsonIgnore

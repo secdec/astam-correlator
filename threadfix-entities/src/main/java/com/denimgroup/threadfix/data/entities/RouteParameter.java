@@ -6,6 +6,7 @@ public class RouteParameter {
     ParameterDataType dataType;
     boolean isOptional = false;
     RouteParameterType paramType = RouteParameterType.UNKNOWN;
+    String name;
 
 
     public static RouteParameter fromDataType(ParameterDataType dataType) {
@@ -28,6 +29,10 @@ public class RouteParameter {
         return isOptional;
     }
 
+    public String getName() {
+        return name;
+    }
+
     public void setOptional(boolean optional) {
         isOptional = optional;
     }
@@ -38,5 +43,25 @@ public class RouteParameter {
 
     public void setParamType(RouteParameterType paramType) {
         this.paramType = paramType;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder result = new StringBuilder();
+
+        result.append("name=");
+        result.append(name);
+        result.append(", paramType=");
+        result.append(paramType);
+        result.append(", dataType=");
+        result.append(dataType);
+        result.append(", isOptional=");
+        result.append(isOptional);
+
+        return result.toString();
     }
 }
