@@ -113,7 +113,6 @@ public abstract class EndpointsButton extends JButton {
                                     if(BurpPropertiesManager.getBurpPropertiesManager().getAutoSpider())
                                         callbacks.sendToSpider(nodeUrl);
                                 }
-                                //can call the request method right here
                                 buildRequests(view, callbacks, endpoints, url);
                                 completed = true;
                             }
@@ -218,7 +217,6 @@ public abstract class EndpointsButton extends JButton {
                        byte[] req = callbacks.getHelpers().buildHttpRequest(reqUrl);
                        for (Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())
                        {
-                           //JOptionPane.showMessageDialog(view, "Parameter key : " + parameter.getKey() + "Parameter Value " + parameter.getValue());
                            if (first)
                            {
                                first = false;
@@ -229,18 +227,17 @@ public abstract class EndpointsButton extends JButton {
                                reqString = reqString + "&";
                            }
                            IParameter param = null;
-                           //JOptionPane.showMessageDialog(view, "key = " + parameter.getKey() + " value: " + parameter.getValue());
 
                            if (parameter.getValue().getDataType() == ParameterDataType.STRING)
                            {
                                reqString = reqString + parameter.getKey() + "="+"debug";
                            }
-                           //case int
+
                            else if (parameter.getValue().getDataType() == ParameterDataType.INTEGER)
                            {
                                reqString = reqString + parameter.getKey() + "="+"-1";
                            }
-                           //case boolean
+
                            else if (parameter.getValue().getDataType() == ParameterDataType.BOOLEAN)
                            {
                                reqString = reqString + parameter.getKey() + "="+"true";
@@ -270,8 +267,6 @@ public abstract class EndpointsButton extends JButton {
 
                             requests.put(manReq, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
 
-
-                        //requests.put(req, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
                      }
                      catch (MalformedURLException e1)
                      {
