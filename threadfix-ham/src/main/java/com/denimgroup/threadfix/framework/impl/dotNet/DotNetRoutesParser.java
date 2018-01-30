@@ -82,10 +82,10 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
     {
         return keyword != null &&
                 (keyword.equals(PARTIAL) ||
-                 keyword.equals(PUBLIC) ||
-                 keyword.equals(PRIVATE) ||
-                 keyword.equals(INTERNAL) ||
-                 keyword.equals(PROTECTED));
+                        keyword.equals(PUBLIC) ||
+                        keyword.equals(PRIVATE) ||
+                        keyword.equals(INTERNAL) ||
+                        keyword.equals(PROTECTED));
     }
 
     @Override
@@ -130,6 +130,8 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                     currentIdentificationState = IdentificationState.CLASS_DECORATOR;
                 } else if (":".equals(stringValue)) {
                     currentIdentificationState = IdentificationState.COLON;
+                } else if ("class".equals(stringValue)) {
+                    currentIdentificationState = IdentificationState.CLASS;
                 }
                 break;
             default:
@@ -137,14 +139,21 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                     currentIdentificationState = IdentificationState.CLASS_DECORATOR;
                 } else if (CLASS.equals(stringValue)) {
                     currentIdentificationState = IdentificationState.CLASS;
-                } else {
+                } else if (currentIdentificationState != IdentificationState.CLASS) {
                     currentIdentificationState = IdentificationState.START;
+                }
+                break;
+
+            case CLASS_DECORATOR:
+                if (!isClassDecoratorKeyword(stringValue)) {
+                    currentIdentificationState = IdentificationState.CLASS;
                 }
                 break;
 
             case CLASS:
                 currentPhase = Phase.IN_CLASS;
                 break;
+
             case COLON:
                 if (SYSTEM_HTTP_APPLICATION.equals(stringValue)) {
                     currentPhase = Phase.IN_CLASS;
@@ -447,6 +456,6 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
     }
 
 
-    }
+}
 
 

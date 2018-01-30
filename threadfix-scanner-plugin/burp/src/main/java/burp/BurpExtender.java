@@ -569,7 +569,7 @@ public class BurpExtender implements IBurpExtender, ITab
             @Override
             public void actionPerformed(ActionEvent e) {
                 BurpPropertiesManager.getBurpPropertiesManager().setAutoSpider(autoSpiderField.isSelected());
-                if(BurpPropertiesManager.getBurpPropertiesManager().getAutoSpider() && callbacks.getBurpVersion()[0].toLowerCase().contains("professional"))
+                if(BurpPropertiesManager.getBurpPropertiesManager().getAutoSpider() && BurpPropertiesManager.getBurpPropertiesManager().isProVersion())
                 {
                     autoScanField.setEnabled(true);
                     autoScanText.setForeground(Color.BLACK);
@@ -592,8 +592,9 @@ public class BurpExtender implements IBurpExtender, ITab
         };
         autoScanText = new JLabel("Automatically start active scanner after automatic spider: ");
         autoSpiderField = addCheckBoxToGridBagLayout("Automatically start spider after importing endpoints: ", autoOptionsPanel, yPosition++, applicationCheckBoxSpiderActionListener);
-        if(callbacks.getBurpVersion()[0].toLowerCase().contains("professional"))
-        {autoScanField = addCheckBoxToGridBagLayout(autoScanText, autoOptionsPanel, yPosition++, applicationCheckBoxScanActionListener);
+        if(BurpPropertiesManager.getBurpPropertiesManager().isProVersion())
+        {
+            autoScanField = addCheckBoxToGridBagLayout(autoScanText, autoOptionsPanel, yPosition++, applicationCheckBoxScanActionListener);
             if (BurpPropertiesManager.getBurpPropertiesManager().getAutoSpider())
             {
                 autoScanField.setEnabled(true);

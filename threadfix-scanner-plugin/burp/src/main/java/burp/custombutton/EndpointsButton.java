@@ -48,6 +48,7 @@ import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.List;
 
 /**
  * Created with IntelliJ IDEA.
@@ -112,7 +113,6 @@ public abstract class EndpointsButton extends JButton {
                                     if(BurpPropertiesManager.getBurpPropertiesManager().getAutoSpider())
                                         callbacks.sendToSpider(nodeUrl);
                                 }
-                                //can call the request method right here
                                 buildRequests(view, callbacks, endpoints, url);
                                 completed = true;
                             }
@@ -171,13 +171,10 @@ public abstract class EndpointsButton extends JButton {
             boolean hasGet = false;
             boolean hasPost = false;
             String method = endpoint.getHttpMethod();
-            if (method.equalsIgnoreCase("post")) {
+            if(method.toString().equalsIgnoreCase("post"))
                 hasPost = true;
-            }
-            if (method.equalsIgnoreCase("get")) {
+            else if (method.toString().equalsIgnoreCase("get"))
                 hasGet = true;
-            }
-
             dtm.addRow(new Object[]
             {
                 endpoint.getUrlPath(),
@@ -203,17 +200,17 @@ public abstract class EndpointsButton extends JButton {
                     endpointPath = endpointPath.substring(1);
                 }
                 endpointPath = endpointPath.replaceAll(GENERIC_INT_SEGMENT, "1");
-                String method = endpoint.getHttpMethod();
 
                 boolean first = true;
                 String reqString = endpointPath;
+                String method = endpoint.getHttpMethod();
                 try
                 {
+
                    URL reqUrl = new URL(url + endpointPath);
                    byte[] req = callbacks.getHelpers().buildHttpRequest(reqUrl);
                    for (Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())
                    {
-                       //JOptionPane.showMessageDialog(view, "Parameter key : " + parameter.getKey() + "Parameter Value " + parameter.getValue());
                        if (first)
                        {
                            first = false;
@@ -224,18 +221,17 @@ public abstract class EndpointsButton extends JButton {
                            reqString = reqString + "&";
                        }
                        IParameter param = null;
-                       //JOptionPane.showMessageDialog(view, "key = " + parameter.getKey() + " value: " + parameter.getValue());
 
                        if (parameter.getValue().getDataType() == ParameterDataType.STRING)
                        {
                            reqString = reqString + parameter.getKey() + "="+"debug";
                        }
-                       //case int
+
                        else if (parameter.getValue().getDataType() == ParameterDataType.INTEGER)
                        {
                            reqString = reqString + parameter.getKey() + "="+"-1";
                        }
-                       //case boolean
+
                        else if (parameter.getValue().getDataType() == ParameterDataType.BOOLEAN)
                        {
                            reqString = reqString + parameter.getKey() + "="+"true";
@@ -256,7 +252,7 @@ public abstract class EndpointsButton extends JButton {
                           callbacks.getHelpers().addParameter(req, param);
                     }
                     byte[] manReq = callbacks.getHelpers().buildHttpRequest(new URL(url + reqString));
-                    if(method.equalsIgnoreCase("post"))
+                    if(method.toString().equalsIgnoreCase("post"))
                     {
 
                         manReq = callbacks.getHelpers().toggleRequestMethod(manReq);
@@ -265,8 +261,6 @@ public abstract class EndpointsButton extends JButton {
 
                         requests.put(manReq, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
 
-
-                    //requests.put(req, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
                  }
                  catch (MalformedURLException e1)
                  {
