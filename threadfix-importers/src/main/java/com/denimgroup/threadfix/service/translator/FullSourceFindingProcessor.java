@@ -25,6 +25,7 @@ package com.denimgroup.threadfix.service.translator;
 
 import com.denimgroup.threadfix.data.entities.*;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import com.denimgroup.threadfix.framework.engine.BaseEndpointDetector;
 import com.denimgroup.threadfix.framework.engine.ProjectConfig;
 import com.denimgroup.threadfix.framework.engine.ThreadFixInterface;
 import com.denimgroup.threadfix.framework.engine.cleaner.PathCleaner;
@@ -56,6 +57,9 @@ class FullSourceFindingProcessor implements FindingProcessor {
     private int numberMissed = 0, total = 0, foundParameter;
     private long startTime = 0L;
 
+    BaseEndpointDetector baseEndpointDetector = null;
+    String detectedBaseEndpoint = null;
+
     public FullSourceFindingProcessor(ProjectConfig config, Scan scan) {
         PathCleaner cleaner = PathCleanerFactory.getPathCleaner(
                 config.getFrameworkType(), ThreadFixInterface.toPartialMappingList(scan));
@@ -75,10 +79,39 @@ class FullSourceFindingProcessor implements FindingProcessor {
     }
 
     @Override
+    public void prepare(@Nonnull Finding finding) {
+        if (baseEndpointDetector == null) {
+            baseEndpointDetector = new BaseEndpointDetector();
+            detectedBaseEndpoint = null;
+        }
+
+        String dynamicPath = finding.getSurfaceLocation().getPath();
+        baseEndpointDetector.addSample(dynamicPath);
+    }
+
+    @Override
     public void process(@Nonnull Finding finding) {
+        if (baseEndpointDetector != null && detectedBaseEndpoint == null) {
+            detectedBaseEndpoint = baseEndpointDetector.detectBaseEndpoint();
+            baseEndpointDetector = null;
+        }
+
         String parameter = null;
         Endpoint endpoint = null;
         total++;
+
+        // START TEMPORARY ENDPOINT PATH OVERWRITE
+        // Temporarily overwrite the endpoint path of the finding so that endpoint queries resolve correctly
+        //  when finding endpoints are relative to some root endpoint
+        String originalPath = null;
+        if (finding.getSurfaceLocation() != null) {
+            originalPath = finding.getSurfaceLocation().getPath();
+        }
+
+        if (originalPath != null) {
+            String newPath = originalPath.replace(detectedBaseEndpoint, "");
+            finding.getSurfaceLocation().setPath(newPath);
+        }
 
         if (parameterParser != null) {
             if (finding.getSurfaceLocation() != null) {
@@ -94,9 +127,19 @@ class FullSourceFindingProcessor implements FindingProcessor {
             endpoint = database.findBestMatch(ThreadFixInterface.toEndpointQuery(finding));
         }
 
+        if (originalPath != null) {
+            finding.getSurfaceLocation().setPath(originalPath);
+        }
+        // END TEMPORARY ENDPOINT PATH OVERWRITE
+
         if (endpoint != null) {
             finding.setCalculatedFilePath(endpoint.getFilePath());
-            finding.setCalculatedUrlPath(endpoint.getUrlPath());
+
+            if (detectedBaseEndpoint != null) {
+                finding.setCalculatedUrlPath(detectedBaseEndpoint + endpoint.getUrlPath());
+            } else {
+                finding.setCalculatedUrlPath(endpoint.getUrlPath());
+            }
 
             finding.setFoundHAMEndpoint(true);
 

@@ -31,8 +31,7 @@ import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.NoDotDirectoryFileFilter;
 import com.denimgroup.threadfix.framework.util.*;
-import com.denimgroup.threadfix.framework.util.htmlParsing.ElementReference;
-import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetector;
+import com.denimgroup.threadfix.framework.util.htmlParsing.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
@@ -57,7 +56,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 	private JSPWebXmlConfiguration xmlConfiguration;
 
 	private final Map<String, Set<String>> includeMap = map();
-	private final Map<String, JSPEndpoint> jspEndpointMap = map();
+	private final Map<String, List<JSPEndpoint>> jspEndpointMap = map();
 	private final List<Endpoint> endpoints = list();
     private final ProjectDirectory projectDirectory;
 	@Nullable
@@ -99,7 +98,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 			}
 
             Collection<File> jspAndHtmlFiles = FileUtils.listFiles(rootFile, new String[] { "jsp", "html" }, true);
-			List<ElementReference> elementReferences = list();
+			List<HyperlinkParameterDetectionResult> implicitParams = list();
 			for (File file : jspAndHtmlFiles) {
 			    HyperlinkParameterDetector parameterDetector = new HyperlinkParameterDetector();
 			    String fileContents;
@@ -110,13 +109,11 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                     continue;
                 }
                 fileContents = stripJspElements(fileContents);
-                List<ElementReference> parsedReferences = parameterDetector.parse(fileContents, file);
+                HyperlinkParameterDetectionResult parsedReferences = parameterDetector.parse(fileContents, file);
 			    if (parsedReferences != null) {
-			        elementReferences.addAll(parsedReferences);
+			        implicitParams.add(parsedReferences);
                 }
             }
-
-
 
 			if (xmlConfiguration != null) {
                 loadWebXmlWelcomeFiles();
@@ -124,8 +121,37 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                 loadWebXmlServletMappings(servletParser);
             }
 
-            //detectOptionalParameters(inferredEndpointParameters);
-			//mergeParsedImplicitParameters(endpoints, inferredEndpointParameters);
+
+
+            int numAddedParams = 0, numRemovedParams = 0;
+
+            HyperlinkParameterMerger parameterMerger = new HyperlinkParameterMerger(true, true);
+            for (HyperlinkParameterDetectionResult params : implicitParams) {
+                ParameterMergingGuide mergeGuide = parameterMerger.mergeParsedImplicitParameters(endpoints, params);
+
+                for (Endpoint endpoint : endpoints) {
+                    JSPEndpoint jspEndpoint = (JSPEndpoint)endpoint;
+                    List<RouteParameter> addedParams = mergeGuide.findAddedParameters(endpoint, endpoint.getHttpMethod());
+                    if (addedParams != null) {
+                        for (RouteParameter newParam : addedParams) {
+                            jspEndpoint.getParameters().put(newParam.getName(), newParam);
+                            ++numAddedParams;
+                        }
+                    }
+
+                    List<RouteParameter> removedParams = mergeGuide.findRemovedParameters(endpoint, endpoint.getHttpMethod());
+                    if (removedParams != null) {
+                        for (RouteParameter oldParam : removedParams) {
+                            jspEndpoint.getParameters().remove(oldParam.getName());
+                            ++numRemovedParams;
+                        }
+                    }
+                }
+            }
+
+            LOG.info("Detected " + numAddedParams + " new parameters and removed " + numRemovedParams + " misassigned parameters after HTML reference parsing");
+
+            EndpointValidationStatistics.printValidationStats(endpoints);
 
 		} else {
             LOG.error("Root file didn't exist. Exiting.");
@@ -151,9 +177,9 @@ public class JSPEndpointGenerator implements EndpointGenerator {
         for (File welcomeFile : welcomeFileLocations) {
             String relativePath = FilePathUtils.getRelativePath(welcomeFile.getAbsolutePath(), jspRoot);
             String endpointPath = relativePath.substring(0, relativePath.length() - welcomeFile.getName().length());
-            JSPEndpoint welcomeEndpoint = new JSPEndpoint(relativePath, endpointPath, set("GET"), JSPParameterParser.parse(welcomeFile));
+            JSPEndpoint welcomeEndpoint = new JSPEndpoint(relativePath, endpointPath, "GET", JSPParameterParser.parse(welcomeFile));
             endpoints.add(welcomeEndpoint);
-            jspEndpointMap.put(relativePath, welcomeEndpoint);
+            addToEndpointMap(relativePath, welcomeEndpoint);
         }
     }
 
@@ -163,9 +189,16 @@ public class JSPEndpointGenerator implements EndpointGenerator {
             String relativeFilePath = getRelativePath(servlet.getFilePath());
 
             for (String endpointString : servlet.getAnnotatedEndpointBindings()) {
-                JSPEndpoint newEndpoint = new JSPEndpoint(relativeFilePath, endpointString, set("GET", "POST"), servlet.getParameters());
+
+                JSPEndpoint newEndpoint;
+
+                newEndpoint = new JSPEndpoint(relativeFilePath, endpointString, "GET", servlet.getParameters());
                 endpoints.add(newEndpoint);
-                jspEndpointMap.put(relativeFilePath, newEndpoint);
+                addToEndpointMap(relativeFilePath, newEndpoint);
+
+                newEndpoint = new JSPEndpoint(relativeFilePath, endpointString, "POST", servlet.getParameters());
+                endpoints.add(newEndpoint);
+                addToEndpointMap(relativeFilePath, newEndpoint);
             }
         }
     }
@@ -204,9 +237,15 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 
 
             for (String pattern : urlPatterns) {
-                JSPEndpoint endpoint = new JSPEndpoint(filePath, pattern, set("GET", "POST"), parameters);
+                JSPEndpoint endpoint;
+
+                endpoint = new JSPEndpoint(filePath, pattern, "GET", parameters);
                 endpoints.add(endpoint);
-                jspEndpointMap.put(filePath, endpoint);
+                addToEndpointMap(filePath, endpoint);
+
+                endpoint = new JSPEndpoint(filePath, pattern, "POST", parameters);
+                endpoints.add(endpoint);
+                addToEndpointMap(filePath, endpoint);
             }
         }
     }
@@ -260,15 +299,17 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 	}
 
     void createEndpoint(String staticPath, File file, Map<Integer, List<String>> parserResults) {
-        JSPEndpoint endpoint = new JSPEndpoint(
-                getInputOrEmptyString(staticPath),
-                getInputOrEmptyString(FilePathUtils.getRelativePath(file, jspRoot)),
-                set("GET", "POST"),
-                parserResults
-        );
+        JSPEndpoint endpoint;
 
-        jspEndpointMap.put(staticPath, endpoint);
+        staticPath = getInputOrEmptyString(staticPath);
+        String endpointPath = getInputOrEmptyString(FilePathUtils.getRelativePath(file, jspRoot));
 
+        endpoint = new JSPEndpoint(staticPath, endpointPath, "GET", parserResults);
+        addToEndpointMap(staticPath, endpoint);
+        endpoints.add(endpoint);
+
+        endpoint = new JSPEndpoint(staticPath, endpointPath, "POST", parserResults);
+        addToEndpointMap(staticPath, endpoint);
         endpoints.add(endpoint);
     }
 
@@ -289,12 +330,22 @@ public class JSPEndpointGenerator implements EndpointGenerator {
         }
     }
 
+    void addToEndpointMap(String filePath, JSPEndpoint endpoint) {
+	    List<JSPEndpoint> endpoints = jspEndpointMap.get(filePath);
+	    if (endpoints == null) {
+	        jspEndpointMap.put(filePath, endpoints = list());
+        }
+        endpoints.add(endpoint);
+    }
+
     void addParametersFromIncludedFiles() {
-        for (Map.Entry<String, JSPEndpoint> endpointEntry : jspEndpointMap.entrySet()) {
+        for (Map.Entry<String, List<JSPEndpoint>> endpointEntry : jspEndpointMap.entrySet()) {
             if (endpointEntry != null && endpointEntry.getKey() != null) {
-                endpointEntry.getValue().getParameters().putAll(
-                        getParametersFor(endpointEntry.getKey(),
-                                new HashSet<String>(), new HashMap<String, RouteParameter>()));
+                for (JSPEndpoint endpoint : endpointEntry.getValue()) {
+                    endpoint.getParameters().putAll(
+                            getParametersFor(endpointEntry.getKey(),
+                                    new HashSet<String>(), new HashMap<String, RouteParameter>()));
+                }
             }
         }
     }
@@ -313,10 +364,12 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 
         if (includeMap.get(key) != null) {
             for (String fileKey : includeMap.get(key)) {
-                JSPEndpoint endpoint = jspEndpointMap.get(fileKey);
-                if (endpoint != null) {
-                    params.putAll(endpoint.getParameters());
-                    params.putAll(getParametersFor(fileKey, alreadyVisited, soFar));
+                List<JSPEndpoint> endpoints = jspEndpointMap.get(fileKey);
+                if (endpoints != null) {
+                    for (JSPEndpoint endpoint : endpoints) {
+                        params.putAll(endpoint.getParameters());
+                        params.putAll(getParametersFor(fileKey, alreadyVisited, soFar));
+                    }
                 }
             }
         }
@@ -333,7 +386,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
         return input == null ? "" : input;
     }
 	
-	public JSPEndpoint getEndpoint(String staticPath) {
+	public List<JSPEndpoint> getEndpoints(String staticPath) {
 
         if (staticPath == null)
             return null;
@@ -344,7 +397,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
             keyFS = "/" + keyFS;
 		}
 
-        for (Map.Entry<String, JSPEndpoint> entry: jspEndpointMap.entrySet()) {
+        for (Map.Entry<String, List<JSPEndpoint>> entry: jspEndpointMap.entrySet()) {
             String keyEntry = entry.getKey();
             String keyEntryFS = keyEntry.replace("\\","/");
 

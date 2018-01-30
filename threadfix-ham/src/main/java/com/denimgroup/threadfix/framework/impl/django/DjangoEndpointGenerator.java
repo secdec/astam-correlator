@@ -24,12 +24,10 @@
 package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
-import com.denimgroup.threadfix.framework.impl.django.python.PythonExpressionParser;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
@@ -52,7 +50,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
     private static final SanitizedLogger LOG = new SanitizedLogger(DjangoEndpointGenerator.class);
 
     private List<Endpoint> endpoints;
-    private Map<String, DjangoRoute> routeMap;
+    private Map<String, List<DjangoRoute>> routeMap;
 
     private File rootDirectory, rootUrlsFile;
     private List<File> possibleGuessedUrlFiles;
@@ -153,22 +151,17 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
             routeMap = map();
             for (File guessedUrlsFile : possibleGuessedUrlFiles) {
-                Map<String, DjangoRoute> guessedUrls = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", guessedUrlsFile.getAbsolutePath(), codebase, interpreter, guessedUrlsFile);
-                for (Map.Entry<String, DjangoRoute> url : guessedUrls.entrySet()) {
-                    DjangoRoute existingRoute = routeMap.get(url.getKey());
-                    if (existingRoute != null) {
-                        Collection<String> existingHttpMethods = existingRoute.getHttpMethods();
-                        Map<String, RouteParameter> existingParams = existingRoute.getParameters();
-                        for (String httpMethod : url.getValue().getHttpMethods()) {
-                            if (!existingHttpMethods.contains(httpMethod)) {
-                                existingHttpMethods.add(httpMethod);
-                            }
-                        }
-                        for (Map.Entry<String, RouteParameter> param : url.getValue().getParameters().entrySet()) {
-                            if (!existingParams.containsKey(param.getKey())) {
-                                existingParams.put(param.getKey(), param.getValue());
-                            }
-                        }
+                Map<String, List<DjangoRoute>> guessedUrls = DjangoRouteParser.parse(
+                        rootDirectory.getAbsolutePath(),
+                        "",
+                        guessedUrlsFile.getAbsolutePath(),
+                        codebase,interpreter,
+                        guessedUrlsFile);
+
+                for (Map.Entry<String, List<DjangoRoute>> url : guessedUrls.entrySet()) {
+                    List<DjangoRoute> existingRoutes = routeMap.get(url.getKey());
+                    if (existingRoutes != null) {
+                        existingRoutes.addAll(url.getValue());
                     } else {
                         routeMap.put(url.getKey(), url.getValue());
                     }
@@ -224,15 +217,17 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
     private List<Endpoint> generateMappings(boolean i18) {
         List<Endpoint> mappings = list();
-        for (DjangoRoute route : routeMap.values()) {
-            String urlPath = route.getUrl();
-            String filePath = route.getViewPath();
+        for (List<DjangoRoute> routeSet : routeMap.values()) {
+            for (DjangoRoute route : routeSet) {
+                String urlPath = route.getUrl();
+                String filePath = route.getViewPath();
 
-            Collection<String> httpMethods = route.getHttpMethods();
-            Map<String, RouteParameter> parameters = route.getParameters();
-            mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters, false));
-            if (i18) {
-                mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethods, parameters, true));
+                String httpMethod = route.getHttpMethod();
+                Map<String, RouteParameter> parameters = route.getParameters();
+                mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethod, parameters, false));
+                if (i18) {
+                    mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethod, parameters, true));
+                }
             }
         }
         return mappings;

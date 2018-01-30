@@ -23,10 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.spring;
 
-import com.denimgroup.threadfix.data.entities.AuthenticationRequired;
-import com.denimgroup.threadfix.data.entities.ModelField;
-import com.denimgroup.threadfix.data.entities.ModelFieldSet;
-import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.*;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.util.RegexUtils;
@@ -50,10 +47,12 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 	@Nonnull
     private final String rawFilePath, rawUrlPath;
 	@Nonnull
-    private final Set<String> methods, pathParameters;
+    private final Set<String> pathParameters;
 	@Nonnull
     private final Map<String, RouteParameter> parameters;
 	private final int startLineNumber, endLineNumber;
+
+	private String method;
 	
 	@Nullable
     private String cleanedFilePath = null, cleanedUrlPath = null;
@@ -69,7 +68,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 
     public SpringControllerEndpoint(@Nonnull String filePath,
                                     @Nonnull String urlPath,
-                                    @Nonnull Collection<String> methods,
+                                    @Nonnull String method,
                                     @Nonnull Map<String, RouteParameter> parameters,
                                     @Nonnull Collection<String> pathParameters,
                                     int startLineNumber,
@@ -85,7 +84,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 
         this.parameters = parameters;
         this.pathParameters = setFrom(pathParameters);
-        this.methods = getCleanedSet(methods);
+        this.method = method;
     }
 
     /**
@@ -129,7 +128,9 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         }
 
         for (String param : pathParameters) {
-            parameters.put(param, RouteParameter.fromDataType(ParameterDataType.STRING));
+            RouteParameter newParam = RouteParameter.fromDataType(ParameterDataType.STRING);
+            newParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+            parameters.put(param, newParam);
         }
     }
 
@@ -227,7 +228,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 		return "[" + getCleanedFilePath() +
 				":" + startLineNumber +
 				"-" + endLineNumber +
-				" -> " + getHttpMethods() +
+				" -> " + getHttpMethod() +
 				" " + getCleanedUrlPath() +
 				" " + getParameters() +
 				"]";
@@ -235,8 +236,8 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 
 	@Nonnull
     @Override
-	public Set<String> getHttpMethods() {
-		return methods;
+	public String getHttpMethod() {
+		return method;
 	}
 
 	@Nonnull

@@ -26,17 +26,11 @@
 package com.denimgroup.threadfix.framework.impl.rails;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoute;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsAbstractRoutesLexer;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRouteTreeMapper;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRoutingTree;
-import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRoutingTreeBuilder;
 import com.denimgroup.threadfix.framework.impl.rails.routerDetection.RouterDetector;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
@@ -103,7 +97,7 @@ public class RailsEndpointMappings implements EndpointGenerator {
                     controllerPath = FilePathUtils.getRelativePath(controllerPath, rootDirectory);
                 }
 
-                RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethods(), new HashMap<String, RouteParameter>());
+                RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethod(), new HashMap<String, RouteParameter>());
                 endpoints.add(endpoint);
             }
         }

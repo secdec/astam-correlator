@@ -35,7 +35,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
  */
 public class RailsRoute {
     private String url;
-    private List<String> httpMethods;
+    private String httpMethod;
     private String controller;
 
     public RailsRoute() {
@@ -43,7 +43,7 @@ public class RailsRoute {
 
     public RailsRoute(String url, String method) {
         this.setUrl(url);
-        this.addHttpMethod(method);
+        this.httpMethod = method;
     }
 
     public String getUrl() {
@@ -54,16 +54,8 @@ public class RailsRoute {
         this.url = url;
     }
 
-    public List<String> getHttpMethods() {
-        return httpMethods;
-    }
-
-    public void addHttpMethod(String method) {
-        if (this.httpMethods == null)
-            this.httpMethods = list();
-        if (!httpMethods.contains(method)) {
-            this.httpMethods.add(method);
-        }
+    public String getHttpMethod() {
+        return httpMethod;
     }
 
     public String getController() {

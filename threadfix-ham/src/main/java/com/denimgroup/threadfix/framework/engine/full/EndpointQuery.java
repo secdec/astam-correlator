@@ -41,7 +41,7 @@ public interface EndpointQuery {
 	String getParameter();
 
     @Nullable
-	String getHttpMethod();
+    String getHttpMethod();
 
     @Nullable
 	List<CodePoint> getCodePoints();

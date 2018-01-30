@@ -2,11 +2,16 @@ package com.denimgroup.threadfix.data.entities;
 
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
+
 public class RouteParameter {
     ParameterDataType dataType;
     boolean isOptional = false;
     RouteParameterType paramType = RouteParameterType.UNKNOWN;
     String name;
+    List<String> acceptedValues = null;
 
 
     public static RouteParameter fromDataType(ParameterDataType dataType) {
@@ -33,6 +38,10 @@ public class RouteParameter {
         return name;
     }
 
+    public List<String> getAcceptedValues() {
+        return acceptedValues;
+    }
+
     public void setOptional(boolean optional) {
         isOptional = optional;
     }
@@ -47,6 +56,19 @@ public class RouteParameter {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setAcceptedValues(List<String> acceptedValues) {
+        this.acceptedValues = acceptedValues;
+    }
+
+    public void addAcceptedValue(String value) {
+        if (this.acceptedValues == null) {
+            this.acceptedValues = list();
+        }
+        if (!this.acceptedValues.contains(value)) {
+            this.acceptedValues.add(value);
+        }
     }
 
     @Override

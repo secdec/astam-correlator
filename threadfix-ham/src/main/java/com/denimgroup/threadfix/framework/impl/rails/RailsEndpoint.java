@@ -48,15 +48,15 @@ public class RailsEndpoint extends AbstractEndpoint {
     private String urlPath;
     private Pattern urlPattern;
 
-    private Set<String> httpMethods;
+    private String httpMethod;
     private Map<String, RouteParameter> parameters;
 
     public RailsEndpoint(String filePath, String urlPath,
-                          Collection<String> httpMethods, Map<String, RouteParameter> parameters) {
+                          String httpMethod, Map<String, RouteParameter> parameters) {
         this.filePath = filePath;
         this.urlPath = urlPath;
-        if (httpMethods != null)
-            this.httpMethods = setFrom(httpMethods);
+        if (httpMethod != null)
+            this.httpMethod = httpMethod;
         if (parameters != null)
             this.parameters = parameters;
 
@@ -99,8 +99,8 @@ public class RailsEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Set<String> getHttpMethods() {
-        return httpMethods;
+    public String getHttpMethod() {
+        return httpMethod;
     }
 
     @Nonnull

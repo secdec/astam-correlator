@@ -25,19 +25,14 @@
 package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
-import com.denimgroup.threadfix.framework.util.FilePathUtils;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
-import static com.denimgroup.threadfix.CollectionUtils.setFrom;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 /**
  * Created by csotomayor on 4/25/2017.
@@ -68,16 +63,17 @@ public class DjangoEndpoint extends AbstractEndpoint {
     private int startLineNumber = -1;
     private int endLineNumber = -1;
 
-    private Set<String> httpMethods;
+    private String httpMethod;
     private Map<String, RouteParameter> parameters;
 
     public DjangoEndpoint(String filePath, String urlPath,
-                          Collection<String> httpMethods, Map<String, RouteParameter> parameters,
+                          String httpMethod,
+                          Map<String, RouteParameter> parameters,
                           boolean isInternationalized) {
+
         this.filePath = filePath;
         this.urlPath = urlPath;
-        if (httpMethods != null)
-            this.httpMethods = setFrom(httpMethods);
+        this.httpMethod = httpMethod;
         if (parameters != null)
             this.parameters = parameters;
 
@@ -111,6 +107,7 @@ public class DjangoEndpoint extends AbstractEndpoint {
         this.isInternationalized = isInternationalized;
 
         urlPattern = Pattern.compile(pattern);
+
     }
 
     public void setLineNumbers(int startLine, int endLine) {
@@ -158,8 +155,8 @@ public class DjangoEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Set<String> getHttpMethods() {
-        return httpMethods;
+    public String getHttpMethod() {
+        return httpMethod;
     }
 
     @Nonnull

@@ -29,6 +29,7 @@ import javax.annotation.Nonnull;
 
 public interface FindingProcessor {
 
+    void prepare(@Nonnull Finding finding);
 	void process(@Nonnull Finding finding);
 
     void printStatistics();

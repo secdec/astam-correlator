@@ -64,4 +64,26 @@ public class PathUtil {
 
         return string;
     }
+
+    //  Compares two paths, ignoring capitalization and directory '/' formatting
+    public static boolean isEqualInvariant(String a, String b) {
+        a = trimAll(a, "/");
+        a = trimAll(a, "\\");
+        b = trimAll(b, "/");
+        b = trimAll(b, "\\");
+
+        return a.equalsIgnoreCase(b);
+    }
+
+    private static String trimAll(String text, String unwantedText) {
+        while (text.startsWith(unwantedText)) {
+            text = text.substring(unwantedText.length());
+        }
+
+        while (text.endsWith(unwantedText)) {
+            text = text.substring(0, text.length() - unwantedText.length());
+        }
+
+        return text;
+    }
 }

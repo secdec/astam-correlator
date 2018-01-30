@@ -26,16 +26,14 @@
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 
 import javax.annotation.Nonnull;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
-import static com.denimgroup.threadfix.CollectionUtils.set;
 
 /**
  * Created by mac on 6/11/14.
@@ -69,8 +67,8 @@ class DotNetEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-    public Set<String> getHttpMethods() {
-        return set(action.getMethod());
+    public String getHttpMethod() {
+        return action.getMethod();
     }
 
     @Nonnull

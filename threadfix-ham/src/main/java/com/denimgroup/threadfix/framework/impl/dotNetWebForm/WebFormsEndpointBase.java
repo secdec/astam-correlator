@@ -51,7 +51,8 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
     final String       filePath;
 
     Map<String, List<Integer>> map = map();
-    private Set<String> httpMethods;
+    private String httpMethod;
+    private Map<String, RouteParameter> params = map();
 
     public WebFormsEndpointBase(File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
         if (!checkArguments(aspxParser.aspName, aspxCsParser.aspName)) {
@@ -68,7 +69,7 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
         collectParameters();
 
-        setHttpMethod();
+        setHttpMethod("GET");
     }
 
     private boolean checkArguments(String aspName, String aspCsName) {
@@ -84,8 +85,8 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
         return aspxCsMatch || csMatch;
     }
 
-    private void setHttpMethod() {
-        httpMethods = map.size() == 0 ? set("GET") : set("GET", "POST");
+    public void setHttpMethod(String httpMethod) {
+        this.httpMethod = httpMethod;
     }
 
     private String calculateFilePath() {
@@ -206,18 +207,13 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
     @Nonnull
     @Override
     public Map<String, RouteParameter> getParameters() {
-        Map<String, RouteParameter> parameterMap = map();
-
-        for (String param : map.keySet())
-            parameterMap.put(param, RouteParameter.fromDataType(ParameterDataType.STRING));
-
-        return parameterMap;
+        return params;
     }
 
     @Nonnull
     @Override
-    final public Set<String> getHttpMethods() {
-        return httpMethods;
+    final public String getHttpMethod() {
+        return httpMethod;
     }
 
     @Nonnull

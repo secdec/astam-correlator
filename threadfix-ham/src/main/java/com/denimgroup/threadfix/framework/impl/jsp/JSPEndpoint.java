@@ -32,12 +32,11 @@ import com.denimgroup.threadfix.framework.engine.CodePoint;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.*;
 
@@ -49,7 +48,7 @@ class JSPEndpoint extends AbstractEndpoint {
     @Nonnull
 	private final Map<String, RouteParameter> parameters = map();
     @Nonnull
-	private final Set<String> methods;
+	private final String method;
 
 	@Nonnull
     private final Map<String, Integer> paramToLineMap;
@@ -59,18 +58,18 @@ class JSPEndpoint extends AbstractEndpoint {
 	
 	public JSPEndpoint(@Nonnull String staticPath,
                        @Nonnull String dynamicPath,
-                       @Nonnull Set<String> methods,
+                       @Nonnull String method,
 			           @Nonnull Map<Integer, List<String>> parameterMap) {
-		this.methods = methods;
+		this.method = method;
 		this.staticPath = staticPath;
 		this.dynamicPath = dynamicPath;
 		this.parameterMap = parameterMap;
-		
-        for (List<String> values : parameterMap.values()) {
-        	for (String param : values) {
+
+		for (List<String> lineParams : parameterMap.values()) {
+			for (String param : lineParams) {
 				parameters.put(param, RouteParameter.fromDataType(ParameterDataType.STRING));
 			}
-        }
+		}
 
 		this.paramToLineMap = getParamToLineMap(parameterMap);
 	}
@@ -125,7 +124,7 @@ class JSPEndpoint extends AbstractEndpoint {
     private Map<String, Integer> getParamToLineMap(
 			Map<Integer, List<String>> parameterMap) {
 		Map<String, Integer> paramMap = map();
-		
+
 		for (String parameter : parameters.keySet()) {
 			paramMap.put(parameter, getFirstLineNumber(parameter, parameterMap));
 		}
@@ -159,7 +158,7 @@ class JSPEndpoint extends AbstractEndpoint {
 		
 		for (CodePoint codePoint : codePoints) {
 			List<String> possibleParameters = parameterMap.get(codePoint.getLineNumber());
-			
+
 			if (possibleParameters != null && possibleParameters.size() == 1) {
 				parameter = possibleParameters.get(0);
 				break;
@@ -183,8 +182,8 @@ class JSPEndpoint extends AbstractEndpoint {
 
 	@Nonnull
     @Override
-	public Set<String> getHttpMethods() {
-		return methods;
+	public String getHttpMethod() {
+		return method;
 	}
 
 	@Override

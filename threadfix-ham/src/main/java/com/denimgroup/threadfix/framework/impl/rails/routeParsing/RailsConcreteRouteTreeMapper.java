@@ -84,7 +84,7 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
 
         for (PathHttpMethod httpMethod : subPaths)
         {
-            RailsRoute route = new RailsRoute();
+            RailsRoute route = new RailsRoute(httpMethod.getPath(), httpMethod.getMethod());
             if (httpMethod.getControllerName() != null) {
                 //  Routes declare their controllers but some route entries declare multiple routes
                 //  that may have different controllers. These controllers will be set manually
@@ -99,33 +99,8 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
                 route.setController(PathUtil.combine(modulePath, route.getController(), false));
             }
 
-            route.setUrl(httpMethod.getPath());
-            route.addHttpMethod(httpMethod.getMethod());
             mappedRoutes.add(route);
         }
-    }
-
-    List<RailsRoute> mergeDuplicates(Collection<RailsRoute> routes) {
-        //  NOTE - This merges routes even if the controller or action names are different! Only
-        //              endpoints are checked!
-        List<RailsRoute> uniqueRoutes = list();
-        Map<String, RailsRoute> endpointRouteMap = new HashMap<String, RailsRoute>();
-        for (RailsRoute route : routes) {
-            String path = route.getUrl();
-            if (endpointRouteMap.containsKey(path)) {
-                RailsRoute oldRoute = endpointRouteMap.get(path);
-                List<String> oldHttpMethods = oldRoute.getHttpMethods();
-                for (String newMethod : route.getHttpMethods()) {
-                    if (!oldHttpMethods.contains(newMethod)) {
-                        oldHttpMethods.add(newMethod);
-                    }
-                }
-            } else {
-                endpointRouteMap.put(path, route);
-                uniqueRoutes.add(route);
-            }
-        }
-        return uniqueRoutes;
     }
 
 

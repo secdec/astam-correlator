@@ -403,29 +403,31 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
 
         assert currentMapping != null : "Current mapping should not be null at this point. Check the state machine.";
 
-        SpringControllerEndpoint endpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
-                methodMethods,
-                currentParameters,
-                currentPathParameters,
-                startLineNumber,
-                endLineNumber,
-                currentModelObject);
+        for (String method : methodMethods) {
+            SpringControllerEndpoint endpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
+                    method,
+                    currentParameters,
+                    currentPathParameters,
+                    startLineNumber,
+                    endLineNumber,
+                    currentModelObject);
 
-        if (entityMappings != null) {
-            endpoint.expandParameters(entityMappings, null);
-        }
-
-        if (globalAuthString != null) {
-            if (currentAuthString != null) {
-                endpoint.setAuthorizationString(globalAuthString + " and " + currentAuthString);
-            } else {
-                endpoint.setAuthorizationString(globalAuthString);
+            if (entityMappings != null) {
+                endpoint.expandParameters(entityMappings, null);
             }
-        } else if (currentAuthString != null) {
-            endpoint.setAuthorizationString(currentAuthString);
-        }
 
-        endpoints.add(endpoint);
+            if (globalAuthString != null) {
+                if (currentAuthString != null) {
+                    endpoint.setAuthorizationString(globalAuthString + " and " + currentAuthString);
+                } else {
+                    endpoint.setAuthorizationString(globalAuthString);
+                }
+            } else if (currentAuthString != null) {
+                endpoint.setAuthorizationString(currentAuthString);
+            }
+
+            endpoints.add(endpoint);
+        }
 
         currentMapping = null;
         methodMethods = list();

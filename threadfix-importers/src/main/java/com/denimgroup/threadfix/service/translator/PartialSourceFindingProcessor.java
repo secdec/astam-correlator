@@ -81,6 +81,11 @@ class PartialSourceFindingProcessor implements FindingProcessor {
     }
 
     @Override
+    public void prepare(@Nonnull Finding finding) {
+
+    }
+
+    @Override
     public void process(@Nonnull Finding finding) {
         PartialMapping query = ThreadFixInterface.toPartialMapping(finding);
 

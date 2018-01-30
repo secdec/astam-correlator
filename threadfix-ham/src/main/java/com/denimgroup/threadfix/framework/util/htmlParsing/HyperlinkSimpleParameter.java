@@ -2,6 +2,8 @@ package com.denimgroup.threadfix.framework.util.htmlParsing;
 
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 
+import java.util.List;
+
 public class HyperlinkSimpleParameter {
 
     public HyperlinkSimpleParameter() {
@@ -31,4 +33,5 @@ public class HyperlinkSimpleParameter {
     public String httpMethod;
     public RouteParameterType parameterType;
     public String inferredDataType;
+    public List<String> acceptedValues;
 }

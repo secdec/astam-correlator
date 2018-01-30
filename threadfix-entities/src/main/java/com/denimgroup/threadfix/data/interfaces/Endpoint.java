@@ -24,14 +24,11 @@
 package com.denimgroup.threadfix.data.interfaces;
 
 import com.denimgroup.threadfix.data.entities.AuthenticationRequired;
-import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 
 import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public interface Endpoint extends Comparable<Endpoint> {
 
@@ -39,7 +36,7 @@ public interface Endpoint extends Comparable<Endpoint> {
     Map<String, RouteParameter> getParameters();
 
     @Nonnull
-	Set<String> getHttpMethods();
+	String getHttpMethod();
 
     @Nonnull
 	String getUrlPath();
@@ -71,7 +68,7 @@ public interface Endpoint extends Comparable<Endpoint> {
 
     public static class Info {
         Map<String, RouteParameter>  parameters;
-        Set<String> httpMethods;
+        String httpMethod;
 
         String urlPath, filePath, csvLine;
 
@@ -80,7 +77,7 @@ public interface Endpoint extends Comparable<Endpoint> {
         public static Info fromEndpoint(Endpoint endpoint) {
             Info info = new Info();
             info.parameters = endpoint.getParameters();
-            info.httpMethods = endpoint.getHttpMethods();
+            info.httpMethod = endpoint.getHttpMethod();
             info.urlPath = endpoint.getUrlPath();
             info.filePath = endpoint.getFilePath();
             info.csvLine = endpoint.getCSVLine();
@@ -92,8 +89,8 @@ public interface Endpoint extends Comparable<Endpoint> {
             return parameters;
         }
 
-        public Set<String> getHttpMethods() {
-            return httpMethods;
+        public String getHttpMethod() {
+            return httpMethod;
         }
 
         public String getUrlPath() {

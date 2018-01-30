@@ -70,6 +70,8 @@ public class StrutsXmlParser {
 			log.error("SAXException parsing struts.xml", e);
 		} catch (IOException e) {
 			log.error("IOException parsing struts.xml", e);
+		} catch (Exception e) {
+			log.error("General exception parsing struts.xml", e);
 		}
 
 		List<StrutsPackage> packages = handler.strutsPackages;

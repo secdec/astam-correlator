@@ -114,7 +114,7 @@ public class SpringControllerMappings implements EndpointGenerator {
 	private void generateMaps() {
 
 	    LOG.info("Generating Spring MVC controller mappings...");
-	    
+
         List<EntityParser> entityParsers = list();
 
         SpringDataBinderParser globalDataBinderParser = null;

@@ -33,7 +33,6 @@ import java.io.File;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.map;
-import static com.denimgroup.threadfix.CollectionUtils.set;
 
 /**
  * Created by sgerick on 5/5/2015.
@@ -58,7 +57,7 @@ public class RailsEndpointMappingsTest {
         Endpoint testEndpoint = new RailsEndpoint(
                 "/app/controllers/password_resets_controller.rb",   // filePath
                 "/forgot_password",                                 // urlPath
-                set("GET"),
+                "GET",
                 map("confirm_password", RouteParameter.fromDataType(ParameterDataType.STRING),
                         "email", RouteParameter.fromDataType(ParameterDataType.STRING),
                         "token", RouteParameter.fromDataType(ParameterDataType.STRING),
@@ -74,13 +73,13 @@ public class RailsEndpointMappingsTest {
         boolean endpointFound = false;
         String filePath = testEndpoint.getFilePath();
         String urlPath = testEndpoint.getUrlPath();
-        Set<String> httpMethods = testEndpoint.getHttpMethods();
+        String httpMethods = testEndpoint.getHttpMethod();
         Map<String, RouteParameter> parameters = testEndpoint.getParameters();
 
         for (Endpoint endpoint : endpoints) {
             if (filePath.equals(endpoint.getFilePath())
                     && urlPath.equals(endpoint.getUrlPath())
-                    && endpoint.getHttpMethods().containsAll(httpMethods)
+                    && endpoint.getHttpMethod().equals(httpMethods)
                     && endpoint.getParameters().keySet().containsAll(parameters.keySet())) {
                 endpointFound = true;
                 break;

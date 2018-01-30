@@ -53,7 +53,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 		dynamicMap = map(),
 		staticMap  = map(),
 		parameterMap = map(),
-		httpMethodMap = map();
+        httpMethodMap = map();
 
 	protected final static SanitizedLogger log = new SanitizedLogger(GeneratorBasedEndpointDatabase.class);
 
@@ -87,22 +87,21 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 			addToMap(dynamicMap, endpoint.getUrlPath(), endpoint);
 			addToMap(staticMap, endpoint.getFilePath(), endpoint);
 
-			for (String method : endpoint.getHttpMethods()) {
-				addToMap(httpMethodMap, method, endpoint);
+			String method = endpoint.getHttpMethod();
+            addToMap(httpMethodMap, method, endpoint);
 
-				// If non-standard methods are used, add post because that's what scanners might have
-				if (!"POST".equals(method) && !"GET".equals(method)) {
-					addToMap(httpMethodMap, "POST", endpoint);
-				}
-			}
+            // If non-standard methods are used, add post because that's what scanners might have
+            if (!method.equalsIgnoreCase("POST") && !method.equalsIgnoreCase("GET")) {
+                addToMap(httpMethodMap, "POST", endpoint);
+            }
 
-			if (endpoint.getParameters().isEmpty()) {
-				addToMap(parameterMap, "null", endpoint);
-			} else {
-				for (String parameter : endpoint.getParameters().keySet()) {
-					addToMap(parameterMap, parameter, endpoint);
-				}
-			}
+            if (endpoint.getParameters().isEmpty()) {
+                addToMap(parameterMap, "null", endpoint);
+            } else {
+                for (String paramName : endpoint.getParameters().keySet()) {
+                    addToMap(parameterMap, paramName, endpoint);
+                }
+            }
 		}
 		log.info("Done building mappings. Static keys: " + staticMap.size() + ", dynamic keys: " + dynamicMap.size());
 	}

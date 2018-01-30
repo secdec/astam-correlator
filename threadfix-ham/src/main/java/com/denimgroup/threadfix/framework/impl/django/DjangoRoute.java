@@ -39,7 +39,7 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 public class DjangoRoute {
     private String url;
     private String viewPath;
-    private List<String> httpMethods = list();
+    private String httpMethod;
     private Map<String, RouteParameter> parameters = map();
     private int startLineNumber = -1, endLineNumber = -1;
 
@@ -69,16 +69,16 @@ public class DjangoRoute {
         return viewPath;
     }
 
-    public List<String> getHttpMethods() {
-        return httpMethods;
+    public String getHttpMethod() {
+        return httpMethod;
     }
 
     public Map<String, RouteParameter> getParameters() {
         return parameters;
     }
 
-    public void addHttpMethod(String httpMethod) {
-        httpMethods.add(httpMethod);
+    public void setHttpMethod(String httpMethod) {
+        this.httpMethod = httpMethod;
     }
 
     public void addParameter(String parameter, RouteParameter dataType) {

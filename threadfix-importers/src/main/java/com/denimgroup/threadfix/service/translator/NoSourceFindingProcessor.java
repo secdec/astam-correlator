@@ -59,6 +59,11 @@ class NoSourceFindingProcessor implements FindingProcessor {
             numberDynamicWithNoPath = 0;
 
     @Override
+    public void prepare(@Nonnull Finding finding) {
+
+    }
+
+    @Override
     public void process(@Nonnull Finding finding) {
 
         if (finding.getIsStatic()) {

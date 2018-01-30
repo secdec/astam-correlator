@@ -113,9 +113,14 @@ public class JSPDataFlowParser implements ParameterParser {
 				staticInformation = codePoints.get(0).getSourceFileName();
 			}
 
-            JSPEndpoint endpoint = jspMappings.getEndpoint(staticInformation);
-			if (endpoint != null && codePoints != null) {
-				test = endpoint.getParameterName(codePoints);
+            List<JSPEndpoint> endpoints = jspMappings.getEndpoints(staticInformation);
+			if (endpoints != null && codePoints != null) {
+				for (JSPEndpoint endpoint : endpoints) {
+					test = endpoint.getParameterName(codePoints);
+					if (test != null) {
+						break;
+					}
+				}
 			}
 			
 			// if we didn't get a result, do the dumb regex parsing

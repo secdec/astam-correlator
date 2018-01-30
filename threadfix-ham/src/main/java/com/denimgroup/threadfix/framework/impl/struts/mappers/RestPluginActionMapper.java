@@ -140,7 +140,7 @@ public class RestPluginActionMapper implements ActionMapper {
                         if (project.getRootDirectory() != null && filePath.startsWith(project.getRootDirectory())) {
                             filePath = FilePathUtils.getRelativePath(filePath, project.getRootDirectory());
                         }
-                        StrutsEndpoint endpoint = new StrutsEndpoint(filePath, url, list(httpMethod), params);
+                        StrutsEndpoint endpoint = new StrutsEndpoint(filePath, url, httpMethod, params);
                         endpoints.add(endpoint);
                     }
                 }

@@ -68,7 +68,7 @@ public class JSPEndpointGeneratorTests {
 		for (String page : pages) {
 			assertTrue("Endpoint for " + page
 					+ " shouldn't have been null but was.",
-					mappings.getEndpoint(page) != null);
+					mappings.getEndpoints(page) != null);
 		}
 	}
 
@@ -85,7 +85,7 @@ public class JSPEndpointGeneratorTests {
 		JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
 				TestConstants.BODGEIT_SOURCE_LOCATION));
 		for (String[] test : tests) {
-			JSPEndpoint endpoint = mappings.getEndpoint(test[0]);
+			JSPEndpoint endpoint = mappings.getEndpoints(test[0]).get(0);
 			int result = endpoint.getLineNumberForParameter(test[1]);
 			assertTrue("Line number for " + test[0] + ": " + test[1]
 					+ " should have been " + test[2] + ", but was " + result,

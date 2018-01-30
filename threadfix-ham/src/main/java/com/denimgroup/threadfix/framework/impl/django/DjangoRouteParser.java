@@ -59,7 +59,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
     //alias, path
     private Map<String, String> importPathMap = map();
     //url, djangoroute
-    private Map<String, DjangoRoute> routeMap = map();
+    private Map<String, List<DjangoRoute>> routeMap = map();
 
     private Map<String, String> importAliases = null;
 
@@ -86,7 +86,7 @@ public class DjangoRouteParser implements EventBasedTokenizer{
         importAliases = thisModule.getImports();
     }
 
-    public static Map<String, DjangoRoute> parse(String sourceRoot, String rootPath, String sourceFilePath, PythonCodeCollection sourcecode, PythonInterpreter loadedInterpreter, @Nonnull File file) {
+    public static Map<String, List<DjangoRoute>> parse(String sourceRoot, String rootPath, String sourceFilePath, PythonCodeCollection sourcecode, PythonInterpreter loadedInterpreter, @Nonnull File file) {
         DjangoRouteParser routeParser = new DjangoRouteParser(sourceRoot, rootPath, sourceFilePath, sourcecode, loadedInterpreter);
         EventBasedTokenizerRunner.run(file, routeParser);
         return routeParser.routeMap;
@@ -522,7 +522,12 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                             for (Map.Entry<String, RouteParameter> param : newRoute.getParameters().entrySet()) {
                                 newRoute.addParameter(param.getKey(), param.getValue());
                             }
-                            routeMap.put(fullPath, newRoute);
+                            newRoute.setHttpMethod(route.getHttpMethod());
+                            List<DjangoRoute> pathRoutes = routeMap.get(fullPath);
+                            if (pathRoutes == null) {
+                                routeMap.put(fullPath, pathRoutes = list());
+                            }
+                            pathRoutes.add(newRoute);
                         }
                     } else {
 
@@ -561,7 +566,13 @@ public class DjangoRouteParser implements EventBasedTokenizer{
                                     if (viewSource != null) {
                                         newRoute.setLineNumbers(viewSource.getSourceCodeStartLine(), viewSource.getSourceCodeEndLine());
                                     }
-                                    routeMap.put(newEndpoint, newRoute);
+
+                                    List<DjangoRoute> pathRoutes = routeMap.get(newEndpoint);
+                                    if (pathRoutes == null) {
+                                        routeMap.put(newEndpoint, pathRoutes = list());
+                                    }
+
+                                    pathRoutes.add(newRoute);
                                 }
                             }
 

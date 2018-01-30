@@ -33,6 +33,9 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.StreamTokenizer;
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
 
 /**
  * Created by csotomayor on 6/21/2017.
@@ -42,16 +45,19 @@ public class DjangoControllerParser implements EventBasedTokenizer {
     public static final SanitizedLogger LOG = new SanitizedLogger(DjangoControllerParser.class);
     public static final boolean logParsing = false;
 
-    private DjangoRoute djangoRoute;
-    private String methodName = "";
+    private DjangoRoute currentRoute = null;
+    private List<DjangoRoute> djangoRoutes = list();
+    private String url, filePath, methodName = "";
     private boolean shouldContinue = true;
 
-    public static DjangoRoute parse(@Nonnull File file, String url, String methodName) {
+    public static List<DjangoRoute> parse(@Nonnull File file, String url, String methodName) {
         DjangoControllerParser controllerParser = new DjangoControllerParser();
-        controllerParser.djangoRoute = new DjangoRoute(url, file.getAbsolutePath());
+        controllerParser.url = url;
+        controllerParser.filePath = file.getAbsolutePath();
         controllerParser.methodName = methodName;
         EventBasedTokenizerRunner.run(file, controllerParser);
-        return controllerParser.djangoRoute;
+
+        return controllerParser.djangoRoutes;
     }
 
     private static final String
@@ -86,6 +92,8 @@ public class DjangoControllerParser implements EventBasedTokenizer {
         if (METHOD_DEF.equals(stringValue)){
             currentPhase = Phase.IN_METHOD;
             currentMethodState = MethodState.START;
+            currentRoute = new DjangoRoute(url, filePath);
+            djangoRoutes.add(currentRoute);
         }
 
         switch (currentPhase) {
@@ -118,16 +126,16 @@ public class DjangoControllerParser implements EventBasedTokenizer {
                 else if (type == StreamTokenizer.TT_WORD){
                     if (REQUEST.equals(stringValue))
                         break;
-                    djangoRoute.addParameter(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
+                    currentRoute.addParameter(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
                 }
                 break;
             case BODY:
                 if (type == StreamTokenizer.TT_WORD && stringValue.contains(REQUEST)) {
                     if (stringValue.contains(GETREQUEST)) {
-                        djangoRoute.addHttpMethod(GETREQUEST);
+                        currentRoute.setHttpMethod(GETREQUEST);
                         currentMethodState = MethodState.PARAM;
                     } else if (stringValue.contains(POSTREQUEST)) {
-                        djangoRoute.addHttpMethod(POSTREQUEST);
+                        currentRoute.setHttpMethod(POSTREQUEST);
                         currentMethodState = MethodState.PARAM;
                     }
                 }
@@ -137,7 +145,7 @@ public class DjangoControllerParser implements EventBasedTokenizer {
                     currentPhase = Phase.IN_METHOD;
                     currentMethodState = MethodState.BODY;
                 } else if (stringValue != null && !stringValue.isEmpty()) {
-                    djangoRoute.addParameter(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
+                    currentRoute.addParameter(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
                     currentPhase = Phase.IN_METHOD;
                     currentMethodState = MethodState.BODY;
                 }

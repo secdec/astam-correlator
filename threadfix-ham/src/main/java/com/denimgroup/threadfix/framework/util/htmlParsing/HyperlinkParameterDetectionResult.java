@@ -2,11 +2,10 @@ package com.denimgroup.threadfix.framework.util.htmlParsing;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
-import sun.misc.Request;
+import com.denimgroup.threadfix.framework.util.PathInvariantStringMap;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -16,11 +15,13 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 public class HyperlinkParameterDetectionResult {
 
     private List<ElementReference> sourceReferences;
-    private Map<String, Map<String, List<RouteParameter>>> mergedParameters;
+    private PathInvariantStringMap<Map<String, List<RouteParameter>>> mergedParameters = new PathInvariantStringMap<Map<String, List<RouteParameter>>>();
 
-    protected HyperlinkParameterDetectionResult(@Nonnull List<ElementReference> sourceReferences, @Nonnull Map<String, Map<String, List<RouteParameter>>> mergedParameters) {
+    protected HyperlinkParameterDetectionResult(@Nonnull List<ElementReference> sourceReferences, @Nonnull Map<String, Map<String, List<RouteParameter>>> parsedParameters) {
         this.sourceReferences = sourceReferences;
-        this.mergedParameters = mergedParameters;
+        for (Map.Entry<String, Map<String, List<RouteParameter>>> mergedEntry : parsedParameters.entrySet()) {
+            this.mergedParameters.put(mergedEntry.getKey(), mergedEntry.getValue());
+        }
     }
 
     public List<ElementReference> getRootSourceReferences() {
@@ -42,7 +43,7 @@ public class HyperlinkParameterDetectionResult {
     public List<RouteParameter> getEndpointParameters(String endpoint, String httpMethod) {
         Map<String, List<RouteParameter>> endpointRecord = mergedParameters.get(endpoint);
         if (endpointRecord != null) {
-            return endpointRecord.get(httpMethod.toUpperCase());
+            return endpointRecord.get(httpMethod);
         } else {
             return null;
         }
@@ -78,12 +79,42 @@ public class HyperlinkParameterDetectionResult {
         return result;
     }
 
-    public Set<String> getEndpointRequestTypes(String endpoint) {
+    public List<String> getEndpointRequestTypes(String endpoint) {
         Map<String, List<RouteParameter>> endpointRecord = mergedParameters.get(endpoint);
         if (endpointRecord != null) {
-            return endpointRecord.keySet();
+            return new ArrayList<String>(endpointRecord.keySet());
         } else {
             return null;
         }
+    }
+
+    public List<RouteParameter> getExclusiveParameters(String endpoint, String httpMethod) {
+        Map<String, List<RouteParameter>> endpointRecords = mergedParameters.get(endpoint);
+        if (endpointRecords == null || endpointRecords.get(httpMethod) == null) {
+            return null;
+        }
+
+        List<String> commonParameters = list();
+        for (Map.Entry<String, List<RouteParameter>> methodEntry : endpointRecords.entrySet()) {
+            String currentMethod = methodEntry.getKey();
+            if (currentMethod.equalsIgnoreCase(httpMethod)) {
+                continue;
+            }
+
+            for (RouteParameter param : methodEntry.getValue()) {
+                if (!commonParameters.contains(param.getName())) {
+                    commonParameters.add(param.getName());
+                }
+            }
+        }
+
+        List<RouteParameter> result = list();
+        List<RouteParameter> methodParameters = endpointRecords.get(httpMethod);
+        for (RouteParameter param : methodParameters) {
+            if (!commonParameters.contains(param.getName())) {
+                result.add(param);
+            }
+        }
+        return result;
     }
 }

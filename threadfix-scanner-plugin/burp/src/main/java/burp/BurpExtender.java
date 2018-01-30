@@ -33,9 +33,7 @@ import burp.extention.BurpPropertiesManager;
 import burp.extention.RestUtils;
 import com.denimgroup.threadfix.data.entities.Application;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
-import org.hibernate.resource.transaction.backend.jta.internal.JtaIsolationDelegate;
 
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
@@ -43,9 +41,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -328,11 +324,15 @@ public class BurpExtender implements IBurpExtender, ITab
                 displayArea.setText("URL:" + "\n");
                 displayArea.append(endpoint.getUrlPath() + "\n" + "\n");
                 displayArea.append("Methods: " + "\n" );
-                Iterator<String> it = endpoint.getHttpMethods().iterator();
-                while (it.hasNext())
-                {
-                    displayArea.append(it.next() + "\n");
-                }
+                // TODO - Gather all Endpoint objects pointing to the same endpoint and output their HTTP methods (Endpoints only have
+                //  one HTTP method at a time now)
+                displayArea.append(endpoint.getHttpMethod());
+
+//                Iterator<String> it = endpoint.getHttpMethods().iterator();
+//                while (it.hasNext())
+//                {
+//                    displayArea.append(it.next() + "\n");
+//                }
 
                 displayArea.append("\n" + "Parameters and type:" + "\n");
                 for(Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())

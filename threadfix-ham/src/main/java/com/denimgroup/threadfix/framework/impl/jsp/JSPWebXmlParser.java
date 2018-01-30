@@ -111,7 +111,7 @@ public class JSPWebXmlParser {
     private void populateWelcomeFiles(JSPWebXmlConfiguration config, NodeList welcomeFileNodes) {
         for (int i = 0; i < welcomeFileNodes.getLength(); i++) {
             Node welcomeNode = welcomeFileNodes.item(i);
-            String fileName = welcomeNode.getTextContent();
+            String fileName = welcomeNode.getTextContent().trim();
             config.addWelcomeFile(fileName);
         }
     }
@@ -131,12 +131,12 @@ public class JSPWebXmlParser {
                 String nodeName = childNode.getNodeName();
 
                 if (nodeName.equalsIgnoreCase("servlet-name")) {
-                    servletName = childNode.getTextContent();
+                    servletName = childNode.getTextContent().trim();
                 } else if (nodeName.equalsIgnoreCase("servlet-class")) {
-                    servletClass = childNode.getTextContent();
+                    servletClass = childNode.getTextContent().trim();
                     servletType = JSPServletMappingType.MAP_CLASS_SERVLET;
                 } else if (nodeName.equalsIgnoreCase("jsp-file")) {
-                    servletJsp = childNode.getTextContent();
+                    servletJsp = childNode.getTextContent().trim();
                     servletType = JSPServletMappingType.MAP_JSP_SERVLET;
                 }
 
@@ -170,9 +170,9 @@ public class JSPWebXmlParser {
                 String nodeName = childNode.getNodeName();
 
                 if (nodeName.equals("servlet-name")) {
-                    mappedServletName = childNode.getTextContent();
+                    mappedServletName = childNode.getTextContent().trim();
                 } else if (nodeName.equals("url-pattern")) {
-                    urlPatterns.add(childNode.getTextContent());
+                    urlPatterns.add(childNode.getTextContent().trim());
                 }
 
                 childNode = childNode.getNextSibling();

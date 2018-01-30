@@ -81,6 +81,16 @@ public class ElementReference {
         this.namedParameters.add(new HyperlinkSimpleParameter(parameterName, httpMethod, parameterType));
     }
 
+    public void addRequestParameter(String parameterName, String httpMethod, RouteParameterType parameterType, String dataType) {
+        this.namedParameters.add(new HyperlinkSimpleParameter(parameterName, httpMethod, parameterType, dataType));
+    }
+
+    public void addRequestParameter(String parameterName, String httpMethod, RouteParameterType parameterType, String dataType, List<String> acceptedValues) {
+        HyperlinkSimpleParameter newParam = new HyperlinkSimpleParameter(parameterName, httpMethod, parameterType, dataType);
+        newParam.acceptedValues = acceptedValues;
+        this.namedParameters.add(newParam);
+    }
+
     public void setDefaultRequestType(String defaultRequestType) {
         this.defaultRequestType = defaultRequestType;
     }
@@ -115,6 +125,15 @@ public class ElementReference {
 
     public List<HyperlinkSimpleParameter> getRequestParameters() {
         return namedParameters;
+    }
+
+    public HyperlinkSimpleParameter getRequestParameter(String name) {
+        for (HyperlinkSimpleParameter param : namedParameters) {
+            if (param.name.equals(name)) {
+                return param;
+            }
+        }
+        return null;
     }
 
     public boolean hasParameter(String name) {

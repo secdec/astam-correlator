@@ -71,7 +71,7 @@ public class SpringControllerEndpointParserTests {
 
             for (Endpoint endpoint : endpoints) {
                 if (endpoint.getUrlPath().equals(test[0])) {
-                    if (endpoint.getHttpMethods().contains(test[1])) {
+                    if (endpoint.getHttpMethod().equals(test[1])) {
                         matches = true;
 
                         for (int i = start; i < end; i ++) {

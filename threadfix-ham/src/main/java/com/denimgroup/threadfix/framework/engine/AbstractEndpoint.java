@@ -112,7 +112,7 @@ public abstract class AbstractEndpoint implements Endpoint {
             parameters = parameters.substring(0, 200) + "...";
         }
 
-        return getToStringNoCommas(getHttpMethods()) + "," +
+        return getToStringNoCommas(getHttpMethod()) + "," +
                 getUrlPath() + "," +
                 parameters;
     }

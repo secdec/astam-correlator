@@ -67,7 +67,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
     public StrutsEndpointMappings(@Nonnull File rootDirectory) {
         this.rootDirectory = rootDirectory;
 //        urlToControllerMethodsMap = map();
-        File strutsConfigFile = null;
+        List<File> strutsConfigFiles = list();
         File strutsPropertiesFile = null;
 
         entityMappings = new EntityMappings(rootDirectory);
@@ -84,12 +84,10 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
         for (Object configFile : configFiles) {
             File file = (File) configFile;
-            if (file.getName().equals(STRUTS_CONFIG_NAME))
-                strutsConfigFile = file;
-            if (file.getName().equals(STRUTS_PROPERTIES_NAME))
+            if (file.getName().equals(STRUTS_CONFIG_NAME) || (file.getName().contains("struts") && file.getName().endsWith("xml")))
+                strutsConfigFiles.add(file);
+            if (file.getName().equals(STRUTS_PROPERTIES_NAME) && strutsPropertiesFile == null)
                 strutsPropertiesFile = file;
-            if (strutsConfigFile != null && strutsPropertiesFile != null)
-                break;
         }
 
         Collection<File> javaFiles = FileUtils.listFiles(rootDirectory, new String[] { "java" }, true);
@@ -100,13 +98,17 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
 
         configurationProperties = new StrutsConfigurationProperties();
-        if (strutsConfigFile != null)
-            configurationProperties.loadFromStrutsXml(strutsConfigFile);
+        for (File cfgFile : strutsConfigFiles)
+            configurationProperties.loadFromStrutsXml(cfgFile);
         if (strutsPropertiesFile != null)
             configurationProperties.loadFromStrutsProperties(strutsPropertiesFile);
 
-        StrutsXmlParser strutsXmlParser = new StrutsXmlParser(configFiles);
-        strutsPackages = strutsXmlParser.parse(strutsConfigFile);
+
+        strutsPackages = list();
+        for (File cfgFile : strutsConfigFiles) {
+            StrutsXmlParser strutsXmlParser = new StrutsXmlParser(configFiles);
+            strutsPackages.addAll(strutsXmlParser.parse(cfgFile));
+        }
 
         StrutsProject project = new StrutsProject(rootDirectory.getAbsolutePath());
         project.setConfiguration(configurationProperties);

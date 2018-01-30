@@ -32,7 +32,6 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointQuery;
 import com.denimgroup.threadfix.framework.engine.full.EndpointQueryBuilder;
 import org.junit.Test;
-import org.omg.PortableServer.ServantRetentionPolicyValue;
 
 import java.io.File;
 
@@ -230,8 +229,8 @@ public class StrutsEndpointMappingsTests {
         assert bestMatch.getFilePath().endsWith("Register.java") :
                 "Endpoint didn't have file 'Register.java', had " + bestMatch.getFilePath();
 
-        assert bestMatch.getHttpMethods().contains("POST") :
-                "Endpoint didn't have HTTP method 'POST', had " + bestMatch.getHttpMethods();
+        assert bestMatch.getHttpMethod().equals("POST") :
+                "Endpoint didn't have HTTP method 'POST', had " + bestMatch.getHttpMethod();
 
         assert bestMatch.getParameters().keySet().contains("bean.userName") :
                 "Endpoint didn't have parameter 'bean.userName', had " + bestMatch.getParameters();
@@ -265,8 +264,8 @@ public class StrutsEndpointMappingsTests {
         assert bestMatch.getFilePath().equals(fileName) :
                 "Endpoint didn't match fileName " + fileName + ", got " + bestMatch.getFilePath() + " instead.";
 
-        assert bestMatch.getHttpMethods().contains(method) :
-                "Endpoint didn't have HTTP method " + method + ", had " + bestMatch.getHttpMethods();
+        assert bestMatch.getHttpMethod().equals(method) :
+                "Endpoint didn't have HTTP method " + method + ", had " + bestMatch.getHttpMethod();
 
         if (parameters != null) {
             for (String parameter : parameters) {

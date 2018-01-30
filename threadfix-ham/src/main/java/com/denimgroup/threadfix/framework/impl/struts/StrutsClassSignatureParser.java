@@ -322,14 +322,16 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                         StrutsMethod newMethod = new StrutsMethod();
                         newMethod.setName(possibleMethodName);
 
-                        String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
-                        for (String param : splitParams) {
-                            String[] paramParts = param.split(" ");
-                            String paramName = paramParts[paramParts.length - 1];
+                        if (possibleMethodParams != null) {
+                            String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
+                            for (String param : splitParams) {
+                                String[] paramParts = param.split(" ");
+                                String paramName = paramParts[paramParts.length - 1];
 
-                            newMethod.addParameter(paramName);
+                                newMethod.addParameter(paramName);
+                            }
+                            methods.add(newMethod);
                         }
-                        methods.add(newMethod);
                     }
                 }
 
