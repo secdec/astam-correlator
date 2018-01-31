@@ -77,6 +77,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         dotNetModelMappings = modelMappings;
 
         assembleEndpoints(rootDirectory);
+        expandAmbiguousEndpoints();
     }
 
     private void assembleEndpoints(File rootDirectory) {
@@ -172,6 +173,21 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 }
             }
         }
+    }
+
+    private void expandAmbiguousEndpoints() {
+        List<DotNetEndpoint> ambiguousEndpoints = list();
+        List<DotNetEndpoint> dedicatedEndpoints = list();
+        for (Endpoint endpoint : endpoints) {
+            DotNetEndpoint dotEndpoint = (DotNetEndpoint)endpoint;
+            if (dotEndpoint.hasMultipleMethods()) {
+                ambiguousEndpoints.add(dotEndpoint);
+                dedicatedEndpoints.addAll(dotEndpoint.splitByMethods());
+            }
+        }
+
+        endpoints.removeAll(ambiguousEndpoints);
+        endpoints.addAll(dedicatedEndpoints);
     }
 
     // TODO consider making this read-only with Collections.unmodifiableList() or returning a defensive copy

@@ -25,11 +25,13 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
+import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +45,8 @@ class DotNetEndpoint extends AbstractEndpoint {
     @Nonnull final String path;
     @Nonnull final String filePath;
     @Nonnull final Action action;
+
+    String forcedMethod = null;
 
     public DotNetEndpoint(@Nonnull String path, @Nonnull String filePath, @Nonnull Action action) {
         this.path = path;
@@ -68,7 +72,13 @@ class DotNetEndpoint extends AbstractEndpoint {
     @Nonnull
     @Override
     public String getHttpMethod() {
-        return action.getMethod();
+        if (forcedMethod != null) {
+            return forcedMethod;
+        } else if (action.getMethods().size() > 0) {
+            return action.getMethods().get(0);
+        } else {
+            return "GET";
+        }
     }
 
     @Nonnull
@@ -96,6 +106,22 @@ class DotNetEndpoint extends AbstractEndpoint {
     @Override
     public boolean matchesLineNumber(int lineNumber) {
         return lineNumber >= action.lineNumber && lineNumber <= action.endLineNumber;
+    }
+
+    public boolean hasMultipleMethods() {
+        return action.getMethods().size() > 1;
+    }
+
+    public List<DotNetEndpoint> splitByMethods() {
+        List<DotNetEndpoint> endpoints = list();
+
+        for (String method : action.getMethods()) {
+            DotNetEndpoint dedicatedMethodEndpoint = new DotNetEndpoint(this.path, this.filePath, this.action);
+            dedicatedMethodEndpoint.forcedMethod = method;
+            endpoints.add(dedicatedMethodEndpoint);
+        }
+
+        return endpoints;
     }
 
     @Nonnull

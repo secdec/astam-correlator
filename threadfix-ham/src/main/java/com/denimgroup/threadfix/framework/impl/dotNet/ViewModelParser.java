@@ -186,7 +186,7 @@ public class ViewModelParser implements EventBasedTokenizer {
                         parameter = parameter + "[0]";
                     }
 
-                    add(currentModelName, twoStringsAgo, parameter);
+                    add(currentModelName, twoStringsAgo, parameter, false);
                     classState = ClassState.IN_CLASS;
                     isMultiValueType = false;
                     isFirstTypeAfterBracket = true;
@@ -200,12 +200,12 @@ public class ViewModelParser implements EventBasedTokenizer {
         }
     }
 
-    private void add(String currentModelName, String propertyType, String propertyName) {
+    private void add(String currentModelName, String propertyType, String propertyName, boolean isOptional) {
         if (!map.containsKey(currentModelName)) {
             map.put(currentModelName, new HashSet<ModelField>());
         }
         if (propertyType != null && propertyName != null)
-            map.get(currentModelName).add(new ModelField(propertyType, propertyName));
+            map.get(currentModelName).add(new ModelField(propertyType, propertyName, isOptional));
     }
 
     @Override

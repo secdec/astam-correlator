@@ -312,8 +312,16 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
                         String paramName = possibleMethodName.substring(3);
                         String paramType = lastString;
-                        if (!parameters.contains(paramName)) {
-                            ModelField field = new ModelField(paramType, paramName);
+                        boolean paramExists = false;
+                        for (ModelField param : parameters) {
+                            if (param.getParameterKey().equals(paramName)) {
+                                paramExists = true;
+                                break;
+                            }
+                        }
+
+                        if (!paramExists) {
+                            ModelField field = new ModelField(paramType, paramName, false);
                             parameters.add(field);
                         }
 

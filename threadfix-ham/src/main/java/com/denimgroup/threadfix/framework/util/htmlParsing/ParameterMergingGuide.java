@@ -45,5 +45,12 @@ public class ParameterMergingGuide {
         return unreferencedEndpoints;
     }
 
+    public boolean hasData() {
+        return  addedParameters.size() > 0 ||
+                removedParameters.size() > 0 ||
+                discoveredHttpMethods.size() > 0 ||
+                unreferencedEndpoints.size() > 0;
+    }
+
 }
 

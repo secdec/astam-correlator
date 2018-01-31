@@ -37,6 +37,10 @@ import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPluginDetector;
+import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetectionResult;
+import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetector;
+import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterMerger;
+import com.denimgroup.threadfix.framework.util.htmlParsing.ParameterMergingGuide;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
@@ -44,6 +48,7 @@ import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -164,6 +169,43 @@ public class StrutsEndpointMappings implements EndpointGenerator {
     private void generateMaps(StrutsProject project) {
         endpoints = list();
         endpoints.addAll(actionMapper.generateEndpoints(project, project.getPackages(), ""));
+
+        List<ParameterMergingGuide> detectorParameters = list();
+
+        HyperlinkParameterDetector parameterDetector = new HyperlinkParameterDetector();
+        HyperlinkParameterMerger parameterMerger = new HyperlinkParameterMerger(true, false);
+        Collection<File> jspAndHtmlFiles = FileUtils.listFiles(rootDirectory, new String[] { ".jsp", ".html" }, true);
+        for (File file : jspAndHtmlFiles) {
+            String contents;
+            try {
+                contents = FileUtils.readFileToString(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+                continue;
+            }
+
+            contents = replaceJspTags(contents);
+            contents = replaceStrutsTemplateTags(contents);
+
+            HyperlinkParameterDetectionResult detectionResult = parameterDetector.parse(contents, file);
+            detectorParameters.add(parameterMerger.mergeParsedImplicitParameters(endpoints, detectionResult));
+        }
+
+        for (ParameterMergingGuide mergingGuide : detectorParameters) {
+            if (!mergingGuide.hasData()) {
+                continue;
+            }
+
+
+        }
+    }
+
+    private String replaceJspTags(String jspText) {
+        return jspText;
+    }
+
+    private String replaceStrutsTemplateTags(String strutsTemplateText) {
+        return strutsTemplateText;
     }
 
 

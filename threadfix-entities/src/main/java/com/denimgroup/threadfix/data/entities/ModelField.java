@@ -30,10 +30,16 @@ public class ModelField {
 
 	@Nonnull
 	private final String fieldType, parameterKey;
+	private boolean isOptional;
 
 	public ModelField(@Nonnull String fieldType, @Nonnull String methodName) {
+		this(fieldType, methodName, false);
+	}
+
+	public ModelField(@Nonnull String fieldType, @Nonnull String methodName, boolean isOptional) {
 		this.fieldType = fieldType;
 		this.parameterKey = getParameterKey(methodName);
+		this.isOptional = isOptional;
 	}
 
 	@Nonnull
@@ -63,10 +69,14 @@ public class ModelField {
 		return "Integer".equals(fieldType) || "String".equals(fieldType) || "int".equals(fieldType);
 	}
 
+	public boolean isOptional() {
+		return isOptional;
+	}
+
 	@Nonnull
 	@Override
 	public String toString() {
-		return parameterKey + ":" + fieldType;
+		return parameterKey + ":" + fieldType + (isOptional ? "?" : "");
 	}
 
 	@Override

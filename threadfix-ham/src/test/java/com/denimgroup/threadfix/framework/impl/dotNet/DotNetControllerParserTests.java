@@ -133,7 +133,7 @@ public class DotNetControllerParserTests {
 
         for (Action action : mappings.getActions()) {
             if (!expectedActions.contains(action.name)) {
-                extra.add(action.name + " " + action.getMethod());
+                extra.add(action.name + " " + action.getMethods());
             }
         }
 

@@ -175,7 +175,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                     setState(SignatureState.ARROBA);
                 } else if (stringValue != null && stringValue.equals(BINDING_RESULT) &&
                         lastParamType != null && lastParam != null) {
-                    currentModelObject = new ModelField(lastParamType, lastParam); // should be type and variable name
+                    currentModelObject = new ModelField(lastParamType, lastParam, false); // should be type and variable name
                 }
                 break;
             case ARROBA:

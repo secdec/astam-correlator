@@ -25,6 +25,10 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
+
 /**
  * Created by mac on 6/11/14.
  */
@@ -58,11 +62,21 @@ final class DotNetKeywords {
             CONTROLLER = "controller",
             ACTION = "action",
             ID = "id",
-            SYSTEM_HTTP_APPLICATION = "System.Web.HttpApplication",
-            ACTION_RESULT = "ActionResult",
-            IACTION_RESULT = "IActionResult",
-            VIEW_RESULT = "ViewResult",
-            HTTP_MESSAGE_RESPONSE = "HttpResponseMessage";
+            SYSTEM_HTTP_APPLICATION = "System.Web.HttpApplication";
 
+    public static final List<String> RESULT_TYPES = list(
+            "ActionResult",
+            "IActionResult",
+            "ContentResult",
+            "JsonResult",
+            "ViewResult",
+            "HttpResponseMessage",
+            "PartialViewResult",
+            "RedirectResult",
+            "RedirectToRouteResult",
+            "JavaScriptResult",
+            "FileResult",
+            "EmptyResult"
+    );
 
 }

@@ -212,7 +212,7 @@ public class SpringDataFlowParser implements ParameterParser {
 
             if (modelObject != null && initialType != null) {
 			
-                ModelField beanField = new ModelField(initialType, modelObject);
+                ModelField beanField = new ModelField(initialType, modelObject, false);
 
                 List<ModelField> fieldChain = list(beanField);
 

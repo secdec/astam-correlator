@@ -91,9 +91,15 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     boolean shouldContinue = true;
     String  lastString     = null, methodName = null, twoStringsAgo = null;
     Set<ModelField> parametersWithTypes = set();
+    boolean wasParamOptional = false;
+    int lastLineNumber = -1;
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
+
+        if (lineNumber != lastLineNumber) {
+            lastLineNumber = lineNumber;
+        }
 
         processMainThread(type, lineNumber, stringValue);
         processAttributes(type, stringValue);
@@ -177,10 +183,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 }
                 break;
             case PUBLIC_IN_BODY:
-                if (ACTION_RESULT.equals(stringValue) ||
-                        IACTION_RESULT.equals(stringValue) ||
-                        HTTP_MESSAGE_RESPONSE.equals(stringValue) ||
-                        VIEW_RESULT.equals(stringValue)) {
+                if (RESULT_TYPES.contains(stringValue)) {
                     currentState = State.ACTION_RESULT;
                 } else if (type == '(' || type == ';' || type == '{') {
                     currentState = State.BODY;
@@ -206,12 +209,15 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                     twoStringsAgo = lastString;
                     lastString = stringValue;
                 } else if (type == ',' || type == ')' && lastString != null) {
-                    parametersWithTypes.add(new ModelField(twoStringsAgo, lastString));
+                    parametersWithTypes.add(new ModelField(twoStringsAgo, lastString, wasParamOptional));
+                    wasParamOptional = false;
                     if (twoStringsAgo.equals("Include")) {
                         currentState = State.AFTER_BIND_INCLUDE;
                     }
                 } else if (type == '=' && !"Include".equals(lastString)) {
                     currentState = State.DEFAULT_VALUE;
+                } else if (type == '?' && twoStringsAgo != null) {
+                    wasParamOptional = true;
                 }
 
                 if (currentParen == storedParen) {
@@ -250,7 +256,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     }
 
     private void processAttributes(int type, String stringValue) {
-        if (currentState == State.BODY) {
+        if (currentState == State.BODY && currentCurlyBrace == methodBraceLevel) {
             switch (currentAttributeState) {
                 case START:
                     if (type == '[') {

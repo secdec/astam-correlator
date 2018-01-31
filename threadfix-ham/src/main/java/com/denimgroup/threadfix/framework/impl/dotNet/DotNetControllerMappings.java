@@ -92,7 +92,7 @@ public class DotNetControllerMappings {
         String allCapsMethod = method.toUpperCase();
 
         for (Action action : actions) {
-            if (action.name.equals(actionName) && action.getMethod().equals(allCapsMethod)) {
+            if (action.name.equals(actionName) && action.getMethods().equals(allCapsMethod)) {
                 return action;
             }
         }

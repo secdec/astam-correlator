@@ -103,7 +103,7 @@ public class EntityParser implements EventBasedTokenizer {
             case PARAM_TYPE:
                 if (currentParamType != null && stringValue != null && stringValue.startsWith("get") &&
                         stringValue.length() > 3) { // this is to avoid errors with methods named "get"
-				    fieldMappings.add(new ModelField(currentParamType, stringValue));
+				    fieldMappings.add(new ModelField(currentParamType, stringValue, false));
 			    }
                 if (currentParamType != null && stringValue != null && !stringValue.startsWith("get")
                     && stringValue.length() > 0 && currentParamType.equals("String")) { // public String method()

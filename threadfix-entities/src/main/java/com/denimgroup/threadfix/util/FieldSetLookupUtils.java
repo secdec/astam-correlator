@@ -100,7 +100,7 @@ public final class FieldSetLookupUtils {
         }
 
         for (ModelField field : fieldsToAdd.addAll(fields)) {
-            fieldsWithPrefixes.add(new ModelField(field.getType(), prefix + field.getParameterKey()));
+            fieldsWithPrefixes.add(new ModelField(field.getType(), prefix + field.getParameterKey(), field.isOptional()));
         }
 
         return fieldsWithPrefixes;

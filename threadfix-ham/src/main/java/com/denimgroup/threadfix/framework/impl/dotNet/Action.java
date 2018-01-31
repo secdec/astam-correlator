@@ -29,9 +29,11 @@ import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
 /**
@@ -51,20 +53,26 @@ class Action {
     @Nonnull
     Set<ModelField> parametersWithTypes;
 
-    String getMethod() {
+    List<String> getMethods() {
+        List<String> methods = list();
+
         if (attributes.contains("HttpGet")) {
-            return "GET";
-        } else if (attributes.contains("HttpPost")) {
-            return "POST";
-        } else if (attributes.contains("HttpPatch")) {
-            return "PATCH";
-        } else if (attributes.contains("HttpPut")) {
-            return "PUT";
-        } else if (attributes.contains("HttpDelete")) {
-            return "DELETE";
-        } else {
-            return "GET";
+            methods.add("GET");
         }
+        if (attributes.contains("HttpPost")) {
+            methods.add("POST");
+        }
+        if (attributes.contains("HttpPatch")) {
+            methods.add("PATCH");
+        }
+        if (attributes.contains("HttpPut")) {
+            methods.add("PUT");
+        }
+        if (attributes.contains("HttpDelete")) {
+            methods.add("DELETE");
+        }
+
+        return methods;
     }
 
     static Action action(@Nonnull String name,
@@ -82,10 +90,18 @@ class Action {
         for (ModelField field : parametersWithTypes) {
             if (field.getType().equals("Include")) {
                 for (String s : StringUtils.split(field.getParameterKey(), ',')) {
-                    action.parameters.put(s.trim(), RouteParameter.fromDataType(ParameterDataType.getType(field.getType())));
+                    RouteParameter param = new RouteParameter();
+                    param.setName(s.trim());
+                    param.setOptional(field.isOptional());
+                    param.setDataType(ParameterDataType.getType(field.getType()));
+                    action.parameters.put(s.trim(), param);
                 }
             } else {
-                action.parameters.put(field.getParameterKey(), RouteParameter.fromDataType(ParameterDataType.getType(field.getType())));
+                RouteParameter param = new RouteParameter();
+                param.setName(field.getParameterKey().trim());
+                param.setOptional(field.isOptional());
+                param.setDataType(ParameterDataType.getType(field.getType()));
+                action.parameters.put(field.getParameterKey(), param);
             }
         }
 
@@ -94,7 +110,7 @@ class Action {
 
     @Override
     public String toString() {
-        return name + ": " + getMethod() + parameters;
+        return name + ": " + getMethods() + parameters;
     }
 
 }
