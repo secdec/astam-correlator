@@ -212,32 +212,27 @@ public abstract class EndpointsButton extends JButton {
                     String method = it.next();
                     try
                     {
-
                        URL reqUrl = new URL(url + endpointPath);
-                       byte[] req = callbacks.getHelpers().buildHttpRequest(reqUrl);
                        for (Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())
                        {
                            if (first)
                            {
                                first = false;
-                                      reqString = reqString + "?";
+                               reqString = reqString + "?";
                            }
                            else
                            {
                                reqString = reqString + "&";
                            }
-                           IParameter param = null;
 
                            if (parameter.getValue().getDataType() == ParameterDataType.STRING)
                            {
                                reqString = reqString + parameter.getKey() + "="+"debug";
                            }
-
                            else if (parameter.getValue().getDataType() == ParameterDataType.INTEGER)
                            {
                                reqString = reqString + parameter.getKey() + "="+"-1";
                            }
-
                            else if (parameter.getValue().getDataType() == ParameterDataType.BOOLEAN)
                            {
                                reqString = reqString + parameter.getKey() + "="+"true";
@@ -254,19 +249,16 @@ public abstract class EndpointsButton extends JButton {
                            {
                                reqString = reqString + parameter.getKey() + "="+new Date();
                            }
-                           if (param != null)
-                              callbacks.getHelpers().addParameter(req, param);
                         }
                         byte[] manReq = callbacks.getHelpers().buildHttpRequest(new URL(url + reqString));
                         if(method.toString().equalsIgnoreCase("post"))
                         {
-
                             manReq = callbacks.getHelpers().toggleRequestMethod(manReq);
-                            requests.put(manReq, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
                         }
-
+                        if(reqUrl.getPort() != -1)
                             requests.put(manReq, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
-
+                        else
+                            requests.put(manReq, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getDefaultPort(), reqUrl.getProtocol()));
                      }
                      catch (MalformedURLException e1)
                      {
