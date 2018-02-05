@@ -206,7 +206,6 @@ public abstract class EndpointsButton extends JButton {
                 String method = endpoint.getHttpMethod();
                 try
                 {
-
                    URL reqUrl = new URL(url + endpointPath);
                    byte[] req = callbacks.getHelpers().buildHttpRequest(reqUrl);
                    for (Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())
