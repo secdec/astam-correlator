@@ -25,6 +25,7 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import org.apache.commons.lang3.StringUtils;
 
@@ -35,6 +36,7 @@ import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.CollectionUtils.set;
 
 /**
  * Created by mac on 6/26/14.
@@ -51,7 +53,7 @@ class Action {
     @Nonnull
     Map<String, RouteParameter> parameters = map();
     @Nonnull
-    Set<ModelField> parametersWithTypes;
+    Set<RouteParameter> parametersWithTypes;
 
     List<String> getMethods() {
         List<String> methods = list();
@@ -79,31 +81,104 @@ class Action {
                          @Nonnull Set<String> attributes,
                          @Nonnull Integer lineNumber,
                          @Nonnull Integer endLineNumber,
-                         @Nonnull Set<ModelField> parametersWithTypes) {
+                         @Nonnull Set<RouteParameter> parametersWithTypes) {
         Action action = new Action();
         action.name = name;
         action.attributes = attributes;
         action.lineNumber = lineNumber;
-        action.parametersWithTypes = parametersWithTypes;
         action.endLineNumber = endLineNumber;
+        action.parametersWithTypes = set();
 
-        for (ModelField field : parametersWithTypes) {
-            if (field.getType().equals("Include")) {
-                for (String s : StringUtils.split(field.getParameterKey(), ',')) {
-                    RouteParameter param = new RouteParameter();
-                    param.setName(s.trim());
-                    param.setOptional(field.isOptional());
-                    param.setDataType(ParameterDataType.getType(field.getType()));
-                    action.parameters.put(s.trim(), param);
+        Map<String, List<RouteParameter>> duplicateParameterData = map();
+
+        for (RouteParameter param : parametersWithTypes) {
+            if (param.getDataTypeSource() != null && param.getDataTypeSource().equals("Include")) {
+                for (String s : StringUtils.split(param.getName(), ',')) {
+                    s = s.trim();
+
+                    RouteParameter actionParam = new RouteParameter();
+                    actionParam.setName(s);
+                    actionParam.setOptional(actionParam.isOptional());
+                    actionParam.setParamType(param.getParamType());
+
+                    List<RouteParameter> duplicateRecord = duplicateParameterData.get(s);
+                    if (duplicateRecord == null) {
+                        duplicateParameterData.put(s, duplicateRecord = list());
+                    }
+                    duplicateRecord.add(actionParam);
                 }
             } else {
-                RouteParameter param = new RouteParameter();
-                param.setName(field.getParameterKey().trim());
-                param.setOptional(field.isOptional());
-                param.setDataType(ParameterDataType.getType(field.getType()));
-                action.parameters.put(field.getParameterKey(), param);
+                String paramName = param.getName().trim();
+                RouteParameter actionParam = new RouteParameter();
+                actionParam.setName(paramName);
+                actionParam.setOptional(param.isOptional());
+                actionParam.setDataType(param.getDataTypeSource());
+                actionParam.setParamType(param.getParamType());
+
+                List<RouteParameter> duplicateRecord = duplicateParameterData.get(paramName);
+                if (duplicateRecord == null) {
+                    duplicateParameterData.put(paramName, duplicateRecord = list());
+                }
+                duplicateRecord.add(actionParam);
             }
         }
+
+        // Cross-reference duplicate parameters and determine which properties are most likely correct
+        for (Map.Entry<String, List<RouteParameter>> entry : duplicateParameterData.entrySet()) {
+            String paramName = entry.getKey();
+            List<RouteParameter> duplicates = entry.getValue();
+            if (duplicates.size() == 1) {
+                action.parameters.put(paramName, duplicates.get(0));
+                action.parametersWithTypes.add(duplicates.get(0));
+                continue;
+            }
+
+            RouteParameter consolidatedParameter = null;
+
+            for (RouteParameter duplicate : duplicates) {
+                // Start with the properties of the first listed parameter
+                if (consolidatedParameter == null) {
+                    consolidatedParameter = new RouteParameter();
+                    consolidatedParameter.setName(paramName);
+                    consolidatedParameter.setParamType(duplicate.getParamType());
+                    consolidatedParameter.setDataType(duplicate.getDataType());
+                    consolidatedParameter.setOptional(duplicate.isOptional());
+                    consolidatedParameter.setAcceptedValues(duplicate.getAcceptedValues());
+                } else {
+
+                    boolean needsBetterParamType = consolidatedParameter.getParamType() == RouteParameterType.UNKNOWN;
+                    boolean needsAcceptedValues = consolidatedParameter.getAcceptedValues() == null || consolidatedParameter.getAcceptedValues().size() == 0;
+                    boolean needsBetterDataType =
+                                    consolidatedParameter.getDataType() == null ||
+                                    consolidatedParameter.getDataType().getDisplayName().equals(ParameterDataType.STRING.getDisplayName());
+
+                    // Optional is 'false' by default, take another parameter's 'optional' setting in case the other is non-default
+                    boolean needsIsOptional = !consolidatedParameter.isOptional();
+
+                    if (needsBetterParamType) {
+                        consolidatedParameter.setParamType(duplicate.getParamType());
+                    }
+
+                    if (needsAcceptedValues) {
+                        consolidatedParameter.setAcceptedValues(duplicate.getAcceptedValues());
+                    }
+
+                    if (needsBetterDataType) {
+                        consolidatedParameter.setDataType(duplicate.getDataType());
+                    }
+
+                    if (needsIsOptional) {
+                        consolidatedParameter.setOptional(duplicate.isOptional());
+                    }
+
+                }
+            }
+
+            action.parameters.put(paramName, consolidatedParameter);
+            action.parametersWithTypes.add(consolidatedParameter);
+        }
+
+
 
         return action;
     }

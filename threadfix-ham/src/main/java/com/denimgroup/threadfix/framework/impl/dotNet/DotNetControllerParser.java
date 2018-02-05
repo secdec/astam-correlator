@@ -26,6 +26,9 @@
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -82,17 +85,23 @@ public class DotNetControllerParser implements EventBasedTokenizer {
         START, OPEN_BRACKET, STRING, AREA
     }
 
+    enum ParameterState {
+        START, REQUEST, REQUEST_INDEXER, SESSION, SESSION_INDEXER, FILES, QUERY_STRING, QUERY_STRING_INDEXER, COOKIES, COOKIES_INDEXER
+    }
+
     State currentState      = State.START;
     AttributeState currentAttributeState = AttributeState.START;
+    ParameterState currentParameterState = ParameterState.START;
     Set<String> currentAttributes = set();
     String lastAttribute;
     int   currentCurlyBrace = 0, currentParen = 0, classBraceLevel = 0,
             methodBraceLevel = 0, storedParen = 0, methodLineNumber = 0;
     boolean shouldContinue = true;
     String  lastString     = null, methodName = null, twoStringsAgo = null;
-    Set<ModelField> parametersWithTypes = set();
+    Set<RouteParameter> parametersWithTypes = set();
     boolean wasParamOptional = false;
     int lastLineNumber = -1;
+    String possibleParamType = null;
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
@@ -103,7 +112,12 @@ public class DotNetControllerParser implements EventBasedTokenizer {
 
         processMainThread(type, lineNumber, stringValue);
         processAttributes(type, stringValue);
+        processRequestDataReads(type, stringValue);
 
+        if (stringValue != null) {
+            twoStringsAgo = lastString;
+            lastString = stringValue;
+        }
     }
 
     private void processMainThread(int type, int lineNumber, String stringValue) {
@@ -183,10 +197,11 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 }
                 break;
             case PUBLIC_IN_BODY:
-                if (RESULT_TYPES.contains(stringValue)) {
+                if (RESULT_TYPES.contains(stringValue) || hasHttpAttribute()) {
                     currentState = State.ACTION_RESULT;
                 } else if (type == '(' || type == ';' || type == '{') {
                     currentState = State.BODY;
+                    currentAttributes.clear();
                 }
                 break;
             case ACTION_RESULT:
@@ -205,19 +220,24 @@ public class DotNetControllerParser implements EventBasedTokenizer {
 
                 break;
             case IN_ACTION_SIGNATURE:
-                if (stringValue != null) {
-                    twoStringsAgo = lastString;
-                    lastString = stringValue;
-                } else if (type == ',' || type == ')' && lastString != null) {
-                    parametersWithTypes.add(new ModelField(twoStringsAgo, lastString, wasParamOptional));
-                    wasParamOptional = false;
-                    if (twoStringsAgo.equals("Include")) {
-                        currentState = State.AFTER_BIND_INCLUDE;
+                if (stringValue == null) {
+                    if (type == ',' || type == ')' && lastString != null) {
+                        if (isValidParameterName(lastString)) {
+                            RouteParameter param = new RouteParameter();
+                            param.setDataType(twoStringsAgo);
+                            param.setName(lastString);
+                            param.setOptional(wasParamOptional);
+                            parametersWithTypes.add(param);
+                        }
+                        wasParamOptional = false;
+                        if (twoStringsAgo.equals("Include")) {
+                            currentState = State.AFTER_BIND_INCLUDE;
+                        }
+                    } else if (type == '=' && !"Include".equals(lastString)) {
+                        currentState = State.DEFAULT_VALUE;
+                    } else if (type == '?' && twoStringsAgo != null) {
+                        wasParamOptional = true;
                     }
-                } else if (type == '=' && !"Include".equals(lastString)) {
-                    currentState = State.DEFAULT_VALUE;
-                } else if (type == '?' && twoStringsAgo != null) {
-                    wasParamOptional = true;
                 }
 
                 if (currentParen == storedParen) {
@@ -278,5 +298,152 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                     break;
             }
         }
+    }
+
+    private void processRequestDataReads(int type, String stringValue) {
+        if (currentState != State.IN_ACTION_BODY) {
+            return;
+        }
+
+        switch (currentParameterState) {
+            case START:
+                possibleParamType = null;
+
+                if ("Request.Files".equals(stringValue)) {
+                    RouteParameter param = new RouteParameter();
+                    param.setName("[File Data]");
+                    param.setParamType(RouteParameterType.FILES);
+                    parametersWithTypes.add(param);
+                } else if ("Request.Cookies".equals(stringValue)) {
+                    currentParameterState = ParameterState.COOKIES;
+                } else if ("Request.QueryString".equals(stringValue)) {
+                    currentParameterState = ParameterState.QUERY_STRING;
+                } else if ("Request".equals(stringValue)) {
+                    currentParameterState = ParameterState.REQUEST;
+                } else if ("Session".equals(stringValue)) {
+                    currentParameterState = ParameterState.SESSION;
+                }
+
+                if (currentParameterState != ParameterState.START) {
+                    if (twoStringsAgo != null && ParameterDataType.getType(twoStringsAgo).getDisplayName() != null) {
+                        possibleParamType = twoStringsAgo;
+                    } else if (lastString != null && ParameterDataType.getType(lastString).getDisplayName() != null) {
+                        possibleParamType = lastString;
+                    } else {
+                        possibleParamType = null;
+                    }
+                }
+                break;
+
+            case REQUEST:
+                if (type == '[') {
+                    currentParameterState = ParameterState.REQUEST_INDEXER;
+                } else {
+                    currentParameterState = ParameterState.START;
+                }
+                break;
+
+            case REQUEST_INDEXER:
+                if (type == '"' && stringValue != null) {
+                    RouteParameter param = new RouteParameter();
+                    param.setName(stringValue);
+                    param.setParamType(RouteParameterType.UNKNOWN);
+                    param.setDataType(possibleParamType);
+                    currentParameterState = ParameterState.START;
+                } else {
+                    currentParameterState = ParameterState.START;
+                }
+                break;
+
+            case QUERY_STRING:
+                if (type == '[') {
+                    currentParameterState = ParameterState.QUERY_STRING_INDEXER;
+                } else {
+                    currentParameterState = ParameterState.START;
+                }
+                break;
+
+            case QUERY_STRING_INDEXER:
+                if (stringValue != null && type == '"') {
+                    RouteParameter param = new RouteParameter();
+                    param.setDataType(possibleParamType);
+                    param.setName(stringValue);
+                    param.setParamType(RouteParameterType.QUERY_STRING);
+                    parametersWithTypes.add(param);
+                }
+                currentParameterState = ParameterState.START;
+                break;
+
+            case COOKIES:
+                if (type == '[') {
+                    currentParameterState = ParameterState.COOKIES_INDEXER;
+                } else {
+                    currentParameterState = ParameterState.START;
+                }
+                break;
+
+            case COOKIES_INDEXER:
+                if (type == '"' && stringValue != null) {
+                    RouteParameter param = new RouteParameter();
+                    param.setDataType(possibleParamType);
+                    param.setName(stringValue);
+                    param.setParamType(RouteParameterType.COOKIE);
+                    parametersWithTypes.add(param);
+                }
+
+                currentParameterState = ParameterState.START;
+                break;
+
+            case SESSION:
+                if (type == '[') {
+                    currentParameterState = ParameterState.SESSION_INDEXER;
+                } else {
+                    currentParameterState = ParameterState.START;
+                }
+                break;
+
+            case SESSION_INDEXER:
+                if (type == '"' && stringValue != null) {
+                    RouteParameter param = new RouteParameter();
+                    param.setDataType(possibleParamType);
+                    param.setName(stringValue);
+                    param.setParamType(RouteParameterType.SESSION);
+                    parametersWithTypes.add(param);
+                }
+                currentParameterState = ParameterState.START;
+                break;
+        }
+    }
+
+    private boolean hasHttpAttribute() {
+        for (String attr : currentAttributes) {
+            if ("HttpGet".equals(attr) ||
+                    "HttpPost".equals(attr) ||
+                    "HttpPatch".equals(attr) ||
+                    "HttpPut".equals(attr) ||
+                    "HttpDelete".equals(attr)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isValidParameterName(String name) {
+        for (int i = 0; i < name.length(); i++) {
+            char c = name.charAt(i);
+            if (c < 48) {
+                return false;
+            }
+            if (c > 57 && c < 65) {
+                return false;
+            }
+            if (c > 90 && c < 97 && c != '_') {
+                return false;
+            }
+            if (c > 122) {
+                return false;
+            }
+        }
+        return true;
     }
 }

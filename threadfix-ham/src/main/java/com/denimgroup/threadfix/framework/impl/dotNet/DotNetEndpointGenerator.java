@@ -28,10 +28,13 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
+import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
+import com.denimgroup.threadfix.framework.util.ParameterMerger;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
@@ -39,6 +42,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetPathCleaner.cleanStringFromCode;
@@ -78,6 +82,24 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 
         assembleEndpoints(rootDirectory);
         expandAmbiguousEndpoints();
+
+        ParameterMerger merger = new ParameterMerger();
+        Map<Endpoint, Map<String, RouteParameter>> allMergedParameters = merger.mergeParametersIn(endpoints);
+
+        for (Map.Entry<Endpoint, Map<String, RouteParameter>> endpointMapEntry : allMergedParameters.entrySet()) {
+            DotNetEndpoint endpoint = (DotNetEndpoint)endpointMapEntry.getKey();
+            Map<String, RouteParameter> mergedEndpointParameters = endpointMapEntry.getValue();
+            Map<String, RouteParameter> currentParameters = endpoint.getParameters();
+
+            for (Map.Entry<String, RouteParameter> mergedParameter : mergedEndpointParameters.entrySet()) {
+                String paramName = mergedParameter.getKey();
+                RouteParameter mergedParam = mergedParameter.getValue();
+
+                currentParameters.put(paramName, mergedParam);
+            }
+        }
+
+        EndpointValidationStatistics.printValidationStats(endpoints);
     }
 
     private void assembleEndpoints(File rootDirectory) {
@@ -141,7 +163,8 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                     result = result.replaceAll("/\\{[^\\}]*\\}", "");
                 }
 
-                result = cleanStringFromCode(result);
+                // Commented since this would remove valuable information regarding parametric routes
+                //result = cleanStringFromCode(result);
 
                 if (!result.startsWith("/")) {
                     result = "/" + result;
@@ -163,12 +186,21 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
     private void expandParameters(Action action) {
         if (dotNetModelMappings != null) {
 
-            for (ModelField field : action.parametersWithTypes) {
-                ModelFieldSet parameters = dotNetModelMappings.getPossibleParametersForModelType(field.getType());
+            for (RouteParameter param : action.parametersWithTypes) {
+                if (param.getDataTypeSource() == null) {
+                    continue;
+                }
+
+                ModelFieldSet parameters = dotNetModelMappings.getPossibleParametersForModelType(param.getDataTypeSource());
                 if (!parameters.getFieldSet().isEmpty()) {
-                    action.parameters.remove(field.getParameterKey());
+                    action.parameters.remove(param.getName());
                     for (ModelField possibleParameter : parameters) {
-                        action.parameters.put(possibleParameter.getParameterKey(), RouteParameter.fromDataType(ParameterDataType.getType(possibleParameter.getType())));
+                        RouteParameter newParam = new RouteParameter();
+                        newParam.setDataType(possibleParameter.getType());
+                        newParam.setParamType(RouteParameterType.FORM_DATA); // All non-primitives are serialized as form data
+                        newParam.setName(possibleParameter.getParameterKey());
+                        newParam.setOptional(possibleParameter.isOptional());
+                        action.parameters.put(possibleParameter.getParameterKey(), newParam);
                     }
                 }
             }

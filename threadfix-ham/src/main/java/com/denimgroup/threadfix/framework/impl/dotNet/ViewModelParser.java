@@ -183,7 +183,7 @@ public class ViewModelParser implements EventBasedTokenizer {
                              threeStringsAgo.contains("Set")))
                             || isMultiValueType
                             ) {
-                        parameter = parameter + "[0]";
+                        parameter = parameter + "[]";
                     }
 
                     add(currentModelName, twoStringsAgo, parameter, false);
