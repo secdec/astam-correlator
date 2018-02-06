@@ -31,6 +31,7 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -55,11 +56,50 @@ public class EndpointMain {
     static Endpoint.PrintFormat printFormat = Endpoint.PrintFormat.DYNAMIC;
     static FrameworkType framework = FrameworkType.DETECT;
     static boolean simplePrint = false;
+    static String pathListFile = null;
 
     public static void main(String[] args) {
         if (checkArguments(args)) {
             resetLoggingConfiguration();
-            listEndpoints(new File(args[0]));
+            if (pathListFile != null) {
+                System.out.println("Loading path list file at '" + pathListFile + "'");
+                List<String> fileContents;
+                try {
+                    fileContents = FileUtils.readLines(new File(pathListFile));
+                    List<File> requestedTargets = list();
+                    int lineNo = 1;
+                    for (String line : fileContents) {
+                        line = line.trim();
+                        if (!line.startsWith("#") && !line.isEmpty()) {
+                            File asFile = new File(line);
+                            if (!asFile.exists()) {
+                                System.out.println("WARN - Unable to find input path '" + line + "' at line " + lineNo + " of " + pathListFile);
+                            } else if (!asFile.isDirectory()) {
+                                System.out.println("WARN - Input path '" + line + "' is not a directory, at line " + lineNo + " of " + pathListFile);
+                            } else {
+                                requestedTargets.add(asFile);
+                            }
+                        }
+                        ++lineNo;
+                    }
+
+                    for (File file : requestedTargets) {
+                        System.out.println("Beginning endpoint detection for '" + file.getName() + "'");
+                        listEndpoints(file);
+                        System.out.println("Finished endpoint detection for '" + file.getName() + "'");
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.out.println("Unable to read path-list at " + pathListFile);
+                    printError();
+                }
+            } else {
+                listEndpoints(new File(args[0]));
+            }
+            if (printFormat != JSON) {
+                System.out.println("To enable logging include the -debug argument");
+            }
         } else {
             printError();
         }
@@ -72,11 +112,13 @@ public class EndpointMain {
 
         File rootFile = new File(args[0]);
 
-        if (rootFile.exists() && rootFile.isDirectory()) {
+        if (rootFile.exists() && rootFile.isDirectory() || args[0].startsWith("-path-list-file")) {
 
             List<String> arguments = list(args);
 
-            arguments.remove(0);
+            if (rootFile.exists()) {
+                arguments.remove(0);
+            }
 
             for (String arg : arguments) {
                 if (arg.equals("-debug")) {
@@ -91,8 +133,22 @@ public class EndpointMain {
                     framework = FrameworkType.getFrameworkType(frameworkName);
                 } else if (arg.equals("-simple")) {
                     simplePrint = true;
+                } else if (arg.startsWith("-path-list-file=")) {
+                    String[] parts = arg.split("=");
+                    String path = parts[1];
+                    if (path == null || path.isEmpty()) {
+                        System.out.println("Invalid -path-list-file argument, value is empty");
+                        continue;
+                    }
+                    if (path.startsWith("\"") || path.startsWith("'")) {
+                        path = path.substring(1);
+                    }
+                    if (path.endsWith("\"") || path.endsWith("'")) {
+                        path = path.substring(0, path.length() - 1);
+                    }
+                    pathListFile = path;
                 } else {
-                    System.out.println("Received unsupported option " + arg + ", valid arguments are -lint, -debug, -json, and -simple");
+                    System.out.println("Received unsupported option " + arg + ", valid arguments are -lint, -debug, -json, -path-list-file, and -simple");
                     return false;
                 }
             }
@@ -107,7 +163,7 @@ public class EndpointMain {
     }
 
     static void printError() {
-        System.out.println("The first argument should be a valid file path to scan. Other flags supported: -lint, -debug, -json, -simple");
+        System.out.println("The first argument should be a valid file path to scan. Other flags supported: -lint, -debug, -json, -path-list-file, -simple");
     }
 
     private static void listEndpoints(File rootFile) {
@@ -177,11 +233,6 @@ public class EndpointMain {
         System.out.println("- " + (numParams - numHaveDataType) + "/" + numParams + " are missing their data type");
         System.out.println("- " + (numParams - numHaveParamType) + "/" + numParams + " are missing their parameter type");
         System.out.println("- " + numHaveAcceptedValues + "/" + numParams + " have a list of accepted values");
-
-
-        if (printFormat != JSON) {
-            System.out.println("To enable logging include the -debug argument");
-        }
     }
 
     private static Endpoint.Info[] getEndpointInfo(List<Endpoint> endpoints) {
