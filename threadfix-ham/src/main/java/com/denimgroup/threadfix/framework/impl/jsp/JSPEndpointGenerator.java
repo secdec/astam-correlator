@@ -151,6 +151,18 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 
             LOG.info("Detected " + numAddedParams + " new parameters and removed " + numRemovedParams + " misassigned parameters after HTML reference parsing");
 
+            ParameterMerger genericMerger = new ParameterMerger();
+            genericMerger.setCaseSensitive(true);
+            Map<Endpoint, Map<String, RouteParameter>> mergedParams = genericMerger.mergeParametersIn(endpoints);
+
+            for (Endpoint endpoint : mergedParams.keySet()) {
+                JSPEndpoint jspEndpoint = (JSPEndpoint)endpoint;
+                Map<String, RouteParameter> replacedParameters = mergedParams.get(endpoint);
+                for (String paramName : replacedParameters.keySet()) {
+                    jspEndpoint.getParameters().put(paramName, replacedParameters.get(paramName));
+                }
+            }
+
             EndpointValidationStatistics.printValidationStats(endpoints);
 
 		} else {

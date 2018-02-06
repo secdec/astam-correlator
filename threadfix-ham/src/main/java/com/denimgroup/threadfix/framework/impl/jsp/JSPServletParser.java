@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.jsp;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.framework.util.ScopeTracker;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 
@@ -58,20 +59,21 @@ public class JSPServletParser {
 
     private static final SanitizedLogger LOG = new SanitizedLogger("JSPServletParser");
 
-    private static final List<String> recognizedResponseMethods = list("doGet", "doPost", "doDelete", "doPut");
-
     private List<JSPServlet> enumeratedServlets = list();
 
     private static Pattern servletPattern = Pattern.compile("extends\\s+HttpServlet");
     private static Pattern packageNamePattern = Pattern.compile("package\\s+([^;]+);");
     private static Pattern accessServletRequestPattern = Pattern.compile("(\\w+)\\.getParameter\\(\"([^\"]+)\"\\)");
     private static Pattern declareServletRequestPattern = Pattern.compile("\\(\\s*HttpServletRequest\\s*(\\w+),");
+    private static Pattern responseMethodPattern = Pattern.compile("\\s+(\\w+)\\s*\\(\\s*HttpServletRequest");
 
     //  ie @WebServlet(urlPatterns = {"/abc", "/def"}) or @WebServlet(value = "/abc")
     private static Pattern annotatedWebServletManyUrlTypedPattern = Pattern.compile("urlPatterns\\s*=\\s*\\{([^\\}]+)\\}");
 
     //  ie @WebServlet({"/abc, "/def"}) or @WebServlet("/abc")
     private static Pattern annotatedWebServletSingleUrlTypedPattern = Pattern.compile("value\\s*=\\s*([^,]+)");
+
+    private static List<String> SERVLET_RESPONSE_METHODS = list("doGet", "doPut", "doPost", "doDelete");
 
 
     JSPServletParser(File rootDirectory) {
@@ -103,7 +105,7 @@ public class JSPServletParser {
             String packageName = parsePackageName(fileContents);
             Map<Integer, List<RouteParameter>> queryParameters = parseParameters(fileContents);
             List<String> annotatedEndpoints = parseAnnotatedEndpoints(fileContents);
-            List<JSPServletMethodMap> servletQueryMethods = parseMethodMap(recognizedResponseMethods);
+            List<JSPServletMethodMap> servletQueryMethods = parseResponseMethodMap(fileContents);
 
             if (packageName == null) {
                 LOG.debug("Couldn't detect package name for servlet at " + file.getAbsolutePath() + ", skipping that servlet");
@@ -124,6 +126,9 @@ public class JSPServletParser {
                 }
 
                 String method = methodMap.methodName;
+                if (!SERVLET_RESPONSE_METHODS.contains(method)) {
+                    continue;
+                }
                 String httpMethod = method.replace("do", "").toUpperCase();
                 methodMappedParameters.put(httpMethod, relevantParameters);
             }
@@ -131,6 +136,12 @@ public class JSPServletParser {
             JSPServlet newServlet = new JSPServlet(packageName, servletName, file.getAbsolutePath(), queryParameters);
             for (String annotation : annotatedEndpoints) {
                 newServlet.addEndpoint(annotation);
+            }
+            for (String httpMethod : methodMappedParameters.keySet()) {
+                newServlet.addHttpMethod(httpMethod);
+                for (RouteParameter param : methodMappedParameters.get(httpMethod)) {
+                    newServlet.addParameter(httpMethod, param);
+                }
             }
 
             enumeratedServlets.add(newServlet);
@@ -323,8 +334,53 @@ public class JSPServletParser {
 
     }
 
-    private List<JSPServletMethodMap> parseMethodMap(List<String> desiredMethods) {
+    private List<JSPServletMethodMap> parseResponseMethodMap(String fileContents) {
         List<JSPServletMethodMap> result = list();
+
+        ScopeTracker scopeTracker = new ScopeTracker();
+        int currentScanningIndex = 0;
+        int lineNo = 1;
+
+        Matcher responseMethodMatcher = responseMethodPattern.matcher(fileContents);
+        while (responseMethodMatcher.find()) {
+            String methodName = responseMethodMatcher.group(1);
+            int stringStartIndex = responseMethodMatcher.start();
+            int methodStartLine = -1;
+            int methodEndLine = -1;
+
+            while (currentScanningIndex < stringStartIndex) {
+                char c = fileContents.charAt(currentScanningIndex++);
+                if (c == '\n') {
+                    ++lineNo;
+                }
+                scopeTracker.interpretToken(c);
+            }
+
+            methodStartLine = lineNo;
+
+            int currentMethodBraceLevel = scopeTracker.getNumOpenBrace();
+            boolean enteredMethodBody = false;
+            while (currentMethodBraceLevel != scopeTracker.getNumOpenBrace() || !enteredMethodBody) {
+                if (currentMethodBraceLevel != scopeTracker.getNumOpenBrace()) {
+                    enteredMethodBody = true;
+                }
+                char c = fileContents.charAt(currentScanningIndex++);
+                if (c == '\n') {
+                    ++lineNo;
+                }
+                scopeTracker.interpretToken(c);
+            }
+
+            methodEndLine = lineNo;
+
+            JSPServletMethodMap newMap = new JSPServletMethodMap();
+            newMap.methodName = methodName;
+            newMap.startLine = methodStartLine;
+            newMap.endLine = methodEndLine;
+
+            result.add(newMap);
+
+        }
 
         return result;
     }

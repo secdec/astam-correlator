@@ -25,10 +25,7 @@ package com.denimgroup.threadfix.framework.impl.jsp;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
@@ -70,6 +67,12 @@ public class JSPServlet {
             methodParameters.put(httpMethod, currentParams = list());
         }
         currentParams.add(parameter);
+    }
+
+    public void addHttpMethod(String httpMethod) {
+        if (!methodParameters.containsKey(httpMethod.toUpperCase())) {
+            methodParameters.put(httpMethod.toUpperCase(), new ArrayList<RouteParameter>());
+        }
     }
 
     public String getFilePath() {
