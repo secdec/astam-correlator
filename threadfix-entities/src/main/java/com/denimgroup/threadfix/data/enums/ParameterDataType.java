@@ -1,5 +1,8 @@
 package com.denimgroup.threadfix.data.enums;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by amohammed on 8/31/2017.
  */
@@ -19,6 +22,10 @@ public enum ParameterDataType {
 
     public static ParameterDataType getType(String input){
         ParameterDataType type;
+
+        if (input == null) {
+            return STRING;
+        }
 
         switch (input.toLowerCase()) {
             case "integer":

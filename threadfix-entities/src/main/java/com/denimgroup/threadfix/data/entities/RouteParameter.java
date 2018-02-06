@@ -8,17 +8,22 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class RouteParameter {
     ParameterDataType dataType;
+    String dataTypeSource;
     boolean isOptional = false;
     RouteParameterType paramType = RouteParameterType.UNKNOWN;
     String name;
     List<String> acceptedValues = null;
 
 
-    public static RouteParameter fromDataType(ParameterDataType dataType) {
+    public static RouteParameter fromDataType(String dataType) {
         RouteParameter result = new RouteParameter();
         result.setDataType(dataType);
-        result.setOptional(false);
-        result.setParamType(RouteParameterType.UNKNOWN);
+        return result;
+    }
+
+    public static RouteParameter fromDataType(ParameterDataType dataType) {
+        RouteParameter result = new RouteParameter();
+        result.setDataType(dataType.getDisplayName());
         return result;
     }
 
@@ -28,6 +33,10 @@ public class RouteParameter {
 
     public ParameterDataType getDataType() {
         return dataType;
+    }
+
+    public boolean hasProperDataType() {
+        return dataType != null && dataType.getDisplayName().toLowerCase().equalsIgnoreCase(dataTypeSource);
     }
 
     public boolean isOptional() {
@@ -46,8 +55,20 @@ public class RouteParameter {
         isOptional = optional;
     }
 
+    // Use 'setDataType(String)' instead; the data type is automatically parsed and the original type string
+    // will be maintained for later type references lookups.
+    @Deprecated
     public void setDataType(ParameterDataType dataType) {
         this.dataType = dataType;
+    }
+
+    public void setDataType(String dataType) {
+        this.dataType = ParameterDataType.getType(dataType);
+        this.dataTypeSource = dataType;
+    }
+
+    public String getDataTypeSource() {
+        return this.dataTypeSource;
     }
 
     public void setParamType(RouteParameterType paramType) {

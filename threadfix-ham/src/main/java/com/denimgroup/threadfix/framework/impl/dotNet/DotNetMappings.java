@@ -28,6 +28,7 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
+import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
@@ -64,6 +65,7 @@ public class DotNetMappings implements EndpointGenerator {
                 new FileExtensionFileFilter("cs"), TrueFileFilter.INSTANCE);
 
         generateMappings(rootDirectory);
+        EndpointValidationStatistics.printValidationStats(generateEndpoints());
     }
 
     private void generateMappings(File rootDirectory) {
