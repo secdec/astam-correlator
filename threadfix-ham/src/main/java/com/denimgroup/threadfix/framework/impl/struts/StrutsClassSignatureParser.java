@@ -244,6 +244,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
 
 
+    String possibleMethodReturnValue;
     String possibleMethodName;
     String possibleMethodParams;
     boolean isPublicMethod;
@@ -275,6 +276,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                     } else if (stringValue.equals("public")) {
                         isPublicMethod = true;
                     } else {
+                        possibleMethodReturnValue = possibleMethodName;
                         possibleMethodName = stringValue;
                     }
                 }
@@ -286,6 +288,9 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                     break;
                 }
 
+                if (!possibleMethodParams.isEmpty()) {
+                    possibleMethodParams += ' ';
+                }
                 possibleMethodParams += CodeParseUtil.buildTokenString(type, stringValue);
 
                 break;
@@ -329,14 +334,15 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
                         StrutsMethod newMethod = new StrutsMethod();
                         newMethod.setName(possibleMethodName);
+                        newMethod.setReturnType(possibleMethodReturnValue);
 
-                        if (possibleMethodParams != null) {
+                        if (possibleMethodParams != null && !possibleMethodParams.isEmpty()) {
                             String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
                             for (String param : splitParams) {
                                 String[] paramParts = param.split(" ");
-                                String paramName = paramParts[paramParts.length - 1];
-
-                                newMethod.addParameter(paramName);
+                                String paramType = paramParts[0];
+                                String paramName = paramParts[1];
+                                newMethod.addParameter(paramName, paramType);
                             }
                             methods.add(newMethod);
                         }

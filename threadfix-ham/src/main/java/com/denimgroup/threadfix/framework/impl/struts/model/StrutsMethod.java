@@ -27,16 +27,26 @@ import com.denimgroup.threadfix.framework.impl.struts.model.annotations.Annotati
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class StrutsMethod {
 
     String methodName;
-    List<String> parameters = list();
+    String returnType;
+    Map<String, String> parameters = map();
     List<Annotation> annotations = list();
 
 
+    public String getReturnType() {
+        return returnType;
+    }
+
+    public void setReturnType(String returnType) {
+        this.returnType = returnType;
+    }
 
     public String getName() {
         return methodName;
@@ -46,7 +56,7 @@ public class StrutsMethod {
         StringBuilder uniqueName = new StringBuilder();
         uniqueName.append(methodName);
 
-        for (String param : parameters) {
+        for (String param : parameters.keySet()) {
             uniqueName.append('_');
             uniqueName.append(param);
         }
@@ -54,7 +64,11 @@ public class StrutsMethod {
         return uniqueName.toString();
     }
 
-    public Collection<String> getParameters() {
+    public Collection<String> getParameterNames() {
+        return parameters.keySet();
+    }
+
+    public Map<String, String> getParameters() {
         return parameters;
     }
 
@@ -68,8 +82,8 @@ public class StrutsMethod {
         methodName = name;
     }
 
-    public void addParameter(String name) {
-        parameters.add(name);
+    public void addParameter(String name, String dataType) {
+        parameters.put(name, dataType);
     }
 
     public void addAnnotation(Annotation annotation) {
@@ -92,14 +106,23 @@ public class StrutsMethod {
             sb.append(")\n");
         }
 
+        if (returnType != null) {
+            sb.append(returnType);
+            sb.append(' ');
+        }
+
         sb.append(methodName);
         sb.append("(");
-        for (int i = 0; i < parameters.size(); i++) {
-            sb.append(parameters.get(i));
-            if (i < parameters.size() - 1) {
+        int i = 0;
+        for (String paramName : parameters.keySet()) {
+            sb.append(parameters.get(paramName));
+            sb.append(' ');
+            sb.append(paramName);
+            if (i++ < parameters.size() - 1) {
                 sb.append(", ");
             }
         }
+
         sb.append(")");
 
         return sb.toString();

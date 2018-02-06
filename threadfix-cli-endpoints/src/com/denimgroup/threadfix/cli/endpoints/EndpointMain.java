@@ -177,7 +177,7 @@ public class EndpointMain {
             endpoints = database.generateEndpoints();
         }
 
-        Collections.sort(endpoints);
+        //Collections.sort(endpoints);
 
         if (endpoints.isEmpty()) {
             System.out.println("No endpoints were found.");
