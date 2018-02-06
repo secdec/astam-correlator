@@ -30,8 +30,6 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapper;
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapperFactory;
-import com.denimgroup.threadfix.framework.impl.struts.mappers.DefaultActionMapper;
-import com.denimgroup.threadfix.framework.impl.struts.mappers.PrefixBasedActionMapper;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
@@ -40,7 +38,7 @@ import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPluginDetect
 import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetectionResult;
 import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetector;
 import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterMerger;
-import com.denimgroup.threadfix.framework.util.htmlParsing.ParameterMergingGuide;
+import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterMergingGuide;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
@@ -170,7 +168,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         endpoints = list();
         endpoints.addAll(actionMapper.generateEndpoints(project, project.getPackages(), ""));
 
-        List<ParameterMergingGuide> detectorParameters = list();
+        List<HyperlinkParameterMergingGuide> detectorParameters = list();
 
         HyperlinkParameterDetector parameterDetector = new HyperlinkParameterDetector();
         HyperlinkParameterMerger parameterMerger = new HyperlinkParameterMerger(true, false);
@@ -191,7 +189,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             detectorParameters.add(parameterMerger.mergeParsedImplicitParameters(endpoints, detectionResult));
         }
 
-        for (ParameterMergingGuide mergingGuide : detectorParameters) {
+        for (HyperlinkParameterMergingGuide mergingGuide : detectorParameters) {
             if (!mergingGuide.hasData()) {
                 continue;
             }

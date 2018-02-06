@@ -50,28 +50,26 @@ class JSPEndpoint extends AbstractEndpoint {
     @Nonnull
 	private final String method;
 
-	@Nonnull
-    private final Map<String, Integer> paramToLineMap;
+//	@Nonnull
+//    private final Map<String, Integer> paramToLineMap;
 
-	@Nonnull
-    private final Map<Integer, List<String>> parameterMap;
+//	@Nonnull
+//    private final Map<Integer, List<String>> parameterMap;
 	
 	public JSPEndpoint(@Nonnull String staticPath,
                        @Nonnull String dynamicPath,
                        @Nonnull String method,
-			           @Nonnull Map<Integer, List<String>> parameterMap) {
+			           @Nonnull Map<String, RouteParameter> parameterMap) {
 		this.method = method;
 		this.staticPath = staticPath;
 		this.dynamicPath = dynamicPath;
-		this.parameterMap = parameterMap;
+		this.parameters.putAll(parameterMap);
 
-		for (List<String> lineParams : parameterMap.values()) {
-			for (String param : lineParams) {
-				parameters.put(param, RouteParameter.fromDataType(ParameterDataType.STRING));
-			}
-		}
-
-		this.paramToLineMap = getParamToLineMap(parameterMap);
+//		for (List<String> lineParams : parameterMap.values()) {
+//			for (String param : lineParams) {
+//				parameters.put(param, RouteParameter.fromDataType(ParameterDataType.STRING));
+//			}
+//		}
 	}
 
 	@Override
@@ -120,52 +118,54 @@ class JSPEndpoint extends AbstractEndpoint {
 		return relevance + numMatchedParts * 100;
 	}
 
-	@Nonnull
-    private Map<String, Integer> getParamToLineMap(
-			Map<Integer, List<String>> parameterMap) {
-		Map<String, Integer> paramMap = map();
-
-		for (String parameter : parameters.keySet()) {
-			paramMap.put(parameter, getFirstLineNumber(parameter, parameterMap));
-		}
-		
-		return paramMap;
-	}
+//	@Nonnull
+//    private Map<String, Integer> getParamToLineMap(
+//			Map<Integer, List<String>> parameterMap) {
+//		Map<String, Integer> paramMap = map();
+//
+//		for (String parameter : parameters.keySet()) {
+//			paramMap.put(parameter, getFirstLineNumber(parameter, parameterMap));
+//		}
+//
+//		return paramMap;
+//	}
 	
-	private Integer getFirstLineNumber(@Nonnull String parameterName,
-			@Nonnull Map<Integer, List<String>> parameterMap) {
-		Integer returnValue = Integer.MAX_VALUE;
-		
-        for (Map.Entry<Integer, List<String>> entry : parameterMap.entrySet()) {
-            if (entry.getKey() < returnValue &&
-                    entry.getValue() != null &&
-                    entry.getValue().contains(parameterName)) {
-                returnValue = entry.getKey();
-            }
-        }
-
-		if (returnValue == Integer.MAX_VALUE) {
-			returnValue = 1; // This way even if no parameter is found a marker can be created for the file
-		}
-		
-		return returnValue;
-	}
+//	private Integer getFirstLineNumber(@Nonnull String parameterName,
+//			@Nonnull Map<Integer, List<String>> parameterMap) {
+//		Integer returnValue = Integer.MAX_VALUE;
+//
+//        for (Map.Entry<Integer, List<String>> entry : parameterMap.entrySet()) {
+//            if (entry.getKey() < returnValue &&
+//                    entry.getValue() != null &&
+//                    entry.getValue().contains(parameterName)) {
+//                returnValue = entry.getKey();
+//            }
+//        }
+//
+//		if (returnValue == Integer.MAX_VALUE) {
+//			returnValue = 1; // This way even if no parameter is found a marker can be created for the file
+//		}
+//
+//		return returnValue;
+//	}
 	
 	// TODO improve
+	// TODO - Re-enable
     @Nullable
     String getParameterName(@Nonnull Iterable<CodePoint> codePoints) {
-		String parameter = null;
-		
-		for (CodePoint codePoint : codePoints) {
-			List<String> possibleParameters = parameterMap.get(codePoint.getLineNumber());
-
-			if (possibleParameters != null && possibleParameters.size() == 1) {
-				parameter = possibleParameters.get(0);
-				break;
-			}
-		}
-		
-		return parameter;
+		return null;
+//		String parameter = null;
+//
+//		for (CodePoint codePoint : codePoints) {
+//			List<String> possibleParameters = parameterMap.get(codePoint.getLineNumber());
+//
+//			if (possibleParameters != null && possibleParameters.size() == 1) {
+//				parameter = possibleParameters.get(0);
+//				break;
+//			}
+//		}
+//
+//		return parameter;
 	}
 
 	@Nonnull
@@ -202,14 +202,16 @@ class JSPEndpoint extends AbstractEndpoint {
 		return -1; // JSPs aren't controller-based, so the whole page is the endpoint
 	}
 
+	// TODO - Re-enable
 	@Override
 	public int getLineNumberForParameter(String parameter) {
-        Integer value = paramToLineMap.get(parameter);
-        if (value == null) {
-            return 0;
-        } else {
-		    return value;
-        }
+		return -1;
+//        Integer value = paramToLineMap.get(parameter);
+//        if (value == null) {
+//            return 0;
+//        } else {
+//		    return value;
+//        }
 	}
 
 
