@@ -12,7 +12,7 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 
 //  We don't have access to modify the data in an Endpoint; instead, provide
 //  a guide as to which parameters to add
-public class ParameterMergingGuide {
+public class HyperlinkParameterMergingGuide {
 
     PathInvariantStringMap<Map<String, List<RouteParameter>>> addedParameters = new PathInvariantStringMap<Map<String, List<RouteParameter>>>();
     PathInvariantStringMap<Map<String, List<RouteParameter>>> removedParameters = new PathInvariantStringMap<Map<String, List<RouteParameter>>>();

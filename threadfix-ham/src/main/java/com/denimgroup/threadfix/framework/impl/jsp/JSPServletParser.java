@@ -23,9 +23,8 @@
 
 package com.denimgroup.threadfix.framework.impl.jsp;
 
-import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
-import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -35,6 +34,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 //  Currently enumerates all Java files instead of filtering only for extenders of ie HttpServlet; keeping
 //  this global instead of specific may help for non-standard servlet bases (ie a custom base extending HttpServlet)
@@ -57,6 +57,8 @@ public class JSPServletParser {
     }
 
     private static final SanitizedLogger LOG = new SanitizedLogger("JSPServletParser");
+
+    private static final List<String> recognizedResponseMethods = list("doGet", "doPost", "doDelete", "doPut");
 
     private List<JSPServlet> enumeratedServlets = list();
 
@@ -99,17 +101,36 @@ public class JSPServletParser {
             }
 
             String packageName = parsePackageName(fileContents);
-            Map<Integer, List<String>> queryParameters = parseParameters(fileContents);
+            Map<Integer, List<RouteParameter>> queryParameters = parseParameters(fileContents);
             List<String> annotatedEndpoints = parseAnnotatedEndpoints(fileContents);
+            List<JSPServletMethodMap> servletQueryMethods = parseMethodMap(recognizedResponseMethods);
 
             if (packageName == null) {
                 LOG.debug("Couldn't detect package name for servlet at " + file.getAbsolutePath() + ", skipping that servlet");
                 continue;
             }
 
+            Map<String, List<RouteParameter>> methodMappedParameters = map();
+
+            for (JSPServletMethodMap methodMap : servletQueryMethods) {
+                int startLine = methodMap.startLine;
+                int endLine = methodMap.endLine;
+                List<RouteParameter> relevantParameters = list();
+                for (Map.Entry<Integer, List<RouteParameter>> lineParams : queryParameters.entrySet()) {
+                    int lineNo = lineParams.getKey();
+                    if (lineNo >= startLine && lineNo <= endLine) {
+                        relevantParameters.addAll(lineParams.getValue());
+                    }
+                }
+
+                String method = methodMap.methodName;
+                String httpMethod = method.replace("do", "").toUpperCase();
+                methodMappedParameters.put(httpMethod, relevantParameters);
+            }
+
             JSPServlet newServlet = new JSPServlet(packageName, servletName, file.getAbsolutePath(), queryParameters);
             for (String annotation : annotatedEndpoints) {
-                newServlet.addAnnotationBinding(annotation);
+                newServlet.addEndpoint(annotation);
             }
 
             enumeratedServlets.add(newServlet);
@@ -125,9 +146,10 @@ public class JSPServletParser {
         return null;
     }
 
-    Map<Integer, List<String>> parseParameters(String fileContents) {
+    Map<Integer, List<RouteParameter>> parseParameters(String fileContents) {
+        // Names of the 'HttpServletRequest' objects that are being accessed for parameters by the client code
         List<String> requestVarNames = list();
-        Map<Integer, List<String>> parameters = new HashMap<Integer, List<String>>();
+        Map<Integer, List<RouteParameter>> parameters = new HashMap<Integer, List<RouteParameter>>();
 
         Matcher varNameMatcher = declareServletRequestPattern.matcher(fileContents);
         while (varNameMatcher.find()) {
@@ -149,11 +171,14 @@ public class JSPServletParser {
                     int lineNumber = i;
 
                     if (!parameters.containsKey(lineNumber)) {
-                        parameters.put(lineNumber, new ArrayList<String>());
+                        parameters.put(lineNumber, new ArrayList<RouteParameter>());
                     }
 
-                    List<String> knownParameters = parameters.get(lineNumber);
-                    knownParameters.add(parameterName);
+                    List<RouteParameter> knownParameters = parameters.get(lineNumber);
+                    RouteParameter newParameter = new RouteParameter();
+                    newParameter.setName(parameterName);
+
+                    knownParameters.add(newParameter);
                 }
             }
         }
@@ -298,9 +323,16 @@ public class JSPServletParser {
 
     }
 
+    private List<JSPServletMethodMap> parseMethodMap(List<String> desiredMethods) {
+        List<JSPServletMethodMap> result = list();
+
+        return result;
+    }
+
     public List<JSPServlet> getServlets() {
         return enumeratedServlets;
     }
+
 
     //  Absolute name as <package>.<classname> ie "com.my.package.MyClass"
 

@@ -21,8 +21,8 @@ public class HyperlinkParameterMerger {
         this.removeUnreferencedParameters = removeUnreferencedParameters;
     }
 
-    public ParameterMergingGuide mergeParsedImplicitParameters(List<Endpoint> endpoints, HyperlinkParameterDetectionResult implicitParameters) {
-        ParameterMergingGuide guide = new ParameterMergingGuide();
+    public HyperlinkParameterMergingGuide mergeParsedImplicitParameters(List<Endpoint> endpoints, HyperlinkParameterDetectionResult implicitParameters) {
+        HyperlinkParameterMergingGuide guide = new HyperlinkParameterMergingGuide();
 
         for (Endpoint endpoint : endpoints) {
             Map<String, RouteParameter> existingParameters = endpoint.getParameters();

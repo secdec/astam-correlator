@@ -23,6 +23,9 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.jsp;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 
@@ -74,28 +77,40 @@ public class JSPParameterParser implements EventBasedTokenizer {
 	}
 	
 	@Nonnull
-    public static Map<Integer, List<String>> parse(File file) {
+    public static Map<String, RouteParameter> parse(File file) {
 		JSPParameterParser parser = new JSPParameterParser();
 		EventBasedTokenizerRunner.run(file, false, parser);
 		return parser.buildParametersMap();
 	}
 	
 	@Nonnull
-    Map<Integer, List<String>> buildParametersMap() {
-		Map<Integer, List<String>> lineNumToParamMap = map();
-		
+    Map<String, RouteParameter> buildParametersMap() {
+//		Map<Integer, List<String>> lineNumToParamMap = map();
+//
+//		for (String key : parameterToLineNumbersMap.keySet()) {
+//			List<Integer> lineNumbers = parameterToLineNumbersMap.get(key);
+//
+//			for (Integer lineNumber : lineNumbers) {
+//				if (!lineNumToParamMap.containsKey(lineNumber)) {
+//					lineNumToParamMap.put(lineNumber, new ArrayList<String>());
+//				}
+//				lineNumToParamMap.get(lineNumber).add(key);
+//			}
+//		}
+//
+//		return lineNumToParamMap;
+
+		Map<String, RouteParameter> result = map();
+		//	All variables captured are from getParameter calls, which are populated via FORM data
 		for (String key : parameterToLineNumbersMap.keySet()) {
-			List<Integer> lineNumbers = parameterToLineNumbersMap.get(key);
-			
-			for (Integer lineNumber : lineNumbers) {
-				if (!lineNumToParamMap.containsKey(lineNumber)) {
-					lineNumToParamMap.put(lineNumber, new ArrayList<String>());
-				}
-				lineNumToParamMap.get(lineNumber).add(key);
-			}
+			RouteParameter newParam = new RouteParameter();
+			newParam.setParamType(RouteParameterType.FORM_DATA);
+			newParam.setDataType("String");
+			newParam.setName(key);
+			result.put(key, newParam);
 		}
-		
-		return lineNumToParamMap;
+
+		return result;
 	}
 
     @Override

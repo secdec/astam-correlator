@@ -23,20 +23,24 @@
 
 package com.denimgroup.threadfix.framework.impl.jsp;
 
-import java.util.ArrayList;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class JSPServlet {
     private String packageName;
     private String className;
     private String filePath;
-    private List<String> annotatedEndpointBindings = list();
+    private List<String> annotatedEndpoints = list();
 
-    private Map<Integer, List<String>> parameters = new HashMap<Integer, List<String>>();
+    private Map<String, List<RouteParameter>> methodParameters = map();
+    private Map<Integer, List<RouteParameter>> parameterLineMap = map();
 
     public JSPServlet(String packageName, String className, String filePath) {
         this.packageName = packageName;
@@ -44,26 +48,28 @@ public class JSPServlet {
         this.filePath = filePath;
     }
 
-    public JSPServlet(String packageName, String className, String filePath, Map<Integer, List<String>> parameters) {
+    public JSPServlet(String packageName, String className, String filePath, Map<Integer, List<RouteParameter>> parameterLineMap) {
         this(packageName, className, filePath);
-        if (parameters != null) {
-            this.parameters = parameters;
+        if (parameterLineMap != null) {
+            this.parameterLineMap = parameterLineMap;
         }
     }
 
 
-    public void addParameter(int lineNumber, String parameterName) {
-        if (!parameters.containsKey(lineNumber)) {
-            parameters.put(lineNumber, new ArrayList<String>());
-        }
 
-        List<String> knownParameters = parameters.get(lineNumber);
-        knownParameters.add(parameterName);
+    public void addEndpoint(String endpoint) {
+        annotatedEndpoints.add(endpoint);
     }
 
+    public void addParameter(String httpMethod, RouteParameter parameter) {
 
-    public void addAnnotationBinding(String endpoint) {
-        annotatedEndpointBindings.add(endpoint);
+        httpMethod = httpMethod.toUpperCase();
+
+        List<RouteParameter> currentParams = methodParameters.get(httpMethod);
+        if (currentParams == null) {
+            methodParameters.put(httpMethod, currentParams = list());
+        }
+        currentParams.add(parameter);
     }
 
     public String getFilePath() {
@@ -82,11 +88,31 @@ public class JSPServlet {
         return packageName + "." + className;
     }
 
-    public List<String> getAnnotatedEndpointBindings() {
-        return annotatedEndpointBindings;
+    public List<String> getAnnotatedEndpoints() {
+        return annotatedEndpoints;
     }
 
-    public Map<Integer, List<String>> getParameters() {
-        return parameters;
+    public Map<String, List<RouteParameter>> getAllMethodParameters() {
+        return methodParameters;
+    }
+
+    public Set<String> getHttpMethods() {
+        return methodParameters.keySet();
+    }
+
+    public List<RouteParameter> getMethodParameters(String httpMethod) {
+        return methodParameters.get(httpMethod.toUpperCase());
+    }
+
+    public Map<Integer, List<String>> getParameterLineMap() {
+        Map<Integer, List<String>> simpleParameterMap = map();
+        for (int line : parameterLineMap.keySet()) {
+            List<String> lineParameterNames = list();
+            for (RouteParameter param : parameterLineMap.get(line)) {
+                lineParameterNames.add(param.getName());
+            }
+            simpleParameterMap.put(line, lineParameterNames);
+        }
+        return simpleParameterMap;
     }
 }
