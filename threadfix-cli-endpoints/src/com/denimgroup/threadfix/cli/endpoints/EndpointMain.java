@@ -24,10 +24,13 @@
 
 package com.denimgroup.threadfix.cli.endpoints;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
+import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -51,6 +54,7 @@ public class EndpointMain {
     static Logging logging = Logging.OFF;
     static Endpoint.PrintFormat printFormat = Endpoint.PrintFormat.DYNAMIC;
     static FrameworkType framework = FrameworkType.DETECT;
+    static boolean simplePrint = false;
 
     public static void main(String[] args) {
         if (checkArguments(args)) {
@@ -85,8 +89,10 @@ public class EndpointMain {
                     String frameworkName = arg.substring(arg.indexOf(
                             FRAMEWORK_COMMAND) + FRAMEWORK_COMMAND.length(), arg.length());
                     framework = FrameworkType.getFrameworkType(frameworkName);
+                } else if (arg.equals("-simple")) {
+                    simplePrint = true;
                 } else {
-                    System.out.println("Received unsupported option " + arg + ", valid arguments are -lint and -debug");
+                    System.out.println("Received unsupported option " + arg + ", valid arguments are -lint, -debug, -json, and -simple");
                     return false;
                 }
             }
@@ -101,7 +107,7 @@ public class EndpointMain {
     }
 
     static void printError() {
-        System.out.println("The first argument should be a valid file path to scan. Other flags supported: -lint, -debug");
+        System.out.println("The first argument should be a valid file path to scan. Other flags supported: -lint, -debug, -json, -simple");
     }
 
     private static void listEndpoints(File rootFile) {
@@ -120,21 +126,58 @@ public class EndpointMain {
         if (endpoints.isEmpty()) {
             System.out.println("No endpoints were found.");
 
-        } else if (printFormat == JSON) {
-
-            Endpoint.Info[] infos = getEndpointInfo(endpoints);
-
-            try {
-                String s = new ObjectMapper().writeValueAsString(infos);
-                System.out.println(s);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         } else {
-            for (Endpoint endpoint : endpoints) {
-                System.out.println(endpoint.getCSVLine(printFormat));
+            System.out.println("Generated " + endpoints.size() + " endpoints");
+            if (!simplePrint) {
+                if (printFormat == JSON) {
+                    Endpoint.Info[] infos = getEndpointInfo(endpoints);
+
+                    try {
+                        String s = new ObjectMapper().writeValueAsString(infos);
+                        System.out.println(s);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    for (Endpoint endpoint : endpoints) {
+                        System.out.println(endpoint.getCSVLine(printFormat));
+                    }
+                }
             }
         }
+
+        List<RouteParameter> detectedParameters = list();
+        for (Endpoint endpoint : endpoints) {
+            detectedParameters.addAll(endpoint.getParameters().values());
+        }
+
+        System.out.println("Generated " + detectedParameters.size() + " parameters");
+
+        int numOptional = 0;
+        int numHaveDataType = 0;
+        int numHaveParamType = 0;
+        int numHaveAcceptedValues = 0;
+        for (RouteParameter param : detectedParameters) {
+            if (param.isOptional()) {
+                ++numOptional;
+            }
+            if (param.getDataType() != null) {
+                ++numHaveDataType;
+            }
+            if (param.getParamType() != RouteParameterType.UNKNOWN) {
+                ++numHaveParamType;
+            }
+            if (param.getAcceptedValues() != null && param.getAcceptedValues().size() > 0) {
+                ++numHaveAcceptedValues;
+            }
+        }
+
+        int numParams = detectedParameters.size();
+        System.out.println("- " + numOptional + "/" + numParams + " parameters are optional");
+        System.out.println("- " + (numParams - numHaveDataType) + "/" + numParams + " are missing their data type");
+        System.out.println("- " + (numParams - numHaveParamType) + "/" + numParams + " are missing their parameter type");
+        System.out.println("- " + numHaveAcceptedValues + "/" + numParams + " have a list of accepted values");
+
 
         if (printFormat != JSON) {
             System.out.println("To enable logging include the -debug argument");

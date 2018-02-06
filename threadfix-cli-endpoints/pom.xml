@@ -15,6 +15,8 @@
         the threadfix endpoints cli client.
     </description>
 
+    <packaging>jar</packaging>
+
     <build>
         <sourceDirectory>src</sourceDirectory>
         <plugins>
@@ -35,10 +37,11 @@
                 </configuration>
                 <executions>
                     <execution>
-                        <phase>package</phase>
                         <goals>
+                            <goal>attached</goal>
                             <goal>single</goal>
                         </goals>
+                        <phase>package</phase>
                     </execution>
                 </executions>
             </plugin>
@@ -58,6 +61,11 @@
         </profile>
     </profiles>
     <dependencies>
+        <dependency>
+            <groupId>com.denimgroup.threadfix</groupId>
+            <artifactId>threadfix-entities</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.denimgroup.threadfix</groupId>
             <artifactId>threadfix-ham</artifactId>
