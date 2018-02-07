@@ -2,6 +2,7 @@ package com.denimgroup.threadfix.data.entities;
 
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -14,15 +15,18 @@ public class RouteParameter {
     String name;
     List<String> acceptedValues = null;
 
+    public RouteParameter(String name) {
+        this.name = name;
+    }
 
-    public static RouteParameter fromDataType(String dataType) {
-        RouteParameter result = new RouteParameter();
+    public static RouteParameter fromDataType(String name, String dataType) {
+        RouteParameter result = new RouteParameter(name);
         result.setDataType(dataType);
         return result;
     }
 
-    public static RouteParameter fromDataType(ParameterDataType dataType) {
-        RouteParameter result = new RouteParameter();
+    public static RouteParameter fromDataType(String name, ParameterDataType dataType) {
+        RouteParameter result = new RouteParameter(name);
         result.setDataType(dataType.getDisplayName());
         return result;
     }
@@ -75,7 +79,7 @@ public class RouteParameter {
         this.paramType = paramType;
     }
 
-    public void setName(String name) {
+    public void setName(@Nonnull String name) {
         this.name = name;
     }
 

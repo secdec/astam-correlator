@@ -140,14 +140,14 @@ public class DefaultActionMapper implements ActionMapper {
                             } else {
                                 path = path.replace("*", method.getName());
                                 for (ModelField mf : fieldMappings) {
-                                    parameters.put(mf.getParameterKey(), RouteParameter.fromDataType(mf.getType()));
+                                    parameters.put(mf.getParameterKey(), RouteParameter.fromDataType(mf.getParameterKey(), mf.getType()));
                                 }
                                 endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "POST", parameters));
                             }
                         }
                     } else {
                         for (ModelField mf : fieldMappings) {
-                            parameters.put(mf.getParameterKey(), RouteParameter.fromDataType(mf.getType()));
+                            parameters.put(mf.getParameterKey(), RouteParameter.fromDataType(mf.getParameterKey(), mf.getType()));
                         }
                         endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "POST", parameters));
                     }

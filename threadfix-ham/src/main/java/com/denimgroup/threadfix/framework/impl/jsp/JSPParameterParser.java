@@ -103,10 +103,9 @@ public class JSPParameterParser implements EventBasedTokenizer {
 		Map<String, RouteParameter> result = map();
 		//	All variables captured are from getParameter calls, which are populated via FORM data
 		for (String key : parameterToLineNumbersMap.keySet()) {
-			RouteParameter newParam = new RouteParameter();
+			RouteParameter newParam = new RouteParameter(key);
 			newParam.setParamType(RouteParameterType.FORM_DATA);
 			newParam.setDataType("String");
-			newParam.setName(key);
 			result.put(key, newParam);
 		}
 

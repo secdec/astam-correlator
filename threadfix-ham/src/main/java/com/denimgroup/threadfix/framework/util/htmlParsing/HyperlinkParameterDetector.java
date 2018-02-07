@@ -343,8 +343,7 @@ public class HyperlinkParameterDetector {
                     continue;
                 }
 
-                RouteParameter newParameter = new RouteParameter();
-                newParameter.setName(name);
+                RouteParameter newParameter = new RouteParameter(name);
                 newParameter.setParamType(param.parameterType);
                 currentParams.add(newParameter);
             }

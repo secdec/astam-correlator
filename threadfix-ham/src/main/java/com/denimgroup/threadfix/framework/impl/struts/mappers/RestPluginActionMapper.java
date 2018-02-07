@@ -122,7 +122,7 @@ public class RestPluginActionMapper implements ActionMapper {
                 Map<String, RouteParameter> params = map();
                 if (action.getParams() != null) {
                     for (Map.Entry<String, String> entry : action.getParams().entrySet()) {
-                        params.put(entry.getKey(), RouteParameter.fromDataType(ParameterDataType.getType(entry.getValue())));
+                        params.put(entry.getKey(), RouteParameter.fromDataType(entry.getKey(), entry.getValue()));
                     }
                 }
 
