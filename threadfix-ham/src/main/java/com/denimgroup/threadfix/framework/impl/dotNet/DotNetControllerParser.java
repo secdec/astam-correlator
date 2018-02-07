@@ -223,9 +223,8 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 if (stringValue == null) {
                     if (type == ',' || type == ')' && lastString != null) {
                         if (isValidParameterName(lastString)) {
-                            RouteParameter param = new RouteParameter();
+                            RouteParameter param = new RouteParameter(lastString);
                             param.setDataType(twoStringsAgo);
-                            param.setName(lastString);
                             param.setOptional(wasParamOptional);
                             parametersWithTypes.add(param);
                         }
@@ -310,8 +309,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 possibleParamType = null;
 
                 if ("Request.Files".equals(stringValue)) {
-                    RouteParameter param = new RouteParameter();
-                    param.setName("[File Data]");
+                    RouteParameter param = new RouteParameter("[File Data]");
                     param.setParamType(RouteParameterType.FILES);
                     parametersWithTypes.add(param);
                 } else if ("Request.Cookies".equals(stringValue)) {
@@ -345,8 +343,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
 
             case REQUEST_INDEXER:
                 if (type == '"' && stringValue != null) {
-                    RouteParameter param = new RouteParameter();
-                    param.setName(stringValue);
+                    RouteParameter param = new RouteParameter(stringValue);
                     param.setParamType(RouteParameterType.UNKNOWN);
                     param.setDataType(possibleParamType);
                     currentParameterState = ParameterState.START;
@@ -365,9 +362,8 @@ public class DotNetControllerParser implements EventBasedTokenizer {
 
             case QUERY_STRING_INDEXER:
                 if (stringValue != null && type == '"') {
-                    RouteParameter param = new RouteParameter();
+                    RouteParameter param = new RouteParameter(stringValue);
                     param.setDataType(possibleParamType);
-                    param.setName(stringValue);
                     param.setParamType(RouteParameterType.QUERY_STRING);
                     parametersWithTypes.add(param);
                 }
@@ -384,9 +380,8 @@ public class DotNetControllerParser implements EventBasedTokenizer {
 
             case COOKIES_INDEXER:
                 if (type == '"' && stringValue != null) {
-                    RouteParameter param = new RouteParameter();
+                    RouteParameter param = new RouteParameter(stringValue);
                     param.setDataType(possibleParamType);
-                    param.setName(stringValue);
                     param.setParamType(RouteParameterType.COOKIE);
                     parametersWithTypes.add(param);
                 }
@@ -404,9 +399,8 @@ public class DotNetControllerParser implements EventBasedTokenizer {
 
             case SESSION_INDEXER:
                 if (type == '"' && stringValue != null) {
-                    RouteParameter param = new RouteParameter();
+                    RouteParameter param = new RouteParameter(stringValue);
                     param.setDataType(possibleParamType);
-                    param.setName(stringValue);
                     param.setParamType(RouteParameterType.SESSION);
                     parametersWithTypes.add(param);
                 }

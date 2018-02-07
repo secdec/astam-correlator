@@ -199,7 +199,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                     if (isPathParameter) {
                         currentPathParameters.add(stringValue);
                     } else {
-                        currentParameters.put(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
+                        currentParameters.put(stringValue, RouteParameter.fromDataType(stringValue, ParameterDataType.STRING));
                     }
                     setState(SignatureState.START);
                 } else if ("value".equals(stringValue)) {
@@ -217,7 +217,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 break;
             case VALUE:
                 if (type == DOUBLE_QUOTE) {
-                    currentParameters.put(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
+                    currentParameters.put(stringValue, RouteParameter.fromDataType(stringValue, ParameterDataType.STRING));
                     setState(SignatureState.START);
                 } else if (type != EQUALS) {
                     setState(SignatureState.GET_VARIABLE_NAME);
@@ -226,7 +226,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             case GET_VARIABLE_NAME:
                 if (openParenCount == -1) { // this means we're not in an annotation
                     if (type == COMMA || type == CLOSE_PAREN) {
-                        currentParameters.put(lastValue, RouteParameter.fromDataType(ParameterDataType.STRING));
+                        currentParameters.put(lastValue, RouteParameter.fromDataType(stringValue, ParameterDataType.STRING));
                         setState(SignatureState.START);
                     } else {
                         lastValue = stringValue;

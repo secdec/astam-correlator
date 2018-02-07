@@ -58,11 +58,11 @@ public class RailsEndpointMappingsTest {
                 "/app/controllers/password_resets_controller.rb",   // filePath
                 "/forgot_password",                                 // urlPath
                 "GET",
-                map("confirm_password", RouteParameter.fromDataType(ParameterDataType.STRING),
-                        "email", RouteParameter.fromDataType(ParameterDataType.STRING),
-                        "token", RouteParameter.fromDataType(ParameterDataType.STRING),
-                        "password", RouteParameter.fromDataType(ParameterDataType.STRING),
-                        "user", RouteParameter.fromDataType(ParameterDataType.STRING))
+                map("confirm_password", RouteParameter.fromDataType("confirm_password", ParameterDataType.STRING),
+                        "email", RouteParameter.fromDataType("confirm_password", ParameterDataType.STRING),
+                        "token", RouteParameter.fromDataType("confirm_password", ParameterDataType.STRING),
+                        "password", RouteParameter.fromDataType("confirm_password", ParameterDataType.STRING),
+                        "user", RouteParameter.fromDataType("confirm_password", ParameterDataType.STRING))
             );
 
         confirmEndpointExistsIn(testEndpoint, endpoints);

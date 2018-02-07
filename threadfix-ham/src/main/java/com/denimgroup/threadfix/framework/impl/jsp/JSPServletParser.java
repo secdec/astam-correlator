@@ -186,8 +186,7 @@ public class JSPServletParser {
                     }
 
                     List<RouteParameter> knownParameters = parameters.get(lineNumber);
-                    RouteParameter newParameter = new RouteParameter();
-                    newParameter.setName(parameterName);
+                    RouteParameter newParameter = new RouteParameter(parameterName);
 
                     knownParameters.add(newParameter);
                 }

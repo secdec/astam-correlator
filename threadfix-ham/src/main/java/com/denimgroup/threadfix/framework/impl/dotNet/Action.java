@@ -96,8 +96,7 @@ class Action {
                 for (String s : StringUtils.split(param.getName(), ',')) {
                     s = s.trim();
 
-                    RouteParameter actionParam = new RouteParameter();
-                    actionParam.setName(s);
+                    RouteParameter actionParam = new RouteParameter(s);
                     actionParam.setOptional(actionParam.isOptional());
                     actionParam.setParamType(param.getParamType());
 
@@ -109,8 +108,7 @@ class Action {
                 }
             } else {
                 String paramName = param.getName().trim();
-                RouteParameter actionParam = new RouteParameter();
-                actionParam.setName(paramName);
+                RouteParameter actionParam = new RouteParameter(paramName);
                 actionParam.setOptional(param.isOptional());
                 actionParam.setDataType(param.getDataTypeSource());
                 actionParam.setParamType(param.getParamType());
@@ -138,10 +136,9 @@ class Action {
             for (RouteParameter duplicate : duplicates) {
                 // Start with the properties of the first listed parameter
                 if (consolidatedParameter == null) {
-                    consolidatedParameter = new RouteParameter();
-                    consolidatedParameter.setName(paramName);
+                    consolidatedParameter = new RouteParameter(paramName);
                     consolidatedParameter.setParamType(duplicate.getParamType());
-                    consolidatedParameter.setDataType(duplicate.getDataType());
+                    consolidatedParameter.setDataType(duplicate.getDataTypeSource());
                     consolidatedParameter.setOptional(duplicate.isOptional());
                     consolidatedParameter.setAcceptedValues(duplicate.getAcceptedValues());
                 } else {
@@ -164,7 +161,7 @@ class Action {
                     }
 
                     if (needsBetterDataType) {
-                        consolidatedParameter.setDataType(duplicate.getDataType());
+                        consolidatedParameter.setDataType(duplicate.getDataTypeSource());
                     }
 
                     if (needsIsOptional) {

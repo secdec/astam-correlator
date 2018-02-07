@@ -128,7 +128,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         }
 
         for (String param : pathParameters) {
-            RouteParameter newParam = RouteParameter.fromDataType(ParameterDataType.STRING);
+            RouteParameter newParam = RouteParameter.fromDataType(param, ParameterDataType.STRING);
             newParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
             parameters.put(param, newParam);
         }

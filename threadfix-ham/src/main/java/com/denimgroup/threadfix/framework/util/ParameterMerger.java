@@ -122,8 +122,7 @@ public class ParameterMerger {
             RouteParameterType mostCommonParameterType = highestFrequencyEntry(parameterTypeFrequency);
             boolean mostCommonOptionality = highestFrequencyEntry(optionalFrequency);
 
-            RouteParameter consolidatedParameter = new RouteParameter();
-            consolidatedParameter.setName(name);
+            RouteParameter consolidatedParameter = new RouteParameter(name);
             consolidatedParameter.setParamType(mostCommonParameterType);
             consolidatedParameter.setDataType(mostCommonDataTypeSource);
             consolidatedParameter.setAcceptedValues(longestAcceptedParametersList);

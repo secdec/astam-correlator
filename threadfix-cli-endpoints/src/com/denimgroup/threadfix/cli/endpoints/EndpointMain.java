@@ -32,6 +32,7 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -51,6 +52,8 @@ public class EndpointMain {
     enum Logging {
         ON, OFF
     }
+
+    static String PRINTLN_SEPARATOR = StringUtils.repeat('-', 10);
 
     static Logging logging = Logging.OFF;
     static Endpoint.PrintFormat printFormat = Endpoint.PrintFormat.DYNAMIC;
@@ -83,10 +86,16 @@ public class EndpointMain {
                         ++lineNo;
                     }
 
+                    boolean isFirst = true;
                     for (File file : requestedTargets) {
+                        if (isFirst) {
+                            System.out.println(PRINTLN_SEPARATOR);
+                            isFirst = false;
+                        }
                         System.out.println("Beginning endpoint detection for '" + file.getName() + "'");
                         listEndpoints(file);
                         System.out.println("Finished endpoint detection for '" + file.getName() + "'");
+                        System.out.println(PRINTLN_SEPARATOR);
                     }
 
                 } catch (IOException e) {
