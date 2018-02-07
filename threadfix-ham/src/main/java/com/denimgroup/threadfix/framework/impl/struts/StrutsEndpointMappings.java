@@ -40,6 +40,7 @@ import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPluginDetector;
+import com.denimgroup.threadfix.framework.util.ParameterMerger;
 import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetectionResult;
 import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetector;
 import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterMerger;
@@ -178,34 +179,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
         expandModelFieldParameters(endpoints, project.classes);
 
-        List<HyperlinkParameterMergingGuide> detectorParameters = list();
-
-        HyperlinkParameterDetector parameterDetector = new HyperlinkParameterDetector();
-        HyperlinkParameterMerger parameterMerger = new HyperlinkParameterMerger(true, false);
-        Collection<File> jspAndHtmlFiles = FileUtils.listFiles(rootDirectory, new String[] { ".jsp", ".html" }, true);
-        for (File file : jspAndHtmlFiles) {
-            String contents;
-            try {
-                contents = FileUtils.readFileToString(file);
-            } catch (IOException e) {
-                e.printStackTrace();
-                continue;
-            }
-
-            contents = replaceJspTags(contents);
-            contents = replaceStrutsTemplateTags(contents);
-
-            HyperlinkParameterDetectionResult detectionResult = parameterDetector.parse(contents, file);
-            detectorParameters.add(parameterMerger.mergeParsedImplicitParameters(endpoints, detectionResult));
-        }
-
-        for (HyperlinkParameterMergingGuide mergingGuide : detectorParameters) {
-            if (!mergingGuide.hasData()) {
-                continue;
-            }
-
-
-        }
+        ParameterMerger genericMerger = new ParameterMerger();
+        genericMerger.mergeParametersIn(endpoints);
     }
 
     private void expandModelFieldParameters(Collection<Endpoint> endpoints, Collection<StrutsClass> parsedClasses) {

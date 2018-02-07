@@ -31,6 +31,9 @@ import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 
 import java.util.*;
 
+import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.CollectionUtils.set;
+
 public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
     String parsedClassName;
@@ -43,6 +46,10 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     boolean skipNonPublic = true;
     boolean skipConstructors = true;
     boolean isInterface = false;
+
+    // Getters without setters can't be query parameters
+    Set<String> discoveredSetters = set();
+    Map<String, ModelField> pendingFields = map();
 
 
 
@@ -327,69 +334,73 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
                 if (type == '{' && canParse) {
 
-                    if (possibleMethodName.length() > 3 &&
-                            (possibleMethodName.startsWith("get") || possibleMethodName.startsWith("is"))) {
-
-                        String paramName;
-                        if (possibleMethodName.startsWith("is")) {
-                            paramName = possibleMethodName.substring(2);
-                        } else {
-                            paramName = possibleMethodName.substring(3);
-                        }
-
-                        if (isArray) {
-                            paramName += "[]";
-                        }
-
-                        String paramType = possibleMethodReturnValue;
-                        ModelField existingField = null;
-                        for (ModelField param : parameters) {
-                            if (param.getParameterKey().equals(paramName)) {
-                                existingField = param;
-                                break;
-                            }
-                        }
-
-                        boolean replaceOldParam = false;
-
-                        if (existingField != null) {
-                            String oldType = existingField.getType();
-                            ParameterDataType oldStrongType = ParameterDataType.getType(oldType);
-                            ParameterDataType newStrongType = ParameterDataType.getType(paramType);
-
-                            // Check if the new model data has a better inferrenced version of the type
-                            replaceOldParam = oldStrongType != newStrongType && oldStrongType == ParameterDataType.STRING;
-                            // Check if the new model data is NOT an array even though old data says it is
-                            //  (Array detection is prone to false-positives)
-                            //replaceOldParam = replaceOldParam || (oldType.contains("[") && !paramType.contains("]"));
-                        }
-
-                        if (replaceOldParam) {
-                            parameters.remove(existingField);
-                        }
-
-                        if (existingField == null || replaceOldParam) {
-                            ModelField field = new ModelField(paramType, paramName, false);
-                            parameters.add(field);
-                        }
-
-                    }
+//                    if (possibleMethodName.length() > 3 &&
+//                            (possibleMethodName.startsWith("get") || possibleMethodName.startsWith("is"))) {
+//
+//                        String paramName;
+//                        if (possibleMethodName.startsWith("is")) {
+//                            paramName = possibleMethodName.substring(2);
+//                        } else {
+//                            paramName = possibleMethodName.substring(3);
+//                        }
+//
+//                        if (isArray) {
+//                            paramName += "[]";
+//                        }
+//
+//                        String paramType = possibleMethodReturnValue;
+//                        ModelField existingField = null;
+//                        for (ModelField param : parameters) {
+//                            if (param.getParameterKey().equals(paramName)) {
+//                                existingField = param;
+//                                break;
+//                            }
+//                        }
+//
+//                        boolean replaceOldParam = false;
+//
+//                        if (existingField != null) {
+//                            String oldType = existingField.getType();
+//                            ParameterDataType oldStrongType = ParameterDataType.getType(oldType);
+//                            ParameterDataType newStrongType = ParameterDataType.getType(paramType);
+//
+//                            // Check if the new model data has a better inferrenced version of the type
+//                            replaceOldParam = oldStrongType != newStrongType && oldStrongType == ParameterDataType.STRING;
+//                            // Check if the new model data is NOT an array even though old data says it is
+//                            //  (Array detection is prone to false-positives)
+//                            //replaceOldParam = replaceOldParam || (oldType.contains("[") && !paramType.contains("]"));
+//                        }
+//
+//                        if (replaceOldParam) {
+//                            parameters.remove(existingField);
+//                        }
+//
+//                        if (existingField == null || replaceOldParam) {
+//                            ModelField field = new ModelField(paramType, paramName, false);
+//                            parameters.add(field);
+//                        }
+//
+//                    } else if (possibleMethodName.length() > 3 && possibleMethodName.startsWith("set")) {
+//
+//                    }
 
                     StrutsMethod newMethod = new StrutsMethod();
                     String methodName = possibleMethodName;
                     newMethod.setName(methodName);
                     newMethod.setReturnType(possibleMethodReturnValue + (isArray ? "[]" : ""));
 
-                    if (possibleMethodParams != null && !possibleMethodParams.isEmpty()) {
-                        String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
-                        for (String param : splitParams) {
-                            String[] paramParts = param.split(" ");
-                            String paramType = paramParts[0];
-                            String paramName = paramParts[1];
-                            newMethod.addParameter(paramName, paramType);
-                        }
-                        methods.add(newMethod);
+                    if (possibleMethodParams == null) {
+                        possibleMethodParams = "";
                     }
+
+                    String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
+                    for (String param : splitParams) {
+                        String[] paramParts = param.split(" ");
+                        String paramType = paramParts[0];
+                        String paramName = paramParts[1];
+                        newMethod.addParameter(paramName, paramType);
+                    }
+                    methods.add(newMethod);
                 }
 
                 possibleMethodName = "";

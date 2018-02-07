@@ -23,6 +23,7 @@
 
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.framework.impl.struts.annotationParsers.*;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
@@ -35,6 +36,8 @@ import java.io.File;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.CollectionUtils.set;
 
 public class StrutsClassParser {
 
@@ -64,7 +67,7 @@ public class StrutsClassParser {
 
         resultClass = new StrutsClass(className, file.getAbsolutePath());
         resultClass.addAllMethods(classSigParser.getParsedMethods());
-        resultClass.setProperties(classSigParser.getParameters());
+        resultClass.setProperties(collectParameters(classSigParser.getParsedMethods()));
         resultClass.setImportedPackages(classSigParser.getImports());
         resultClass.setPackage(classSigParser.getClassPackage());
 
@@ -137,8 +140,45 @@ public class StrutsClassParser {
 
 
 
+    private Set<ModelField> collectParameters(Collection<StrutsMethod> methods) {
+        Map<String, String> propertyTypesWithSetters = map();
+        Map<String, String> propertyTypesWithGetters = map();
 
-    void registerClassAnnotations(Collection<Annotation> annotations) {
+        Set<ModelField> result = set();
+
+        for (StrutsMethod method : methods) {
+            String name = method.getName();
+            if (name.startsWith("get")) {
+                propertyTypesWithGetters.put(name.substring(3), method.getReturnType());
+            } else if (name.startsWith("is")) {
+                propertyTypesWithGetters.put(name.substring(2), method.getReturnType());
+            } else if (name.startsWith("set")) {
+                List<String> paramNames = new ArrayList<String>(method.getParameterNames());
+                if (paramNames.size() > 0) {
+                    String parameterType = method.getParameters().get(paramNames.get(0));
+                    propertyTypesWithSetters.put(name.substring(3), parameterType);
+                }
+            }
+        }
+
+        for (String property : propertyTypesWithSetters.keySet()) {
+            if (!propertyTypesWithGetters.containsKey(property)) {
+                continue;
+            }
+
+            String setterType = propertyTypesWithSetters.get(property);
+            String getterType = propertyTypesWithGetters.get(property);
+
+            // Parameters are parsed more reliably than return types
+            String propertyType = setterType;
+            ModelField newField = new ModelField(propertyType, property);
+            result.add(newField);
+        }
+
+        return result;
+    }
+
+    private void registerClassAnnotations(Collection<Annotation> annotations) {
         for (Annotation annotation : annotations) {
             if (annotation.getTargetType() == Annotation.TargetType.CLASS) {
                 resultClass.addAnnotation(annotation);
