@@ -57,6 +57,11 @@ public class StrutsClassParser {
         //EventBasedTokenizerRunner.run(file, true, actionParser);
 
         String className = classSigParser.getParsedClassName();
+
+        if (className == null) {
+            return;
+        }
+
         resultClass = new StrutsClass(className, file.getAbsolutePath());
         resultClass.addAllMethods(classSigParser.getParsedMethods());
         resultClass.setProperties(classSigParser.getParameters());

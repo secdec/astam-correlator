@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.struts;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
@@ -41,6 +42,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     boolean skipBuiltIn = true;
     boolean skipNonPublic = true;
     boolean skipConstructors = true;
+    boolean isInterface = false;
 
 
 
@@ -77,11 +79,16 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
     @Override
     public boolean shouldContinue() {
-        return true;
+        return !isInterface;
     }
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
+
+        // Parsing can break (and is not necessary) for interfaces
+        if (isInterface) {
+            return;
+        }
 
         if (type == '{') numOpenBraces++;
         if (type == '}') numOpenBraces--;
@@ -136,6 +143,8 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
         if (stringValue != null) {
             if (stringValue.equals("class") && parsedClassName == null) {
                 parsePhase = ParsePhase.NEXT_IS_CLASS_NAME;
+            } else if (stringValue.equals("interface")) {
+                isInterface = true;
             } else if (stringValue.equals("package")) {
                 parsePhase = ParsePhase.PARSE_PACKAGE;
                 workingPackageName = "";
@@ -248,6 +257,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     String possibleMethodName;
     String possibleMethodParams;
     boolean isPublicMethod;
+    boolean isArray;
 
     enum InClassState { IDENTIFICATION, POSSIBLE_METHOD_PARAMS_START, POSSIBLE_METHOD_PARAMS_END }
     InClassState inClassState = InClassState.IDENTIFICATION;
@@ -268,6 +278,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
                 if (possibleMethodName != null && type == '(' && lastToken != '@') {
                     inClassState = InClassState.POSSIBLE_METHOD_PARAMS_START;
+                    isArray = lastToken == ']';
                 } else if (stringValue != null) {
                     if (stringValue.equals("private")) {
                         isPublicMethod = false;
@@ -286,6 +297,10 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                 if (type == ')' && numOpenParens == 0) {
                     inClassState = InClassState.POSSIBLE_METHOD_PARAMS_END;
                     break;
+                }
+
+                if (possibleMethodParams == null) {
+                    possibleMethodParams = "";
                 }
 
                 if (!possibleMethodParams.isEmpty()) {
@@ -313,45 +328,74 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                 if (type == '{' && canParse) {
 
                     if (possibleMethodName.length() > 3 &&
-                            (possibleMethodName.startsWith("get") || possibleMethodName.startsWith("set"))) {
+                            (possibleMethodName.startsWith("get") || possibleMethodName.startsWith("is"))) {
 
-                        String paramName = possibleMethodName.substring(3);
-                        String paramType = lastString;
-                        boolean paramExists = false;
+                        String paramName;
+                        if (possibleMethodName.startsWith("is")) {
+                            paramName = possibleMethodName.substring(2);
+                        } else {
+                            paramName = possibleMethodName.substring(3);
+                        }
+
+                        if (isArray) {
+                            paramName += "[]";
+                        }
+
+                        String paramType = possibleMethodReturnValue;
+                        ModelField existingField = null;
                         for (ModelField param : parameters) {
                             if (param.getParameterKey().equals(paramName)) {
-                                paramExists = true;
+                                existingField = param;
                                 break;
                             }
                         }
 
-                        if (!paramExists) {
+                        boolean replaceOldParam = false;
+
+                        if (existingField != null) {
+                            String oldType = existingField.getType();
+                            ParameterDataType oldStrongType = ParameterDataType.getType(oldType);
+                            ParameterDataType newStrongType = ParameterDataType.getType(paramType);
+
+                            // Check if the new model data has a better inferrenced version of the type
+                            replaceOldParam = oldStrongType != newStrongType && oldStrongType == ParameterDataType.STRING;
+                            // Check if the new model data is NOT an array even though old data says it is
+                            //  (Array detection is prone to false-positives)
+                            //replaceOldParam = replaceOldParam || (oldType.contains("[") && !paramType.contains("]"));
+                        }
+
+                        if (replaceOldParam) {
+                            parameters.remove(existingField);
+                        }
+
+                        if (existingField == null || replaceOldParam) {
                             ModelField field = new ModelField(paramType, paramName, false);
                             parameters.add(field);
                         }
 
-                    } else {
+                    }
 
-                        StrutsMethod newMethod = new StrutsMethod();
-                        newMethod.setName(possibleMethodName);
-                        newMethod.setReturnType(possibleMethodReturnValue);
+                    StrutsMethod newMethod = new StrutsMethod();
+                    String methodName = possibleMethodName;
+                    newMethod.setName(methodName);
+                    newMethod.setReturnType(possibleMethodReturnValue + (isArray ? "[]" : ""));
 
-                        if (possibleMethodParams != null && !possibleMethodParams.isEmpty()) {
-                            String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
-                            for (String param : splitParams) {
-                                String[] paramParts = param.split(" ");
-                                String paramType = paramParts[0];
-                                String paramName = paramParts[1];
-                                newMethod.addParameter(paramName, paramType);
-                            }
-                            methods.add(newMethod);
+                    if (possibleMethodParams != null && !possibleMethodParams.isEmpty()) {
+                        String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
+                        for (String param : splitParams) {
+                            String[] paramParts = param.split(" ");
+                            String paramType = paramParts[0];
+                            String paramName = paramParts[1];
+                            newMethod.addParameter(paramName, paramType);
                         }
+                        methods.add(newMethod);
                     }
                 }
 
                 possibleMethodName = "";
                 possibleMethodParams = "";
                 isPublicMethod = false;
+                isArray = false;
                 inClassState = InClassState.IDENTIFICATION;
                 parsePhase = ParsePhase.IN_CLASS;
                 break;

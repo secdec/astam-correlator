@@ -25,6 +25,11 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.CollectionUtils;
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
@@ -43,6 +48,7 @@ import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -97,7 +103,9 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         Collection<StrutsClass> discoveredClasses = list();
         for (File javaFile : javaFiles) {
             StrutsClass parsedClass = new StrutsClassParser(javaFile).getResultClass();
-            discoveredClasses.add(parsedClass);
+            if (parsedClass != null) {
+                discoveredClasses.add(parsedClass);
+            }
         }
 
         configurationProperties = new StrutsConfigurationProperties();
@@ -168,6 +176,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         endpoints = list();
         endpoints.addAll(actionMapper.generateEndpoints(project, project.getPackages(), ""));
 
+        expandModelFieldParameters(endpoints, project.classes);
+
         List<HyperlinkParameterMergingGuide> detectorParameters = list();
 
         HyperlinkParameterDetector parameterDetector = new HyperlinkParameterDetector();
@@ -196,6 +206,81 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
 
         }
+    }
+
+    private void expandModelFieldParameters(Collection<Endpoint> endpoints, Collection<StrutsClass> parsedClasses) {
+        for (Endpoint endpoint : endpoints) {
+            Collection<String> paramNames = new ArrayList<String>(endpoint.getParameters().keySet());
+            for (String paramName : paramNames) {
+                RouteParameter param = endpoint.getParameters().get(paramName);
+                StrutsClass modelType = findClassByName(parsedClasses, cleanArrayName(param.getDataTypeSource()));
+                if (modelType == null) {
+                    continue;
+                }
+
+                List<RouteParameter> effectiveParameters = expandModelToParameters(modelType, parsedClasses, new Stack<StrutsClass>(), null);
+                Map<String, RouteParameter> namedParameters = map();
+                for (RouteParameter modelParam : effectiveParameters) {
+                    namedParameters.put(modelParam.getName(), modelParam);
+                }
+                endpoint.getParameters().remove(paramName);
+                endpoint.getParameters().putAll(namedParameters);
+            }
+        }
+    }
+
+    private List<RouteParameter> expandModelToParameters(StrutsClass modelType, Collection<StrutsClass> referenceClasses, @Nonnull Stack<StrutsClass> previousModels, String namePrefix) {
+
+        if (namePrefix == null) {
+            namePrefix = "";
+        }
+
+        if (previousModels.contains(modelType)) {
+            return list();
+        }
+
+        previousModels.push(modelType);
+
+        List<RouteParameter> result = list();
+        Set<ModelField> modelFields = modelType.getProperties();
+        for (ModelField field : modelFields) {
+            String dataType = field.getType();
+            StrutsClass fieldModelType = findClassByName(referenceClasses, cleanArrayName(dataType));
+            if (fieldModelType == null) {
+                RouteParameter newParam = new RouteParameter(field.getParameterKey());
+                newParam.setDataType(dataType);
+                newParam.setParamType(RouteParameterType.FORM_DATA);
+                result.add(newParam);
+            } else {
+                String subParamsPrefix;
+                if (namePrefix.isEmpty()) {
+                    subParamsPrefix = field.getParameterKey();
+                } else {
+                    subParamsPrefix = namePrefix + "." + field.getParameterKey();
+                }
+                List<RouteParameter> modelSubParameters = expandModelToParameters(fieldModelType, referenceClasses, previousModels, subParamsPrefix);
+                result.addAll(modelSubParameters);
+            }
+        }
+
+        previousModels.pop();
+
+        return result;
+    }
+
+    private String cleanArrayName(String paramName) {
+        paramName = StringUtils.replace(paramName, "[", "");
+        paramName = StringUtils.replace(paramName, "]", "");
+        return paramName;
+    }
+
+    private StrutsClass findClassByName(Collection<StrutsClass> classes, String name) {
+        for (StrutsClass strutsClass : classes) {
+            if (strutsClass.getName().equalsIgnoreCase(name)) {
+                return strutsClass;
+            }
+        }
+        return null;
     }
 
     private String replaceJspTags(String jspText) {
