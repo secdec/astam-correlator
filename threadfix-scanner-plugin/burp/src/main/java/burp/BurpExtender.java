@@ -39,6 +39,7 @@ import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.*;
+import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.HashMap;
@@ -63,9 +64,12 @@ public class BurpExtender implements IBurpExtender, ITab
     private JComboBox applicationComboBox;
     private JTextField sourceFolderField;
     private JTextField configFileField;
-    private JTextField targetUrlField;
+    private JTextField targetHostField;
+    private JTextField targetPathField;
+    private JTextField targetPortField;
     private JCheckBox autoScanField;
     private JCheckBox autoSpiderField;
+    private JCheckBox useHttpField;
     private JLabel profMessage;
     private JLabel autoScanText;
     private JTextArea displayArea = new JTextArea();
@@ -554,8 +558,21 @@ public class BurpExtender implements IBurpExtender, ITab
         targetPanel.setLayout(new GridBagLayout());
         int yPosition = 0;
 
-        final JLabel targetPanelTitle = addPanelTitleToGridBagLayout("Target URL", targetPanel, yPosition++);
-        targetUrlField = addTextFieldToGridBagLayout("Please enter the target URL:", targetPanel, yPosition++, BurpPropertiesManager.TARGET_URL_KEY);
+        ActionListener applicationCheckBoxHttpActionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                BurpPropertiesManager.getBurpPropertiesManager().setUseHttps(useHttpField.isSelected());
+            }
+        };
+
+        final JLabel targetPanelTitle = addPanelTitleToGridBagLayout("Target Configuration", targetPanel, yPosition++);
+        targetHostField = addTextFieldToGridBagLayout("Host:", targetPanel, yPosition++, BurpPropertiesManager.TARGET_HOST_KEY);
+        targetPortField = addTextFieldToGridBagLayout("Port:", targetPanel, yPosition++, BurpPropertiesManager.TARGET_PORT_KEY);
+        targetPathField = addTextFieldToGridBagLayout("Path (optional):", targetPanel, yPosition++, BurpPropertiesManager.TARGET_PATH_KEY);
+        useHttpField = addCheckBoxToGridBagLayout("Use Https", targetPanel, yPosition++, applicationCheckBoxHttpActionListener);
+        useHttpField.setSelected(BurpPropertiesManager.getBurpPropertiesManager().getUseHttps());
+        PlainDocument portDoc = (PlainDocument)targetPortField.getDocument();
+        portDoc.setDocumentFilter(new PortFilter());
         return targetPanel;
     }
 
@@ -692,7 +709,9 @@ public class BurpExtender implements IBurpExtender, ITab
         updateApplicationComboBox(applicationMap, apiErrorLabel, applicationComboBox);
         sourceFolderField.setText(burpPropertiesManager.getSourceFolder());
         configFileField.setText(burpPropertiesManager.getConfigFile());
-        targetUrlField.setText(burpPropertiesManager.getTargetUrl());
+        targetHostField.setText(burpPropertiesManager.getTargetHost());
+        targetPathField.setText(burpPropertiesManager.getTargetPath());
+        targetPortField.setText(burpPropertiesManager.getTargetPort());
     }
 
     private void updateApplicationComboBox(Map<String, String> applicationMap, JLabel apiErrorLabel, JComboBox applicationComboBox) {
@@ -1038,5 +1057,67 @@ public class BurpExtender implements IBurpExtender, ITab
         checkBox.addActionListener(actionListener);
 
         return checkBox;
+    }
+}
+
+class PortFilter extends DocumentFilter {
+    static final int maxLength = 5;
+    @Override
+    public void insertString(FilterBypass fb, int offset, String string,
+                             AttributeSet attr) throws BadLocationException {
+        Document doc = fb.getDocument();
+        StringBuilder sb = new StringBuilder();
+        sb.append(doc.getText(0, doc.getLength()));
+        sb.insert(offset, string);
+        int val = Integer.parseInt(sb.toString());
+
+        if (test(sb.toString()) && sb.length() <= maxLength && val <= 65535) {
+            super.insertString(fb, offset, string, attr);
+        } else {
+            Toolkit.getDefaultToolkit().beep();
+        }
+    }
+
+    private boolean test(String text) {
+        try {
+            Integer.parseInt(text);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public void replace(FilterBypass fb, int offset, int length, String text,
+                        AttributeSet attrs) throws BadLocationException {
+
+        Document doc = fb.getDocument();
+        StringBuilder sb = new StringBuilder();
+        sb.append(doc.getText(0, doc.getLength()));
+        sb.replace(offset, offset + length, text);
+        int val = Integer.parseInt(sb.toString());
+
+        if (test(sb.toString()) && (sb.length() <= maxLength) && val <= 65535) {
+            super.replace(fb, offset, length, text, attrs);
+        } else {
+            Toolkit.getDefaultToolkit().beep();
+        }
+
+    }
+
+    @Override
+    public void remove(FilterBypass fb, int offset, int length)
+            throws BadLocationException {
+        Document doc = fb.getDocument();
+        StringBuilder sb = new StringBuilder();
+        sb.append(doc.getText(0, doc.getLength()));
+        sb.delete(offset, offset + length);
+
+        if ((test(sb.toString()) && (sb.length() <= maxLength)) || (sb.length() == 0)) {
+            super.remove(fb, offset, length);
+        } else {
+            Toolkit.getDefaultToolkit().beep();
+        }
+
     }
 }
