@@ -33,6 +33,7 @@ import com.denimgroup.threadfix.framework.impl.struts.StrutsWebPack;
 import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;
 import com.denimgroup.threadfix.framework.impl.struts.actionEndpointEnumerators.ActionEndpointEnumerator;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -53,22 +54,25 @@ public class DefaultActionMapper implements ActionMapper {
         StrutsWebPack primaryWebPack = project.findWebPack("/");
 
         List<StrutsEndpoint> endpoints = list();
-        //  Handle basic content files
-        for (String file : primaryWebPack.getRelativeFilePaths()) {
-            String fullPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), file);
-            Map<String, RouteParameter> params = new HashMap<String, RouteParameter>();
-            StrutsEndpoint endpoint = new StrutsEndpoint(makeRelativePath(fullPath, project), PathUtil.combine(namespace, file), "GET", params);
-            endpoints.add(endpoint);
-        }
 
-        for (String file : primaryWebPack.getWelcomeFiles()) {
-            String fullPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), file);
-            Map<String, RouteParameter> params = new HashMap<String, RouteParameter>();
-            StrutsEndpoint endpoint;
-            endpoint = new StrutsEndpoint(makeRelativePath(fullPath, project), namespace, "GET", params);
-            endpoints.add(endpoint);
-            endpoint = new StrutsEndpoint(makeRelativePath(fullPath, project), namespace + "/", "GET", params);
-            endpoints.add(endpoint);
+        if (primaryWebPack != null) {
+            //  Handle basic content files
+            for (String file : primaryWebPack.getRelativeFilePaths()) {
+                String fullPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), file);
+                Map<String, RouteParameter> params = new HashMap<String, RouteParameter>();
+                StrutsEndpoint endpoint = new StrutsEndpoint(makeRelativePath(fullPath, project), PathUtil.combine(namespace, file), "GET", params);
+                endpoints.add(endpoint);
+            }
+
+            for (String file : primaryWebPack.getWelcomeFiles()) {
+                String fullPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), file);
+                Map<String, RouteParameter> params = new HashMap<String, RouteParameter>();
+                StrutsEndpoint endpoint;
+                endpoint = new StrutsEndpoint(makeRelativePath(fullPath, project), namespace, "GET", params);
+                endpoints.add(endpoint);
+                endpoint = new StrutsEndpoint(makeRelativePath(fullPath, project), namespace + "/", "GET", params);
+                endpoints.add(endpoint);
+            }
         }
 
         //  Handle struts-mapped actions
@@ -78,10 +82,6 @@ public class DefaultActionMapper implements ActionMapper {
                 packageNamespace = "/";
 
             packageNamespace = PathUtil.combine(namespace, packageNamespace);
-
-            if(strutsPackage.getActions() == null) {
-                continue;
-            }
 
             for (StrutsAction strutsAction : strutsPackage.getActions()) {
 
@@ -103,11 +103,13 @@ public class DefaultActionMapper implements ActionMapper {
                     if (results == null) {
                         continue;
                     }
-                    for (StrutsResult result : results) {
-                        if (primaryWebPack.contains(result.getValue())) {
-                            strutsAction.setActClass("JSPServlet");
-                            strutsAction.setActClassLocation(PathUtil.combine(primaryWebPack.getRootDirectoryPath(), result.getValue()));
-                            break;
+                    if (primaryWebPack != null) {
+                        for (StrutsResult result : results) {
+                            if (primaryWebPack.contains(result.getValue())) {
+                                strutsAction.setActClass("JSPServlet");
+                                strutsAction.setActClassLocation(PathUtil.combine(primaryWebPack.getRootDirectoryPath(), result.getValue()));
+                                break;
+                            }
                         }
                     }
                     if (strutsAction.getActClass() == null) {
@@ -137,8 +139,32 @@ public class DefaultActionMapper implements ActionMapper {
                                 path = path.replace("!*", "");
                                 path = path.replace("*", "");
                                 endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters));
-                            } else {
-                                path = path.replace("*", method.getName());
+                            }
+                            else {
+                                // Don't expose request parameters as endpoints
+                                String methodName = method.getName();
+                                if (methodName.startsWith("get") || methodName.startsWith("set") || methodName.startsWith("is")) {
+                                    continue;
+                                }
+
+                                if (strutsAction.getMethod().startsWith("{")) {
+                                    String wildcardIndexText = strutsAction.getMethod().substring(1, strutsAction.getMethod().length() - 1);
+                                    int index;
+                                    try {
+                                        index = Integer.parseInt(wildcardIndexText);
+                                    } catch (NumberFormatException ex) {
+                                        index = -1;
+                                    }
+                                    if (index < 0) {
+                                        continue;
+                                    }
+
+                                    int wildcardStartIndex = StringUtils.ordinalIndexOf(path, "*", index);
+                                    String firstPart = path.substring(0, wildcardStartIndex);
+                                    String secondPart = path.substring(wildcardStartIndex + 1);
+                                    path = firstPart + method.getName() + secondPart;
+                                }
+
                                 for (ModelField mf : fieldMappings) {
                                     parameters.put(mf.getParameterKey(), RouteParameter.fromDataType(mf.getParameterKey(), mf.getType()));
                                 }
@@ -149,7 +175,11 @@ public class DefaultActionMapper implements ActionMapper {
                         for (ModelField mf : fieldMappings) {
                             parameters.put(mf.getParameterKey(), RouteParameter.fromDataType(mf.getParameterKey(), mf.getType()));
                         }
-                        endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "POST", parameters));
+                        if (parameters.isEmpty()) {
+                            endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters));
+                        } else {
+                            endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "POST", parameters));
+                        }
                     }
                 }
 
@@ -159,10 +189,10 @@ public class DefaultActionMapper implements ActionMapper {
                     for (StrutsResult result : results) {
                         String filePath = result.getValue();
 
-                        if (filePath != null) {
+                        if (filePath != null && primaryWebPack != null) {
                             if (primaryWebPack.contains(filePath)) {
-                                String exposedContentPath = PathUtil.combine(basePath, actionName);
-                                endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), exposedContentPath, "GET", new HashMap<String, RouteParameter>()));
+                                String fullContentPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), filePath);
+                                endpoints.add(new StrutsEndpoint(makeRelativePath(fullContentPath, project), basePath, "GET", new HashMap<String, RouteParameter>()));
                             }
                         }
                     }
@@ -174,6 +204,9 @@ public class DefaultActionMapper implements ActionMapper {
     }
 
     String makeRelativePath(String path, StrutsProject project) {
+        if (path == null) {
+            path = "";
+        }
         if (project.getRootDirectory() != null && path.startsWith(project.getRootDirectory())) {
             return FilePathUtils.getRelativePath(path, project.getRootDirectory());
         } else {

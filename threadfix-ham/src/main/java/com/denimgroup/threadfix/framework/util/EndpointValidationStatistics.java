@@ -19,7 +19,6 @@ public class EndpointValidationStatistics {
     public static void printValidationStats(Collection<Endpoint> endpoints) {
 
         Map<String, Integer> occurrences = map();
-        int numOptionalParams = 0;
         int numValidParamTypes = 0;
         int numValidDataTypes = 0;
         int numParams = 0;
@@ -39,9 +38,6 @@ public class EndpointValidationStatistics {
 
             for (RouteParameter param : endpoint.getParameters().values()) {
                 ++numParams;
-                if (param.isOptional()) {
-                    numOptionalParams++;
-                }
                 if (param.getParamType() != RouteParameterType.UNKNOWN) {
                     numValidParamTypes++;
                 }
@@ -52,7 +48,6 @@ public class EndpointValidationStatistics {
         }
 
         LOG.info("Endpoint stats: " +
-            numOptionalParams + "/" + numParams + " params are optional, " +
             numValidParamTypes + "/" + numParams + " params have valid parameter types, " +
             numValidDataTypes + "/" + numParams + " params have valid data types, " +
             numDuplicates + "/" + endpoints.size() + " duplicate endpoints"

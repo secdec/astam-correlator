@@ -198,7 +198,6 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                         RouteParameter newParam = new RouteParameter(possibleParameter.getParameterKey());
                         newParam.setDataType(possibleParameter.getType());
                         newParam.setParamType(RouteParameterType.FORM_DATA); // All non-primitives are serialized as form data
-                        newParam.setOptional(possibleParameter.isOptional());
                         action.parameters.put(possibleParameter.getParameterKey(), newParam);
                     }
                 }

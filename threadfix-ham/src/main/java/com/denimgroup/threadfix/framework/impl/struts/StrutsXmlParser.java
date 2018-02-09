@@ -79,11 +79,11 @@ public class StrutsXmlParser {
 			if (strutsPackage.getNamespace() == null) {
 				strutsPackage.setNamespace("/");
 			}
-			for (StrutsAction action : strutsPackage.getActions()) {
-				if (action.getMethod() == null) {
-					action.setMethod("execute");
-				}
-			}
+            for (StrutsAction action : strutsPackage.getActions()) {
+                if (action.getMethod() == null) {
+                    action.setMethod("execute");
+                }
+            }
 		}
 
 		return packages;
@@ -144,7 +144,10 @@ public class StrutsXmlParser {
 			    bInclude = true;
 			    String path = attributes.getValue("file");
 			    log.info("Found path to another config file: " + path );
-			    strutsPackages.addAll(parse(path));
+			    List<StrutsPackage> newPackages = parse(path);
+			    if (newPackages != null) {
+					strutsPackages.addAll(newPackages);
+				}
             }
 
 		}

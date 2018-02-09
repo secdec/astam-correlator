@@ -55,6 +55,8 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
@@ -150,17 +152,23 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             project.addPlugin(plugin);
         }
 
-        StrutsWebXmlParser webXmlParser = new StrutsWebXmlParser(StrutsWebXmlParser.findWebXml(rootDirectory));
-        project.setWebPath(webXmlParser.getPrimaryWebContentPath());
-        project.setWebInfPath(webXmlParser.getWebInfFolderPath());
+        File webXmlFile = StrutsWebXmlParser.findWebXml(rootDirectory);
 
-        StrutsWebPackBuilder webPackBuilder = new StrutsWebPackBuilder();
-        File webContentRoot = new File(webXmlParser.getPrimaryWebContentPath());
-        StrutsWebPack primaryWebPack = webPackBuilder.generate(webContentRoot);
-        for (String welcomeFile : webXmlParser.getWelcomeFiles()) {
-            primaryWebPack.addWelcomeFile(welcomeFile);
+        if (webXmlFile != null) {
+            StrutsWebXmlParser webXmlParser = new StrutsWebXmlParser(webXmlFile);
+            project.setWebPath(webXmlParser.getPrimaryWebContentPath());
+            project.setWebInfPath(webXmlParser.getWebInfFolderPath());
+
+            StrutsWebPackBuilder webPackBuilder = new StrutsWebPackBuilder();
+            File webContentRoot = new File(webXmlParser.getPrimaryWebContentPath());
+            StrutsWebPack primaryWebPack = webPackBuilder.generate(webContentRoot);
+            for (String welcomeFile : webXmlParser.getWelcomeFiles()) {
+                primaryWebPack.addWelcomeFile(welcomeFile);
+            }
+            project.addWebPack(primaryWebPack);
+        } else {
+            log.warn("Couldn't find web.xml file, won't generate JSP web-packs");
         }
-        project.addWebPack(primaryWebPack);
 
         ActionMapperFactory mapperFactory = new ActionMapperFactory(configurationProperties);
         this.actionMapper = mapperFactory.detectMapper(project);
@@ -171,6 +179,48 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
         generateMaps(project);
 
+        // Assign parametric route parameters
+        Pattern routeParameterPattern = Pattern.compile("\\{(\\w+)[^\\}]*\\}");
+        for (Endpoint endpoint : endpoints) {
+
+            Matcher routeParameterMatcher = routeParameterPattern.matcher(endpoint.getUrlPath());
+            List<String> parameterNames = list();
+            while (routeParameterMatcher.find()) {
+                String name = routeParameterMatcher.group(1);
+                parameterNames.add(name.toLowerCase());
+            }
+
+            for (RouteParameter param : endpoint.getParameters().values()) {
+                String commonName = param.getName().toLowerCase();
+                if (parameterNames.contains(commonName)) {
+                    parameterNames.remove(commonName);
+                    param.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+                    break;
+                }
+            }
+
+            // Params not found previously need to be added as new parameters, ie if a child endpoint inherits a
+            // route parameter from its parent endpoint
+            for (String remainingParamName : parameterNames) {
+                RouteParameter newParam = new RouteParameter(remainingParamName);
+                newParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+                endpoint.getParameters().put(remainingParamName, newParam);
+            }
+        }
+
+        ParameterMerger genericMerger = new ParameterMerger();
+        genericMerger.mergeParametersIn(endpoints);
+
+
+        for (Endpoint endpoint : endpoints) {
+            Collection<RouteParameter> params = endpoint.getParameters().values();
+            for (RouteParameter param : params) {
+                if (param.getParamType() == RouteParameterType.UNKNOWN) {
+                    log.debug("Missing parameter datatype for " + param.getName());
+                }
+            }
+        }
+
     }
 
     private void generateMaps(StrutsProject project) {
@@ -178,9 +228,6 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         endpoints.addAll(actionMapper.generateEndpoints(project, project.getPackages(), ""));
 
         expandModelFieldParameters(endpoints, project.classes);
-
-        ParameterMerger genericMerger = new ParameterMerger();
-        genericMerger.mergeParametersIn(endpoints);
     }
 
     private void expandModelFieldParameters(Collection<Endpoint> endpoints, Collection<StrutsClass> parsedClasses) {

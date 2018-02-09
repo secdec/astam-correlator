@@ -103,11 +103,9 @@ public class ParameterMerger {
             for (RouteParameter param : entry.getValue()) {
                 String typeSource = param.getDataTypeSource();
                 RouteParameterType parameterType = param.getParamType();
-                boolean isOptional = param.isOptional();
 
                 setOneOrIncrement(parameterDataTypeSourceFrequency, typeSource);
                 setOneOrIncrement(parameterTypeFrequency, parameterType);
-                setOneOrIncrement(optionalFrequency, isOptional);
 
                 if (param.getAcceptedValues() != null && param.getAcceptedValues().size() > 0) {
                     if (longestAcceptedParametersList == null) {
@@ -120,13 +118,11 @@ public class ParameterMerger {
 
             String mostCommonDataTypeSource = highestFrequencyEntry(parameterDataTypeSourceFrequency);
             RouteParameterType mostCommonParameterType = highestFrequencyEntry(parameterTypeFrequency);
-            boolean mostCommonOptionality = highestFrequencyEntry(optionalFrequency);
 
             RouteParameter consolidatedParameter = new RouteParameter(name);
             consolidatedParameter.setParamType(mostCommonParameterType);
             consolidatedParameter.setDataType(mostCommonDataTypeSource);
             consolidatedParameter.setAcceptedValues(longestAcceptedParametersList);
-            consolidatedParameter.setOptional(mostCommonOptionality);
 
             mergedParameters.put(name, consolidatedParameter);
         }

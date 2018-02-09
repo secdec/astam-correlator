@@ -97,7 +97,6 @@ class Action {
                     s = s.trim();
 
                     RouteParameter actionParam = new RouteParameter(s);
-                    actionParam.setOptional(actionParam.isOptional());
                     actionParam.setParamType(param.getParamType());
 
                     List<RouteParameter> duplicateRecord = duplicateParameterData.get(s);
@@ -109,7 +108,6 @@ class Action {
             } else {
                 String paramName = param.getName().trim();
                 RouteParameter actionParam = new RouteParameter(paramName);
-                actionParam.setOptional(param.isOptional());
                 actionParam.setDataType(param.getDataTypeSource());
                 actionParam.setParamType(param.getParamType());
 
@@ -139,7 +137,6 @@ class Action {
                     consolidatedParameter = new RouteParameter(paramName);
                     consolidatedParameter.setParamType(duplicate.getParamType());
                     consolidatedParameter.setDataType(duplicate.getDataTypeSource());
-                    consolidatedParameter.setOptional(duplicate.isOptional());
                     consolidatedParameter.setAcceptedValues(duplicate.getAcceptedValues());
                 } else {
 
@@ -148,9 +145,6 @@ class Action {
                     boolean needsBetterDataType =
                                     consolidatedParameter.getDataType() == null ||
                                     consolidatedParameter.getDataType().getDisplayName().equals(ParameterDataType.STRING.getDisplayName());
-
-                    // Optional is 'false' by default, take another parameter's 'optional' setting in case the other is non-default
-                    boolean needsIsOptional = !consolidatedParameter.isOptional();
 
                     if (needsBetterParamType) {
                         consolidatedParameter.setParamType(duplicate.getParamType());
@@ -163,11 +157,6 @@ class Action {
                     if (needsBetterDataType) {
                         consolidatedParameter.setDataType(duplicate.getDataTypeSource());
                     }
-
-                    if (needsIsOptional) {
-                        consolidatedParameter.setOptional(duplicate.isOptional());
-                    }
-
                 }
             }
 

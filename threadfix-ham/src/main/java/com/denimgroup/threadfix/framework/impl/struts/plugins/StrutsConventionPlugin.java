@@ -89,8 +89,22 @@ public class StrutsConventionPlugin implements StrutsPlugin {
             }
 
             for (StrutsMethod method : strutsClass.getMethods()) {
-                String endpointPath = formatCamelCaseToConvention(method.getName(), project);
-                StrutsAction action = new StrutsAction(endpointPath, method.getName(), strutsClass.getName(), strutsClass.getSourceFile());
+
+                String methodName = method.getName();
+                if (methodName.startsWith("get") || methodName.startsWith("set") || methodName.startsWith("is")) {
+                    continue;
+                }
+
+                if (methodName.equals("validate") && strutsClass.hasBaseType("ValidationAwareSupport")) {
+                    continue;
+                }
+
+                if (methodName.equals("execute")) {
+                    methodName = "";
+                }
+
+                String endpointPath = formatCamelCaseToConvention(methodName, project);
+                StrutsAction action = new StrutsAction(endpointPath, methodName, strutsClass.getName(), strutsClass.getSourceFile());
                 action.setParams(parameters);
 
                 Collection<Annotation> annotations = method.getAnnotations();

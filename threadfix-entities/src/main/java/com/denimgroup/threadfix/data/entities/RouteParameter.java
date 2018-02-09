@@ -43,20 +43,12 @@ public class RouteParameter {
         return dataType != null && dataType.getDisplayName().toLowerCase().equalsIgnoreCase(dataTypeSource);
     }
 
-    public boolean isOptional() {
-        return isOptional;
-    }
-
     public String getName() {
         return name;
     }
 
     public List<String> getAcceptedValues() {
         return acceptedValues;
-    }
-
-    public void setOptional(boolean optional) {
-        isOptional = optional;
     }
 
     // Use 'setDataType(String)' instead; the data type is automatically parsed and the original type string
@@ -106,8 +98,17 @@ public class RouteParameter {
         result.append(paramType);
         result.append(", dataType=");
         result.append(dataType);
-        result.append(", isOptional=");
-        result.append(isOptional);
+
+        if (acceptedValues != null) {
+            result.append(", acceptedValues=[");
+            for (int i = 0; i < acceptedValues.size(); i++) {
+                if (i > 0) {
+                    result.append(',');
+                }
+                result.append(acceptedValues.get(i));
+            }
+            result.append(']');
+        }
 
         return result.toString();
     }

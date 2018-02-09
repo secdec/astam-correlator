@@ -67,13 +67,18 @@ public class EndpointMain {
             if (pathListFile != null) {
                 System.out.println("Loading path list file at '" + pathListFile + "'");
                 List<String> fileContents;
+                boolean isLongComment = false;
                 try {
                     fileContents = FileUtils.readLines(new File(pathListFile));
                     List<File> requestedTargets = list();
                     int lineNo = 1;
                     for (String line : fileContents) {
                         line = line.trim();
-                        if (!line.startsWith("#") && !line.isEmpty()) {
+                        if (line.startsWith("#!")) {
+                            isLongComment = true;
+                        } else if (line.startsWith("!#")) {
+                            isLongComment = false;
+                        } else if (!line.startsWith("#") && !line.isEmpty() && !isLongComment) {
                             File asFile = new File(line);
                             if (!asFile.exists()) {
                                 System.out.println("WARN - Unable to find input path '" + line + "' at line " + lineNo + " of " + pathListFile);
@@ -218,14 +223,10 @@ public class EndpointMain {
 
         System.out.println("Generated " + detectedParameters.size() + " parameters");
 
-        int numOptional = 0;
         int numHaveDataType = 0;
         int numHaveParamType = 0;
         int numHaveAcceptedValues = 0;
         for (RouteParameter param : detectedParameters) {
-            if (param.isOptional()) {
-                ++numOptional;
-            }
             if (param.getDataType() != null) {
                 ++numHaveDataType;
             }
@@ -238,7 +239,6 @@ public class EndpointMain {
         }
 
         int numParams = detectedParameters.size();
-        System.out.println("- " + numOptional + "/" + numParams + " parameters are optional");
         System.out.println("- " + (numParams - numHaveDataType) + "/" + numParams + " are missing their data type");
         System.out.println("- " + (numParams - numHaveParamType) + "/" + numParams + " are missing their parameter type");
         System.out.println("- " + numHaveAcceptedValues + "/" + numParams + " have a list of accepted values");

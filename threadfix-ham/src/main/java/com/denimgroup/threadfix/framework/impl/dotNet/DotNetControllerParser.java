@@ -99,7 +99,6 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     boolean shouldContinue = true;
     String  lastString     = null, methodName = null, twoStringsAgo = null;
     Set<RouteParameter> parametersWithTypes = set();
-    boolean wasParamOptional = false;
     int lastLineNumber = -1;
     String possibleParamType = null;
 
@@ -225,17 +224,13 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                         if (isValidParameterName(lastString)) {
                             RouteParameter param = new RouteParameter(lastString);
                             param.setDataType(twoStringsAgo);
-                            param.setOptional(wasParamOptional);
                             parametersWithTypes.add(param);
                         }
-                        wasParamOptional = false;
                         if (twoStringsAgo.equals("Include")) {
                             currentState = State.AFTER_BIND_INCLUDE;
                         }
                     } else if (type == '=' && !"Include".equals(lastString)) {
                         currentState = State.DEFAULT_VALUE;
-                    } else if (type == '?' && twoStringsAgo != null) {
-                        wasParamOptional = true;
                     }
                 }
 

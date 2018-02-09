@@ -55,7 +55,6 @@ public class HyperlinkParameterDetector {
         parseElementReferences(ElementReference.flattenReferenceTree(rootElements));
 
         Map<String, Map<String, List<RouteParameter>>> detectedParameters = parseReferenceParameters(rootElements);
-        detectOptionalParameters(detectedParameters);
 
         return new HyperlinkParameterDetectionResult(rootElements, detectedParameters);
     }
@@ -380,69 +379,6 @@ public class HyperlinkParameterDetector {
             }
         }
         return result;
-    }
-
-    // Assigns the 'isOptional' property for the given set of 'RouteParameter' objects.
-    private void detectOptionalParameters(Map<String, Map<String, List<RouteParameter>>> parameters) {
-        // Parameters with fewer entries than the most common entry are assumed to be optional.
-
-        // ie, 'name', 'id', 'password' are all parameters. 'name' occurs twice, 'id' occurs once, and 'password' occurs once.
-
-        // Since the most common entry 'name' has 2 occurrences, and 'id' and 'password' have less than 2 occurrences,
-        //    'id' and 'password' are considered optional.
-
-        // This comparison occurs between all QUERY_STRING parameters across all request types. Other parameter types
-        //    are only compared within the same request method.
-
-        // NOTE: This will not work for ie forms to the same endpoint whose format depends on the query string.
-        //  Adding support may involve a "RouteVariant" type specifying the parameters of an endpoint
-        //      for a given query string
-
-        for (Map.Entry<String, Map<String, List<RouteParameter>>> entry : parameters.entrySet()) {
-            Map<String, Integer> queryStringOccurrenceMap = map();
-            Map<String, List<RouteParameter>> methodParameters = entry.getValue();
-
-            //  Gather parameter occurrences
-            for (Map.Entry<String, List<RouteParameter>> methodParamsEntry : methodParameters.entrySet()) {
-                List<RouteParameter> params = methodParamsEntry.getValue();
-
-                Map<String, Integer> occurrenceMap = map();
-                for (RouteParameter param : params) {
-                    if (param.getParamType() == RouteParameterType.QUERY_STRING) {
-                        setOrAddOne(queryStringOccurrenceMap, param.getName());
-                    } else {
-                        setOrAddOne(occurrenceMap, param.getName());
-                    }
-                }
-
-                int maxNumOccurrences = mapMax(occurrenceMap);
-                for (RouteParameter param : params) {
-                    if (param.getParamType() == RouteParameterType.QUERY_STRING) {
-                        continue;
-                    }
-                    if (occurrenceMap.get(param.getName()) < maxNumOccurrences) {
-                        param.setOptional(true);
-                    } else {
-                        param.setOptional(false);
-                    }
-                }
-            }
-
-            int maxNumQSOccurrences = mapMax(queryStringOccurrenceMap);
-            for (Map.Entry<String, Integer> occurrence : queryStringOccurrenceMap.entrySet()) {
-                String name = occurrence.getKey();
-                int occurrences = occurrence.getValue();
-                boolean isOptional = occurrences < maxNumQSOccurrences;
-
-                for (Map.Entry<String, List<RouteParameter>> methodParamsEntry : methodParameters.entrySet()) {
-                    for (RouteParameter param : methodParamsEntry.getValue()) {
-                        if (param.getParamType() == RouteParameterType.QUERY_STRING && param.getName().equals(name)) {
-                            param.setOptional(isOptional);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     private void setOrAddOne(Map<String, Integer> map, String key) {

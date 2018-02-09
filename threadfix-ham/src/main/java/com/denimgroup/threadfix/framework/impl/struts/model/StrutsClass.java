@@ -143,6 +143,15 @@ public class StrutsClass {
         return properties;
     }
 
+    public ModelField getProperty(String name) {
+        for (ModelField field : properties) {
+            if (field.getParameterKey().equalsIgnoreCase(name)) {
+                return field;
+            }
+        }
+        return null;
+    }
+
 
     public boolean hasBaseType(String baseTypeName) {
 
