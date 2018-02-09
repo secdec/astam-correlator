@@ -330,13 +330,15 @@ public class BurpExtender implements IBurpExtender, ITab
                 displayArea.append("Methods: " + "\n" );
                 // TODO - Gather all Endpoint objects pointing to the same endpoint and output their HTTP methods (Endpoints only have
                 //  one HTTP method at a time now)
-                displayArea.append(endpoint.getHttpMethod());
+                if(endpoint.getHttpMethod().length() >4)
+                {
+                        displayArea.append(endpoint.getHttpMethod().substring(14));
+                        //JOptionPane.showMessageDialog(null,endpoint.getHttpMethod().split(".")[0]);
 
-//                Iterator<String> it = endpoint.getHttpMethods().iterator();
-//                while (it.hasNext())
-//                {
-//                    displayArea.append(it.next() + "\n");
-//                }
+                }
+                else
+                    displayArea.append(endpoint.getHttpMethod());
+
 
                 displayArea.append("\n" + "Parameters and type:" + "\n");
                 for(Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())
@@ -344,8 +346,6 @@ public class BurpExtender implements IBurpExtender, ITab
                    displayArea.append(parameter.getKey() + " - " + parameter.getValue().getDataType().getDisplayName()
                            + "\n");
                 }
-
-
             }
 
             @Override

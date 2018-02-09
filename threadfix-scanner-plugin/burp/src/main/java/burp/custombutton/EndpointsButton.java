@@ -179,9 +179,9 @@ public abstract class EndpointsButton extends JButton {
             boolean hasGet = false;
             boolean hasPost = false;
             String method = endpoint.getHttpMethod();
-            if(method.toString().equalsIgnoreCase("post"))
+            if(method.toString().equalsIgnoreCase("requestmethod.post"))
                 hasPost = true;
-            else if (method.toString().equalsIgnoreCase("get"))
+            else if (method.toString().equalsIgnoreCase("requestmethod.get"))
                 hasGet = true;
             dtm.addRow(new Object[]
             {
@@ -259,7 +259,7 @@ public abstract class EndpointsButton extends JButton {
                           callbacks.getHelpers().addParameter(req, param);
                     }
                     byte[] manReq = callbacks.getHelpers().buildHttpRequest(new URL(url + reqString));
-                    if(method.toString().equalsIgnoreCase("post"))
+                    if(method.toString().equalsIgnoreCase("requestmethod.post"))
                     {
                         manReq = callbacks.getHelpers().toggleRequestMethod(manReq);
                     }
