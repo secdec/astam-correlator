@@ -8,12 +8,11 @@ import java.util.List;
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class RouteParameter {
-    ParameterDataType dataType;
-    String dataTypeSource;
-    boolean isOptional = false;
-    RouteParameterType paramType = RouteParameterType.UNKNOWN;
-    String name;
-    List<String> acceptedValues = null;
+    private ParameterDataType dataType;
+    private String dataTypeSource;
+    private RouteParameterType paramType = RouteParameterType.UNKNOWN;
+    private String name;
+    private List<String> acceptedValues = null;
 
     public RouteParameter(String name) {
         this.name = name;
@@ -41,6 +40,10 @@ public class RouteParameter {
 
     public boolean hasProperDataType() {
         return dataType != null && dataType.getDisplayName().toLowerCase().equalsIgnoreCase(dataTypeSource);
+    }
+
+    public boolean isArrayType() {
+        return dataTypeSource.contains("[]");
     }
 
     public String getName() {
