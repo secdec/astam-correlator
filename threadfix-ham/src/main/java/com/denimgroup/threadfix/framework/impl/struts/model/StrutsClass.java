@@ -127,6 +127,15 @@ public class StrutsClass {
         return methods;
     }
 
+    public StrutsMethod getMethod(String name) {
+        for (StrutsMethod method : methods) {
+            if (method.getName().equalsIgnoreCase(name)) {
+                return method;
+            }
+        }
+        return null;
+    }
+
     public Collection<String> getImportedPackages() {
         return this.importedPackages;
     }

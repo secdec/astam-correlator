@@ -25,6 +25,7 @@ package com.denimgroup.threadfix.framework.impl.struts.mappers;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.PathUtil;
@@ -121,7 +122,9 @@ public class DefaultActionMapper implements ActionMapper {
                 StrutsClass classForAction = project.findClassByFileLocation(classLocation);
                 Set<ModelField> fieldMappings = set();
                 if (classForAction != null) {
-                    fieldMappings = classForAction.getProperties();
+                    if (!classForAction.getBaseTypes().contains("ActionSupport") && !classForAction.getName().equals("JSPServlet")) {
+                        continue;
+                    }
                 }
                 Map<String, RouteParameter> parameters = map();
 
@@ -135,45 +138,51 @@ public class DefaultActionMapper implements ActionMapper {
                         for (StrutsMethod method : classForAction.getMethods()) {
                             path = sbUrl.toString();
                             parameters = map();
+
+                            if (strutsAction.getMethod().startsWith("{")) {
+                                String wildcardIndexText = strutsAction.getMethod().substring(1, strutsAction.getMethod().length() - 1);
+                                int index;
+                                try {
+                                    index = Integer.parseInt(wildcardIndexText);
+                                } catch (NumberFormatException ex) {
+                                    index = -1;
+                                }
+                                if (index < 0) {
+                                    continue;
+                                }
+
+                                int wildcardStartIndex = StringUtils.ordinalIndexOf(path, "*", index);
+                                String firstPart = path.substring(0, wildcardStartIndex);
+                                String secondPart = path.substring(wildcardStartIndex + 1);
+                                path = firstPart + method.getName() + secondPart;
+                            }
+
+                            for (ModelField modelField : classForAction.getProperties()) {
+                                if (method.hasSymbolReference(modelField.getParameterKey())) {
+                                    RouteParameter newParameter = new RouteParameter(modelField.getParameterKey());
+                                    newParameter.setParamType(RouteParameterType.QUERY_STRING);
+                                    newParameter.setDataType(modelField.getType());
+                                    parameters.put(modelField.getParameterKey(), newParameter);
+                                }
+                            }
+
                             if ("execute".equals(method.getName())) {
                                 path = path.replace("!*", "");
                                 path = path.replace("*", "");
                                 endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters));
                             }
-                            else {
-                                // Don't expose request parameters as endpoints
-                                String methodName = method.getName();
-                                if (methodName.startsWith("get") || methodName.startsWith("set") || methodName.startsWith("is")) {
-                                    continue;
-                                }
-
-                                if (strutsAction.getMethod().startsWith("{")) {
-                                    String wildcardIndexText = strutsAction.getMethod().substring(1, strutsAction.getMethod().length() - 1);
-                                    int index;
-                                    try {
-                                        index = Integer.parseInt(wildcardIndexText);
-                                    } catch (NumberFormatException ex) {
-                                        index = -1;
-                                    }
-                                    if (index < 0) {
-                                        continue;
-                                    }
-
-                                    int wildcardStartIndex = StringUtils.ordinalIndexOf(path, "*", index);
-                                    String firstPart = path.substring(0, wildcardStartIndex);
-                                    String secondPart = path.substring(wildcardStartIndex + 1);
-                                    path = firstPart + method.getName() + secondPart;
-                                }
-
-                                for (ModelField mf : fieldMappings) {
-                                    parameters.put(mf.getParameterKey(), RouteParameter.fromDataType(mf.getParameterKey(), mf.getType()));
-                                }
-                                endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "POST", parameters));
-                            }
                         }
                     } else {
                         for (ModelField mf : fieldMappings) {
-                            parameters.put(mf.getParameterKey(), RouteParameter.fromDataType(mf.getParameterKey(), mf.getType()));
+                            if (classForAction != null) {
+                                StrutsMethod executeMethod = classForAction.getMethod(strutsAction.getMethod());
+                                if (executeMethod != null && !executeMethod.hasSymbolReference(mf.getParameterKey())) {
+                                    continue;
+                                }
+                            }
+                            RouteParameter asParam = RouteParameter.fromDataType(mf.getParameterKey(), mf.getType());
+                            asParam.setParamType(RouteParameterType.FORM_DATA);
+                            parameters.put(mf.getParameterKey(), asParam);
                         }
                         if (parameters.isEmpty()) {
                             endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters));

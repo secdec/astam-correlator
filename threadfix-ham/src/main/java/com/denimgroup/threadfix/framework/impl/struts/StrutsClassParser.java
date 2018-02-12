@@ -162,9 +162,10 @@ public class StrutsClassParser {
         }
 
         for (String property : propertyTypesWithSetters.keySet()) {
-            if (!propertyTypesWithGetters.containsKey(property)) {
-                continue;
-            }
+            // Any method as a 'setter' on its own is enough to be treated as a property
+//            if (!propertyTypesWithGetters.containsKey(property)) {
+//                continue;
+//            }
 
             String setterType = propertyTypesWithSetters.get(property);
             String getterType = propertyTypesWithGetters.get(property);

@@ -25,26 +25,18 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
-import com.denimgroup.threadfix.CollectionUtils;
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapper;
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapperFactory;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
+import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPluginDetector;
 import com.denimgroup.threadfix.framework.util.ParameterMerger;
-import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetectionResult;
-import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetector;
-import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterMerger;
-import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterMergingGuide;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
@@ -53,7 +45,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -209,6 +200,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
 
         ParameterMerger genericMerger = new ParameterMerger();
+        genericMerger.setCaseSensitive(false);
         genericMerger.mergeParametersIn(endpoints);
 
 
@@ -224,10 +216,31 @@ public class StrutsEndpointMappings implements EndpointGenerator {
     }
 
     private void generateMaps(StrutsProject project) {
+
+        StrutsPageParameterDetector parameterDetector = new StrutsPageParameterDetector();
+        List<StrutsDetectedParameter> inferredParameters = list();
+
+        Collection<File> webFiles = FileUtils.listFiles(new File(project.getRootDirectory()), new String[] { "html", "xhtml", "jsp"}, true);
+
+        for (File file : webFiles) {
+            inferredParameters.addAll(parameterDetector.parseStrutsFormsParameters(file));
+        }
+
         endpoints = list();
         endpoints.addAll(actionMapper.generateEndpoints(project, project.getPackages(), ""));
 
         expandModelFieldParameters(endpoints, project.classes);
+
+        for (StrutsDetectedParameter inferred : inferredParameters) {
+            List<Endpoint> relevantEndpoints = findEndpointsForUrl(inferred.targetEndpoint, endpoints);
+            for (Endpoint endpoint : relevantEndpoints) {
+                if (!endpoint.getParameters().containsKey(inferred.paramName)) {
+                    RouteParameter newParam = new RouteParameter(inferred.paramName);
+                    newParam.setParamType(RouteParameterType.FORM_DATA);
+                    endpoint.getParameters().put(inferred.paramName, newParam);
+                }
+            }
+        }
     }
 
     private void expandModelFieldParameters(Collection<Endpoint> endpoints, Collection<StrutsClass> parsedClasses) {
@@ -260,6 +273,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         if (previousModels.contains(modelType)) {
             return list();
         }
+
+        boolean isTopLevel = previousModels.isEmpty();
 
         previousModels.push(modelType);
 
@@ -303,6 +318,32 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             }
         }
         return null;
+    }
+
+    private List<Endpoint> findEndpointsForUrl(String url, Collection<Endpoint> endpoints) {
+        Endpoint mainEndpoint = null;
+        int mainRelevance = -1000000;
+        List<Endpoint> result = list();
+
+        for (Endpoint endpoint : endpoints) {
+            int relevance = endpoint.compareRelevance(url);
+            if (relevance > mainRelevance) {
+                mainEndpoint = endpoint;
+                mainRelevance = relevance;
+            }
+        }
+
+        if (mainEndpoint == null) {
+            return result;
+        }
+
+        for (Endpoint endpoint : endpoints) {
+            if (endpoint.getFilePath().equals(mainEndpoint.getFilePath())) {
+                result.add(endpoint);
+            }
+        }
+
+        return result;
     }
 
     private String replaceJspTags(String jspText) {

@@ -99,11 +99,10 @@ public class StrutsConventionPlugin implements StrutsPlugin {
                     continue;
                 }
 
-                if (methodName.equals("execute")) {
-                    methodName = "";
+                String endpointPath = "";
+                if (!"execute".equals(methodName)) {
+                    endpointPath = formatCamelCaseToConvention(methodName, project);
                 }
-
-                String endpointPath = formatCamelCaseToConvention(methodName, project);
                 StrutsAction action = new StrutsAction(endpointPath, methodName, strutsClass.getName(), strutsClass.getSourceFile());
                 action.setParams(parameters);
 

@@ -96,6 +96,26 @@ public class RestPluginActionMapper implements ActionMapper {
                     continue;
                 }
 
+                if (action.getActClass().equals("JSPServlet")) {
+                    continue;
+                }
+
+                StrutsClass actionClass;
+                if (action.getActClassLocation() != null && sourceClass == null) {
+                    actionClass = project.findClassByFileLocation(action.getActClassLocation());
+                    if (actionClass != null) {
+                        boolean isSupported = false;
+                        for (String baseType : actionClass.getBaseTypes()) {
+                            if (baseType.contains("ModelDriven")) {
+                                isSupported = true;
+                            }
+                        }
+                        if (!isSupported) {
+                            continue;
+                        }
+                    }
+                }
+
                 List<String> possibleMethodNames = list();
 
                 String currentUniqueIdName = idParamName;
@@ -124,13 +144,19 @@ public class RestPluginActionMapper implements ActionMapper {
                     possibleMethodNames.add("/{" + currentUniqueIdName + "};edit");
                 } else if (actionMethod.equals(newMethodName)) {
                     possibleMethodNames.add("/new");
-                } else {
-                    possibleMethodNames.add(PathUtil.combine("/{" + currentUniqueIdName + "}", actionMethod));
+                }
+
+                if (possibleMethodNames.size() == 0) {
+                    continue;
                 }
 
                 Map<String, RouteParameter> params = map();
                 if (action.getParams() != null) {
                     for (Map.Entry<String, String> entry : action.getParams().entrySet()) {
+                        if (entry.getKey().equalsIgnoreCase(idParamName)) {
+                            // ID parameters will be added separately
+                            continue;
+                        }
                         RouteParameter newParam = new RouteParameter(entry.getKey());
                         newParam.setDataType(entry.getValue());
                         newParam.setParamType(RouteParameterType.QUERY_STRING);
