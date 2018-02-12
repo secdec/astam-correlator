@@ -65,6 +65,7 @@ public class BurpPropertiesManager extends PropertiesManager {
     private static Properties properties = new Properties();
     private static boolean hasChanges = false;
     private static JTable endpointsTable;
+    private  static JLabel countLabel;
 
     public static boolean
         AUTO_SCAN_KEY = false,
@@ -203,6 +204,10 @@ public class BurpPropertiesManager extends PropertiesManager {
     public void setEndpointsTable(JTable table){endpointsTable = table;}
 
     public static JTable getEndpointsTable() {return endpointsTable;}
+
+    public void setCountLabel(JLabel label){countLabel = label;}
+
+    public static JLabel getCountLabel() {return countLabel;}
 
     public String getTargetHost() {return getPropertyValue(TARGET_HOST_KEY);}
 

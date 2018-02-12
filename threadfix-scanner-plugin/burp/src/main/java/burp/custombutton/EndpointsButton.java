@@ -172,6 +172,7 @@ public abstract class EndpointsButton extends JButton {
 
     private void fillEndpointsToTable(Endpoint.Info[] endpoints)
     {
+        int count = 0;
         JTable endpointTable = BurpPropertiesManager.getBurpPropertiesManager().getEndpointsTable();
         DefaultTableModel dtm = (DefaultTableModel)endpointTable.getModel();
         for (Endpoint.Info endpoint : endpoints)
@@ -191,8 +192,12 @@ public abstract class EndpointsButton extends JButton {
                 hasPost,
                 endpoint
             });
-
+            count++;
         }
+
+        JLabel countLabel = BurpPropertiesManager.getBurpPropertiesManager().getCountLabel();
+        countLabel.setVisible(true);
+        countLabel.setText("Total Endpoints Detected: " + count);
 
     }
 

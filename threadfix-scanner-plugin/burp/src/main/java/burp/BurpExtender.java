@@ -145,6 +145,16 @@ public class BurpExtender implements IBurpExtender, ITab
         endpointTablePainConstraints.anchor = GridBagConstraints.NORTHWEST;
         mainPanel.add(endpointTablePain, endpointTablePainConstraints);
 
+        JScrollPane countPain = buildCountPane();
+        callbacks.customizeUiComponent(countPain);
+        GridBagConstraints countPainConstraints = new GridBagConstraints();
+        countPainConstraints.gridx = 0;
+        countPainConstraints.gridy = yPosition++;
+        countPainConstraints.insets = mainPanelInsets;
+        countPainConstraints.fill = GridBagConstraints.HORIZONTAL;
+        countPainConstraints.anchor = GridBagConstraints.NORTHWEST;
+        mainPanel.add(countPain, countPainConstraints);
+
         JSeparator importExportPanelSeparator = new JSeparator(JSeparator.HORIZONTAL);
         callbacks.customizeUiComponent(importExportPanelSeparator);
         GridBagConstraints importExportPanelSeparatorConstraints = new GridBagConstraints();
@@ -297,6 +307,22 @@ public class BurpExtender implements IBurpExtender, ITab
 
     }
 
+    private JScrollPane buildCountPane()
+    {
+        JLabel countLabel = new JLabel();
+        callbacks.customizeUiComponent(countLabel);
+        BurpPropertiesManager.getBurpPropertiesManager().setCountLabel(countLabel);
+        countLabel.setVisible(false);
+
+        countLabel.setBorder(null);
+        JScrollPane countPane =  new JScrollPane(countLabel);
+
+        countPane.setBorder(null);
+
+        return countPane;
+
+    }
+
     private JScrollPane buildEndpointsTable()
     {
         Object[][] data = {};
@@ -323,7 +349,6 @@ public class BurpExtender implements IBurpExtender, ITab
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                //displayArea.setText(endpointsTable.getModel().getValueAt(endpointsTable.getSelectedRow(), 4).toString());
                 Endpoint.Info endpoint = (Endpoint.Info)endpointsTable.getModel().getValueAt(endpointsTable.getSelectedRow(), 4);
                 displayArea.setText("URL:" + "\n");
                 displayArea.append(endpoint.getUrlPath() + "\n" + "\n");
@@ -383,6 +408,7 @@ public class BurpExtender implements IBurpExtender, ITab
         endpointsTable.getColumnModel().getColumn(4).setMaxWidth(0);
         endpointsTable.getColumnModel().getColumn(4).setWidth(0);
         JScrollPane endpointsTablePane = new JScrollPane(endpointsTable);
+
         endpointsTable.setFillsViewportHeight(true);
         callbacks.customizeUiComponent(endpointsTable);
         BurpPropertiesManager.getBurpPropertiesManager().setEndpointsTable(endpointsTable);
