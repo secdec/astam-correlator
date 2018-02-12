@@ -24,15 +24,15 @@
 package com.denimgroup.threadfix.framework.impl.struts.plugins;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.framework.impl.struts.model.annotations.*;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;
 import com.denimgroup.threadfix.framework.impl.struts.model.*;
-import com.denimgroup.threadfix.framework.impl.struts.model.annotations.Annotation;
-import com.denimgroup.threadfix.framework.impl.struts.model.annotations.NamespaceAnnotation;
-import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ParentPackageAnnotation;
-import com.denimgroup.threadfix.framework.impl.struts.model.annotations.ResultAnnotation;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -48,6 +48,11 @@ public class StrutsConventionPlugin implements StrutsPlugin {
     @Override
     public void apply(StrutsProject project) {
         List<StrutsPackage> newPackages = list();
+
+        String resultsPath = project.getConfig().get("struts.convention.result.path", "WEB-INF/content");
+        if (project.getWebPath() != null) {
+            resultsPath = PathUtil.combine(project.getWebPath(), resultsPath);
+        }
 
         String[] actionSuffixes = getActionSuffixes(project);
 
@@ -68,6 +73,13 @@ public class StrutsConventionPlugin implements StrutsPlugin {
             }
             if (!hasSuffix) {
                 continue;
+            }
+
+            String currentResultPath = resultsPath;
+
+            ResultPathAnnotation pathAnnotation = strutsClass.getFirstAnnotation(ResultPathAnnotation.class);
+            if (pathAnnotation != null) {
+                currentResultPath = PathUtil.combine(project.getWebPath(), pathAnnotation.getLocation());
             }
 
             String cleanClassName = strutsClass.getCleanName(actionSuffixes);
@@ -105,6 +117,13 @@ public class StrutsConventionPlugin implements StrutsPlugin {
                 }
                 StrutsAction action = new StrutsAction(endpointPath, methodName, strutsClass.getName(), strutsClass.getSourceFile());
                 action.setParams(parameters);
+
+                File resultFile = findBestFile(new File(resultsPath), cleanClassName + "-" + methodName);
+                if (resultFile != null) {
+                    StrutsResult fileResult = new StrutsResult();
+                    fileResult.setValue(resultFile.getAbsolutePath());
+                    action.addResult(fileResult);
+                }
 
                 Collection<Annotation> annotations = method.getAnnotations();
                 for (Annotation annotation : annotations) {
@@ -196,5 +215,20 @@ public class StrutsConventionPlugin implements StrutsPlugin {
         }
 
         return builder.toString();
+    }
+
+    private File findBestFile(File directory, String baseName) {
+
+        if (!directory.exists() || !directory.isDirectory()) {
+            return null;
+        }
+
+        for (File file : FileUtils.listFiles(directory, null, true)) {
+            String name = FilenameUtils.removeExtension(file.getName());
+            if (name.equalsIgnoreCase(baseName)) {
+                return file;
+            }
+        }
+        return null;
     }
 }
