@@ -26,14 +26,12 @@ package com.denimgroup.threadfix.framework.impl.struts.mappers;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsConfigurationProperties;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
@@ -100,7 +98,7 @@ public class RestPluginActionMapper implements ActionMapper {
                     continue;
                 }
 
-                StrutsClass actionClass;
+                StrutsClass actionClass = null;
                 if (action.getActClassLocation() != null && sourceClass == null) {
                     actionClass = project.findClassByFileLocation(action.getActClassLocation());
                     if (actionClass != null) {
@@ -207,6 +205,24 @@ public class RestPluginActionMapper implements ActionMapper {
                             filePath = FilePathUtils.getRelativePath(filePath, project.getRootDirectory());
                         }
                         StrutsEndpoint endpoint = new StrutsEndpoint(filePath, url, httpMethod, endpointParams);
+                        if (sourceClass != null || actionClass != null) {
+                            StrutsClass responseClass;
+                            if (sourceClass != null) {
+                                responseClass = sourceClass;
+                            } else {
+                                responseClass = actionClass;
+                            }
+                            StrutsMethod responseMethod = responseClass.getMethod(actionMethod);
+                            if (responseMethod != null) {
+                                endpoint.setLineNumbers(responseMethod.getStartLine(), responseMethod.getEndLine());
+                            }
+                        }
+
+                        StrutsResult primaryResult = action.getPrimaryResult();
+                        if (primaryResult != null) {
+                            endpoint.setDisplayFilePath(primaryResult.getValue());
+                        }
+
                         endpoints.add(endpoint);
                     }
                 }

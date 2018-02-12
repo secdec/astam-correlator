@@ -274,6 +274,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     boolean isPublicMethod;
     boolean isArray;
     int methodStartBraceLevel = -1;
+    int methodStartLine = -1;
 
     enum InClassState { IDENTIFICATION, POSSIBLE_METHOD_PARAMS_START, POSSIBLE_METHOD_PARAMS_END, IN_METHOD }
     InClassState inClassState = InClassState.IDENTIFICATION;
@@ -293,6 +294,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                 }
 
                 if (possibleMethodName != null && possibleMethodReturnValue != null && type == '(') {
+                    methodStartLine = lineNumber;
                     inClassState = InClassState.POSSIBLE_METHOD_PARAMS_START;
                     isArray = isArray || lastToken == ']';
                 } else if (stringValue != null) {
@@ -348,6 +350,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                     String methodName = possibleMethodName;
                     newMethod.setName(methodName);
                     newMethod.setReturnType(possibleMethodReturnValue + (isArray ? "[]" : ""));
+                    newMethod.setStartLine(methodStartLine);
 
                     if (possibleMethodParams == null) {
                         possibleMethodParams = "";
@@ -378,15 +381,17 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                 possibleMethodParams = "";
                 isPublicMethod = false;
                 isArray = false;
+                methodStartLine = -1;
                 break;
 
             case IN_METHOD:
+                StrutsMethod currentMethod = methods.get(methods.size() - 1);
                 if (scopeTracker.getNumOpenBrace() < methodStartBraceLevel) {
                     methodStartBraceLevel = -1;
+                    currentMethod.setEndLine(lineNumber);
                     inClassState = InClassState.IDENTIFICATION;
                 } else {
                     if (stringValue != null) {
-                        StrutsMethod currentMethod = methods.get(methods.size() - 1);
                         currentMethod.addSymbolReference(stringValue);
                     }
                 }

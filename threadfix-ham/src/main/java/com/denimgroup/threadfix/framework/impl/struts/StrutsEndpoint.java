@@ -38,6 +38,8 @@ public class StrutsEndpoint extends AbstractEndpoint {
     private String filePath;
     private String urlPath;
     private Pattern pathRegex = null;
+    private String displayFilePath = null;
+    private int startLine, endLine;
 
     private String method;
     private Map<String, RouteParameter> parameters;
@@ -98,7 +100,7 @@ public class StrutsEndpoint extends AbstractEndpoint {
 
     @Override
     public int getStartingLineNumber() {
-        return 0;
+        return startLine;
     }
 
     @Override
@@ -108,12 +110,24 @@ public class StrutsEndpoint extends AbstractEndpoint {
 
     @Override
     public boolean matchesLineNumber(int lineNumber) {
-        return true;
+        return lineNumber >= startLine && lineNumber <= endLine;
     }
 
     @Nonnull
     @Override
     protected List<String> getLintLine() {
         return null;
+    }
+
+    public void setDisplayFilePath(String displayFilePath) {
+        this.displayFilePath = displayFilePath;
+    }
+
+    public String getDisplayFilePath() {
+        return displayFilePath;
+    }
+
+    public void setLineNumbers(int startLine, int endLine) {
+
     }
 }

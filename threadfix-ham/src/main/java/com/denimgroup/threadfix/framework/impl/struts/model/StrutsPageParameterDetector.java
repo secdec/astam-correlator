@@ -1,6 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.struts.model;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Node;
@@ -63,7 +64,12 @@ public class StrutsPageParameterDetector {
                     while (valueMatcher.find()) {
                         String varName = valueMatcher.group(1);
                         if (varName.equals("#request.contextPath")) {
-                            action = valueMatcher.replaceFirst("");
+                            int replaceStart = valueMatcher.start();
+                            int replaceEnd = valueMatcher.end();
+                            if (action.length() != replaceEnd && action.charAt(replaceEnd) == '/') {
+                                replaceEnd++;
+                            }
+                            action = action.substring(0, replaceStart) + action.substring(replaceEnd);
                         } else {
                             String resolvedValue = symbolEndpointMap.get(varName);
                             if (resolvedValue != null) {
@@ -96,8 +102,11 @@ public class StrutsPageParameterDetector {
             } else {
 
                 String name = htmlNode.attr("key");
+                if (name == null || name.isEmpty()) {
+                    name = htmlNode.attr("name");
+                }
 
-                if (currentTargetUrl != null) {
+                if (currentTargetUrl != null && name != null && !name.isEmpty()) {
                     StrutsDetectedParameter param = new StrutsDetectedParameter();
                     param.paramName = name;
                     param.targetEndpoint = currentTargetUrl;

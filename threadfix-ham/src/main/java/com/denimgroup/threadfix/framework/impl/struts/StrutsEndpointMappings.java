@@ -37,6 +37,7 @@ import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPluginDetector;
 import com.denimgroup.threadfix.framework.util.ParameterMerger;
+import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
@@ -230,6 +231,32 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         endpoints.addAll(actionMapper.generateEndpoints(project, project.getPackages(), ""));
 
         expandModelFieldParameters(endpoints, project.classes);
+
+        // Modify inferred parameters to point to the proper endpoint
+        for (StrutsDetectedParameter param : inferredParameters) {
+
+            if (param.targetEndpoint.startsWith("/")) {
+                continue;
+            }
+
+            String sourceFile = param.sourceFile;
+            StrutsEndpoint servingEndpoint = null;
+            for (Endpoint endpoint : endpoints) {
+                StrutsEndpoint strutsEndpoint = (StrutsEndpoint)endpoint;
+                String resultFilePath = strutsEndpoint.getDisplayFilePath();
+                if (sourceFile.equalsIgnoreCase(resultFilePath)) {
+                    servingEndpoint = strutsEndpoint;
+                    break;
+                }
+            }
+            if (servingEndpoint != null) {
+                String baseEndpoint = servingEndpoint.getUrlPath();
+                if (baseEndpoint.contains("/")) {
+                    baseEndpoint = baseEndpoint.substring(0, baseEndpoint.lastIndexOf('/'));;
+                }
+                param.targetEndpoint = PathUtil.combine(baseEndpoint, param.targetEndpoint);
+            }
+        }
 
         for (StrutsDetectedParameter inferred : inferredParameters) {
             List<Endpoint> relevantEndpoints = findEndpointsForUrl(inferred.targetEndpoint, endpoints);

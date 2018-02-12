@@ -61,17 +61,22 @@ public class DefaultActionMapper implements ActionMapper {
             for (String file : primaryWebPack.getRelativeFilePaths()) {
                 String fullPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), file);
                 Map<String, RouteParameter> params = new HashMap<String, RouteParameter>();
-                StrutsEndpoint endpoint = new StrutsEndpoint(makeRelativePath(fullPath, project), PathUtil.combine(namespace, file), "GET", params);
+                String endpointPath = makeRelativePath(fullPath, project);
+                StrutsEndpoint endpoint = new StrutsEndpoint(endpointPath, PathUtil.combine(namespace, file), "GET", params);
+                endpoint.setDisplayFilePath(fullPath);
                 endpoints.add(endpoint);
             }
 
             for (String file : primaryWebPack.getWelcomeFiles()) {
                 String fullPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), file);
                 Map<String, RouteParameter> params = new HashMap<String, RouteParameter>();
+                String endpointPath = makeRelativePath(fullPath, project);
                 StrutsEndpoint endpoint;
-                endpoint = new StrutsEndpoint(makeRelativePath(fullPath, project), namespace, "GET", params);
+                endpoint = new StrutsEndpoint(endpointPath, namespace, "GET", params);
+                endpoint.setDisplayFilePath(fullPath);
                 endpoints.add(endpoint);
-                endpoint = new StrutsEndpoint(makeRelativePath(fullPath, project), namespace + "/", "GET", params);
+                endpoint = new StrutsEndpoint(endpointPath, namespace + "/", "GET", params);
+                endpoint.setDisplayFilePath(fullPath);
                 endpoints.add(endpoint);
             }
         }
@@ -169,26 +174,39 @@ public class DefaultActionMapper implements ActionMapper {
                             if ("execute".equals(method.getName())) {
                                 path = path.replace("!*", "");
                                 path = path.replace("*", "");
-                                endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters));
+                                StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters);
+                                newEndpoint.setLineNumbers(method.getStartLine(), method.getEndLine());
+                                newEndpoint.setDisplayFilePath(strutsAction.getPrimaryResult().getValue());
+                                endpoints.add(newEndpoint);
                             }
                         }
                     } else {
+                        StrutsMethod executeMethod = null;
+                        if (classForAction != null) {
+                            executeMethod = classForAction.getMethod(strutsAction.getMethod());
+                        }
                         for (ModelField mf : fieldMappings) {
-                            if (classForAction != null) {
-                                StrutsMethod executeMethod = classForAction.getMethod(strutsAction.getMethod());
-                                if (executeMethod != null && !executeMethod.hasSymbolReference(mf.getParameterKey())) {
-                                    continue;
-                                }
+                            if (executeMethod != null && !executeMethod.hasSymbolReference(mf.getParameterKey())) {
+                                continue;
                             }
                             RouteParameter asParam = RouteParameter.fromDataType(mf.getParameterKey(), mf.getType());
                             asParam.setParamType(RouteParameterType.FORM_DATA);
                             parameters.put(mf.getParameterKey(), asParam);
                         }
+                        StrutsEndpoint newEndpoint;
                         if (parameters.isEmpty()) {
-                            endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters));
+                            newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters);
                         } else {
-                            endpoints.add(new StrutsEndpoint(makeRelativePath(classLocation, project), path, "POST", parameters));
+                            newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), path, "POST", parameters);
                         }
+                        if (executeMethod != null) {
+                            newEndpoint.setLineNumbers(executeMethod.getStartLine(), executeMethod.getEndLine());
+                        }
+                        StrutsResult primaryResult = strutsAction.getPrimaryResult();
+                        if (primaryResult != null) {
+                            newEndpoint.setDisplayFilePath(primaryResult.getValue());
+                        }
+                        endpoints.add(newEndpoint);
                     }
                 }
 
@@ -201,7 +219,9 @@ public class DefaultActionMapper implements ActionMapper {
                         if (filePath != null && primaryWebPack != null) {
                             if (primaryWebPack.contains(filePath)) {
                                 String fullContentPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), filePath);
-                                endpoints.add(new StrutsEndpoint(makeRelativePath(fullContentPath, project), basePath, "GET", new HashMap<String, RouteParameter>()));
+                                StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(fullContentPath, project), basePath, "GET", new HashMap<String, RouteParameter>());
+                                newEndpoint.setDisplayFilePath(fullContentPath);
+                                endpoints.add(newEndpoint);
                             }
                         }
                     }

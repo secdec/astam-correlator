@@ -41,7 +41,7 @@ public class StrutsAction {
 	private String actClass;
 	private String actClassLocation;
 	private Map<String, String> params;
-	private List<StrutsResult> results;
+	private List<StrutsResult> results = list();
 
 	public StrutsAction() { }
 
@@ -100,6 +100,23 @@ public class StrutsAction {
 
 	public List<StrutsResult> getResults() {
 		return results;
+	}
+
+	public StrutsResult getPrimaryResult() {
+		if (results.size() == 0) {
+			return null;
+		}
+
+		StrutsResult bestResult = null;
+		for (StrutsResult result : results) {
+			if (result.getType() == null) {
+				bestResult = result;
+			}
+		}
+		if (bestResult == null) {
+			bestResult = results.get(0);
+		}
+		return bestResult;
 	}
 
 	public void setResults(List<StrutsResult> results) {

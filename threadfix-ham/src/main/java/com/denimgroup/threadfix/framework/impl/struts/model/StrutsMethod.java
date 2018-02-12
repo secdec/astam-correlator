@@ -39,6 +39,7 @@ public class StrutsMethod {
     Map<String, String> parameters = map();
     List<Annotation> annotations = list();
     List<String> symbolReferences = list();
+    int startLine, endLine;
 
 
     public String getReturnType() {
@@ -90,7 +91,13 @@ public class StrutsMethod {
         return false;
     }
 
+    public int getStartLine() {
+        return startLine;
+    }
 
+    public int getEndLine() {
+        return endLine;
+    }
 
     public void setName(String name) {
         methodName = name;
@@ -112,6 +119,14 @@ public class StrutsMethod {
 
     public void setSymbolReferences(List<String> symbolReferences) {
         this.symbolReferences = symbolReferences;
+    }
+
+    public void setStartLine(int lineNumber) {
+        startLine = lineNumber;
+    }
+
+    public void setEndLine(int lineNumber) {
+        endLine = lineNumber;
     }
 
     @Override
