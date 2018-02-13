@@ -25,6 +25,7 @@ package com.denimgroup.threadfix.framework.impl.spring;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -55,7 +56,9 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
 
     @Nullable
     private String classEndpoint = null, currentMapping = null, lastValue = null,
-            secondToLastValue = null, lastParam, lastParamType;
+            secondToLastValue = null, lastParam, lastParamType, pendingParamType, pendingParamName;
+
+    boolean paramTypeAfterCloseParen = false;
 
     @Nonnull
     private final String filePath;
@@ -68,8 +71,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
     @Nonnull
     private List<String>
             classMethods  = list(),
-            methodMethods = list(),
-            currentPathParameters = list();
+            methodMethods = list();
     @Nonnull
     private Map<String, RouteParameter> currentParameters = map();
 
@@ -103,7 +105,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
     }
 
     private enum SignatureState {
-        START, ARROBA, REQUEST_PARAM, GET_ANNOTATION_VALUE, ANNOTATION_PARAMS, VALUE, GET_VARIABLE_NAME
+        START, ARROBA, REQUEST_PARAM, GET_ANNOTATION_VALUE, ANNOTATION_PARAMS, VALUE, GET_VARIABLE_NAME, GET_VARIABLE_TYPE
     }
 
     @Nonnull
@@ -196,16 +198,35 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 break;
             case GET_ANNOTATION_VALUE:
                 if (type == DOUBLE_QUOTE) {
-                    if (isPathParameter) {
-                        currentPathParameters.add(stringValue);
-                    } else {
-                        currentParameters.put(stringValue, RouteParameter.fromDataType(stringValue, ParameterDataType.STRING));
-                    }
-                    setState(SignatureState.START);
+                    pendingParamName = stringValue;
+                    setState(SignatureState.GET_VARIABLE_TYPE);
                 } else if ("value".equals(stringValue)) {
                     setState(SignatureState.VALUE);
                 } else {
                     setState(SignatureState.ANNOTATION_PARAMS);
+                }
+                break;
+            case GET_VARIABLE_TYPE:
+                if (paramTypeAfterCloseParen) {
+                    if (type == ')') {
+                        paramTypeAfterCloseParen = false;
+                    } else {
+                        break;
+                    }
+                }
+                if (stringValue != null) {
+                    pendingParamType = stringValue;
+                    RouteParameter newParam = RouteParameter.fromDataType(pendingParamName, pendingParamType);
+                    if (isPathParameter) {
+                        newParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+                    } else {
+                        newParam.setParamType(RouteParameterType.QUERY_STRING);
+                    }
+                    currentParameters.put(pendingParamName, newParam);
+
+                    pendingParamType = null;
+                    pendingParamName = null;
+                    setState(SignatureState.START);
                 }
                 break;
             case ANNOTATION_PARAMS:
@@ -217,8 +238,9 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 break;
             case VALUE:
                 if (type == DOUBLE_QUOTE) {
-                    currentParameters.put(stringValue, RouteParameter.fromDataType(stringValue, ParameterDataType.STRING));
-                    setState(SignatureState.START);
+                    paramTypeAfterCloseParen = true;
+                    pendingParamName = stringValue;
+                    setState(SignatureState.GET_VARIABLE_TYPE);
                 } else if (type != EQUALS) {
                     setState(SignatureState.GET_VARIABLE_NAME);
                 }
@@ -226,10 +248,15 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             case GET_VARIABLE_NAME:
                 if (openParenCount == -1) { // this means we're not in an annotation
                     if (type == COMMA || type == CLOSE_PAREN) {
-                        currentParameters.put(lastValue, RouteParameter.fromDataType(stringValue, ParameterDataType.STRING));
+                        RouteParameter newParam = new RouteParameter(lastValue);
+                        newParam.setDataType(secondToLastValue);
+                        if (isPathParameter) {
+                            newParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+                        } else {
+                            newParam.setParamType(RouteParameterType.QUERY_STRING);
+                        }
+                        currentParameters.put(lastValue, newParam);
                         setState(SignatureState.START);
-                    } else {
-                        lastValue = stringValue;
                     }
                 }
                 break;
@@ -407,7 +434,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             SpringControllerEndpoint endpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
                     method,
                     currentParameters,
-                    currentPathParameters,
                     startLineNumber,
                     endLineNumber,
                     currentModelObject);
@@ -434,7 +460,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
         startLineNumber = -1;
         curlyBraceCount = 0;
         currentParameters = map();
-        currentPathParameters = list();
         currentModelObject = null;
     }
 
