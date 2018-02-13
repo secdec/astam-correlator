@@ -199,7 +199,7 @@ public class DefaultActionMapper implements ActionMapper {
                         }
                         StrutsResult primaryResult = strutsAction.getPrimaryResult();
                         if (primaryResult != null) {
-                            newEndpoint.setDisplayFilePath(primaryResult.getValue());
+                            newEndpoint.setDisplayFilePath(PathUtil.combine(project.getWebPath(), primaryResult.getValue()));
                         }
                         endpoints.add(newEndpoint);
                     }
@@ -207,7 +207,7 @@ public class DefaultActionMapper implements ActionMapper {
 
                 //  Map actions to their results if they don't specify a target method/class on their own
                 Collection<StrutsResult> results = strutsAction.getResults();
-                if (results != null && classForAction == null) {
+                if (results != null && classForAction == null && availablePaths.isEmpty()) {
                     for (StrutsResult result : results) {
                         String filePath = result.getValue();
 

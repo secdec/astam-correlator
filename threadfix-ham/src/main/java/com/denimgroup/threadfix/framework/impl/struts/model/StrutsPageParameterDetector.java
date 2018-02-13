@@ -86,8 +86,8 @@ public class StrutsPageParameterDetector {
 
                     currentTargetUrl = action;
                     currentTargetMethod = htmlNode.attr("method");
-                    if (currentTargetMethod == null) {
-                        currentTargetMethod = "GET";
+                    if (currentTargetMethod == null || currentTargetMethod.isEmpty()) {
+                        currentTargetMethod = "POST";
                     }
                 }
 
@@ -97,6 +97,16 @@ public class StrutsPageParameterDetector {
                 String value = htmlNode.attr("value");
                 if (id != null && value != null) {
                     symbolEndpointMap.put(id, value);
+                }
+            } else if (cleanedName.equals("file")) {
+
+                String name = "[File]";
+                if (currentTargetUrl != null) {
+                    StrutsDetectedParameter param = new StrutsDetectedParameter();
+                    param.targetEndpoint = currentTargetUrl;
+                    param.queryMethod = currentTargetMethod;
+                    param.paramName = name;
+                    result.add(param);
                 }
 
             } else {

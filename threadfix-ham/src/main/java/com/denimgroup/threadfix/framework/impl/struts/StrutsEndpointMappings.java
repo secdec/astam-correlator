@@ -209,6 +209,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             remappedEndpoint.getParameters().putAll(endpointParameters);
         }
 
+        addFileParameters(endpoints, project);
+
 
         for (Endpoint endpoint : endpoints) {
             Collection<RouteParameter> params = endpoint.getParameters().values();
@@ -249,7 +251,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             for (Endpoint endpoint : endpoints) {
                 StrutsEndpoint strutsEndpoint = (StrutsEndpoint)endpoint;
                 String resultFilePath = strutsEndpoint.getDisplayFilePath();
-                if (sourceFile.equalsIgnoreCase(resultFilePath)) {
+                String fullResultFilePath = PathUtil.combine(project.getWebPath(), resultFilePath);
+                if (sourceFile.equalsIgnoreCase(resultFilePath) || sourceFile.equalsIgnoreCase(fullResultFilePath)) {
                     servingEndpoint = strutsEndpoint;
                     break;
                 }
@@ -257,8 +260,9 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             if (servingEndpoint != null) {
                 String baseEndpoint = servingEndpoint.getUrlPath();
                 if (baseEndpoint.contains("/")) {
-                    baseEndpoint = baseEndpoint.substring(0, baseEndpoint.lastIndexOf('/'));;
+                    baseEndpoint = baseEndpoint.substring(0, baseEndpoint.lastIndexOf('/'));
                 }
+
                 param.targetEndpoint = PathUtil.combine(baseEndpoint, param.targetEndpoint);
             }
         }
@@ -404,6 +408,29 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 if (currentField != null) {
                     param.setDataType(currentField.getType());
                 }
+            }
+        }
+    }
+
+    private void addFileParameters(Collection<Endpoint> endpoints, StrutsProject project) {
+        for (Endpoint endpoint : endpoints) {
+
+            RouteParameter existingFileParameter = endpoint.getParameters().get("[File]");
+            if (existingFileParameter != null) {
+                existingFileParameter.setParamType(RouteParameterType.FILES);
+                continue;
+            }
+
+            StrutsMethod sourceMethod = project.findMethodByCodeLines(endpoint.getFilePath(), endpoint.getStartingLineNumber());
+            if (sourceMethod == null) {
+                continue;
+            }
+
+            if (sourceMethod.hasSymbolReference("FileUploadForm") || sourceMethod.hasSymbolReference("FormFile")) {
+                RouteParameter newParameter = new StrutsInferredRouteParameter("[File]");
+                newParameter.setDataType("String");
+                newParameter.setParamType(RouteParameterType.FILES);
+                endpoint.getParameters().put(newParameter.getName(), newParameter);
             }
         }
     }

@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.framework.impl.struts.mappers;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.framework.impl.struts.StrutsInferredRouteParameter;
 import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.PathUtil;
@@ -155,7 +156,7 @@ public class RestPluginActionMapper implements ActionMapper {
                             // ID parameters will be added separately
                             continue;
                         }
-                        RouteParameter newParam = new RouteParameter(entry.getKey());
+                        RouteParameter newParam = new StrutsInferredRouteParameter(entry.getKey());
                         newParam.setDataType(entry.getValue());
                         newParam.setParamType(RouteParameterType.QUERY_STRING);
                         params.put(entry.getKey(), newParam);
@@ -164,7 +165,7 @@ public class RestPluginActionMapper implements ActionMapper {
 
                 if (httpMethod.equals("DELETE") || httpMethod.equals("PUT")) {
 
-                    RouteParameter methodParam = new RouteParameter("_method");
+                    RouteParameter methodParam = new StrutsInferredRouteParameter("_method");
                     methodParam.setParamType(RouteParameterType.QUERY_STRING);
                     methodParam.setDataType("String");
                     methodParam.setAcceptedValues(list(httpMethod));
