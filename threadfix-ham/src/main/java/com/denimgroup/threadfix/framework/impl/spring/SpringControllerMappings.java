@@ -258,6 +258,16 @@ public class SpringControllerMappings implements EndpointGenerator {
         }
     }
 
+    private void updateFileParameters(List<Endpoint> endpoints) {
+	    for (Endpoint endpoint : endpoints) {
+	        for (RouteParameter param : endpoint.getParameters().values()) {
+	            if (param.getDataTypeSource().equals("MultipartFile")) {
+	                param.setParamType(RouteParameterType.FILES);
+                }
+            }
+        }
+    }
+
 	@Nonnull
     @Override
 	public List<Endpoint> generateEndpoints() {
@@ -269,6 +279,7 @@ public class SpringControllerMappings implements EndpointGenerator {
 			}
 		}
 
+		updateFileParameters(returnEndpoints);
 		bubbleParametricEndpoints(returnEndpoints);
 		
 		return returnEndpoints;
