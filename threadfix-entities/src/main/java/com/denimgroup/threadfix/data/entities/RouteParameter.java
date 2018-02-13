@@ -38,10 +38,6 @@ public class RouteParameter {
         return dataType;
     }
 
-    public boolean hasProperDataType() {
-        return dataType != null && dataType.getDisplayName().toLowerCase().equalsIgnoreCase(dataTypeSource);
-    }
-
     public boolean isArrayType() {
         return dataTypeSource.contains("[]");
     }
