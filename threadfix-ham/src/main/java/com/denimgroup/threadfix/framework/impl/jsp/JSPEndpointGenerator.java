@@ -89,7 +89,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 			}
 			
 			Collection<File> jspFiles = FileUtils.listFiles(
-					rootFile, JSPFileFilter.INSTANCE, NoDotDirectoryFileFilter.INSTANCE);
+                    jspRoot, JSPFileFilter.INSTANCE, NoDotDirectoryFileFilter.INSTANCE);
 
             LOG.info("Found " + jspFiles.size() + " JSP files.");
 
@@ -163,6 +163,8 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                 }
             }
 
+            applyLineNumbers(endpoints);
+
             EndpointValidationStatistics.printValidationStats(endpoints);
 
 		} else {
@@ -173,6 +175,41 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 			jspRoot = null;
 		}
 	}
+
+	void applyLineNumbers(Collection<Endpoint> endpoints) {
+	    Map<String, Integer> lineCounts = map();
+
+        for (Endpoint endpoint : endpoints) {
+            String filePath = endpoint.getFilePath();
+            File file = new File(filePath);
+            if (!file.isAbsolute()) {
+                filePath = PathUtil.combine(jspRoot.getAbsolutePath(), filePath);
+                file = new File(filePath);
+            }
+
+            if (file.exists() && !lineCounts.containsKey(filePath)) {
+                try {
+                    Collection<String> fileLines = FileUtils.readLines(file);
+                    lineCounts.put(filePath, fileLines.size());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+	    for (Endpoint endpoint : endpoints) {
+	        JSPEndpoint jspEndpoint = (JSPEndpoint)endpoint;
+	        String filePath = jspEndpoint.getFilePath();
+	        if (!new File(filePath).isAbsolute()) {
+	            filePath = PathUtil.combine(jspRoot.getAbsolutePath(), filePath);
+            }
+
+            if (lineCounts.containsKey(filePath)) {
+	            int lineCount = lineCounts.get(filePath);
+	            jspEndpoint.setLines(1, lineCount + 1);
+            }
+        }
+    }
 
 	void loadWebXmlWelcomeFiles() {
         List<File> welcomeFileLocations = list();
@@ -290,12 +327,14 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                     }
                 }
             } else {
-                File subFile = findWebXmlFile(file);
-                if (subFile != null) {
-                    long fileSize = subFile.length();
-                    if (fileSize > largestFileSize) {
-                        result = subFile;
-                        largestFileSize = fileSize;
+                if (!file.getName().equalsIgnoreCase("target") && !file.getName().equalsIgnoreCase("out")) {
+                    File subFile = findWebXmlFile(file);
+                    if (subFile != null) {
+                        long fileSize = subFile.length();
+                        if (fileSize > largestFileSize) {
+                            result = subFile;
+                            largestFileSize = fileSize;
+                        }
                     }
                 }
             }

@@ -50,6 +50,8 @@ class JSPEndpoint extends AbstractEndpoint {
     @Nonnull
 	private final String method;
 
+    private int startLine, endLine;
+
 //	@Nonnull
 //    private final Map<String, Integer> paramToLineMap;
 
@@ -199,7 +201,7 @@ class JSPEndpoint extends AbstractEndpoint {
 
 	@Override
 	public int getStartingLineNumber() {
-		return -1; // JSPs aren't controller-based, so the whole page is the endpoint
+		return startLine;
 	}
 
 	// TODO - Re-enable
@@ -212,6 +214,11 @@ class JSPEndpoint extends AbstractEndpoint {
 //        } else {
 //		    return value;
 //        }
+	}
+
+	public void setLines(int startLine, int endLine) {
+		this.startLine = startLine;
+		this.endLine = endLine;
 	}
 
 
