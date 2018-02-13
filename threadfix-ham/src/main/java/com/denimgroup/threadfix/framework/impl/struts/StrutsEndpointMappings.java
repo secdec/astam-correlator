@@ -36,6 +36,7 @@ import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapperFactor
 import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPluginDetector;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.ParameterMerger;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
@@ -265,6 +266,51 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         // Add inferred parameters to endpoints
         for (StrutsDetectedParameter inferred : inferredParameters) {
             List<Endpoint> relevantEndpoints = findEndpointsForUrl(inferred.targetEndpoint, endpoints);
+
+            //  Generate new endpoints if an HTTP request method was detected for an endpoint, but no version
+            //  of that endpoint has that HTTP method
+            Map<String, List<String>> currentHttpMethods = map();
+            for (Endpoint endpoint : relevantEndpoints) {
+                List<String> currentMethods = currentHttpMethods.get(endpoint);
+                if (currentMethods == null) {
+                    currentHttpMethods.put(endpoint.getUrlPath(), currentMethods = list());
+                }
+
+                if (!currentMethods.contains(endpoint.getHttpMethod())) {
+                    currentMethods.add(endpoint.getHttpMethod());
+                }
+            }
+
+            for (String endpointUrl : currentHttpMethods.keySet()) {
+                List<String> supportedMethods = currentHttpMethods.get(endpointUrl);
+                String inferredQueryMethod = inferred.queryMethod.toUpperCase();
+                if (!supportedMethods.contains(inferredQueryMethod)) {
+                    supportedMethods.add(inferredQueryMethod);
+
+                    Endpoint endpoint = null;
+                    for (Endpoint e : endpoints) {
+                        if (e.getUrlPath().equalsIgnoreCase(endpointUrl)) {
+                            endpoint = e;
+                            break;
+                        }
+                    }
+
+                    if (endpoint == null) {
+                        continue;
+                    }
+
+                    StrutsEndpoint baseEndpoint = (StrutsEndpoint)endpoint;
+                    StrutsEndpoint newEndpoint = new StrutsEndpoint(endpoint.getFilePath(), endpoint.getUrlPath(), inferredQueryMethod, baseEndpoint.getParameters());
+                    newEndpoint.setDisplayFilePath(baseEndpoint.getDisplayFilePath());
+                    newEndpoint.setLineNumbers(baseEndpoint.getStartingLineNumber(), baseEndpoint.getEndLineNumber());
+                    relevantEndpoints.add(newEndpoint);
+                    endpoints.add(newEndpoint);
+                }
+            }
+
+
+
+            // Apply inferred parameters
             for (Endpoint endpoint : relevantEndpoints) {
 
                 if (!endpoint.getHttpMethod().equalsIgnoreCase(inferred.queryMethod)) {
@@ -454,7 +500,26 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             return result;
         }
 
+        url = CodeParseUtil.trim(url, new String[] { "/" });
+
+        int numUrlPaths = StringUtils.countMatches(url, "/");
+
         for (Endpoint endpoint : endpoints) {
+            String trimmedEndpoint = CodeParseUtil.trim(endpoint.getUrlPath(), new String[] { "/" });
+            if (!trimmedEndpoint.startsWith(url)) {
+                continue;
+            }
+
+            int numEndpointPaths = StringUtils.countMatches(trimmedEndpoint, "/");
+            if (numEndpointPaths != numUrlPaths) {
+                continue;
+            }
+
+            if (endpoint.getStartingLineNumber() != mainEndpoint.getStartingLineNumber()) {
+                continue;
+            }
+
+
             if (endpoint.getFilePath().equals(mainEndpoint.getFilePath())) {
                 result.add(endpoint);
             }

@@ -103,6 +103,10 @@ public class StrutsEndpoint extends AbstractEndpoint {
         return startLine;
     }
 
+    public int getEndLineNumber() {
+        return endLine;
+    }
+
     @Override
     public int getLineNumberForParameter(String parameter) {
         return 0;
