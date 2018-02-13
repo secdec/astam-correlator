@@ -70,7 +70,7 @@ public class EndpointMain {
                 boolean isLongComment = false;
                 try {
                     fileContents = FileUtils.readLines(new File(pathListFile));
-                    List<File> requestedTargets = list();
+                    List<EndpointJob> requestedTargets = list();
                     int lineNo = 1;
                     for (String line : fileContents) {
                         line = line.trim();
@@ -79,27 +79,48 @@ public class EndpointMain {
                         } else if (line.startsWith("!#")) {
                             isLongComment = false;
                         } else if (!line.startsWith("#") && !line.isEmpty() && !isLongComment) {
-                            File asFile = new File(line);
+
+                            FrameworkType frameworkType = FrameworkType.DETECT;
+                            File asFile;
+                            if (line.contains(":")) {
+                                String[] parts = StringUtils.split(line, ":");
+                                frameworkType = FrameworkType.getFrameworkType(parts[0].trim());
+                                asFile = new File(parts[1].trim());
+
+                                if (frameworkType == FrameworkType.NONE || frameworkType == FrameworkType.DETECT) {
+                                    System.out.print("WARN: Couldn't parse framework type: '" + frameworkType + "', for '" + asFile.getName() + "' using DETECT");
+                                    frameworkType = FrameworkType.DETECT;
+                                }
+                            } else {
+                                asFile = new File(line);
+                            }
+
                             if (!asFile.exists()) {
                                 System.out.println("WARN - Unable to find input path '" + line + "' at line " + lineNo + " of " + pathListFile);
                             } else if (!asFile.isDirectory()) {
                                 System.out.println("WARN - Input path '" + line + "' is not a directory, at line " + lineNo + " of " + pathListFile);
                             } else {
-                                requestedTargets.add(asFile);
+                                EndpointJob newJob = new EndpointJob();
+                                newJob.frameworkType = frameworkType;
+                                newJob.sourceCodePath = asFile;
+                                requestedTargets.add(newJob);
                             }
                         }
                         ++lineNo;
                     }
 
                     boolean isFirst = true;
-                    for (File file : requestedTargets) {
+                    FrameworkType baseType = framework;
+                    for (EndpointJob job : requestedTargets) {
                         if (isFirst) {
                             System.out.println(PRINTLN_SEPARATOR);
                             isFirst = false;
                         }
-                        System.out.println("Beginning endpoint detection for '" + file.getName() + "'");
-                        listEndpoints(file);
-                        System.out.println("Finished endpoint detection for '" + file.getName() + "'");
+                        System.out.println("Beginning endpoint detection for '" + job.sourceCodePath.getName() + "'");
+                        framework = job.frameworkType;
+                        listEndpoints(job.sourceCodePath);
+                        framework = baseType;
+                        System.out.println("Finished endpoint detection for '" + job.sourceCodePath.getName() + "'");
                         System.out.println(PRINTLN_SEPARATOR);
                     }
 
