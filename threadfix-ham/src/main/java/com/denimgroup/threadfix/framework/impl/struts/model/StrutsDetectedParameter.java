@@ -7,7 +7,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class StrutsDetectedParameter {
 
-    String queryMethod;
+    public String queryMethod;
     public String paramName;
     public String paramType;
     public String targetEndpoint;

@@ -202,7 +202,11 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
         ParameterMerger genericMerger = new ParameterMerger();
         genericMerger.setCaseSensitive(false);
-        genericMerger.mergeParametersIn(endpoints);
+        Map<Endpoint, Map<String, RouteParameter>> mergedParameters = genericMerger.mergeParametersIn(endpoints);
+        for (Endpoint remappedEndpoint : mergedParameters.keySet()) {
+            Map<String, RouteParameter> endpointParameters = mergedParameters.get(remappedEndpoint);
+            remappedEndpoint.getParameters().putAll(endpointParameters);
+        }
 
 
         for (Endpoint endpoint : endpoints) {
@@ -258,13 +262,101 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             }
         }
 
+        // Add inferred parameters to endpoints
         for (StrutsDetectedParameter inferred : inferredParameters) {
             List<Endpoint> relevantEndpoints = findEndpointsForUrl(inferred.targetEndpoint, endpoints);
             for (Endpoint endpoint : relevantEndpoints) {
+
+                if (!endpoint.getHttpMethod().equalsIgnoreCase(inferred.queryMethod)) {
+                    continue;
+                }
+
                 if (!endpoint.getParameters().containsKey(inferred.paramName)) {
-                    RouteParameter newParam = new RouteParameter(inferred.paramName);
+                    RouteParameter newParam = new StrutsInferredRouteParameter(inferred.paramName);
                     newParam.setParamType(RouteParameterType.FORM_DATA);
                     endpoint.getParameters().put(inferred.paramName, newParam);
+                } else {
+                    // Replace the original entry with a StrutsInferredRouteParameter
+                    RouteParameter newParam = new StrutsInferredRouteParameter(inferred.paramName);
+                    RouteParameter originalParam = endpoint.getParameters().get(inferred.paramName);
+
+                    newParam.setDataType(originalParam.getDataTypeSource());
+                    newParam.setParamType(originalParam.getParamType());
+                    newParam.setAcceptedValues(originalParam.getAcceptedValues());
+
+                    if (newParam.getAcceptedValues() == null || newParam.getAcceptedValues().size() == 0) {
+                        newParam.setAcceptedValues(inferred.allowedValues);
+                    }
+                }
+            }
+        }
+
+        // Cull parameters by whether their symbol was referenced
+        for (Endpoint endpoint : endpoints) {
+            List<String> culledParameters = list();
+            StrutsEndpoint strutsEndpoint = (StrutsEndpoint)endpoint;
+            String fullPath = PathUtil.combine(project.getRootDirectory() , endpoint.getFilePath());
+
+            for (RouteParameter param : strutsEndpoint.getParameters().values()) {
+                if (param instanceof StrutsInferredRouteParameter) {
+                    continue;
+                }
+
+                StrutsMethod sourceMethod = project.findMethodByCodeLines(fullPath, endpoint.getStartingLineNumber());
+                if (sourceMethod == null) {
+                    continue;
+                }
+
+                String[] paramNameParts = param.getName().split("\\.");
+                boolean hasReference = false;
+
+                for (String part : paramNameParts) {
+                    if (sourceMethod.hasSymbolReference(part)) {
+                        hasReference = true;
+                        break;
+                    }
+                }
+
+                if (!hasReference) {
+                    culledParameters.add(param.getName());
+                }
+            }
+
+            for (String param : culledParameters) {
+                endpoint.getParameters().remove(param);
+            }
+        }
+
+        // Resolve parameter data types
+        for (Endpoint endpoint : endpoints) {
+            String fullFilePath = PathUtil.combine(project.getRootDirectory(), endpoint.getFilePath());
+            StrutsClass classForEndpoint = project.findClassByFileLocation(fullFilePath);
+            if (classForEndpoint == null) {
+                continue;
+            }
+
+            for (RouteParameter param : endpoint.getParameters().values()) {
+                String name = param.getName();
+                String[] pathParts = name.split("\\.");
+
+                ModelField currentField = null;
+                StrutsClass currentModelClass = classForEndpoint;
+                for (String part : pathParts) {
+                    if (currentModelClass == null) {
+                        currentField = null;
+                        break;
+                    }
+
+                    currentField = currentModelClass.getFieldOrProperty(part);
+                    if (currentField == null) {
+                        break;
+                    }
+
+                    currentModelClass = project.findClassByName(currentField.getType());
+                }
+
+                if (currentField != null) {
+                    param.setDataType(currentField.getType());
                 }
             }
         }
@@ -300,8 +392,6 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         if (previousModels.contains(modelType)) {
             return list();
         }
-
-        boolean isTopLevel = previousModels.isEmpty();
 
         previousModels.push(modelType);
 
@@ -372,15 +462,6 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
         return result;
     }
-
-    private String replaceJspTags(String jspText) {
-        return jspText;
-    }
-
-    private String replaceStrutsTemplateTags(String strutsTemplateText) {
-        return strutsTemplateText;
-    }
-
 
     @Nonnull
     @Override

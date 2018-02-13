@@ -163,12 +163,10 @@ public class DefaultActionMapper implements ActionMapper {
                             }
 
                             for (ModelField modelField : classForAction.getProperties()) {
-                                if (method.hasSymbolReference(modelField.getParameterKey())) {
-                                    RouteParameter newParameter = new RouteParameter(modelField.getParameterKey());
-                                    newParameter.setParamType(RouteParameterType.QUERY_STRING);
-                                    newParameter.setDataType(modelField.getType());
-                                    parameters.put(modelField.getParameterKey(), newParameter);
-                                }
+                                RouteParameter newParameter = new RouteParameter(modelField.getParameterKey());
+                                newParameter.setParamType(RouteParameterType.QUERY_STRING);
+                                newParameter.setDataType(modelField.getType());
+                                parameters.put(modelField.getParameterKey(), newParameter);
                             }
 
                             if ("execute".equals(method.getName())) {
@@ -186,9 +184,6 @@ public class DefaultActionMapper implements ActionMapper {
                             executeMethod = classForAction.getMethod(strutsAction.getMethod());
                         }
                         for (ModelField mf : fieldMappings) {
-                            if (executeMethod != null && !executeMethod.hasSymbolReference(mf.getParameterKey())) {
-                                continue;
-                            }
                             RouteParameter asParam = RouteParameter.fromDataType(mf.getParameterKey(), mf.getType());
                             asParam.setParamType(RouteParameterType.FORM_DATA);
                             parameters.put(mf.getParameterKey(), asParam);

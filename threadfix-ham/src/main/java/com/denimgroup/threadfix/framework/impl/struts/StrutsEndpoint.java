@@ -128,6 +128,7 @@ public class StrutsEndpoint extends AbstractEndpoint {
     }
 
     public void setLineNumbers(int startLine, int endLine) {
-
+        this.startLine = startLine;
+        this.endLine = endLine;
     }
 }

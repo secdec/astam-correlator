@@ -37,6 +37,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.set;
 
 public class StrutsClass {
 
@@ -59,7 +60,8 @@ public class StrutsClass {
     private List<StrutsMethod> methods = list();
     private List<String> importedPackages = list();
     private String sourcePackage = null;
-    private Set<ModelField> properties = null;
+    private Set<ModelField> properties = set();
+    private Set<ModelField> fields = set();
 
     public String getName() {
         return className;
@@ -113,7 +115,13 @@ public class StrutsClass {
         this.properties = properties;
     }
 
+    public void setFields(Set<ModelField> fields) {
+        this.fields = fields;
+    }
 
+    public void addField(ModelField field) {
+        this.fields.add(field);
+    }
 
     public String getPackage() {
         return sourcePackage;
@@ -161,6 +169,42 @@ public class StrutsClass {
         return null;
     }
 
+    public Set<ModelField> getFields() {
+        return fields;
+    }
+
+    public ModelField getField(String name) {
+        for (ModelField field : fields) {
+            if (field.getParameterKey().equalsIgnoreCase(name)) {
+                return field;
+            }
+        }
+        return null;
+    }
+
+    public boolean hasField(String fieldName) {
+        return getField(fieldName) != null;
+    }
+
+    public boolean hasFieldOrProperty(String name) {
+        return getField(name) != null || getProperty(name) != null;
+    }
+
+    public ModelField getFieldOrProperty(String name) {
+        ModelField result;
+        result = getField(name);
+        if (result == null) {
+            result = getProperty(name);
+        }
+        return result;
+    }
+
+    public Set<ModelField> getFieldsAndProperties() {
+        Set<ModelField> result = set();
+        result.addAll(fields);
+        result.addAll(properties);
+        return result;
+    }
 
     public boolean hasBaseType(String baseTypeName) {
 

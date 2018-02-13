@@ -24,13 +24,11 @@
 package com.denimgroup.threadfix.framework.impl.struts;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
 
-import javax.management.StringValueExp;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.map;
@@ -49,10 +47,6 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     boolean skipConstructors = true;
     boolean isInterface = false;
     ScopeTracker scopeTracker = new ScopeTracker();
-
-    // Getters without setters can't be query parameters
-    Set<String> discoveredSetters = set();
-    Map<String, ModelField> pendingFields = map();
 
 
 
@@ -85,6 +79,8 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     public String getClassPackage() { return classPackage;}
 
     public Collection<String> getImports() { return imports; }
+
+    public Set<ModelField> getFields() { return fields; }
 
 
     @Override
@@ -271,10 +267,11 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     String possibleMethodReturnValue;
     String possibleMethodName;
     String possibleMethodParams;
-    boolean isPublicMethod;
+    boolean isPublicMember;
     boolean isArray;
     int methodStartBraceLevel = -1;
     int methodStartLine = -1;
+    Set<ModelField> fields = set();
 
     enum InClassState { IDENTIFICATION, POSSIBLE_METHOD_PARAMS_START, POSSIBLE_METHOD_PARAMS_END, IN_METHOD }
     InClassState inClassState = InClassState.IDENTIFICATION;
@@ -299,16 +296,21 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                     isArray = isArray || lastToken == ']';
                 } else if (stringValue != null) {
                     if (stringValue.equals("private")) {
-                        isPublicMethod = false;
+                        isPublicMember = false;
                     } else if (stringValue.equals("protected")) {
-                        isPublicMethod = false;
+                        isPublicMember = false;
                     } else if (stringValue.equals("public")) {
-                        isPublicMethod = true;
+                        isPublicMember = true;
                     } else {
                         isArray = isCollectionType(lastString) || (possibleMethodReturnValue != null && isCollectionType(possibleMethodReturnValue));
                         possibleMethodReturnValue = possibleMethodName;
                         possibleMethodName = stringValue;
                     }
+                } else if ((type == ';' || type == '=') && possibleMethodReturnValue != null && possibleMethodName != null) {
+                    ModelField newField = new ModelField(possibleMethodReturnValue, possibleMethodName);
+                    fields.add(newField);
+                    possibleMethodName = null;
+                    possibleMethodReturnValue = null;
                 }
                 break;
 
@@ -332,7 +334,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
             case POSSIBLE_METHOD_PARAMS_END:
 
                 boolean canParse = true;
-                if (skipNonPublic && !isPublicMethod) {
+                if (skipNonPublic && !isPublicMember) {
                     canParse = false;
                 }
 
@@ -379,7 +381,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
                 possibleMethodName = "";
                 possibleMethodParams = "";
-                isPublicMethod = false;
+                isPublicMember = false;
                 isArray = false;
                 methodStartLine = -1;
                 break;

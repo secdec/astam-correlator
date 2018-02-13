@@ -24,10 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.struts;
 
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapper;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsResult;
+import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 
 import javax.swing.*;
@@ -196,6 +193,18 @@ public class StrutsProject {
         return null;
     }
 
+    public StrutsMethod findMethodByCodeLines(String sourceFile, int lineNumber) {
+        StrutsClass strutsClass = findClassByFileLocation(sourceFile);
+        if (strutsClass != null) {
+            for (StrutsMethod method : strutsClass.getMethods()) {
+                if (method.getStartLine() <= lineNumber && method.getEndLine() >= lineNumber) {
+                    return method;
+                }
+            }
+        }
+
+        return null;
+    }
 
 
     public StrutsPackage findPackageForAction(StrutsAction action) {

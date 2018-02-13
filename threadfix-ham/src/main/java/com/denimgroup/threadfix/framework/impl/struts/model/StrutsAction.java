@@ -42,6 +42,7 @@ public class StrutsAction {
 	private String actClassLocation;
 	private Map<String, String> params;
 	private List<StrutsResult> results = list();
+	private List<String> parameterHints = list();
 
 	public StrutsAction() { }
 
@@ -127,6 +128,18 @@ public class StrutsAction {
 		if (results == null)
 			results = list();
 		results.add(result);
+	}
+
+	public List<String> getParameterHints() {
+		return parameterHints;
+	}
+
+	public void setParameterHints(List<String> parameterHints) {
+		this.parameterHints = parameterHints;
+	}
+
+	public void addParameterHint(String parameterName) {
+		this.parameterHints.add(parameterName);
 	}
 
 	@Override

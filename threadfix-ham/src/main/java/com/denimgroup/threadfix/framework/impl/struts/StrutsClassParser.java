@@ -67,6 +67,7 @@ public class StrutsClassParser {
 
         resultClass = new StrutsClass(className, file.getAbsolutePath());
         resultClass.addAllMethods(classSigParser.getParsedMethods());
+        resultClass.setFields(classSigParser.getFields());
         resultClass.setProperties(collectParameters(classSigParser.getParsedMethods()));
         resultClass.setImportedPackages(classSigParser.getImports());
         resultClass.setPackage(classSigParser.getClassPackage());
@@ -148,35 +149,36 @@ public class StrutsClassParser {
 
         for (StrutsMethod method : methods) {
             String name = method.getName();
-            if (name.startsWith("get")) {
-                propertyTypesWithGetters.put(name.substring(3), method.getReturnType());
-            } else if (name.startsWith("is")) {
-                propertyTypesWithGetters.put(name.substring(2), method.getReturnType());
-            } else if (name.startsWith("set")) {
+            if (name.startsWith("get") && name.length() > 3) {
+                propertyTypesWithGetters.put(makeLowerCamelCase(name.substring(3)), method.getReturnType());
+            } else if (name.startsWith("is") && name.length() > 2) {
+                propertyTypesWithGetters.put(makeLowerCamelCase(name.substring(2)), method.getReturnType());
+            } else if (name.startsWith("set") && name.length() > 3) {
                 List<String> paramNames = new ArrayList<String>(method.getParameterNames());
                 if (paramNames.size() > 0) {
                     String parameterType = method.getParameters().get(paramNames.get(0));
-                    propertyTypesWithSetters.put(name.substring(3), parameterType);
+                    propertyTypesWithSetters.put(makeLowerCamelCase(name.substring(3)), parameterType);
                 }
             }
         }
 
         for (String property : propertyTypesWithSetters.keySet()) {
             // Any method as a 'setter' on its own is enough to be treated as a property
-//            if (!propertyTypesWithGetters.containsKey(property)) {
-//                continue;
-//            }
-
-            String setterType = propertyTypesWithSetters.get(property);
-            String getterType = propertyTypesWithGetters.get(property);
-
             // Parameters are parsed more reliably than return types
-            String propertyType = setterType;
+            String propertyType = propertyTypesWithSetters.get(property);
             ModelField newField = new ModelField(propertyType, property);
             result.add(newField);
         }
 
         return result;
+    }
+
+    private String makeLowerCamelCase(String code) {
+        if (Character.isUpperCase(code.charAt(0))) {
+            return Character.toLowerCase(code.charAt(0)) + code.substring(1);
+        } else {
+            return code;
+        }
     }
 
     private void registerClassAnnotations(Collection<Annotation> annotations) {
