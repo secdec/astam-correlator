@@ -24,6 +24,8 @@
 package com.denimgroup.threadfix.framework.impl.spring;
 
 import com.denimgroup.threadfix.XMLUtils;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.exception.RestIOException;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
@@ -206,6 +208,56 @@ public class SpringControllerMappings implements EndpointGenerator {
         }
     }
 
+    private void bubbleParametricEndpoints(List<Endpoint> endpoints) {
+	    Map<String, List<Endpoint>> endpointHierarchyMap = map();
+	    for (Endpoint endpoint : endpoints) {
+	        String url = endpoint.getUrlPath();
+	        if (!endpointHierarchyMap.containsKey(url)) {
+	            endpointHierarchyMap.put(url, new ArrayList<Endpoint>());
+            }
+
+            for (String existingEntry : endpointHierarchyMap.keySet()) {
+	            if (url.startsWith(existingEntry) && !existingEntry.equalsIgnoreCase(url)) {
+	                endpointHierarchyMap.get(existingEntry).add(endpoint);
+                }
+            }
+        }
+
+        for (String baseEndpointUrl : endpointHierarchyMap.keySet()) {
+	        Endpoint baseEndpoint = null;
+	        for (Endpoint endpoint : endpoints) {
+	            if (endpoint.getUrlPath().equalsIgnoreCase(baseEndpointUrl)) {
+	                baseEndpoint = endpoint;
+	                break;
+                }
+            }
+            if (baseEndpoint == null) {
+	            continue;
+            }
+
+            List<RouteParameter> parametrics = list();
+	        for (RouteParameter param : baseEndpoint.getParameters().values()) {
+	            if (param.getParamType() == RouteParameterType.PARAMETRIC_ENDPOINT) {
+	                parametrics.add(param);
+                }
+            }
+
+            for (Endpoint child : endpointHierarchyMap.get(baseEndpointUrl)) {
+	            for (RouteParameter parametric : parametrics) {
+	                if (!child.getParameters().containsKey(parametric.getName())) {
+	                    RouteParameter copy = new RouteParameter(parametric.getName());
+	                    copy.setParamType(parametric.getParamType());
+	                    copy.setDataType(parametric.getDataTypeSource());
+	                    if (parametric.getAcceptedValues() != null) {
+                            copy.setAcceptedValues(new ArrayList<String>(parametric.getAcceptedValues()));
+                        }
+	                    child.getParameters().put(parametric.getName(), copy);
+                    }
+                }
+            }
+        }
+    }
+
 	@Nonnull
     @Override
 	public List<Endpoint> generateEndpoints() {
@@ -216,6 +268,8 @@ public class SpringControllerMappings implements EndpointGenerator {
 				returnEndpoints.add(endpoint);
 			}
 		}
+
+		bubbleParametricEndpoints(returnEndpoints);
 		
 		return returnEndpoints;
 	}
