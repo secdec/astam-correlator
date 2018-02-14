@@ -26,6 +26,7 @@
 package com.denimgroup.threadfix.framework.impl.jsp;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
@@ -35,6 +36,7 @@ import com.denimgroup.threadfix.framework.util.htmlParsing.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -85,7 +87,13 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 			if (jspRootString == null) {
 				jspRoot = projectRoot;
 			} else {
-				jspRoot = new File(jspRootString);
+			    File possibleRoot = new File(jspRootString);
+				if (!possibleRoot.isDirectory()) {
+				    jspRootString = jspRootString.substring(0, jspRootString.lastIndexOf('/'));
+				    jspRoot = new File(jspRootString);
+                } else {
+                    jspRoot = possibleRoot;
+                }
 			}
 			
 			Collection<File> jspFiles = FileUtils.listFiles(
@@ -121,7 +129,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                 loadWebXmlServletMappings(servletParser);
             }
 
-
+            updateFileParameters(endpoints, implicitParams);
 
             int numAddedParams = 0, numRemovedParams = 0;
 
@@ -175,6 +183,109 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 			jspRoot = null;
 		}
 	}
+
+	void updateFileParameters(List<Endpoint> endpoints, List<HyperlinkParameterDetectionResult> parameterDetectionResults) {
+	    // Update endpoints with 'FILES' parameters to have the proper name (they're set to "[File]" by default)
+        Queue<ElementReference> pendingElements = new ArrayDeque<ElementReference>();
+        for (HyperlinkParameterDetectionResult detection : parameterDetectionResults) {
+            pendingElements.addAll(detection.getAllSourceReferences());
+        }
+
+        while (pendingElements.size() > 0) {
+            ElementReference nextElement = pendingElements.remove();
+
+            if (!nextElement.getElementType().equals("input")) {
+                continue;
+            }
+
+            String inputType = nextElement.getAttributeValue("type");
+            if (inputType == null || inputType.isEmpty() || !inputType.equalsIgnoreCase("file")) {
+                continue;
+            }
+
+            String inputName = nextElement.getAttributeValue("name");
+            if (inputName == null || inputName.isEmpty()) {
+                continue;
+            }
+
+            String url = null;
+            ElementReference parent = nextElement.getParent();
+            while (parent != null && url == null) {
+                url = parent.getTargetEndpoint();
+                if (url == null) {
+                    parent = parent.getParent();
+                }
+            }
+
+            if (url == null) {
+                continue;
+            }
+
+            Endpoint baseEndpoint = findBestEndpoint(url, endpoints);
+            List<Endpoint> relevantEndpoints = list();
+            for (Endpoint endpoint : endpoints) {
+                if (areEndpointsAliased(baseEndpoint, endpoint)) {
+                    relevantEndpoints.add(endpoint);
+                }
+            }
+
+            for (Endpoint endpoint : relevantEndpoints) {
+                if (!endpoint.getHttpMethod().equalsIgnoreCase(parent.getDefaultRequestType())) {
+                    continue;
+                }
+
+                List<String> oldParams = list();
+                List<RouteParameter> newParams = list();
+                boolean updatedFileParam = false;
+                for (String paramName : endpoint.getParameters().keySet()) {
+                    RouteParameter param = endpoint.getParameters().get(paramName);
+                    if (param.getParamType() != RouteParameterType.FILES) {
+                        continue;
+                    }
+
+                    if (!paramName.equalsIgnoreCase(inputName)) {
+                        param.setName(inputName);
+                        oldParams.add(paramName);
+                        newParams.add(param);
+                        updatedFileParam = true;
+                    }
+                }
+
+                if (!updatedFileParam) {
+                    RouteParameter newFileParam = new RouteParameter(inputName);
+                    newFileParam.setParamType(RouteParameterType.FILES);
+                    newFileParam.setDataType("String");
+                    endpoint.getParameters().put(inputName, newFileParam);
+                }
+            }
+        }
+    }
+
+    boolean areEndpointsAliased(Endpoint a, Endpoint b) {
+	    String urlA = a.getUrlPath();
+	    String urlB = b.getUrlPath();
+
+	    urlA = CodeParseUtil.trim(urlA, new String[] { "/" });
+        urlB = CodeParseUtil.trim(urlB, new String[] { "/" });
+
+	    return
+                StringUtils.countMatches(urlA, "/") == StringUtils.countMatches( urlB, "/") &&
+                        a.getStartingLineNumber() == b.getStartingLineNumber() &&
+                        a.getFilePath().equalsIgnoreCase(b.getFilePath());
+    }
+
+    Endpoint findBestEndpoint(String reference, List<Endpoint> endpoints) {
+	    int bestScore = -10000;
+	    Endpoint bestMatch = null;
+	    for (Endpoint endpoint : endpoints) {
+	        int score = endpoint.compareRelevance(reference);
+	        if (score > bestScore) {
+	            bestScore = score;
+	            bestMatch = endpoint;
+            }
+        }
+        return bestMatch;
+    }
 
 	void applyLineNumbers(Collection<Endpoint> endpoints) {
 	    Map<String, Integer> lineCounts = map();

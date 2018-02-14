@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.engine.CodePoint;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -85,8 +86,8 @@ class JSPEndpoint extends AbstractEndpoint {
 			relevance = 0;
 		}
 
-		String[] pathParts = checkedPath.split("/");
-		String[] endpointParts = dynamicPath.split("/");
+		String[] pathParts = CodeParseUtil.trim(checkedPath, "/").split("/");
+		String[] endpointParts = CodeParseUtil.trim(dynamicPath, "/").split("/");
 
 		int numMatchedParts = 0;
 		boolean isWildCard = dynamicPath.contains("*");
