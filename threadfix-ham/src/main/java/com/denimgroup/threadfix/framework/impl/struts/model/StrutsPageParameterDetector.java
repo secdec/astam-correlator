@@ -100,7 +100,10 @@ public class StrutsPageParameterDetector {
                 }
             } else if (cleanedName.equals("file")) {
 
-                String name = "[File]";
+                String name = htmlNode.attr("name");
+                if (name == null || name.isEmpty()) {
+                    name = "[File]";
+                }
                 if (currentTargetUrl != null) {
                     StrutsDetectedParameter param = new StrutsDetectedParameter();
                     param.targetEndpoint = currentTargetUrl;
