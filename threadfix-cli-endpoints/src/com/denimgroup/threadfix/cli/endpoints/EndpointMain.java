@@ -42,9 +42,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.List;
+import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.data.interfaces.Endpoint.PrintFormat.JSON;
 
 public class EndpointMain {
@@ -244,6 +247,7 @@ public class EndpointMain {
 
         System.out.println("Generated " + detectedParameters.size() + " parameters");
 
+        Map<RouteParameterType, Integer> typeOccurrences = map();
         int numHaveDataType = 0;
         int numHaveParamType = 0;
         int numHaveAcceptedValues = 0;
@@ -257,12 +261,22 @@ public class EndpointMain {
             if (param.getAcceptedValues() != null && param.getAcceptedValues().size() > 0) {
                 ++numHaveAcceptedValues;
             }
+
+            if (!typeOccurrences.containsKey(param.getParamType())) {
+                typeOccurrences.put(param.getParamType(), 1);
+            } else {
+                int o = typeOccurrences.get(param.getParamType());
+                typeOccurrences.put(param.getParamType(), o + 1);
+            }
         }
 
         int numParams = detectedParameters.size();
-        System.out.println("- " + (numParams - numHaveDataType) + "/" + numParams + " are missing their data type");
-        System.out.println("- " + (numParams - numHaveParamType) + "/" + numParams + " are missing their parameter type");
+        System.out.println("- " + numHaveDataType + "/" + numParams + " have their data type");
         System.out.println("- " + numHaveAcceptedValues + "/" + numParams + " have a list of accepted values");
+        System.out.println("- " + numHaveParamType + "/" + numParams + " have their parameter type");
+        for (RouteParameterType paramType : typeOccurrences.keySet()) {
+            System.out.println("--- " + paramType.name() + ": " + typeOccurrences.get(paramType));
+        }
     }
 
     private static Endpoint.Info[] getEndpointInfo(List<Endpoint> endpoints) {
