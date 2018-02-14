@@ -62,12 +62,12 @@ public abstract class EndpointsButton extends JButton {
     public static final String GENERIC_INT_SEGMENT = "\\{id\\}";
 
     public EndpointsButton(final Component view, final IBurpExtenderCallbacks callbacks) {
-
         setText(getButtonText());
         addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
                 boolean configured = ConfigurationDialogs.show(view, getDialogMode());
+                boolean makeReqs = true;
                 boolean completed = false;
                 java.util.List<String> nodes = new ArrayList<>();
                 if (configured) {
@@ -121,23 +121,31 @@ public abstract class EndpointsButton extends JButton {
                                 JOptionPane.showMessageDialog(view, "Invalid URL.",
                                         "Warning", JOptionPane.WARNING_MESSAGE);
                             }
-                        }
+
+                            if (completed) {
+                                JOptionPane.showMessageDialog(view, getCompletedMessage());
+                            }
+                    }
+                        else
+                            {
+                                JOptionPane.showMessageDialog(view, "Host and Port are required to make requests",
+                                        "Warning", JOptionPane.WARNING_MESSAGE);
+                                makeReqs = false;
+                            }
                     }
                 }
-
-                if (completed) {
-                    JOptionPane.showMessageDialog(view, getCompletedMessage());
+                if(makeReqs) {
+                    if (BurpPropertiesManager.getBurpPropertiesManager().getAutoScan())
+                        sendToScanner(callbacks, UrlDialog.show(view));
+                    RequestMakerThread rmt = new RequestMakerThread(callbacks, view);
+                    new Thread(rmt).start();
                 }
-                if(BurpPropertiesManager.getBurpPropertiesManager().getAutoScan())
-                    sendToScanner(callbacks);
-                RequestMakerThread rmt = new RequestMakerThread(callbacks,view);
-                new Thread(rmt).start();
-            }
+            }//right here?
         });
     }
 
-    private void sendToScanner(IBurpExtenderCallbacks callbacks) {
-        IHttpRequestResponse[] responses = callbacks.getSiteMap(BurpPropertiesManager.getBurpPropertiesManager().getTargetUrl());
+    private void sendToScanner(IBurpExtenderCallbacks callbacks, String url) {
+        IHttpRequestResponse[] responses = callbacks.getSiteMap(url);
         for (IHttpRequestResponse response : responses) {
             IHttpService service = response.getHttpService();
             boolean useHttps = service.getProtocol().equalsIgnoreCase("https");
@@ -164,6 +172,7 @@ public abstract class EndpointsButton extends JButton {
 
     private void fillEndpointsToTable(Endpoint.Info[] endpoints)
     {
+        int count = 0;
         JTable endpointTable = BurpPropertiesManager.getBurpPropertiesManager().getEndpointsTable();
         DefaultTableModel dtm = (DefaultTableModel)endpointTable.getModel();
         for (Endpoint.Info endpoint : endpoints)
@@ -171,9 +180,9 @@ public abstract class EndpointsButton extends JButton {
             boolean hasGet = false;
             boolean hasPost = false;
             String method = endpoint.getHttpMethod();
-            if(method.toString().equalsIgnoreCase("post"))
+            if(method.toString().equalsIgnoreCase("requestmethod.post"))
                 hasPost = true;
-            else if (method.toString().equalsIgnoreCase("get"))
+            else if (method.toString().equalsIgnoreCase("requestmethod.get"))
                 hasGet = true;
             dtm.addRow(new Object[]
             {
@@ -183,8 +192,12 @@ public abstract class EndpointsButton extends JButton {
                 hasPost,
                 endpoint
             });
-
+            count++;
         }
+
+        JLabel countLabel = BurpPropertiesManager.getBurpPropertiesManager().getCountLabel();
+        countLabel.setVisible(true);
+        countLabel.setText("Total Endpoints Detected: " + count);
 
     }
 
@@ -251,14 +264,13 @@ public abstract class EndpointsButton extends JButton {
                           callbacks.getHelpers().addParameter(req, param);
                     }
                     byte[] manReq = callbacks.getHelpers().buildHttpRequest(new URL(url + reqString));
-                    if(method.toString().equalsIgnoreCase("post"))
+                    if(method.toString().equalsIgnoreCase("requestmethod.post"))
                     {
-
                         manReq = callbacks.getHelpers().toggleRequestMethod(manReq);
-                        requests.put(manReq, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
                     }
 
                         requests.put(manReq, callbacks.getHelpers().buildHttpService(reqUrl.getHost(), reqUrl.getPort(), reqUrl.getProtocol()));
+
 
                  }
                  catch (MalformedURLException e1)

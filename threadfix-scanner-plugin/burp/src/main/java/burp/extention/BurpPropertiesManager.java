@@ -48,11 +48,16 @@ public class BurpPropertiesManager extends PropertiesManager {
             APP_ID_KEY = "threadfix.application-id",
             TARGET_URL_KEY = "threadfix.target-url",
             SOURCE_FOLDER_KEY = "threadfix.source-folder",
-            CONFIG_FILE_KEY = "threadfix.config-file";
+            CONFIG_FILE_KEY = "threadfix.config-file",
+            TARGET_PORT_KEY = "threadfix.port",
+            TARGET_PATH_KEY = "threadfix.path",
+            TARGET_HOST_KEY = "threadfix.host",
+            USE_HTTPS_KEY = "threadfix.http";
 
     private static final Map<String, String> defaultPropertyValues = new HashMap<String, String>();
     static {
         defaultPropertyValues.put(THREADFIX_URL_KEY, "http://localhost:8080/threadfix/rest");
+        defaultPropertyValues.put(USE_HTTPS_KEY, "false");
     }
 
     private static HashMap<byte[], IHttpService> requests = new HashMap<byte[], IHttpService>();
@@ -60,6 +65,7 @@ public class BurpPropertiesManager extends PropertiesManager {
     private static Properties properties = new Properties();
     private static boolean hasChanges = false;
     private static JTable endpointsTable;
+    private  static JLabel countLabel;
 
     public static boolean
         AUTO_SCAN_KEY = false,
@@ -153,11 +159,16 @@ public class BurpPropertiesManager extends PropertiesManager {
     }
 
     public String getTargetUrl() {
-        return getPropertyValue(TARGET_URL_KEY);
+        //return getPropertyValue(TARGET_URL_KEY);
+        if (getUseHttps())
+           return "https://" + getPropertyValue(TARGET_HOST_KEY)  + ":" + getPropertyValue(TARGET_PORT_KEY) + "/" + getPropertyValue(TARGET_PATH_KEY);
+       else
+            return "http://" + getPropertyValue(TARGET_HOST_KEY)  + ":" + getPropertyValue(TARGET_PORT_KEY) + "/" + getPropertyValue(TARGET_PATH_KEY);
     }
 
-    public void setTargetUrl(String newTargetUrl) {
-        setPropertyValue(TARGET_URL_KEY, newTargetUrl);
+    public void setTargetUrl(String newTargetUrl)
+    {
+      setPropertyValue(TARGET_URL_KEY, newTargetUrl);
     }
 
     public String getSourceFolder() {
@@ -193,4 +204,37 @@ public class BurpPropertiesManager extends PropertiesManager {
     public void setEndpointsTable(JTable table){endpointsTable = table;}
 
     public static JTable getEndpointsTable() {return endpointsTable;}
+
+    public void setCountLabel(JLabel label){countLabel = label;}
+
+    public static JLabel getCountLabel() {return countLabel;}
+
+    public String getTargetHost() {return getPropertyValue(TARGET_HOST_KEY);}
+
+    public void setTargetHost(String newTargetHost) {setPropertyValue(TARGET_HOST_KEY, newTargetHost);}
+
+    public String getTargetPort() {return getPropertyValue(TARGET_PORT_KEY);}
+
+    public void setTargetPort(String newTargetPort) {setPropertyValue(TARGET_PORT_KEY, newTargetPort);}
+
+    public String getTargetPath() {return getPropertyValue(TARGET_PATH_KEY);}
+
+    public void setTargetPath(String newTargetPath) {setPropertyValue(TARGET_PATH_KEY, newTargetPath);}
+
+    public boolean getUseHttps()
+    {
+        if(getPropertyValue(USE_HTTPS_KEY).equalsIgnoreCase("true"))
+            return true;
+        else
+            return false;
+    }
+
+    public void setUseHttps(boolean newUseHttp)
+    {
+        if(newUseHttp)
+            setPropertyValue(USE_HTTPS_KEY, "true");
+        else
+            setPropertyValue(USE_HTTPS_KEY, "false");
+    }
+
 }
