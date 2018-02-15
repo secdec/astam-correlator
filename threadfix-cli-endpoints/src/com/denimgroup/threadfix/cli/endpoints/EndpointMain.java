@@ -119,11 +119,12 @@ public class EndpointMain {
                             System.out.println(PRINTLN_SEPARATOR);
                             isFirst = false;
                         }
-                        System.out.println("Beginning endpoint detection for '" + job.sourceCodePath.getName() + "'");
+                        System.out.println("Beginning endpoint detection for '" + job.sourceCodePath.getAbsolutePath() + "'");
                         framework = job.frameworkType;
+                        System.out.println("Using framework=" + framework);
                         listEndpoints(job.sourceCodePath);
                         framework = baseType;
-                        System.out.println("Finished endpoint detection for '" + job.sourceCodePath.getName() + "'");
+                        System.out.println("Finished endpoint detection for '" + job.sourceCodePath.getAbsolutePath() + "'");
                         System.out.println(PRINTLN_SEPARATOR);
                     }
 
