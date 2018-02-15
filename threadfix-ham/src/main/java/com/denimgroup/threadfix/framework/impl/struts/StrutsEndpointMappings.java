@@ -415,7 +415,17 @@ public class StrutsEndpointMappings implements EndpointGenerator {
     private void addFileParameters(Collection<Endpoint> endpoints, StrutsProject project) {
         for (Endpoint endpoint : endpoints) {
 
-            RouteParameter existingFileParameter = endpoint.getParameters().get("[File]");
+            RouteParameter existingFileParameter = null;
+
+            for (RouteParameter param : endpoint.getParameters().values()) {
+                String rawType = param.getDataTypeSource();
+                if (rawType != null && (rawType.equalsIgnoreCase("File") || rawType.equalsIgnoreCase("FileUploadForm") || rawType.equalsIgnoreCase("FormFile"))) {
+                    existingFileParameter = param;
+                    break;
+                }
+            }
+
+
             if (existingFileParameter != null) {
                 existingFileParameter.setParamType(RouteParameterType.FILES);
                 continue;
