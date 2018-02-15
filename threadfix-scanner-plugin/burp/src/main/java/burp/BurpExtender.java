@@ -26,12 +26,8 @@
 
 package burp;
 
-import burp.custombutton.ExportButton;
 import burp.custombutton.LocalEndpointsButton;
-import burp.custombutton.RemoteEndpointsButton;
 import burp.extention.BurpPropertiesManager;
-import burp.extention.RestUtils;
-import com.denimgroup.threadfix.data.entities.Application;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 
@@ -42,7 +38,6 @@ import javax.swing.table.*;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -57,11 +52,6 @@ public class BurpExtender implements IBurpExtender, ITab
     private IBurpExtenderCallbacks callbacks;
     private IExtensionHelpers helpers;
     private JTabbedPane tabbedPane;
-    private JTextField urlField;
-    private JTextField keyField;
-    private JLabel apiErrorLabel;
-    private Map<String, String> applicationMap = new HashMap<>();
-    private JComboBox applicationComboBox;
     private JTextField sourceFolderField;
     private JTextField configFileField;
     private JTextField targetHostField;
@@ -219,26 +209,6 @@ public class BurpExtender implements IBurpExtender, ITab
         autoOptionsPanelSeparatorConstraints.fill = GridBagConstraints.HORIZONTAL;
         autoOptionsPanelSeparatorConstraints.anchor = GridBagConstraints.NORTH;
         optionsPanel.add(autoOptionsPanelSeparator, autoOptionsPanelSeparatorConstraints);
-
-        JPanel parametersPanel = buildParametersPanel();
-        GridBagConstraints parametersPanelConstraints = new GridBagConstraints();
-        parametersPanelConstraints.gridx = 0;
-        parametersPanelConstraints.gridy = yPosition++;
-        parametersPanelConstraints.ipadx = 5;
-        parametersPanelConstraints.ipady = 5;
-        parametersPanelConstraints.insets = optionsPanelInsets;
-        parametersPanelConstraints.anchor = GridBagConstraints.NORTHWEST;
-        optionsPanel.add(parametersPanel, parametersPanelConstraints);
-
-        JSeparator parametersPanelSeparator = new JSeparator(JSeparator.HORIZONTAL);
-        callbacks.customizeUiComponent(parametersPanelSeparator);
-        GridBagConstraints parametersPanelSeparatorConstraints = new GridBagConstraints();
-        parametersPanelSeparatorConstraints.gridx = 0;
-        parametersPanelSeparatorConstraints.gridy = yPosition++;
-        parametersPanelSeparatorConstraints.insets = optionsPanelInsets;
-        parametersPanelSeparatorConstraints.fill = GridBagConstraints.HORIZONTAL;
-        parametersPanelSeparatorConstraints.anchor = GridBagConstraints.NORTH;
-        optionsPanel.add(parametersPanelSeparator, parametersPanelSeparatorConstraints);
 
         JPanel sourcePanel = buildSourcePanel();
         GridBagConstraints sourcePanelConstraints = new GridBagConstraints();
@@ -428,18 +398,8 @@ public class BurpExtender implements IBurpExtender, ITab
         JButton localEndpointsButton = new LocalEndpointsButton(getUiComponent(), callbacks);
         callbacks.customizeUiComponent(localEndpointsButton);
 
-        JButton remoteEndpointsButton = new RemoteEndpointsButton(getUiComponent(), callbacks);
-        callbacks.customizeUiComponent(remoteEndpointsButton);
-
-        JButton exportButton = new ExportButton(getUiComponent(), callbacks);
-        callbacks.customizeUiComponent(exportButton);
-
         localEndpointsButton.setSize(300, 30);
         localEndpointsButton.setLocation(10,400);
-        remoteEndpointsButton.setSize(300, 30);
-        remoteEndpointsButton.setLocation(320,400);
-        exportButton.setSize(300, 30);
-        exportButton.setLocation(630,400);
 
         GridBagConstraints gridBagConstraintsLocal = new GridBagConstraints();
         gridBagConstraintsLocal.gridwidth = 1;
@@ -451,69 +411,13 @@ public class BurpExtender implements IBurpExtender, ITab
 
 
 
-        GridBagConstraints gridBagConstraintsRemote = new GridBagConstraints();
-        gridBagConstraintsRemote.gridwidth = 1;
-        gridBagConstraintsRemote.gridx = 2;
-        gridBagConstraintsRemote.gridy = yPosition;
-        gridBagConstraintsRemote.ipadx = 5;
-        gridBagConstraintsRemote.ipady = 5;
-        gridBagConstraintsRemote.anchor = GridBagConstraints.NORTHWEST;
-
-        GridBagConstraints gridBagConstraintsExport = new GridBagConstraints();
-        gridBagConstraintsExport.gridwidth = 0;
-        gridBagConstraintsExport.gridx = 3;
-        gridBagConstraintsExport.gridy = yPosition;
-        gridBagConstraintsExport.ipadx = 5;
-        gridBagConstraintsExport.ipady = 5;
-        gridBagConstraintsExport.anchor = GridBagConstraints.NORTHWEST;
-        gridBagConstraintsExport.weightx = 1;
-
-
         importExportPanel.add(localEndpointsButton, gridBagConstraintsLocal);
-        importExportPanel.add(remoteEndpointsButton, gridBagConstraintsRemote);
-        importExportPanel.add(exportButton, gridBagConstraintsExport);
+
 
 
         return importExportPanel;
     }
 
-    private JPanel buildParametersPanel() {
-        JPanel parametersPanel = new JPanel();
-        parametersPanel.setLayout(new GridBagLayout());
-        int yPosition = 0;
-
-        Runnable applicationComboBoxRunnable = new Runnable() {
-            @Override
-            public void run() {
-                updateApplicationComboBox(applicationMap, apiErrorLabel, applicationComboBox);
-            }
-        };
-        ActionListener applicationComboBoxActionListener = new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String applicationName = (String) applicationComboBox.getSelectedItem();
-                String applicationId = applicationMap.get(applicationName);
-                BurpPropertiesManager.getBurpPropertiesManager().setPropertyValue(BurpPropertiesManager.APP_ID_KEY, applicationId);
-            }
-        };
-
-        final JLabel parametersPanelTitle = addPanelTitleToGridBagLayout("Correlation Server", parametersPanel, yPosition++);
-        final JLabel parametersPanelDescription = addPanelDescriptionToGridBagLayout("These settings let you connect to a Correlation server and choose an Application.", parametersPanel, yPosition++);
-        urlField = addTextFieldToGridBagLayout("Correlation Server URL:", parametersPanel, yPosition++, BurpPropertiesManager.THREADFIX_URL_KEY, applicationComboBoxRunnable);
-        keyField = addTextFieldToGridBagLayout("API Key:", parametersPanel, yPosition++, BurpPropertiesManager.API_KEY_KEY, applicationComboBoxRunnable);
-
-        final JButton applicationComboBoxRefreshButton = new JButton("Refresh application list");
-        applicationComboBoxRefreshButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(java.awt.event.ActionEvent e) {
-                updateApplicationComboBox(applicationMap, apiErrorLabel, applicationComboBox);
-            }
-        });
-        applicationComboBox = addComboBoxToGridBagLayout("Pick an Application", parametersPanel, yPosition++, applicationComboBoxActionListener, applicationComboBoxRefreshButton);
-        apiErrorLabel = addErrorMessageToGridBagLayout(parametersPanel, yPosition++);
-
-        return parametersPanel;
-    }
 
     private JPanel buildSourcePanel() {
         final JPanel sourcePanel = new JPanel();
@@ -730,9 +634,6 @@ public class BurpExtender implements IBurpExtender, ITab
 
     private void loadOptionsProperties() {
         BurpPropertiesManager burpPropertiesManager = BurpPropertiesManager.getBurpPropertiesManager();
-        urlField.setText(burpPropertiesManager.getUrl());
-        keyField.setText(burpPropertiesManager.getKey());
-        updateApplicationComboBox(applicationMap, apiErrorLabel, applicationComboBox);
         sourceFolderField.setText(burpPropertiesManager.getSourceFolder());
         configFileField.setText(burpPropertiesManager.getConfigFile());
         targetHostField.setText(burpPropertiesManager.getTargetHost());
@@ -740,65 +641,6 @@ public class BurpExtender implements IBurpExtender, ITab
         targetPortField.setText(burpPropertiesManager.getTargetPort());
     }
 
-    private void updateApplicationComboBox(Map<String, String> applicationMap, JLabel apiErrorLabel, JComboBox applicationComboBox) {
-        applicationComboBox.setEnabled(false);
-        ActionListener[] applicationComboBoxActionListeners = applicationComboBox.getActionListeners();
-        for (ActionListener applicationComboBoxActionListener : applicationComboBoxActionListeners) {
-            applicationComboBox.removeActionListener(applicationComboBoxActionListener);
-        }
-
-        updateApplicationMapData(applicationMap);
-        Object[] possibilities = applicationMap.keySet().toArray();
-
-        boolean failedToConnect = false;
-        String failureMessage = "";
-        if (possibilities.length != 0 && possibilities[0].toString().startsWith("Authentication failed")) {
-            failedToConnect = true;
-            failureMessage = possibilities[0].toString();
-        }
-        else if (possibilities.length == 0) {
-            failedToConnect = true;
-            failureMessage = "Failed while trying to get a list of applications from the correlation server.";
-        }
-
-        String currentAppId = BurpPropertiesManager.getBurpPropertiesManager().getAppId();
-        applicationComboBox.removeAllItems();
-        if (failedToConnect) {
-            apiErrorLabel.setText(failureMessage);
-        } else {
-            apiErrorLabel.setText("");
-            for (Object possibility : possibilities) {
-                applicationComboBox.addItem(possibility);
-            }
-            String currentAppName = applicationMap.get(currentAppId);
-            for (String appName : applicationMap.keySet()) {
-                if(applicationMap.get(appName).equals(currentAppId)) {
-                    currentAppName = appName;
-                    break;
-                }
-            }
-            applicationComboBox.setSelectedItem(currentAppName);
-        }
-        for (ActionListener applicationComboBoxActionListener : applicationComboBoxActionListeners) {
-            applicationComboBox.addActionListener(applicationComboBoxActionListener);
-        }
-        applicationComboBox.setEnabled(!failedToConnect);
-    }
-
-    private void updateApplicationMapData(Map<String, String> applicationMap) {
-        Application.Info[] infos;
-        try {
-            infos = RestUtils.getApplications();
-        } catch (Exception e) {
-            infos = new Application.Info[0];
-        }
-
-        applicationMap.clear();
-        for (Application.Info info : infos) {
-            applicationMap.put(info.getOrganizationName() + "/" + info.getApplicationName(),
-                    info.getApplicationId());
-        }
-    }
 
     private JLabel addPanelTitleToGridBagLayout(String titleText, Container gridBagContainer, int yPosition) {
         final JLabel panelTitle = new JLabel(titleText, JLabel.LEFT);

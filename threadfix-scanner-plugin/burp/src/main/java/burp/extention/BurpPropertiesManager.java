@@ -43,9 +43,6 @@ public class BurpPropertiesManager extends PropertiesManager {
     private static BurpPropertiesManager instance = null;
 
     public static final String
-            API_KEY_KEY = "threadfix.key",
-            THREADFIX_URL_KEY = "threadfix.url",
-            APP_ID_KEY = "threadfix.application-id",
             TARGET_URL_KEY = "threadfix.target-url",
             SOURCE_FOLDER_KEY = "threadfix.source-folder",
             CONFIG_FILE_KEY = "threadfix.config-file",
@@ -56,8 +53,9 @@ public class BurpPropertiesManager extends PropertiesManager {
 
     private static final Map<String, String> defaultPropertyValues = new HashMap<String, String>();
     static {
-        defaultPropertyValues.put(THREADFIX_URL_KEY, "http://localhost:8080/threadfix/rest");
+
         defaultPropertyValues.put(USE_HTTPS_KEY, "false");
+        defaultPropertyValues.put(SOURCE_FOLDER_KEY, "");
     }
 
     private static HashMap<byte[], IHttpService> requests = new HashMap<byte[], IHttpService>();
@@ -121,28 +119,8 @@ public class BurpPropertiesManager extends PropertiesManager {
     }
 
     @Override
-    public String getKey() {
-        return getPropertyValue(API_KEY_KEY);
-    }
-
-    @Override
-    public void setKey(String newKey) {
-        setPropertyValue(API_KEY_KEY, newKey);
-    }
-
-    @Override
     public void setMemoryKey(String newKey) {
         setKey(newKey);
-    }
-
-    @Override
-    public String getUrl() {
-        return getPropertyValue(THREADFIX_URL_KEY);
-    }
-
-    @Override
-    public void setUrl(String newUrl) {
-        setPropertyValue(THREADFIX_URL_KEY, newUrl);
     }
 
     @Override
@@ -150,13 +128,6 @@ public class BurpPropertiesManager extends PropertiesManager {
         setUrl(newUrl);
     }
 
-    public String getAppId() {
-        return getPropertyValue(APP_ID_KEY);
-    }
-
-    public void setAppId(String newAppId) {
-        setPropertyValue(APP_ID_KEY, newAppId);
-    }
 
     public String getTargetUrl() {
         //return getPropertyValue(TARGET_URL_KEY);
@@ -220,6 +191,8 @@ public class BurpPropertiesManager extends PropertiesManager {
     public String getTargetPath() {return getPropertyValue(TARGET_PATH_KEY);}
 
     public void setTargetPath(String newTargetPath) {setPropertyValue(TARGET_PATH_KEY, newTargetPath);}
+
+    public IBurpExtenderCallbacks getCallbacks(){return callbacks;}
 
     public boolean getUseHttps()
     {
