@@ -128,7 +128,7 @@ public abstract class EndpointsButton extends JButton {
                     }
                         else
                             {
-                                JOptionPane.showMessageDialog(view, "Host and Port are required to make requests",
+                                JOptionPane.showMessageDialog(view, "A target URL configuration is required to populate the site map with the detected endpoints",
                                         "Warning", JOptionPane.WARNING_MESSAGE);
                                 makeReqs = false;
                             }
