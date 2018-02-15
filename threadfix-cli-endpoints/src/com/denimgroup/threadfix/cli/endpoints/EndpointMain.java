@@ -32,6 +32,7 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
@@ -41,9 +42,12 @@ import org.codehaus.jackson.map.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Dictionary;
 import java.util.List;
+import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.data.interfaces.Endpoint.PrintFormat.JSON;
 
 public class EndpointMain {
@@ -51,6 +55,8 @@ public class EndpointMain {
     enum Logging {
         ON, OFF
     }
+
+    static String PRINTLN_SEPARATOR = StringUtils.repeat('-', 10);
 
     static Logging logging = Logging.OFF;
     static Endpoint.PrintFormat printFormat = Endpoint.PrintFormat.DYNAMIC;
@@ -64,29 +70,61 @@ public class EndpointMain {
             if (pathListFile != null) {
                 System.out.println("Loading path list file at '" + pathListFile + "'");
                 List<String> fileContents;
+                boolean isLongComment = false;
                 try {
                     fileContents = FileUtils.readLines(new File(pathListFile));
-                    List<File> requestedTargets = list();
+                    List<EndpointJob> requestedTargets = list();
                     int lineNo = 1;
                     for (String line : fileContents) {
                         line = line.trim();
-                        if (!line.startsWith("#") && !line.isEmpty()) {
-                            File asFile = new File(line);
+                        if (line.startsWith("#!")) {
+                            isLongComment = true;
+                        } else if (line.startsWith("!#")) {
+                            isLongComment = false;
+                        } else if (!line.startsWith("#") && !line.isEmpty() && !isLongComment) {
+
+                            FrameworkType frameworkType = FrameworkType.DETECT;
+                            File asFile;
+                            if (line.contains(":")) {
+                                String[] parts = StringUtils.split(line, ":");
+                                frameworkType = FrameworkType.getFrameworkType(parts[0].trim());
+                                asFile = new File(parts[1].trim());
+
+                                if (frameworkType == FrameworkType.NONE || frameworkType == FrameworkType.DETECT) {
+                                    System.out.print("WARN: Couldn't parse framework type: '" + frameworkType + "', for '" + asFile.getName() + "' using DETECT");
+                                    frameworkType = FrameworkType.DETECT;
+                                }
+                            } else {
+                                asFile = new File(line);
+                            }
+
                             if (!asFile.exists()) {
                                 System.out.println("WARN - Unable to find input path '" + line + "' at line " + lineNo + " of " + pathListFile);
                             } else if (!asFile.isDirectory()) {
                                 System.out.println("WARN - Input path '" + line + "' is not a directory, at line " + lineNo + " of " + pathListFile);
                             } else {
-                                requestedTargets.add(asFile);
+                                EndpointJob newJob = new EndpointJob();
+                                newJob.frameworkType = frameworkType;
+                                newJob.sourceCodePath = asFile;
+                                requestedTargets.add(newJob);
                             }
                         }
                         ++lineNo;
                     }
 
-                    for (File file : requestedTargets) {
-                        System.out.println("Beginning endpoint detection for '" + file.getName() + "'");
-                        listEndpoints(file);
-                        System.out.println("Finished endpoint detection for '" + file.getName() + "'");
+                    boolean isFirst = true;
+                    FrameworkType baseType = framework;
+                    for (EndpointJob job : requestedTargets) {
+                        if (isFirst) {
+                            System.out.println(PRINTLN_SEPARATOR);
+                            isFirst = false;
+                        }
+                        System.out.println("Beginning endpoint detection for '" + job.sourceCodePath.getName() + "'");
+                        framework = job.frameworkType;
+                        listEndpoints(job.sourceCodePath);
+                        framework = baseType;
+                        System.out.println("Finished endpoint detection for '" + job.sourceCodePath.getName() + "'");
+                        System.out.println(PRINTLN_SEPARATOR);
                     }
 
                 } catch (IOException e) {
@@ -209,14 +247,11 @@ public class EndpointMain {
 
         System.out.println("Generated " + detectedParameters.size() + " parameters");
 
-        int numOptional = 0;
+        Map<RouteParameterType, Integer> typeOccurrences = map();
         int numHaveDataType = 0;
         int numHaveParamType = 0;
         int numHaveAcceptedValues = 0;
         for (RouteParameter param : detectedParameters) {
-            if (param.isOptional()) {
-                ++numOptional;
-            }
             if (param.getDataType() != null) {
                 ++numHaveDataType;
             }
@@ -226,13 +261,22 @@ public class EndpointMain {
             if (param.getAcceptedValues() != null && param.getAcceptedValues().size() > 0) {
                 ++numHaveAcceptedValues;
             }
+
+            if (!typeOccurrences.containsKey(param.getParamType())) {
+                typeOccurrences.put(param.getParamType(), 1);
+            } else {
+                int o = typeOccurrences.get(param.getParamType());
+                typeOccurrences.put(param.getParamType(), o + 1);
+            }
         }
 
         int numParams = detectedParameters.size();
-        System.out.println("- " + numOptional + "/" + numParams + " parameters are optional");
-        System.out.println("- " + (numParams - numHaveDataType) + "/" + numParams + " are missing their data type");
-        System.out.println("- " + (numParams - numHaveParamType) + "/" + numParams + " are missing their parameter type");
+        System.out.println("- " + numHaveDataType + "/" + numParams + " have their data type");
         System.out.println("- " + numHaveAcceptedValues + "/" + numParams + " have a list of accepted values");
+        System.out.println("- " + numHaveParamType + "/" + numParams + " have their parameter type");
+        for (RouteParameterType paramType : typeOccurrences.keySet()) {
+            System.out.println("--- " + paramType.name() + ": " + typeOccurrences.get(paramType));
+        }
     }
 
     private static Endpoint.Info[] getEndpointInfo(List<Endpoint> endpoints) {

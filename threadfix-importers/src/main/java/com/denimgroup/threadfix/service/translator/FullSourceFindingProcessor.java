@@ -86,7 +86,9 @@ class FullSourceFindingProcessor implements FindingProcessor {
         }
 
         String dynamicPath = finding.getSurfaceLocation().getPath();
-        baseEndpointDetector.addSample(dynamicPath);
+        if (dynamicPath != null) {
+            baseEndpointDetector.addSample(dynamicPath);
+        }
     }
 
     @Override

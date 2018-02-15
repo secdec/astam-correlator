@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.engine.CodePoint;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -49,6 +50,8 @@ class JSPEndpoint extends AbstractEndpoint {
 	private final Map<String, RouteParameter> parameters = map();
     @Nonnull
 	private final String method;
+
+    private int startLine, endLine;
 
 //	@Nonnull
 //    private final Map<String, Integer> paramToLineMap;
@@ -83,8 +86,8 @@ class JSPEndpoint extends AbstractEndpoint {
 			relevance = 0;
 		}
 
-		String[] pathParts = checkedPath.split("/");
-		String[] endpointParts = dynamicPath.split("/");
+		String[] pathParts = CodeParseUtil.trim(checkedPath, "/").split("/");
+		String[] endpointParts = CodeParseUtil.trim(dynamicPath, "/").split("/");
 
 		int numMatchedParts = 0;
 		boolean isWildCard = dynamicPath.contains("*");
@@ -199,7 +202,7 @@ class JSPEndpoint extends AbstractEndpoint {
 
 	@Override
 	public int getStartingLineNumber() {
-		return -1; // JSPs aren't controller-based, so the whole page is the endpoint
+		return startLine;
 	}
 
 	// TODO - Re-enable
@@ -212,6 +215,11 @@ class JSPEndpoint extends AbstractEndpoint {
 //        } else {
 //		    return value;
 //        }
+	}
+
+	public void setLines(int startLine, int endLine) {
+		this.startLine = startLine;
+		this.endLine = endLine;
 	}
 
 

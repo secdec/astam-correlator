@@ -65,12 +65,7 @@ public class HyperlinkParameterMerger {
 
                 // Copy 'dataType' if the original endpoint isn't assigned one
                 if (existing.getDataType() == null) {
-                    existing.setDataType(inferred.getDataType());
-                }
-
-                // Default is 'not optional'; if the value is default, copy value from the inferred parameter
-                if (mergeOptional && !existing.isOptional()) {
-                    existing.setOptional(inferred.isOptional());
+                    existing.setDataType(inferred.getDataTypeSource());
                 }
 
                 if (inferred.getAcceptedValues() != null && !inferred.getAcceptedValues().isEmpty()) {

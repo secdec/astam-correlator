@@ -89,13 +89,15 @@ public class PrefixBasedActionMapper implements ActionMapper {
                 }
             }
 
+            Collection<StrutsEndpoint> originalEndpoints = new ArrayList<StrutsEndpoint>(endpoints);
             Collection<StrutsEndpoint> mapperEndpoints = mapper.generateEndpoints(project, packagesForMapper, namespace);
             if (mapperEndpoints != null) {
                 //  Ignore endpoints handled by previous (more specific) mappers
                 for (StrutsEndpoint detectedEndpoint : mapperEndpoints) {
                     boolean isNew = true;
-                    for (StrutsEndpoint existingEndpoint : endpoints) {
-                        if (existingEndpoint.getUrlPath().equals(detectedEndpoint.getUrlPath())) {
+                    for (StrutsEndpoint existingEndpoint : originalEndpoints) {
+                        if (existingEndpoint.getUrlPath().equals(detectedEndpoint.getUrlPath()) ||
+                                existingEndpoint.getFilePath().equalsIgnoreCase(detectedEndpoint.getFilePath())) {
                             isNew = false;
                             break;
                         }

@@ -27,8 +27,12 @@ import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
+import com.denimgroup.threadfix.framework.util.ScopeTracker;
 
 import java.util.*;
+
+import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.CollectionUtils.set;
 
 public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
@@ -41,6 +45,8 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     boolean skipBuiltIn = true;
     boolean skipNonPublic = true;
     boolean skipConstructors = true;
+    boolean isInterface = false;
+    ScopeTracker scopeTracker = new ScopeTracker();
 
 
 
@@ -74,19 +80,31 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
     public Collection<String> getImports() { return imports; }
 
+    public Set<ModelField> getFields() { return fields; }
+
 
     @Override
     public boolean shouldContinue() {
-        return true;
+        return !isInterface;
     }
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
 
+        // Parsing can break (and is not necessary) for interfaces
+        if (isInterface) {
+            return;
+        }
+
         if (type == '{') numOpenBraces++;
         if (type == '}') numOpenBraces--;
         if (type == '(') numOpenParens++;
         if (type == ')') numOpenParens--;
+
+        scopeTracker.interpretToken(type);
+        if (stringValue != null) {
+            scopeTracker.interpretToken(type);
+        }
 
         switch (parsePhase) {
             case IDENTIFICATION:
@@ -136,6 +154,8 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
         if (stringValue != null) {
             if (stringValue.equals("class") && parsedClassName == null) {
                 parsePhase = ParsePhase.NEXT_IS_CLASS_NAME;
+            } else if (stringValue.equals("interface")) {
+                isInterface = true;
             } else if (stringValue.equals("package")) {
                 parsePhase = ParsePhase.PARSE_PACKAGE;
                 workingPackageName = "";
@@ -152,7 +172,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                 workingBaseTypeName = "";
             }
         } else {
-            if (type == '{') {
+            if (type == '{' && parsedClassName != null) {
                 parsePhase = ParsePhase.IN_CLASS;
             }
         }
@@ -247,9 +267,13 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     String possibleMethodReturnValue;
     String possibleMethodName;
     String possibleMethodParams;
-    boolean isPublicMethod;
+    boolean isPublicMember;
+    boolean isArray;
+    int methodStartBraceLevel = -1;
+    int methodStartLine = -1;
+    Set<ModelField> fields = set();
 
-    enum InClassState { IDENTIFICATION, POSSIBLE_METHOD_PARAMS_START, POSSIBLE_METHOD_PARAMS_END }
+    enum InClassState { IDENTIFICATION, POSSIBLE_METHOD_PARAMS_START, POSSIBLE_METHOD_PARAMS_END, IN_METHOD }
     InClassState inClassState = InClassState.IDENTIFICATION;
 
     void processInClassPhase(int type, int lineNumber, String stringValue) {
@@ -266,19 +290,27 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                     return;
                 }
 
-                if (possibleMethodName != null && type == '(' && lastToken != '@') {
+                if (possibleMethodName != null && possibleMethodReturnValue != null && type == '(') {
+                    methodStartLine = lineNumber;
                     inClassState = InClassState.POSSIBLE_METHOD_PARAMS_START;
+                    isArray = isArray || lastToken == ']';
                 } else if (stringValue != null) {
                     if (stringValue.equals("private")) {
-                        isPublicMethod = false;
+                        isPublicMember = false;
                     } else if (stringValue.equals("protected")) {
-                        isPublicMethod = false;
+                        isPublicMember = false;
                     } else if (stringValue.equals("public")) {
-                        isPublicMethod = true;
+                        isPublicMember = true;
                     } else {
+                        isArray = isCollectionType(lastString) || (possibleMethodReturnValue != null && isCollectionType(possibleMethodReturnValue));
                         possibleMethodReturnValue = possibleMethodName;
                         possibleMethodName = stringValue;
                     }
+                } else if ((type == ';' || type == '=') && possibleMethodReturnValue != null && possibleMethodName != null) {
+                    ModelField newField = new ModelField(possibleMethodReturnValue, possibleMethodName);
+                    fields.add(newField);
+                    possibleMethodName = null;
+                    possibleMethodReturnValue = null;
                 }
                 break;
 
@@ -286,6 +318,10 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                 if (type == ')' && numOpenParens == 0) {
                     inClassState = InClassState.POSSIBLE_METHOD_PARAMS_END;
                     break;
+                }
+
+                if (possibleMethodParams == null) {
+                    possibleMethodParams = "";
                 }
 
                 if (!possibleMethodParams.isEmpty()) {
@@ -298,7 +334,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
             case POSSIBLE_METHOD_PARAMS_END:
 
                 boolean canParse = true;
-                if (skipNonPublic && !isPublicMethod) {
+                if (skipNonPublic && !isPublicMember) {
                     canParse = false;
                 }
 
@@ -312,50 +348,77 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
                 if (type == '{' && canParse) {
 
-                    if (possibleMethodName.length() > 3 &&
-                            (possibleMethodName.startsWith("get") || possibleMethodName.startsWith("set"))) {
+                    StrutsMethod newMethod = new StrutsMethod();
+                    String methodName = possibleMethodName;
+                    newMethod.setName(methodName);
+                    newMethod.setReturnType(possibleMethodReturnValue + (isArray ? "[]" : ""));
+                    newMethod.setStartLine(methodStartLine);
 
-                        String paramName = possibleMethodName.substring(3);
-                        String paramType = lastString;
-                        boolean paramExists = false;
-                        for (ModelField param : parameters) {
-                            if (param.getParameterKey().equals(paramName)) {
-                                paramExists = true;
-                                break;
-                            }
-                        }
-
-                        if (!paramExists) {
-                            ModelField field = new ModelField(paramType, paramName, false);
-                            parameters.add(field);
-                        }
-
-                    } else {
-
-                        StrutsMethod newMethod = new StrutsMethod();
-                        newMethod.setName(possibleMethodName);
-                        newMethod.setReturnType(possibleMethodReturnValue);
-
-                        if (possibleMethodParams != null && !possibleMethodParams.isEmpty()) {
-                            String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
-                            for (String param : splitParams) {
-                                String[] paramParts = param.split(" ");
-                                String paramType = paramParts[0];
-                                String paramName = paramParts[1];
-                                newMethod.addParameter(paramName, paramType);
-                            }
-                            methods.add(newMethod);
-                        }
+                    if (possibleMethodParams == null) {
+                        possibleMethodParams = "";
                     }
+
+                    String[] splitParams = CodeParseUtil.splitByComma(possibleMethodParams);
+                    for (String param : splitParams) {
+                        boolean paramIsArray = isCollectionType(param);
+                        String[] paramParts = param.split(" ");
+                        String paramName = null, paramType = null;
+                        for (String part : paramParts) {
+                            if (!isCollectionType(part) && isValidIdentifier(part)) {
+                                paramType = paramName;
+                                paramName = part;
+                            }
+                        }
+                        newMethod.addParameter(paramName, paramType + (paramIsArray ? "[]" : ""));
+                    }
+                    methods.add(newMethod);
+
+                    methodStartBraceLevel = scopeTracker.getNumOpenBrace();
+                    inClassState = InClassState.IN_METHOD;
+                } else {
+                    inClassState = InClassState.IDENTIFICATION;
                 }
 
                 possibleMethodName = "";
                 possibleMethodParams = "";
-                isPublicMethod = false;
-                inClassState = InClassState.IDENTIFICATION;
-                parsePhase = ParsePhase.IN_CLASS;
+                isPublicMember = false;
+                isArray = false;
+                methodStartLine = -1;
+                break;
+
+            case IN_METHOD:
+                StrutsMethod currentMethod = methods.get(methods.size() - 1);
+                if (scopeTracker.getNumOpenBrace() < methodStartBraceLevel) {
+                    methodStartBraceLevel = -1;
+                    currentMethod.setEndLine(lineNumber);
+                    inClassState = InClassState.IDENTIFICATION;
+                } else {
+                    if (stringValue != null) {
+                        currentMethod.addSymbolReference(stringValue);
+                    }
+                }
                 break;
         }
 
+    }
+
+    boolean isCollectionType(String typeName) {
+        return typeName.contains("List") || typeName.contains("Collection");
+    }
+
+    boolean isValidIdentifier(String code) {
+        for (int i = 0; i < code.length(); i++) {
+            char c = code.charAt(i);
+            if (c < 48) {
+                return false;
+            } else if (c > 57 && c < 65) {
+                return false;
+            } else if (c > 90 && c < 97 && c != 95) {
+                return false;
+            } else if (c > 122) {
+                return false;
+            }
+        }
+        return true;
     }
 }

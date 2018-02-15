@@ -56,7 +56,7 @@ public class CodeParseUtil {
         return string;
     }
 
-    public static String trim(String string, String[] tokens) {
+    public static String trim(String string, String... tokens) {
         return trim(string, tokens, 10);
     }
 

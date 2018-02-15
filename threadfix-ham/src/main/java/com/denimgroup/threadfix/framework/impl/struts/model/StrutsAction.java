@@ -41,7 +41,8 @@ public class StrutsAction {
 	private String actClass;
 	private String actClassLocation;
 	private Map<String, String> params;
-	private List<StrutsResult> results;
+	private List<StrutsResult> results = list();
+	private List<String> parameterHints = list();
 
 	public StrutsAction() { }
 
@@ -102,6 +103,23 @@ public class StrutsAction {
 		return results;
 	}
 
+	public StrutsResult getPrimaryResult() {
+		if (results.size() == 0) {
+			return null;
+		}
+
+		StrutsResult bestResult = null;
+		for (StrutsResult result : results) {
+			if (result.getType() == null) {
+				bestResult = result;
+			}
+		}
+		if (bestResult == null) {
+			bestResult = results.get(0);
+		}
+		return bestResult;
+	}
+
 	public void setResults(List<StrutsResult> results) {
 		this.results = results;
 	}
@@ -110,6 +128,18 @@ public class StrutsAction {
 		if (results == null)
 			results = list();
 		results.add(result);
+	}
+
+	public List<String> getParameterHints() {
+		return parameterHints;
+	}
+
+	public void setParameterHints(List<String> parameterHints) {
+		this.parameterHints = parameterHints;
+	}
+
+	public void addParameterHint(String parameterName) {
+		this.parameterHints.add(parameterName);
 	}
 
 	@Override

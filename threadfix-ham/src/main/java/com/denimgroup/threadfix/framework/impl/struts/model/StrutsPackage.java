@@ -25,6 +25,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts.model;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -36,7 +37,7 @@ public class StrutsPackage {
 	private String name;
 	private String namespace;
 	private String pkgExtends;
-	private List<StrutsAction> actions;
+	private List<StrutsAction> actions = list();
 	private StrutsClass sourceClass;
 
 	public String getName() {
@@ -63,11 +64,12 @@ public class StrutsPackage {
 		this.pkgExtends = pkgExtends;
 	}
 
+	@Nonnull
 	public List<StrutsAction> getActions() {
 		return actions;
 	}
 
-	public void setActions(List<StrutsAction> actions) {
+	public void setActions(@Nonnull  List<StrutsAction> actions) {
 		this.actions = actions;
 	}
 

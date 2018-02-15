@@ -82,7 +82,10 @@ public class ModelFieldSet implements Iterable<ModelField> {
     public Map<String, RouteParameter> getPossibleParameters() {
         Map<String, RouteParameter> parameters = map();
         for (ModelField field : fieldSet) {
-            parameters.put(field.getParameterKey(), RouteParameter.fromDataType(field.getType()));
+            RouteParameter newParam = new RouteParameter(field.getParameterKey());
+            newParam.setDataType(field.getType());
+            newParam.setParamType(RouteParameterType.FORM_DATA);
+            parameters.put(field.getParameterKey(), newParam);
         }
         return parameters;
     }

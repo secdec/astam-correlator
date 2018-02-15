@@ -74,14 +74,13 @@ public class ActionMapperFactory {
             String mapperName = config.get("struts.mapper.class");
 
             result = findMapper(mapperName, project);
-        } else {
+        } else if (project.hasPlugin(StrutsRestPlugin.class)) {
+            result = new CompositeActionMapper(list(new DefaultActionMapper(), new RestPluginActionMapper()));
+        }
 
-            if (project.hasPlugin(StrutsRestPlugin.class)) {
-                result = new CompositeActionMapper(list(new DefaultActionMapper(), new RestPluginActionMapper()));
-            } else {
-                log.debug("No mapper configuration detected, using DefaultActionMapper");
-                result = new DefaultActionMapper();
-            }
+        if (result == null) {
+            log.debug("No compatible mapper configuration detected, using DefaultActionMapper");
+            result = new DefaultActionMapper();
         }
 
         return result;

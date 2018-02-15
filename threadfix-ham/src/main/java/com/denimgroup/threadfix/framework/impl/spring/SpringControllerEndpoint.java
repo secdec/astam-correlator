@@ -47,8 +47,6 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 	@Nonnull
     private final String rawFilePath, rawUrlPath;
 	@Nonnull
-    private final Set<String> pathParameters;
-	@Nonnull
     private final Map<String, RouteParameter> parameters;
 	private final int startLineNumber, endLineNumber;
 
@@ -70,7 +68,6 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
                                     @Nonnull String urlPath,
                                     @Nonnull String method,
                                     @Nonnull Map<String, RouteParameter> parameters,
-                                    @Nonnull Collection<String> pathParameters,
                                     int startLineNumber,
                                     int endLineNumber,
                                     @Nullable ModelField modelObject) {
@@ -83,7 +80,6 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         this.modelObject = modelObject;
 
         this.parameters = parameters;
-        this.pathParameters = setFrom(pathParameters);
         this.method = method;
     }
 
@@ -125,12 +121,6 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         }
         if (allowedParams != null) {
             parameters.keySet().retainAll(allowedParams);
-        }
-
-        for (String param : pathParameters) {
-            RouteParameter newParam = RouteParameter.fromDataType(ParameterDataType.STRING);
-            newParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
-            parameters.put(param, newParam);
         }
     }
 
@@ -188,15 +178,6 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     public void setDataBinderParser(@Nullable SpringDataBinderParser dataBinderParser) {
         this.dataBinderParser = dataBinderParser;
     }
-
-	@Nullable
-    public String getCleanedUrlPath() {
-		if (cleanedUrlPath == null) {
-			cleanedUrlPath = cleanUrlPathStatic(rawUrlPath);
-		}
-		
-		return cleanedUrlPath;
-	}
 	
 	@Nullable
     public static String cleanUrlPathStatic(@Nullable String rawUrlPath) {
@@ -229,7 +210,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 				":" + startLineNumber +
 				"-" + endLineNumber +
 				" -> " + getHttpMethod() +
-				" " + getCleanedUrlPath() +
+				" " + rawUrlPath +
 				" " + getParameters() +
 				"]";
 	}
@@ -243,7 +224,8 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 	@Nonnull
     @Override
 	public String getUrlPath() {
-		String path = getCleanedUrlPath();
+		//String path = getCleanedUrlPath();
+        String path = rawUrlPath;
         if (path != null) {
             return path;
         } else {

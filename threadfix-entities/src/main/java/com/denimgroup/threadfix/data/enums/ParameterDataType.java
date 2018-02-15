@@ -30,7 +30,14 @@ public enum ParameterDataType {
         switch (input.toLowerCase()) {
             case "integer":
             case "int":
+            case "long":
+            case "short":
                 type = INTEGER;
+                break;
+            case "decimal":
+            case "float":
+            case "double":
+                type = DECIMAL;
                 break;
             case "string":
                 type = STRING;

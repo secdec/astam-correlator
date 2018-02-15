@@ -23,6 +23,7 @@
 
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.framework.impl.struts.annotationParsers.*;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsMethod;
@@ -35,6 +36,8 @@ import java.io.File;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.CollectionUtils.set;
 
 public class StrutsClassParser {
 
@@ -57,9 +60,15 @@ public class StrutsClassParser {
         //EventBasedTokenizerRunner.run(file, true, actionParser);
 
         String className = classSigParser.getParsedClassName();
+
+        if (className == null) {
+            return;
+        }
+
         resultClass = new StrutsClass(className, file.getAbsolutePath());
         resultClass.addAllMethods(classSigParser.getParsedMethods());
-        resultClass.setProperties(classSigParser.getParameters());
+        resultClass.setFields(classSigParser.getFields());
+        resultClass.setProperties(collectParameters(classSigParser.getParsedMethods()));
         resultClass.setImportedPackages(classSigParser.getImports());
         resultClass.setPackage(classSigParser.getClassPackage());
 
@@ -132,8 +141,47 @@ public class StrutsClassParser {
 
 
 
+    private Set<ModelField> collectParameters(Collection<StrutsMethod> methods) {
+        Map<String, String> propertyTypesWithSetters = map();
+        Map<String, String> propertyTypesWithGetters = map();
 
-    void registerClassAnnotations(Collection<Annotation> annotations) {
+        Set<ModelField> result = set();
+
+        for (StrutsMethod method : methods) {
+            String name = method.getName();
+            if (name.startsWith("get") && name.length() > 3) {
+                propertyTypesWithGetters.put(makeLowerCamelCase(name.substring(3)), method.getReturnType());
+            } else if (name.startsWith("is") && name.length() > 2) {
+                propertyTypesWithGetters.put(makeLowerCamelCase(name.substring(2)), method.getReturnType());
+            } else if (name.startsWith("set") && name.length() > 3) {
+                List<String> paramNames = new ArrayList<String>(method.getParameterNames());
+                if (paramNames.size() > 0) {
+                    String parameterType = method.getParameters().get(paramNames.get(0));
+                    propertyTypesWithSetters.put(makeLowerCamelCase(name.substring(3)), parameterType);
+                }
+            }
+        }
+
+        for (String property : propertyTypesWithSetters.keySet()) {
+            // Any method as a 'setter' on its own is enough to be treated as a property
+            // Parameters are parsed more reliably than return types
+            String propertyType = propertyTypesWithSetters.get(property);
+            ModelField newField = new ModelField(propertyType, property);
+            result.add(newField);
+        }
+
+        return result;
+    }
+
+    private String makeLowerCamelCase(String code) {
+        if (Character.isUpperCase(code.charAt(0))) {
+            return Character.toLowerCase(code.charAt(0)) + code.substring(1);
+        } else {
+            return code;
+        }
+    }
+
+    private void registerClassAnnotations(Collection<Annotation> annotations) {
         for (Annotation annotation : annotations) {
             if (annotation.getTargetType() == Annotation.TargetType.CLASS) {
                 resultClass.addAnnotation(annotation);

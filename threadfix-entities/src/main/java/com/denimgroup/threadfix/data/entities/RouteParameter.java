@@ -2,27 +2,30 @@ package com.denimgroup.threadfix.data.entities;
 
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class RouteParameter {
-    ParameterDataType dataType;
-    String dataTypeSource;
-    boolean isOptional = false;
-    RouteParameterType paramType = RouteParameterType.UNKNOWN;
-    String name;
-    List<String> acceptedValues = null;
+    private ParameterDataType dataType;
+    private String dataTypeSource;
+    private RouteParameterType paramType = RouteParameterType.UNKNOWN;
+    private String name;
+    private List<String> acceptedValues = null;
 
+    public RouteParameter(String name) {
+        this.name = name;
+    }
 
-    public static RouteParameter fromDataType(String dataType) {
-        RouteParameter result = new RouteParameter();
+    public static RouteParameter fromDataType(String name, String dataType) {
+        RouteParameter result = new RouteParameter(name);
         result.setDataType(dataType);
         return result;
     }
 
-    public static RouteParameter fromDataType(ParameterDataType dataType) {
-        RouteParameter result = new RouteParameter();
+    public static RouteParameter fromDataType(String name, ParameterDataType dataType) {
+        RouteParameter result = new RouteParameter(name);
         result.setDataType(dataType.getDisplayName());
         return result;
     }
@@ -35,12 +38,8 @@ public class RouteParameter {
         return dataType;
     }
 
-    public boolean hasProperDataType() {
-        return dataType != null && dataType.getDisplayName().toLowerCase().equalsIgnoreCase(dataTypeSource);
-    }
-
-    public boolean isOptional() {
-        return isOptional;
+    public boolean isArrayType() {
+        return dataTypeSource.contains("[]");
     }
 
     public String getName() {
@@ -49,10 +48,6 @@ public class RouteParameter {
 
     public List<String> getAcceptedValues() {
         return acceptedValues;
-    }
-
-    public void setOptional(boolean optional) {
-        isOptional = optional;
     }
 
     // Use 'setDataType(String)' instead; the data type is automatically parsed and the original type string
@@ -75,7 +70,7 @@ public class RouteParameter {
         this.paramType = paramType;
     }
 
-    public void setName(String name) {
+    public void setName(@Nonnull String name) {
         this.name = name;
     }
 
@@ -102,8 +97,17 @@ public class RouteParameter {
         result.append(paramType);
         result.append(", dataType=");
         result.append(dataType);
-        result.append(", isOptional=");
-        result.append(isOptional);
+
+        if (acceptedValues != null) {
+            result.append(", acceptedValues=[");
+            for (int i = 0; i < acceptedValues.size(); i++) {
+                if (i > 0) {
+                    result.append(',');
+                }
+                result.append(acceptedValues.get(i));
+            }
+            result.append(']');
+        }
 
         return result.toString();
     }

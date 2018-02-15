@@ -126,7 +126,7 @@ public class DjangoControllerParser implements EventBasedTokenizer {
                 else if (type == StreamTokenizer.TT_WORD){
                     if (REQUEST.equals(stringValue))
                         break;
-                    currentRoute.addParameter(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
+                    currentRoute.addParameter(stringValue, RouteParameter.fromDataType(stringValue, ParameterDataType.STRING));
                 }
                 break;
             case BODY:
@@ -145,7 +145,7 @@ public class DjangoControllerParser implements EventBasedTokenizer {
                     currentPhase = Phase.IN_METHOD;
                     currentMethodState = MethodState.BODY;
                 } else if (stringValue != null && !stringValue.isEmpty()) {
-                    currentRoute.addParameter(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
+                    currentRoute.addParameter(stringValue, RouteParameter.fromDataType(stringValue, ParameterDataType.STRING));
                     currentPhase = Phase.IN_METHOD;
                     currentMethodState = MethodState.BODY;
                 }

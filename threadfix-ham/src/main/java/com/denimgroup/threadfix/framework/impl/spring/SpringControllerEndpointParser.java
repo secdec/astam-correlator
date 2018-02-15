@@ -25,7 +25,7 @@ package com.denimgroup.threadfix.framework.impl.spring;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
@@ -50,12 +50,16 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
     @Nonnull
     Set<SpringControllerEndpoint> endpoints = new TreeSet<SpringControllerEndpoint>();
     private int startLineNumber = 0, curlyBraceCount = 0, openParenCount = 0;
-    private boolean inClass = false, afterOpenParen = false, isPathParameter;
+    private boolean inClass = false, afterOpenParen = false;
     boolean hasControllerAnnotation = false;
 
     @Nullable
     private String classEndpoint = null, currentMapping = null, lastValue = null,
-            secondToLastValue = null, lastParam, lastParamType;
+            secondToLastValue = null, lastParam, lastParamType, pendingParamDataType, pendingParamName;
+
+    private RouteParameterType pendingParamType;
+
+    private boolean paramTypeAfterCloseParen = false;
 
     @Nonnull
     private final String filePath;
@@ -68,8 +72,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
     @Nonnull
     private List<String>
             classMethods  = list(),
-            methodMethods = list(),
-            currentPathParameters = list();
+            methodMethods = list();
     @Nonnull
     private Map<String, RouteParameter> currentParameters = map();
 
@@ -79,6 +82,8 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             REQUEST_PARAM   = "RequestParam",
             PATH_VARIABLE   = "PathVariable",
             REQUEST_MAPPING = "RequestMapping",
+            COOKIE_VALUE    = "CookieValue",
+            SESSION_ATTRIBUTE = "SessionAttribute",
             CLASS           = "class",
             PRE_AUTHORIZE   = "PreAuthorize",
             BINDING_RESULT  = "BindingResult",
@@ -103,7 +108,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
     }
 
     private enum SignatureState {
-        START, ARROBA, REQUEST_PARAM, GET_ANNOTATION_VALUE, ANNOTATION_PARAMS, VALUE, GET_VARIABLE_NAME
+        START, ARROBA, REQUEST_PARAM, GET_ANNOTATION_VALUE, ANNOTATION_PARAMS, VALUE, GET_VARIABLE_NAME, GET_VARIABLE_TYPE
     }
 
     @Nonnull
@@ -180,9 +185,21 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 break;
             case ARROBA:
                 if (stringValue != null &&
-                        (stringValue.equals(REQUEST_PARAM) || stringValue.equals(PATH_VARIABLE))) {
+                        (stringValue.equals(REQUEST_PARAM) ||
+                        stringValue.equals(PATH_VARIABLE) ||
+                        stringValue.equals(COOKIE_VALUE) ||
+                        stringValue.equals(SESSION_ATTRIBUTE))) {
+
                     setState(SignatureState.REQUEST_PARAM);
-                    isPathParameter = stringValue.equals(PATH_VARIABLE);
+                    if (stringValue.equals(PATH_VARIABLE)) {
+                        pendingParamType = RouteParameterType.PARAMETRIC_ENDPOINT;
+                    } else if (stringValue.equals(REQUEST_PARAM)) {
+                        pendingParamType = RouteParameterType.QUERY_STRING;
+                    } else if (stringValue.equals(COOKIE_VALUE)) {
+                        pendingParamType = RouteParameterType.COOKIE;
+                    } else {
+                        pendingParamType = RouteParameterType.SESSION;
+                    }
                 } else {
                     setState(SignatureState.START);
                 }
@@ -196,16 +213,32 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 break;
             case GET_ANNOTATION_VALUE:
                 if (type == DOUBLE_QUOTE) {
-                    if (isPathParameter) {
-                        currentPathParameters.add(stringValue);
-                    } else {
-                        currentParameters.put(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
-                    }
-                    setState(SignatureState.START);
+                    pendingParamName = stringValue;
+                    setState(SignatureState.GET_VARIABLE_TYPE);
                 } else if ("value".equals(stringValue)) {
                     setState(SignatureState.VALUE);
                 } else {
                     setState(SignatureState.ANNOTATION_PARAMS);
+                }
+                break;
+            case GET_VARIABLE_TYPE:
+                if (paramTypeAfterCloseParen) {
+                    if (type == ')') {
+                        paramTypeAfterCloseParen = false;
+                    } else {
+                        break;
+                    }
+                }
+                if (stringValue != null) {
+                    pendingParamDataType = stringValue;
+                    RouteParameter newParam = RouteParameter.fromDataType(pendingParamName, pendingParamDataType);
+                    newParam.setParamType(pendingParamType);
+                    currentParameters.put(pendingParamName, newParam);
+
+                    pendingParamDataType = null;
+                    pendingParamName = null;
+                    pendingParamType = RouteParameterType.UNKNOWN;
+                    setState(SignatureState.START);
                 }
                 break;
             case ANNOTATION_PARAMS:
@@ -217,8 +250,9 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 break;
             case VALUE:
                 if (type == DOUBLE_QUOTE) {
-                    currentParameters.put(stringValue, RouteParameter.fromDataType(ParameterDataType.STRING));
-                    setState(SignatureState.START);
+                    paramTypeAfterCloseParen = true;
+                    pendingParamName = stringValue;
+                    setState(SignatureState.GET_VARIABLE_TYPE);
                 } else if (type != EQUALS) {
                     setState(SignatureState.GET_VARIABLE_NAME);
                 }
@@ -226,10 +260,12 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             case GET_VARIABLE_NAME:
                 if (openParenCount == -1) { // this means we're not in an annotation
                     if (type == COMMA || type == CLOSE_PAREN) {
-                        currentParameters.put(lastValue, RouteParameter.fromDataType(ParameterDataType.STRING));
+                        RouteParameter newParam = new RouteParameter(lastValue);
+                        newParam.setDataType(secondToLastValue);
+                        newParam.setParamType(pendingParamType);
+                        currentParameters.put(lastValue, newParam);
+                        pendingParamType = RouteParameterType.UNKNOWN;
                         setState(SignatureState.START);
-                    } else {
-                        lastValue = stringValue;
                     }
                 }
                 break;
@@ -407,7 +443,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             SpringControllerEndpoint endpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
                     method,
                     currentParameters,
-                    currentPathParameters,
                     startLineNumber,
                     endLineNumber,
                     currentModelObject);
@@ -434,7 +469,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
         startLineNumber = -1;
         curlyBraceCount = 0;
         currentParameters = map();
-        currentPathParameters = list();
         currentModelObject = null;
     }
 

@@ -25,29 +25,31 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapper;
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapperFactory;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsClass;
-import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
+import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPluginDetector;
-import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetectionResult;
-import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterDetector;
-import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterMerger;
-import com.denimgroup.threadfix.framework.util.htmlParsing.HyperlinkParameterMergingGuide;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import com.denimgroup.threadfix.framework.util.ParameterMerger;
+import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
@@ -97,7 +99,9 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         Collection<StrutsClass> discoveredClasses = list();
         for (File javaFile : javaFiles) {
             StrutsClass parsedClass = new StrutsClassParser(javaFile).getResultClass();
-            discoveredClasses.add(parsedClass);
+            if (parsedClass != null) {
+                discoveredClasses.add(parsedClass);
+            }
         }
 
         configurationProperties = new StrutsConfigurationProperties();
@@ -141,17 +145,23 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             project.addPlugin(plugin);
         }
 
-        StrutsWebXmlParser webXmlParser = new StrutsWebXmlParser(StrutsWebXmlParser.findWebXml(rootDirectory));
-        project.setWebPath(webXmlParser.getPrimaryWebContentPath());
-        project.setWebInfPath(webXmlParser.getWebInfFolderPath());
+        File webXmlFile = StrutsWebXmlParser.findWebXml(rootDirectory);
 
-        StrutsWebPackBuilder webPackBuilder = new StrutsWebPackBuilder();
-        File webContentRoot = new File(webXmlParser.getPrimaryWebContentPath());
-        StrutsWebPack primaryWebPack = webPackBuilder.generate(webContentRoot);
-        for (String welcomeFile : webXmlParser.getWelcomeFiles()) {
-            primaryWebPack.addWelcomeFile(welcomeFile);
+        if (webXmlFile != null) {
+            StrutsWebXmlParser webXmlParser = new StrutsWebXmlParser(webXmlFile);
+            project.setWebPath(webXmlParser.getPrimaryWebContentPath());
+            project.setWebInfPath(webXmlParser.getWebInfFolderPath());
+
+            StrutsWebPackBuilder webPackBuilder = new StrutsWebPackBuilder();
+            File webContentRoot = new File(webXmlParser.getPrimaryWebContentPath());
+            StrutsWebPack primaryWebPack = webPackBuilder.generate(webContentRoot);
+            for (String welcomeFile : webXmlParser.getWelcomeFiles()) {
+                primaryWebPack.addWelcomeFile(welcomeFile);
+            }
+            project.addWebPack(primaryWebPack);
+        } else {
+            log.warn("Couldn't find web.xml file, won't generate JSP web-packs");
         }
-        project.addWebPack(primaryWebPack);
 
         ActionMapperFactory mapperFactory = new ActionMapperFactory(configurationProperties);
         this.actionMapper = mapperFactory.detectMapper(project);
@@ -162,50 +172,398 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
         generateMaps(project);
 
+        // Assign parametric route parameters
+        Pattern routeParameterPattern = Pattern.compile("\\{(\\w+)[^\\}]*\\}");
+        for (Endpoint endpoint : endpoints) {
+
+            Matcher routeParameterMatcher = routeParameterPattern.matcher(endpoint.getUrlPath());
+            List<String> parameterNames = list();
+            while (routeParameterMatcher.find()) {
+                String name = routeParameterMatcher.group(1);
+                parameterNames.add(name.toLowerCase());
+            }
+
+            for (RouteParameter param : endpoint.getParameters().values()) {
+                String commonName = param.getName().toLowerCase();
+                if (parameterNames.contains(commonName)) {
+                    parameterNames.remove(commonName);
+                    param.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+                    break;
+                }
+            }
+
+            // Params not found previously need to be added as new parameters, ie if a child endpoint inherits a
+            // route parameter from its parent endpoint
+            for (String remainingParamName : parameterNames) {
+                RouteParameter newParam = new RouteParameter(remainingParamName);
+                newParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+                endpoint.getParameters().put(remainingParamName, newParam);
+            }
+        }
+
+        ParameterMerger genericMerger = new ParameterMerger();
+        genericMerger.setCaseSensitive(false);
+        Map<Endpoint, Map<String, RouteParameter>> mergedParameters = genericMerger.mergeParametersIn(endpoints);
+        for (Endpoint remappedEndpoint : mergedParameters.keySet()) {
+            Map<String, RouteParameter> endpointParameters = mergedParameters.get(remappedEndpoint);
+            remappedEndpoint.getParameters().putAll(endpointParameters);
+        }
+
+        addFileParameters(endpoints, project);
+
+
+        for (Endpoint endpoint : endpoints) {
+            Collection<RouteParameter> params = endpoint.getParameters().values();
+            for (RouteParameter param : params) {
+                if (param.getParamType() == RouteParameterType.UNKNOWN) {
+                    log.debug("Missing parameter datatype for " + param.getName());
+                }
+            }
+        }
+
     }
 
     private void generateMaps(StrutsProject project) {
+
+        StrutsPageParameterDetector parameterDetector = new StrutsPageParameterDetector();
+        List<StrutsDetectedParameter> inferredParameters = list();
+
+        Collection<File> webFiles = FileUtils.listFiles(new File(project.getRootDirectory()), new String[] { "html", "xhtml", "jsp"}, true);
+
+        for (File file : webFiles) {
+            inferredParameters.addAll(parameterDetector.parseStrutsFormsParameters(file));
+        }
+
         endpoints = list();
         endpoints.addAll(actionMapper.generateEndpoints(project, project.getPackages(), ""));
 
-        List<HyperlinkParameterMergingGuide> detectorParameters = list();
+        expandModelFieldParameters(endpoints, project.classes);
 
-        HyperlinkParameterDetector parameterDetector = new HyperlinkParameterDetector();
-        HyperlinkParameterMerger parameterMerger = new HyperlinkParameterMerger(true, false);
-        Collection<File> jspAndHtmlFiles = FileUtils.listFiles(rootDirectory, new String[] { ".jsp", ".html" }, true);
-        for (File file : jspAndHtmlFiles) {
-            String contents;
-            try {
-                contents = FileUtils.readFileToString(file);
-            } catch (IOException e) {
-                e.printStackTrace();
+        // Modify inferred parameters to point to the proper endpoint
+        for (StrutsDetectedParameter param : inferredParameters) {
+
+            if (param.targetEndpoint.startsWith("/")) {
                 continue;
             }
 
-            contents = replaceJspTags(contents);
-            contents = replaceStrutsTemplateTags(contents);
+            String sourceFile = param.sourceFile;
+            StrutsEndpoint servingEndpoint = null;
+            for (Endpoint endpoint : endpoints) {
+                StrutsEndpoint strutsEndpoint = (StrutsEndpoint)endpoint;
+                String resultFilePath = strutsEndpoint.getDisplayFilePath();
+                String fullResultFilePath = PathUtil.combine(project.getWebPath(), resultFilePath);
+                if (sourceFile.equalsIgnoreCase(resultFilePath) || sourceFile.equalsIgnoreCase(fullResultFilePath)) {
+                    servingEndpoint = strutsEndpoint;
+                    break;
+                }
+            }
+            if (servingEndpoint != null) {
+                String baseEndpoint = servingEndpoint.getUrlPath();
+                if (baseEndpoint.contains("/")) {
+                    baseEndpoint = baseEndpoint.substring(0, baseEndpoint.lastIndexOf('/'));
+                }
 
-            HyperlinkParameterDetectionResult detectionResult = parameterDetector.parse(contents, file);
-            detectorParameters.add(parameterMerger.mergeParsedImplicitParameters(endpoints, detectionResult));
+                param.targetEndpoint = PathUtil.combine(baseEndpoint, param.targetEndpoint);
+            }
         }
 
-        for (HyperlinkParameterMergingGuide mergingGuide : detectorParameters) {
-            if (!mergingGuide.hasData()) {
+        // Add inferred parameters to endpoints
+        for (StrutsDetectedParameter inferred : inferredParameters) {
+            List<Endpoint> relevantEndpoints = findEndpointsForUrl(inferred.targetEndpoint, endpoints);
+
+            //  Generate new endpoints if an HTTP request method was detected for an endpoint, but no version
+            //  of that endpoint has that HTTP method
+            Map<String, List<String>> currentHttpMethods = map();
+            for (Endpoint endpoint : relevantEndpoints) {
+                List<String> currentMethods = currentHttpMethods.get(endpoint);
+                if (currentMethods == null) {
+                    currentHttpMethods.put(endpoint.getUrlPath(), currentMethods = list());
+                }
+
+                if (!currentMethods.contains(endpoint.getHttpMethod())) {
+                    currentMethods.add(endpoint.getHttpMethod());
+                }
+            }
+
+            for (String endpointUrl : currentHttpMethods.keySet()) {
+                List<String> supportedMethods = currentHttpMethods.get(endpointUrl);
+                String inferredQueryMethod = inferred.queryMethod.toUpperCase();
+                if (!supportedMethods.contains(inferredQueryMethod)) {
+                    supportedMethods.add(inferredQueryMethod);
+
+                    Endpoint endpoint = null;
+                    for (Endpoint e : endpoints) {
+                        if (e.getUrlPath().equalsIgnoreCase(endpointUrl)) {
+                            endpoint = e;
+                            break;
+                        }
+                    }
+
+                    if (endpoint == null) {
+                        continue;
+                    }
+
+                    StrutsEndpoint baseEndpoint = (StrutsEndpoint)endpoint;
+                    StrutsEndpoint newEndpoint = new StrutsEndpoint(endpoint.getFilePath(), endpoint.getUrlPath(), inferredQueryMethod, baseEndpoint.getParameters());
+                    newEndpoint.setDisplayFilePath(baseEndpoint.getDisplayFilePath());
+                    newEndpoint.setLineNumbers(baseEndpoint.getStartingLineNumber(), baseEndpoint.getEndLineNumber());
+                    relevantEndpoints.add(newEndpoint);
+                    endpoints.add(newEndpoint);
+                }
+            }
+
+
+
+            // Apply inferred parameters
+            for (Endpoint endpoint : relevantEndpoints) {
+
+                if (!endpoint.getHttpMethod().equalsIgnoreCase(inferred.queryMethod)) {
+                    continue;
+                }
+
+                if (!endpoint.getParameters().containsKey(inferred.paramName)) {
+                    RouteParameter newParam = new StrutsInferredRouteParameter(inferred.paramName);
+                    newParam.setParamType(RouteParameterType.FORM_DATA);
+                    endpoint.getParameters().put(inferred.paramName, newParam);
+                } else {
+                    // Replace the original entry with a StrutsInferredRouteParameter
+                    RouteParameter newParam = new StrutsInferredRouteParameter(inferred.paramName);
+                    RouteParameter originalParam = endpoint.getParameters().get(inferred.paramName);
+
+                    newParam.setDataType(originalParam.getDataTypeSource());
+                    newParam.setParamType(originalParam.getParamType());
+                    newParam.setAcceptedValues(originalParam.getAcceptedValues());
+
+                    if (newParam.getAcceptedValues() == null || newParam.getAcceptedValues().size() == 0) {
+                        newParam.setAcceptedValues(inferred.allowedValues);
+                    }
+                }
+            }
+        }
+
+        // Cull parameters by whether their symbol was referenced
+        for (Endpoint endpoint : endpoints) {
+            List<String> culledParameters = list();
+            StrutsEndpoint strutsEndpoint = (StrutsEndpoint)endpoint;
+            String fullPath = PathUtil.combine(project.getRootDirectory() , endpoint.getFilePath());
+
+            for (RouteParameter param : strutsEndpoint.getParameters().values()) {
+                if (param instanceof StrutsInferredRouteParameter) {
+                    continue;
+                }
+
+                StrutsMethod sourceMethod = project.findMethodByCodeLines(fullPath, endpoint.getStartingLineNumber());
+                if (sourceMethod == null) {
+                    continue;
+                }
+
+                String[] paramNameParts = param.getName().split("\\.");
+                boolean hasReference = false;
+
+                for (String part : paramNameParts) {
+                    if (sourceMethod.hasSymbolReference(part)) {
+                        hasReference = true;
+                        break;
+                    }
+                }
+
+                if (!hasReference) {
+                    culledParameters.add(param.getName());
+                }
+            }
+
+            for (String param : culledParameters) {
+                endpoint.getParameters().remove(param);
+            }
+        }
+
+        // Resolve parameter data types
+        for (Endpoint endpoint : endpoints) {
+            String fullFilePath = PathUtil.combine(project.getRootDirectory(), endpoint.getFilePath());
+            StrutsClass classForEndpoint = project.findClassByFileLocation(fullFilePath);
+            if (classForEndpoint == null) {
+                continue;
+            }
+
+            for (RouteParameter param : endpoint.getParameters().values()) {
+                String name = param.getName();
+                String[] pathParts = name.split("\\.");
+
+                ModelField currentField = null;
+                StrutsClass currentModelClass = classForEndpoint;
+                for (String part : pathParts) {
+                    if (currentModelClass == null) {
+                        currentField = null;
+                        break;
+                    }
+
+                    currentField = currentModelClass.getFieldOrProperty(part);
+                    if (currentField == null) {
+                        break;
+                    }
+
+                    currentModelClass = project.findClassByName(currentField.getType());
+                }
+
+                if (currentField != null) {
+                    param.setDataType(currentField.getType());
+                }
+            }
+        }
+    }
+
+    private void addFileParameters(Collection<Endpoint> endpoints, StrutsProject project) {
+        for (Endpoint endpoint : endpoints) {
+
+            RouteParameter existingFileParameter = null;
+
+            for (RouteParameter param : endpoint.getParameters().values()) {
+                String rawType = param.getDataTypeSource();
+                if (rawType != null && (rawType.equalsIgnoreCase("File") || rawType.equalsIgnoreCase("FileUploadForm") || rawType.equalsIgnoreCase("FormFile"))) {
+                    existingFileParameter = param;
+                    break;
+                }
+            }
+
+
+            if (existingFileParameter != null) {
+                existingFileParameter.setParamType(RouteParameterType.FILES);
+                continue;
+            }
+
+            StrutsMethod sourceMethod = project.findMethodByCodeLines(endpoint.getFilePath(), endpoint.getStartingLineNumber());
+            if (sourceMethod == null) {
+                continue;
+            }
+
+            if (sourceMethod.hasSymbolReference("FileUploadForm") || sourceMethod.hasSymbolReference("FormFile")) {
+                RouteParameter newParameter = new StrutsInferredRouteParameter("[File]");
+                newParameter.setDataType("String");
+                newParameter.setParamType(RouteParameterType.FILES);
+                endpoint.getParameters().put(newParameter.getName(), newParameter);
+            }
+        }
+    }
+
+    private void expandModelFieldParameters(Collection<Endpoint> endpoints, Collection<StrutsClass> parsedClasses) {
+        for (Endpoint endpoint : endpoints) {
+            Collection<String> paramNames = new ArrayList<String>(endpoint.getParameters().keySet());
+            for (String paramName : paramNames) {
+                RouteParameter param = endpoint.getParameters().get(paramName);
+                StrutsClass modelType = findClassByName(parsedClasses, cleanArrayName(param.getDataTypeSource()));
+                if (modelType == null) {
+                    continue;
+                }
+
+                List<RouteParameter> effectiveParameters = expandModelToParameters(modelType, parsedClasses, new Stack<StrutsClass>(), null);
+                Map<String, RouteParameter> namedParameters = map();
+                for (RouteParameter modelParam : effectiveParameters) {
+                    namedParameters.put(modelParam.getName(), modelParam);
+                }
+                endpoint.getParameters().remove(paramName);
+                endpoint.getParameters().putAll(namedParameters);
+            }
+        }
+    }
+
+    private List<RouteParameter> expandModelToParameters(StrutsClass modelType, Collection<StrutsClass> referenceClasses, @Nonnull Stack<StrutsClass> previousModels, String namePrefix) {
+
+        if (namePrefix == null) {
+            namePrefix = "";
+        }
+
+        if (previousModels.contains(modelType)) {
+            return list();
+        }
+
+        previousModels.push(modelType);
+
+        List<RouteParameter> result = list();
+        Set<ModelField> modelFields = modelType.getProperties();
+        for (ModelField field : modelFields) {
+            String dataType = field.getType();
+            StrutsClass fieldModelType = findClassByName(referenceClasses, cleanArrayName(dataType));
+            if (fieldModelType == null) {
+                RouteParameter newParam = new RouteParameter(field.getParameterKey());
+                newParam.setDataType(dataType);
+                newParam.setParamType(RouteParameterType.FORM_DATA);
+                result.add(newParam);
+            } else {
+                String subParamsPrefix;
+                if (namePrefix.isEmpty()) {
+                    subParamsPrefix = field.getParameterKey();
+                } else {
+                    subParamsPrefix = namePrefix + "." + field.getParameterKey();
+                }
+                List<RouteParameter> modelSubParameters = expandModelToParameters(fieldModelType, referenceClasses, previousModels, subParamsPrefix);
+                result.addAll(modelSubParameters);
+            }
+        }
+
+        previousModels.pop();
+
+        return result;
+    }
+
+    private String cleanArrayName(String paramName) {
+        paramName = StringUtils.replace(paramName, "[", "");
+        paramName = StringUtils.replace(paramName, "]", "");
+        return paramName;
+    }
+
+    private StrutsClass findClassByName(Collection<StrutsClass> classes, String name) {
+        for (StrutsClass strutsClass : classes) {
+            if (strutsClass.getName().equalsIgnoreCase(name)) {
+                return strutsClass;
+            }
+        }
+        return null;
+    }
+
+    private List<Endpoint> findEndpointsForUrl(String url, Collection<Endpoint> endpoints) {
+        Endpoint mainEndpoint = null;
+        int mainRelevance = -1000000;
+        List<Endpoint> result = list();
+
+        for (Endpoint endpoint : endpoints) {
+            int relevance = endpoint.compareRelevance(url);
+            if (relevance > mainRelevance) {
+                mainEndpoint = endpoint;
+                mainRelevance = relevance;
+            }
+        }
+
+        if (mainEndpoint == null) {
+            return result;
+        }
+
+        url = CodeParseUtil.trim(url, new String[] { "/" });
+
+        int numUrlPaths = StringUtils.countMatches(url, "/");
+
+        for (Endpoint endpoint : endpoints) {
+            String trimmedEndpoint = CodeParseUtil.trim(endpoint.getUrlPath(), new String[] { "/" });
+            if (!trimmedEndpoint.startsWith(url)) {
+                continue;
+            }
+
+            int numEndpointPaths = StringUtils.countMatches(trimmedEndpoint, "/");
+            if (numEndpointPaths != numUrlPaths) {
+                continue;
+            }
+
+            if (endpoint.getStartingLineNumber() != mainEndpoint.getStartingLineNumber()) {
                 continue;
             }
 
 
+            if (endpoint.getFilePath().equals(mainEndpoint.getFilePath())) {
+                result.add(endpoint);
+            }
         }
-    }
 
-    private String replaceJspTags(String jspText) {
-        return jspText;
+        return result;
     }
-
-    private String replaceStrutsTemplateTags(String strutsTemplateText) {
-        return strutsTemplateText;
-    }
-
 
     @Nonnull
     @Override

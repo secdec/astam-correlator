@@ -25,6 +25,7 @@ package com.denimgroup.threadfix.framework.impl.jsp;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
+import com.denimgroup.threadfix.framework.util.java.CommentTracker;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 
@@ -186,8 +187,7 @@ public class JSPServletParser {
                     }
 
                     List<RouteParameter> knownParameters = parameters.get(lineNumber);
-                    RouteParameter newParameter = new RouteParameter();
-                    newParameter.setName(parameterName);
+                    RouteParameter newParameter = new RouteParameter(parameterName);
 
                     knownParameters.add(newParameter);
                 }
@@ -338,6 +338,7 @@ public class JSPServletParser {
         List<JSPServletMethodMap> result = list();
 
         ScopeTracker scopeTracker = new ScopeTracker();
+        CommentTracker commentTracker = new CommentTracker();
         int currentScanningIndex = 0;
         int lineNo = 1;
 
@@ -353,7 +354,14 @@ public class JSPServletParser {
                 if (c == '\n') {
                     ++lineNo;
                 }
-                scopeTracker.interpretToken(c);
+
+                if (!scopeTracker.isInString()) {
+                    commentTracker.interpretToken(c);
+                }
+
+                if (!commentTracker.isInComment()) {
+                    scopeTracker.interpretToken(c);
+                }
             }
 
             methodStartLine = lineNo;
@@ -368,7 +376,13 @@ public class JSPServletParser {
                 if (c == '\n') {
                     ++lineNo;
                 }
-                scopeTracker.interpretToken(c);
+                if (!scopeTracker.isInString()) {
+                    commentTracker.interpretToken(c);
+                }
+
+                if (!commentTracker.isInComment()) {
+                    scopeTracker.interpretToken(c);
+                }
             }
 
             methodEndLine = lineNo;
