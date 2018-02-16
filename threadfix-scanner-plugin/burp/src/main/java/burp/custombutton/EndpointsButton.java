@@ -133,13 +133,20 @@ public abstract class EndpointsButton extends JButton {
                                 makeReqs = false;
                             }
                     }
+
+                    if(makeReqs) {
+                        if (BurpPropertiesManager.getBurpPropertiesManager().getAutoScan())
+                            sendToScanner(callbacks, UrlDialog.show(view));
+                        RequestMakerThread rmt = new RequestMakerThread(callbacks, view);
+                        new Thread(rmt).start();
+                    }
                 }
-                if(makeReqs) {
-                    if (BurpPropertiesManager.getBurpPropertiesManager().getAutoScan())
-                        sendToScanner(callbacks, UrlDialog.show(view));
-                    RequestMakerThread rmt = new RequestMakerThread(callbacks, view);
-                    new Thread(rmt).start();
+                else
+                {
+                    JOptionPane.showMessageDialog(view, "The location of the source code to analyze is required to import endpoints, select the directory location in the plugin options",
+                            "Warning", JOptionPane.WARNING_MESSAGE);
                 }
+
             }//right here?
         });
     }
