@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>com.denimgroup.threadfix</groupId>
+        <groupId>com.github.secdec.astam-correlator</groupId>
         <artifactId>master-pom</artifactId>
         <version>2.3-SNAPSHOT</version>
     </parent>
@@ -22,19 +22,19 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.denimgroup.threadfix</groupId>
+            <groupId>com.github.secdec.astam-correlator</groupId>
             <artifactId>threadfix-importers</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.denimgroup.threadfix</groupId>
+            <groupId>com.github.secdec.astam-correlator</groupId>
             <artifactId>threadfix-entities</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.denimgroup.threadfix</groupId>
+            <groupId>com.github.secdec.astam-correlator</groupId>
             <artifactId>threadfix-ham</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>

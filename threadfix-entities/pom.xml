@@ -34,7 +34,7 @@
     </build>
 
     <parent>
-        <groupId>com.denimgroup.threadfix</groupId>
+        <groupId>com.github.secdec.astam-correlator</groupId>
         <artifactId>master-pom</artifactId>
         <version>2.3-SNAPSHOT</version>
     </parent>
