@@ -5,7 +5,6 @@ public enum RouteParameterType {
     SESSION,
     PARAMETRIC_ENDPOINT,
     QUERY_STRING,
-    REQUEST_BODY,
     FORM_DATA,
     FILES,
     UNKNOWN
