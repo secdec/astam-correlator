@@ -17,17 +17,17 @@ import javax.xml.bind.annotation.XmlType;
  * <p>Java class for Severities.
  * 
  * <p>The following schema fragment specifies the expected content contained within this class.
- * <p>
+ * <br>
  * <pre>
- * &lt;simpleType name="Severities">
- *   &lt;restriction base="{}Severity">
- *     &lt;enumeration value="Critical"/>
- *     &lt;enumeration value="High"/>
- *     &lt;enumeration value="Medium"/>
- *     &lt;enumeration value="Low"/>
- *     &lt;enumeration value="Info"/>
- *   &lt;/restriction>
- * &lt;/simpleType>
+ * &lt;simpleType name="Severities"&gt;
+ *   &lt;restriction base="{}Severity"&gt;
+ *     &lt;enumeration value="Critical"&gt;
+ *     &lt;enumeration value="High"&gt;
+ *     &lt;enumeration value="Medium"&gt;
+ *     &lt;enumeration value="Low"&gt;
+ *     &lt;enumeration value="Info"&gt;
+ *   &lt;/restriction&gt;
+ * &lt;/simpleType&gt;
  * </pre>
  * 
  */

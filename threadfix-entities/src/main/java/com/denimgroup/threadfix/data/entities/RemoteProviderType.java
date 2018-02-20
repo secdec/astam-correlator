@@ -202,7 +202,7 @@ public class RemoteProviderType extends BaseEntity  {
 
     /**
      * Sort whenever a new collection is set.
-     * @param remoteProviderApplications
+     * @param remoteProviderApplications The set of remote vulnerability providers.
      */
     public void setRemoteProviderApplications(
             List<RemoteProviderApplication> remoteProviderApplications) {

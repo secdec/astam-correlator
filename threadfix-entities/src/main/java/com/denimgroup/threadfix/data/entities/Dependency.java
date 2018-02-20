@@ -121,8 +121,7 @@ public class Dependency extends AuditableEntity {
     }
 
     /**
-     * This is used to identify the dependency in an unambiguous way.
-     * @return
+     * @return a string that identifies the dependency in an unambiguous way.
      */
     @Transient
     @JsonIgnore

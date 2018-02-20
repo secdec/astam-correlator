@@ -40,10 +40,6 @@ public class DefectMetadata {
 
     private Map<String, Object> fieldsMap;
 
-	/**
-	 * @param description
-	 * @param preamble
-	 */
 	public DefectMetadata(String description, String preamble, String component, String version,
                           String severity, String priority, String status) {
 		if (description == null) {

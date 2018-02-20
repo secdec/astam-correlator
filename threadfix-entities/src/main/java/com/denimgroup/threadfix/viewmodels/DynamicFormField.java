@@ -165,8 +165,8 @@ public class DynamicFormField {
     }
 
     /**
-     * the key is the value of the option tag and the value is what gets displayed.
-     * @return
+     * The key is the value of the option tag and the value is what gets displayed.
+     * @return A map of option tags to display names.
      */
     @JsonView(AllViews.RestViewScan2_1.class)
     public Map<String, String> getOptionsMap() {

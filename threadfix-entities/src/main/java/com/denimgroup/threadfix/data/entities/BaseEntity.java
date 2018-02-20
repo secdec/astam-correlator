@@ -37,12 +37,20 @@ import java.io.Serializable;
  * 
  * http://docs.jboss.org/hibernate/stable/annotations/reference/en/html_single/
  * 
- * @Column( name="columnName"; (1) boolean unique() default false; (2) boolean
- *          nullable() default true; (3) boolean insertable() default true; (4)
- *          boolean updatable() default true; (5) String columnDefinition()
- *          default ""; (6) String table() default ""; (7) int length() default
- *          255; (8) int precision() default 0; // decimal precision (9) int
- *          scale() default 0; // decimal scale
+ * Data schema:
+ *
+ * <code>
+ *     name="columnName";
+ *     (1) boolean unique() default false;
+ *     (2) boolean nullable() default true;
+ *     (3) boolean insertable() default true;
+ *     (4) boolean updatable() default true;
+ *     (5) String columnDefinition() default "";
+ *     (6) String table() default "";
+ *     (7) int length() default 255;
+ *     (8) int precision() default 0; // decimal precision
+ *     (9) int scale() default 0; // decimal scale
+ *</code>
  * 
  * @author bbeverly
  * 

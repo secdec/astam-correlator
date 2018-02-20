@@ -26,91 +26,91 @@ import javax.xml.bind.annotation.XmlValue;
  * <p>The following schema fragment specifies the expected content contained within this class.
  * 
  * <pre>
- * &lt;complexType>
- *   &lt;complexContent>
- *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *       &lt;sequence>
- *         &lt;element name="Vulnerability" maxOccurs="unbounded" minOccurs="0">
- *           &lt;complexType>
- *             &lt;complexContent>
- *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *                 &lt;sequence>
- *                   &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *                   &lt;element name="Finding" maxOccurs="unbounded" minOccurs="0">
- *                     &lt;complexType>
- *                       &lt;complexContent>
- *                         &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *                           &lt;sequence>
- *                             &lt;element name="FindingDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *                             &lt;element name="LongDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *                             &lt;element name="AttackString" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *                             &lt;element name="ScannerDetail" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *                             &lt;element name="ScannerRecommendation" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
- *                             &lt;element name="SurfaceLocation" minOccurs="0">
- *                               &lt;complexType>
- *                                 &lt;simpleContent>
- *                                   &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
- *                                     &lt;attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                                     &lt;attribute name="parameter" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                                   &lt;/extension>
- *                                 &lt;/simpleContent>
- *                               &lt;/complexType>
- *                             &lt;/element>
- *                             &lt;element name="DataFlowElement" maxOccurs="unbounded" minOccurs="0">
- *                               &lt;complexType>
- *                                 &lt;complexContent>
- *                                   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *                                     &lt;sequence>
- *                                       &lt;element name="LineText" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *                                     &lt;/sequence>
- *                                     &lt;attribute name="SourceFileName" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                                     &lt;attribute name="LineNumber" type="{}PositiveNumber" />
- *                                     &lt;attribute name="ColumnNumber" type="{}PositiveNumber" />
- *                                     &lt;attribute name="Sequence" type="{}PositiveNumber" />
- *                                   &lt;/restriction>
- *                                 &lt;/complexContent>
- *                               &lt;/complexType>
- *                             &lt;/element>
- *                             &lt;element name="Dependency" minOccurs="0">
- *                               &lt;complexType>
- *                                 &lt;complexContent>
- *                                   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *                                     &lt;sequence>
- *                                       &lt;element name="ComponentName" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *                                       &lt;element name="ComponentFilePath" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *                                       &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string"/>
- *                                     &lt;/sequence>
- *                                     &lt;attribute name="CVE" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                                     &lt;attribute name="RefLink" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                                     &lt;attribute name="Source" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                                   &lt;/restriction>
- *                                 &lt;/complexContent>
- *                               &lt;/complexType>
- *                             &lt;/element>
- *                           &lt;/sequence>
- *                           &lt;attribute name="NativeID" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                           &lt;attribute name="Scanner" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                           &lt;attribute name="Severity" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                           &lt;attribute name="IdentifiedTimestamp" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                         &lt;/restriction>
- *                       &lt;/complexContent>
- *                     &lt;/complexType>
- *                   &lt;/element>
- *                 &lt;/sequence>
- *                 &lt;attribute name="IssueID" type="{http://www.w3.org/2001/XMLSchema}string" />
- *                 &lt;attribute name="CWE" type="{}CWE" />
- *                 &lt;attribute name="Severity" type="{}Severities" />
- *                 &lt;attribute name="Application" type="{http://www.w3.org/2001/XMLSchema}string" />
- *               &lt;/restriction>
- *             &lt;/complexContent>
- *           &lt;/complexType>
- *         &lt;/element>
- *       &lt;/sequence>
- *       &lt;attribute name="SpecVersion" type="{http://www.w3.org/2001/XMLSchema}string" />
- *       &lt;attribute name="ExportTimestamp" type="{http://www.w3.org/2001/XMLSchema}string" />
- *     &lt;/restriction>
- *   &lt;/complexContent>
- * &lt;/complexType>
+ * &lt;complexType&gt;
+ *   &lt;complexContent&gt;
+ *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *       &lt;sequence&gt;
+ *         &lt;element name="Vulnerability" maxOccurs="unbounded" minOccurs="0"&gt;
+ *           &lt;complexType&gt;
+ *             &lt;complexContent&gt;
+ *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *                 &lt;sequence&gt;
+ *                   &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+ *                   &lt;element name="Finding" maxOccurs="unbounded" minOccurs="0"&gt;
+ *                     &lt;complexType&gt;
+ *                       &lt;complexContent&gt;
+ *                         &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *                           &lt;sequence&gt;
+ *                             &lt;element name="FindingDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+ *                             &lt;element name="LongDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+ *                             &lt;element name="AttackString" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+ *                             &lt;element name="ScannerDetail" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+ *                             &lt;element name="ScannerRecommendation" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+ *                             &lt;element name="SurfaceLocation" minOccurs="0"&gt;
+ *                               &lt;complexType&gt;
+ *                                 &lt;simpleContent&gt;
+ *                                   &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema&gt;string"&gt;
+ *                                     &lt;attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *                                     &lt;attribute name="parameter" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *                                   &lt;/extension&gt;
+ *                                 &lt;/simpleContent&gt;
+ *                               &lt;/complexType&gt;
+ *                             &lt;/element&gt;
+ *                             &lt;element name="DataFlowElement" maxOccurs="unbounded" minOccurs="0"&gt;
+ *                               &lt;complexType&gt;
+ *                                 &lt;complexContent&gt;
+ *                                   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *                                     &lt;sequence&gt;
+ *                                       &lt;element name="LineText" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *                                     &lt;/sequence&gt;
+ *                                     &lt;attribute name="SourceFileName" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *                                     &lt;attribute name="LineNumber" type="{}PositiveNumber" /&gt;
+ *                                     &lt;attribute name="ColumnNumber" type="{}PositiveNumber" /&gt;
+ *                                     &lt;attribute name="Sequence" type="{}PositiveNumber" /&gt;
+ *                                   &lt;/restriction&gt;
+ *                                 &lt;/complexContent&gt;
+ *                               &lt;/complexType&gt;
+ *                             &lt;/element&gt;
+ *                             &lt;element name="Dependency" minOccurs="0"&gt;
+ *                               &lt;complexType&gt;
+ *                                 &lt;complexContent&gt;
+ *                                   &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+ *                                     &lt;sequence&gt;
+ *                                       &lt;element name="ComponentName" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *                                       &lt;element name="ComponentFilePath" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *                                       &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+ *                                     &lt;/sequence&gt;
+ *                                     &lt;attribute name="CVE" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *                                     &lt;attribute name="RefLink" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *                                     &lt;attribute name="Source" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *                                   &lt;/restriction&gt;
+ *                                 &lt;/complexContent&gt;
+ *                               &lt;/complexType&gt;
+ *                             &lt;/element&gt;
+ *                           &lt;/sequence&gt;
+ *                           &lt;attribute name="NativeID" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *                           &lt;attribute name="Scanner" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *                           &lt;attribute name="Severity" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *                           &lt;attribute name="IdentifiedTimestamp" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *                         &lt;/restriction&gt;
+ *                       &lt;/complexContent&gt;
+ *                     &lt;/complexType&gt;
+ *                   &lt;/element&gt;
+ *                 &lt;/sequence&gt;
+ *                 &lt;attribute name="IssueID" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *                 &lt;attribute name="CWE" type="{}CWE" /&gt;
+ *                 &lt;attribute name="Severity" type="{}Severities" /&gt;
+ *                 &lt;attribute name="Application" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *               &lt;/restriction&gt;
+ *             &lt;/complexContent&gt;
+ *           &lt;/complexType&gt;
+ *         &lt;/element&gt;
+ *       &lt;/sequence&gt;
+ *       &lt;attribute name="SpecVersion" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *       &lt;attribute name="ExportTimestamp" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+ *     &lt;/restriction&gt;
+ *   &lt;/complexContent&gt;
+ * &lt;/complexType&gt;
  * </pre>
  * 
  * 
@@ -149,7 +149,7 @@ public class Vulnerabilities {
      * Objects of the following type(s) are allowed in the list
      * {@link Vulnerabilities.Vulnerability }
      * 
-     * 
+     * @return All vulnerabilities in the collection
      */
     public List<Vulnerabilities.Vulnerability> getVulnerability() {
         if (vulnerability == null) {
@@ -213,79 +213,79 @@ public class Vulnerabilities {
      * <p>The following schema fragment specifies the expected content contained within this class.
      * 
      * <pre>
-     * &lt;complexType>
-     *   &lt;complexContent>
-     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-     *       &lt;sequence>
-     *         &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
-     *         &lt;element name="Finding" maxOccurs="unbounded" minOccurs="0">
-     *           &lt;complexType>
-     *             &lt;complexContent>
-     *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-     *                 &lt;sequence>
-     *                   &lt;element name="FindingDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
-     *                   &lt;element name="LongDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
-     *                   &lt;element name="AttackString" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
-     *                   &lt;element name="ScannerDetail" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
-     *                   &lt;element name="ScannerRecommendation" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
-     *                   &lt;element name="SurfaceLocation" minOccurs="0">
-     *                     &lt;complexType>
-     *                       &lt;simpleContent>
-     *                         &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
-     *                           &lt;attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *                           &lt;attribute name="parameter" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *                         &lt;/extension>
-     *                       &lt;/simpleContent>
-     *                     &lt;/complexType>
-     *                   &lt;/element>
-     *                   &lt;element name="DataFlowElement" maxOccurs="unbounded" minOccurs="0">
-     *                     &lt;complexType>
-     *                       &lt;complexContent>
-     *                         &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-     *                           &lt;sequence>
-     *                             &lt;element name="LineText" type="{http://www.w3.org/2001/XMLSchema}string"/>
-     *                           &lt;/sequence>
-     *                           &lt;attribute name="SourceFileName" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *                           &lt;attribute name="LineNumber" type="{}PositiveNumber" />
-     *                           &lt;attribute name="ColumnNumber" type="{}PositiveNumber" />
-     *                           &lt;attribute name="Sequence" type="{}PositiveNumber" />
-     *                         &lt;/restriction>
-     *                       &lt;/complexContent>
-     *                     &lt;/complexType>
-     *                   &lt;/element>
-     *                   &lt;element name="Dependency" minOccurs="0">
-     *                     &lt;complexType>
-     *                       &lt;complexContent>
-     *                         &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-     *                           &lt;sequence>
-     *                             &lt;element name="ComponentName" type="{http://www.w3.org/2001/XMLSchema}string"/>
-     *                             &lt;element name="ComponentFilePath" type="{http://www.w3.org/2001/XMLSchema}string"/>
-     *                             &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string"/>
-     *                           &lt;/sequence>
-     *                           &lt;attribute name="CVE" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *                           &lt;attribute name="RefLink" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *                           &lt;attribute name="Source" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *                         &lt;/restriction>
-     *                       &lt;/complexContent>
-     *                     &lt;/complexType>
-     *                   &lt;/element>
-     *                 &lt;/sequence>
-     *                 &lt;attribute name="NativeID" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *                 &lt;attribute name="Scanner" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *                 &lt;attribute name="Severity" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *                 &lt;attribute name="IdentifiedTimestamp" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *               &lt;/restriction>
-     *             &lt;/complexContent>
-     *           &lt;/complexType>
-     *         &lt;/element>
-     *       &lt;/sequence>
-     *       &lt;attribute name="IssueID" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *       &lt;attribute name="CWE" type="{}CWE" />
-     *       &lt;attribute name="Severity" type="{}Severities" />
-     *       &lt;attribute name="Application" type="{http://www.w3.org/2001/XMLSchema}string" />
-     *     &lt;/restriction>
-     *   &lt;/complexContent>
-     * &lt;/complexType>
+     * &lt;complexType&gt;
+     *   &lt;complexContent&gt;
+     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+     *       &lt;sequence&gt;
+     *         &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+     *         &lt;element name="Finding" maxOccurs="unbounded" minOccurs="0"&gt;
+     *           &lt;complexType&gt;
+     *             &lt;complexContent&gt;
+     *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+     *                 &lt;sequence&gt;
+     *                   &lt;element name="FindingDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+     *                   &lt;element name="LongDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+     *                   &lt;element name="AttackString" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+     *                   &lt;element name="ScannerDetail" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+     *                   &lt;element name="ScannerRecommendation" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+     *                   &lt;element name="SurfaceLocation" minOccurs="0"&gt;
+     *                     &lt;complexType&gt;
+     *                       &lt;simpleContent&gt;
+     *                         &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema&gt;string"&gt;
+     *                           &lt;attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *                           &lt;attribute name="parameter" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *                         &lt;/extension&gt;
+     *                       &lt;/simpleContent&gt;
+     *                     &lt;/complexType&gt;
+     *                   &lt;/element&gt;
+     *                   &lt;element name="DataFlowElement" maxOccurs="unbounded" minOccurs="0"&gt;
+     *                     &lt;complexType&gt;
+     *                       &lt;complexContent&gt;
+     *                         &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+     *                           &lt;sequence&gt;
+     *                             &lt;element name="LineText" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+     *                           &lt;/sequence&gt;
+     *                           &lt;attribute name="SourceFileName" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *                           &lt;attribute name="LineNumber" type="{}PositiveNumber" /&gt;
+     *                           &lt;attribute name="ColumnNumber" type="{}PositiveNumber" /&gt;
+     *                           &lt;attribute name="Sequence" type="{}PositiveNumber" /&gt;
+     *                         &lt;/restriction&gt;
+     *                       &lt;/complexContent&gt;
+     *                     &lt;/complexType&gt;
+     *                   &lt;/element&gt;
+     *                   &lt;element name="Dependency" minOccurs="0"&gt;
+     *                     &lt;complexType&gt;
+     *                       &lt;complexContent&gt;
+     *                         &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+     *                           &lt;sequence&gt;
+     *                             &lt;element name="ComponentName" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+     *                             &lt;element name="ComponentFilePath" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+     *                             &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+     *                           &lt;/sequence&gt;
+     *                           &lt;attribute name="CVE" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *                           &lt;attribute name="RefLink" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *                           &lt;attribute name="Source" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *                         &lt;/restriction&gt;
+     *                       &lt;/complexContent&gt;
+     *                     &lt;/complexType&gt;
+     *                   &lt;/element&gt;
+     *                 &lt;/sequence&gt;
+     *                 &lt;attribute name="NativeID" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *                 &lt;attribute name="Scanner" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *                 &lt;attribute name="Severity" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *                 &lt;attribute name="IdentifiedTimestamp" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *               &lt;/restriction&gt;
+     *             &lt;/complexContent&gt;
+     *           &lt;/complexType&gt;
+     *         &lt;/element&gt;
+     *       &lt;/sequence&gt;
+     *       &lt;attribute name="IssueID" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *       &lt;attribute name="CWE" type="{}CWE" /&gt;
+     *       &lt;attribute name="Severity" type="{}Severities" /&gt;
+     *       &lt;attribute name="Application" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+     *     &lt;/restriction&gt;
+     *   &lt;/complexContent&gt;
+     * &lt;/complexType&gt;
      * </pre>
      * 
      * 
@@ -353,7 +353,8 @@ public class Vulnerabilities {
          * <p>
          * Objects of the following type(s) are allowed in the list
          * {@link Vulnerabilities.Vulnerability.Finding }
-         * 
+         *
+         * @return The set of findings associated with this vulnerability.
          * 
          */
         public List<Vulnerabilities.Vulnerability.Finding> getFinding() {
@@ -466,64 +467,64 @@ public class Vulnerabilities {
          * <p>The following schema fragment specifies the expected content contained within this class.
          * 
          * <pre>
-         * &lt;complexType>
-         *   &lt;complexContent>
-         *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-         *       &lt;sequence>
-         *         &lt;element name="FindingDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
-         *         &lt;element name="LongDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
-         *         &lt;element name="AttackString" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
-         *         &lt;element name="ScannerDetail" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
-         *         &lt;element name="ScannerRecommendation" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/>
-         *         &lt;element name="SurfaceLocation" minOccurs="0">
-         *           &lt;complexType>
-         *             &lt;simpleContent>
-         *               &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
-         *                 &lt;attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" />
-         *                 &lt;attribute name="parameter" type="{http://www.w3.org/2001/XMLSchema}string" />
-         *               &lt;/extension>
-         *             &lt;/simpleContent>
-         *           &lt;/complexType>
-         *         &lt;/element>
-         *         &lt;element name="DataFlowElement" maxOccurs="unbounded" minOccurs="0">
-         *           &lt;complexType>
-         *             &lt;complexContent>
-         *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-         *                 &lt;sequence>
-         *                   &lt;element name="LineText" type="{http://www.w3.org/2001/XMLSchema}string"/>
-         *                 &lt;/sequence>
-         *                 &lt;attribute name="SourceFileName" type="{http://www.w3.org/2001/XMLSchema}string" />
-         *                 &lt;attribute name="LineNumber" type="{}PositiveNumber" />
-         *                 &lt;attribute name="ColumnNumber" type="{}PositiveNumber" />
-         *                 &lt;attribute name="Sequence" type="{}PositiveNumber" />
-         *               &lt;/restriction>
-         *             &lt;/complexContent>
-         *           &lt;/complexType>
-         *         &lt;/element>
-         *         &lt;element name="Dependency" minOccurs="0">
-         *           &lt;complexType>
-         *             &lt;complexContent>
-         *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-         *                 &lt;sequence>
-         *                   &lt;element name="ComponentName" type="{http://www.w3.org/2001/XMLSchema}string"/>
-         *                   &lt;element name="ComponentFilePath" type="{http://www.w3.org/2001/XMLSchema}string"/>
-         *                   &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string"/>
-         *                 &lt;/sequence>
-         *                 &lt;attribute name="CVE" type="{http://www.w3.org/2001/XMLSchema}string" />
-         *                 &lt;attribute name="RefLink" type="{http://www.w3.org/2001/XMLSchema}string" />
-         *                 &lt;attribute name="Source" type="{http://www.w3.org/2001/XMLSchema}string" />
-         *               &lt;/restriction>
-         *             &lt;/complexContent>
-         *           &lt;/complexType>
-         *         &lt;/element>
-         *       &lt;/sequence>
-         *       &lt;attribute name="NativeID" type="{http://www.w3.org/2001/XMLSchema}string" />
-         *       &lt;attribute name="Scanner" type="{http://www.w3.org/2001/XMLSchema}string" />
-         *       &lt;attribute name="Severity" type="{http://www.w3.org/2001/XMLSchema}string" />
-         *       &lt;attribute name="IdentifiedTimestamp" type="{http://www.w3.org/2001/XMLSchema}string" />
-         *     &lt;/restriction>
-         *   &lt;/complexContent>
-         * &lt;/complexType>
+         * &lt;complexType&gt;
+         *   &lt;complexContent&gt;
+         *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+         *       &lt;sequence&gt;
+         *         &lt;element name="FindingDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+         *         &lt;element name="LongDescription" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+         *         &lt;element name="AttackString" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+         *         &lt;element name="ScannerDetail" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+         *         &lt;element name="ScannerRecommendation" type="{http://www.w3.org/2001/XMLSchema}string" minOccurs="0"/&gt;
+         *         &lt;element name="SurfaceLocation" minOccurs="0"&gt;
+         *           &lt;complexType&gt;
+         *             &lt;simpleContent&gt;
+         *               &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema&gt;string"&gt;
+         *                 &lt;attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+         *                 &lt;attribute name="parameter" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+         *               &lt;/extension&gt;
+         *             &lt;/simpleContent&gt;
+         *           &lt;/complexType&gt;
+         *         &lt;/element&gt;
+         *         &lt;element name="DataFlowElement" maxOccurs="unbounded" minOccurs="0"&gt;
+         *           &lt;complexType&gt;
+         *             &lt;complexContent&gt;
+         *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+         *                 &lt;sequence&gt;
+         *                   &lt;element name="LineText" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+         *                 &lt;/sequence&gt;
+         *                 &lt;attribute name="SourceFileName" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+         *                 &lt;attribute name="LineNumber" type="{}PositiveNumber" /&gt;
+         *                 &lt;attribute name="ColumnNumber" type="{}PositiveNumber" /&gt;
+         *                 &lt;attribute name="Sequence" type="{}PositiveNumber" /&gt;
+         *               &lt;/restriction&gt;
+         *             &lt;/complexContent&gt;
+         *           &lt;/complexType&gt;
+         *         &lt;/element&gt;
+         *         &lt;element name="Dependency" minOccurs="0"&gt;
+         *           &lt;complexType&gt;
+         *             &lt;complexContent&gt;
+         *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+         *                 &lt;sequence&gt;
+         *                   &lt;element name="ComponentName" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+         *                   &lt;element name="ComponentFilePath" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+         *                   &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+         *                 &lt;/sequence&gt;
+         *                 &lt;attribute name="CVE" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+         *                 &lt;attribute name="RefLink" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+         *                 &lt;attribute name="Source" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+         *               &lt;/restriction&gt;
+         *             &lt;/complexContent&gt;
+         *           &lt;/complexType&gt;
+         *         &lt;/element&gt;
+         *       &lt;/sequence&gt;
+         *       &lt;attribute name="NativeID" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+         *       &lt;attribute name="Scanner" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+         *       &lt;attribute name="Severity" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+         *       &lt;attribute name="IdentifiedTimestamp" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+         *     &lt;/restriction&gt;
+         *   &lt;/complexContent&gt;
+         * &lt;/complexType&gt;
          * </pre>
          * 
          * 
@@ -730,7 +731,7 @@ public class Vulnerabilities {
              * Objects of the following type(s) are allowed in the list
              * {@link Vulnerabilities.Vulnerability.Finding.DataFlowElement }
              * 
-             * 
+             * @return The set of DataFlowElements associated with these vulnerabilities
              */
             public List<Vulnerabilities.Vulnerability.Finding.DataFlowElement> getDataFlowElement() {
                 if (dataFlowElement == null) {
@@ -866,19 +867,19 @@ public class Vulnerabilities {
              * <p>The following schema fragment specifies the expected content contained within this class.
              * 
              * <pre>
-             * &lt;complexType>
-             *   &lt;complexContent>
-             *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-             *       &lt;sequence>
-             *         &lt;element name="LineText" type="{http://www.w3.org/2001/XMLSchema}string"/>
-             *       &lt;/sequence>
-             *       &lt;attribute name="SourceFileName" type="{http://www.w3.org/2001/XMLSchema}string" />
-             *       &lt;attribute name="LineNumber" type="{}PositiveNumber" />
-             *       &lt;attribute name="ColumnNumber" type="{}PositiveNumber" />
-             *       &lt;attribute name="Sequence" type="{}PositiveNumber" />
-             *     &lt;/restriction>
-             *   &lt;/complexContent>
-             * &lt;/complexType>
+             * &lt;complexType&gt;
+             *   &lt;complexContent&gt;
+             *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+             *       &lt;sequence&gt;
+             *         &lt;element name="LineText" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+             *       &lt;/sequence&gt;
+             *       &lt;attribute name="SourceFileName" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+             *       &lt;attribute name="LineNumber" type="{}PositiveNumber" /&gt;
+             *       &lt;attribute name="ColumnNumber" type="{}PositiveNumber" /&gt;
+             *       &lt;attribute name="Sequence" type="{}PositiveNumber" /&gt;
+             *     &lt;/restriction&gt;
+             *   &lt;/complexContent&gt;
+             * &lt;/complexType&gt;
              * </pre>
              * 
              * 
@@ -1029,20 +1030,20 @@ public class Vulnerabilities {
              * <p>The following schema fragment specifies the expected content contained within this class.
              * 
              * <pre>
-             * &lt;complexType>
-             *   &lt;complexContent>
-             *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-             *       &lt;sequence>
-             *         &lt;element name="ComponentName" type="{http://www.w3.org/2001/XMLSchema}string"/>
-             *         &lt;element name="ComponentFilePath" type="{http://www.w3.org/2001/XMLSchema}string"/>
-             *         &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string"/>
-             *       &lt;/sequence>
-             *       &lt;attribute name="CVE" type="{http://www.w3.org/2001/XMLSchema}string" />
-             *       &lt;attribute name="RefLink" type="{http://www.w3.org/2001/XMLSchema}string" />
-             *       &lt;attribute name="Source" type="{http://www.w3.org/2001/XMLSchema}string" />
-             *     &lt;/restriction>
-             *   &lt;/complexContent>
-             * &lt;/complexType>
+             * &lt;complexType&gt;
+             *   &lt;complexContent&gt;
+             *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType"&gt;
+             *       &lt;sequence&gt;
+             *         &lt;element name="ComponentName" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+             *         &lt;element name="ComponentFilePath" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+             *         &lt;element name="Description" type="{http://www.w3.org/2001/XMLSchema}string"/&gt;
+             *       &lt;/sequence&gt;
+             *       &lt;attribute name="CVE" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+             *       &lt;attribute name="RefLink" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+             *       &lt;attribute name="Source" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+             *     &lt;/restriction&gt;
+             *   &lt;/complexContent&gt;
+             * &lt;/complexType&gt;
              * </pre>
              * 
              * 
@@ -1221,14 +1222,14 @@ public class Vulnerabilities {
              * <p>The following schema fragment specifies the expected content contained within this class.
              * 
              * <pre>
-             * &lt;complexType>
-             *   &lt;simpleContent>
-             *     &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema>string">
-             *       &lt;attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" />
-             *       &lt;attribute name="parameter" type="{http://www.w3.org/2001/XMLSchema}string" />
-             *     &lt;/extension>
-             *   &lt;/simpleContent>
-             * &lt;/complexType>
+             * &lt;complexType&gt;
+             *   &lt;simpleContent&gt;
+             *     &lt;extension base="&lt;http://www.w3.org/2001/XMLSchema&gt;string"&gt;
+             *       &lt;attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+             *       &lt;attribute name="parameter" type="{http://www.w3.org/2001/XMLSchema}string" /&gt;
+             *     &lt;/extension&gt;
+             *   &lt;/simpleContent&gt;
+             * &lt;/complexType&gt;
              * </pre>
              * 
              * 

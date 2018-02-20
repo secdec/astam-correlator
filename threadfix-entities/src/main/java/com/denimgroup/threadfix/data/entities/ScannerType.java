@@ -171,7 +171,7 @@ public enum ScannerType {
     /**
      * This method to keep track of the date any Scanner Names being updated.
      * So that, when ThreadFix starts up, based on this date, ThreadFix will know whether it needs to update Scanner Names in database.
-     * @return
+     * @return The date at which this list received its latest update.
      */
     public static String getEnumUpdatedDate(){
         return "2015-07-29 10:56";

@@ -38,7 +38,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Vulnerabilities }
-     * 
+     *
+     * @return A new set of {@link Vulnerabilities}
      */
     public Vulnerabilities createVulnerabilities() {
         return new Vulnerabilities();
@@ -46,7 +47,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Vulnerabilities.Vulnerability }
-     * 
+     *
+     * @return A new {@link Vulnerabilities.Vulnerability}
      */
     public Vulnerabilities.Vulnerability createVulnerabilitiesVulnerability() {
         return new Vulnerabilities.Vulnerability();
@@ -54,7 +56,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Vulnerabilities.Vulnerability.Finding }
-     * 
+     *
+     * @return A new {@link Vulnerabilities.Vulnerability.Finding}
      */
     public Vulnerabilities.Vulnerability.Finding createVulnerabilitiesVulnerabilityFinding() {
         return new Vulnerabilities.Vulnerability.Finding();
@@ -62,7 +65,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Vulnerabilities.Vulnerability.Finding.SurfaceLocation }
-     * 
+     *
+     * @return A new {@link Vulnerabilities.Vulnerability.Finding.SurfaceLocation}
      */
     public Vulnerabilities.Vulnerability.Finding.SurfaceLocation createVulnerabilitiesVulnerabilityFindingSurfaceLocation() {
         return new Vulnerabilities.Vulnerability.Finding.SurfaceLocation();
@@ -70,7 +74,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Vulnerabilities.Vulnerability.Finding.DataFlowElement }
-     * 
+     *
+     * @return A new {@link Vulnerabilities.Vulnerability.Finding.DataFlowElement}
      */
     public Vulnerabilities.Vulnerability.Finding.DataFlowElement createVulnerabilitiesVulnerabilityFindingDataFlowElement() {
         return new Vulnerabilities.Vulnerability.Finding.DataFlowElement();
@@ -78,7 +83,8 @@ public class ObjectFactory {
 
     /**
      * Create an instance of {@link Vulnerabilities.Vulnerability.Finding.Dependency }
-     * 
+     *
+     * @return A new {@link Vulnerabilities.Vulnerability.Finding.Dependency}
      */
     public Vulnerabilities.Vulnerability.Finding.Dependency createVulnerabilitiesVulnerabilityFindingDependency() {
         return new Vulnerabilities.Vulnerability.Finding.Dependency();

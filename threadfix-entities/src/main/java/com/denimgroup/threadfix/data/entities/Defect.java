@@ -70,9 +70,7 @@ public class Defect extends AuditableEntity {
     private Calendar statusUpdatedDate;
 
     /**
-     * Stores the ID used by the defect tracking system.
-     *
-     * @return
+     * @return the ID used by the defect tracking system.
      */
     @Column(length = 50, nullable = false)
     @JsonView({AllViews.TableRow.class, AllViews.VulnSearch.class, AllViews.VulnerabilityDetail.class})

@@ -44,10 +44,9 @@ public class StringEscapeUtils {
 
     /**
      * <p><code>StringEscapeUtils</code> instances should NOT be constructed in
-     * standard programming.</p>
+     * standard programming.
      *
-     * <p>Instead, the class should be used as:
-     * <pre>StringEscapeUtils.escapeJava("foo");</pre></p>
+     * <p>Instead, the class should be used as: <pre>StringEscapeUtils.escapeJava("foo");</pre>
      *
      * <p>This constructor is public to permit tools that require a JavaBean
      * instance to operate.</p>

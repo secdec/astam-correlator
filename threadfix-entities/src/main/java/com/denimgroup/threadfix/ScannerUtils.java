@@ -38,8 +38,8 @@ public class ScannerUtils {
     /**
      * This method hashes whatever string is given to it in md5
      * DON'T use when cryptographic strength is important.
-     * @param input
-     * @return
+     * @param input The string to generate an MD5 hash from.
+     * @return The hashed version of input, or the input value if null.
      */
     public static String md5(String input) {
         String result = input;

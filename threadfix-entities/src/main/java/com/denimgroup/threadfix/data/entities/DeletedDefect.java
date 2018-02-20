@@ -57,9 +57,7 @@ public class DeletedDefect extends BaseEntity {
 	private String defectURL;
 
 	/**
-	 * Stores the ID used by the defect tracking system.
-	 * 
-	 * @return
+	 * @return the ID used by the defect tracking system.
 	 */
 	@Column(length = 50, nullable = false)
 	public String getNativeId() {

@@ -46,10 +46,10 @@ public class SanitizedLogger {
 	public SanitizedLogger(Class<?> className) {
 		log = Logger.getLogger(className);
 	}
-	
+
 	/**
 	 * The longer form is used for the below methods so that the original line number is reported.
-	 * @param message
+	 * @param message Debug message to log
 	 */
 	public void debug(String message) {
 		log.log(MY_CANONICAL_CLASS_NAME, Level.DEBUG, sanitize(message), null);
@@ -86,8 +86,8 @@ public class SanitizedLogger {
 	/**
 	 * Blacklist. Should probably be a whitelist but I'm not
 	 * sure what else needs to be sanitized.
-	 * @param startString
-	 * @return
+	 * @param startString The String to be escaped
+	 * @return The escaped string, or "&lt;NULL&gt;" if startString is null
 	 */
 	private String sanitize(String startString) {
 		String retVal;
