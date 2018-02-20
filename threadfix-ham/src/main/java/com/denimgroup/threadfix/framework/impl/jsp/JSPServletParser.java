@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////
 //
-//     Copyright (C) 2017 Applied Visions - http://securedecisions.com
+//     Copyright (c) 2009-2015 Denim Group, Ltd.
 //
 //     The contents of this file are subject to the Mozilla Public License
 //     Version 2.0 (the "License"); you may not use this file except in
@@ -12,11 +12,14 @@
 //     License for the specific language governing rights and limitations
 //     under the License.
 //
-//     This material is based on research sponsored by the Department of Homeland
-//     Security (DHS) Science and Technology Directorate, Cyber Security Division
-//     (DHS S&T/CSD) via contract number HHSP233201600058C.
+//     The Original Code is ThreadFix.
+//
+//     The Initial Developer of the Original Code is Denim Group, Ltd.
+//     Portions created by Denim Group, Ltd. are Copyright (C)
+//     Denim Group, Ltd. All Rights Reserved.
 //
 //     Contributor(s):
+//              Denim Group, Ltd.
 //              Secure Decisions, a division of Applied Visions, Inc
 //
 ////////////////////////////////////////////////////////////////////////
