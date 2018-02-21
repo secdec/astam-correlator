@@ -182,6 +182,10 @@ public abstract class EndpointsButton extends JButton {
         int count = 0;
         JTable endpointTable = BurpPropertiesManager.getBurpPropertiesManager().getEndpointsTable();
         DefaultTableModel dtm = (DefaultTableModel)endpointTable.getModel();
+        while(dtm.getRowCount() > 0)
+        {
+            dtm.removeRow(0);
+        }
         for (Endpoint.Info endpoint : endpoints)
         {
             boolean hasGet = false;
