@@ -28,8 +28,6 @@ import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries.ScopeEntry;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRoutingTree;
 import com.denimgroup.threadfix.framework.util.PathUtil;
-import javafx.scene.effect.SepiaTone;
-import javafx.scene.shape.Path;
 
 import java.util.HashMap;
 import java.util.List;
