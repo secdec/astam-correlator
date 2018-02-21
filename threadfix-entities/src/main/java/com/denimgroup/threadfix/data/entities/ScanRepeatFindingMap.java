@@ -56,13 +56,7 @@ public class ScanRepeatFindingMap extends BaseEntity implements FindingLike {
 	 *
 	 */
 	public ScanRepeatFindingMap(){}
-	
-	/**
-	 * This constructor maps everything correctly, so just creating the object is enough.
-	 * This object is useless without the mappings, so it makes sense to include them here.
-	 * @param finding
-	 * @param scan
-	 */
+
 	public ScanRepeatFindingMap(Finding finding, Scan scan) {
 		this.finding = finding;
 		this.scan = scan;

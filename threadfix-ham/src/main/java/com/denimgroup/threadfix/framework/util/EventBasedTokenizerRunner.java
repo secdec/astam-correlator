@@ -53,9 +53,9 @@ public class EventBasedTokenizerRunner {
 	 * class is
 	 * 
 	 * <code>
-	 *  <p>EventBasedTokenizer parser = new EventBasedTokenizer();
-	 *	<p>EventBasedTokenizerRunner.run(file, parser);
-	 *  <p>return parser.results;
+	 *  EventBasedTokenizer parser = new EventBasedTokenizer();<br>
+	 *	EventBasedTokenizerRunner.run(file, parser);<br>
+	 *  return parser.results;
 	 * </code>
 	 * @param file
 	 * @param eventBasedTokenizers

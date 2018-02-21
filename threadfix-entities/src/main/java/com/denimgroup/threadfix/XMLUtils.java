@@ -54,6 +54,8 @@ public final class XMLUtils {
 	/**
 	 * This method checks through the XML with a blank parser to determine
 	 * whether SAX parsing will fail due to an exception.
+	 * @param inputStream The stream to validate
+	 * @return Whether or not the input stream was successfully parsed as XML
 	 */
 	public static boolean isBadXml(InputStream inputStream) {
 		try {
@@ -76,6 +78,10 @@ public final class XMLUtils {
 	/**
 	 * This method with one argument sets up the SAXParser and inputStream correctly
 	 * and executes the parsing. With two it adds a completion code and exception handling.
+	 *
+	 * @param handler The XML parser to delegate to
+	 * @param completionCode The message of an exception thrown by the handler to indicate end-of-reading
+	 * @param stream Input stream to read from
 	 */
 	public static void readSAXInput(DefaultHandler handler, String completionCode, InputStream stream) {
 		try {

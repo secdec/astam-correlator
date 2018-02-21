@@ -157,9 +157,6 @@ public class SurfaceLocation extends BaseEntity {
 	/**
 	 * @return A url from the base parts stored in the database or, if a
 	 *         previous URL has been set, a reference to that URL.
-	 * @throws java.net.MalformedURLException
-	 *             Thrown if a the parts of a URL stored in the database are
-	 *             invalid.
 	 */
 	@Transient
     @JsonIgnore

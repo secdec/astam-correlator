@@ -304,7 +304,7 @@ public class Scan extends BaseEntity implements Iterable<Finding> {
 	 *
 	 * This may lead to a small bug if a vuln is opened in one channel, then found in another and
 	 * subsequently closed there. This needs to be looked into.
-	 * @return
+	 * @return Number of old vulnerabilities initially from this channel.
 	 */
 	@Column
     @JsonView(AllViews.RestViewScanStatistic.class)

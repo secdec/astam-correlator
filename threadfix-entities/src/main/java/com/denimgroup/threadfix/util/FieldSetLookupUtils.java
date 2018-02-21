@@ -46,6 +46,10 @@ public final class FieldSetLookupUtils {
      * This method uses recursion to walk the tree of possible parameters that the spring
      * controller will accept and bind to the model object. This information should be
      * added in addition to all of the normal parameters (@RequestMapping, @PathVariable)
+     *
+     * @param fieldMap A map of class/data type names to their properties/fields.
+     * @param className The name of the class/data type that is being searched.
+     * @return The set of member fields in the requested data type.
      */
     public static ModelFieldSet getPossibleParametersForModelType(Map<String, ModelFieldSet> fieldMap, String className) {
         ModelFieldSet fields = fieldMap.get(className);

@@ -139,7 +139,7 @@ public class CollectionUtils {
      * This is a convenience method so we can avoid typing angle brackets.
      * @param <K> key type parameter
      * @param <V> value type parameter
-     * @return new HashMap<K, V>()
+     * @return new HashMap&lt;K, V&gt;()
      */
     @Nonnull
     public static <K, V> Map<K, V> map() {

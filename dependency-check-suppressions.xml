@@ -10,7 +10,7 @@
 	<!-- We don't run a netcat server in threadfix-cli-importers -->
 	<suppress>
 	   <notes><![CDATA[
-	   file name: threadfix-cli-importers-2.3-SNAPSHOT.jar/META-INF/maven/com.jcraft/jsch.agentproxy.usocket-nc/pom.xml
+	   file name: threadfix-cli-importers-1.0-SNAPSHOT.jar/META-INF/maven/com.jcraft/jsch.agentproxy.usocket-nc/pom.xml
 	   ]]></notes>
 	   <sha1>39da0290c5e8e97631d976f0b7458ffe117eb164</sha1>
 	   <cpe>cpe:/a:netcat:netcat:0.0.7</cpe>
@@ -19,7 +19,7 @@
 	<!-- This vulnerability affects serialized objects; we don't use Java serialization -->
 	<suppress>
 	   <notes><![CDATA[
-	   file name: threadfix-cli-importers-2.3-SNAPSHOT.jar/META-INF/maven/commons-collections/commons-collections/pom.xml
+	   file name: threadfix-cli-importers-1.0-SNAPSHOT.jar/META-INF/maven/commons-collections/commons-collections/pom.xml
 	   ]]></notes>
 	   <sha1>c812635cfb96cd2431ee315e73418eed86aeb5e4</sha1>
 	   <cpe>cpe:/a:apache:commons_collections:3.2.1</cpe>
@@ -126,7 +126,7 @@
 	<!-- This dependency is on the Sonar server list of dependencies, so they'll need to fix it -->
 	<suppress>
 	   <notes><![CDATA[
-	   file name: sonar-threadfix-plugin-2.3-SNAPSHOT.jar/META-INF/maven/org.hibernate/hibernate-validator/pom.xml
+	   file name: sonar-threadfix-plugin-1.0-SNAPSHOT.jar/META-INF/maven/org.hibernate/hibernate-validator/pom.xml
 	   ]]></notes>
 	   <sha1>ec5bd870faebd2981edb77b748fad378a6c5d419</sha1>
 	   <cpe>cpe:/a:hibernate:hibernate_validator:4.1.0</cpe>
