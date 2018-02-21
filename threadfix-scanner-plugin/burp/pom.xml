@@ -77,7 +77,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.4</version>
                 <configuration>
-                    <finalName>threadfix-release-1</finalName>
+                    <finalName>codept-release-1</finalName>
                 </configuration>
                 <executions>
                     <execution>
@@ -96,7 +96,7 @@
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
-                    <finalName>threadfix-release-2</finalName>
+                    <finalName>codept-release-2</finalName>
                 </configuration>
                 <executions>
                     <execution>
