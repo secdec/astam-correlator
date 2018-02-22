@@ -282,11 +282,9 @@ public class BurpExtender implements IBurpExtender, ITab
         JLabel countLabel = new JLabel();
         callbacks.customizeUiComponent(countLabel);
         BurpPropertiesManager.getBurpPropertiesManager().setCountLabel(countLabel);
-        countLabel.setVisible(false);
-
         countLabel.setBorder(null);
         JScrollPane countPane =  new JScrollPane(countLabel);
-
+        countLabel.setText(" ");
         countPane.setBorder(null);
 
         return countPane;

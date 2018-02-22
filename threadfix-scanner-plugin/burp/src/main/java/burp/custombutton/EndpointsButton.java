@@ -74,7 +74,6 @@ public abstract class EndpointsButton extends JButton {
                     if (BurpPropertiesManager.getBurpPropertiesManager().getConfigFile() != null ) {
                         callbacks.loadConfigFromJson(getBurpConfigAsString());
                     }
-
                     Endpoint.Info[] endpoints = getEndpoints();
                     logEndpoints(view, endpoints);
                     fillEndpointsToTable(endpoints);
@@ -205,7 +204,6 @@ public abstract class EndpointsButton extends JButton {
             });
             count++;
         }
-
         JLabel countLabel = BurpPropertiesManager.getBurpPropertiesManager().getCountLabel();
         countLabel.setVisible(true);
         countLabel.setText("Total Endpoints Detected: " + count);
