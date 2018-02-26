@@ -190,9 +190,9 @@ public abstract class EndpointsButton extends JButton {
             boolean hasGet = false;
             boolean hasPost = false;
             String method = endpoint.getHttpMethod();
-            if(method.toString().equalsIgnoreCase("requestmethod.post"))
+            if(method.toString().equalsIgnoreCase("post"))
                 hasPost = true;
-            else if (method.toString().equalsIgnoreCase("requestmethod.get"))
+            else if (method.toString().equalsIgnoreCase("get"))
                 hasGet = true;
             dtm.addRow(new Object[]
             {
