@@ -442,6 +442,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
         assert currentMapping != null : "Current mapping should not be null at this point. Check the state machine.";
 
         for (String method : methodMethods) {
+            method = method.replace("RequestMethod.", "");
             SpringControllerEndpoint endpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
                     method,
                     currentParameters,
