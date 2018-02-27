@@ -224,9 +224,10 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
                 String httpMethod = route.getHttpMethod();
                 Map<String, RouteParameter> parameters = route.getParameters();
-                mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethod, parameters, false));
+                DjangoEndpoint primaryEndpoint = new DjangoEndpoint(filePath, urlPath, httpMethod, parameters, false);
+                mappings.add(primaryEndpoint);
                 if (i18) {
-                    mappings.add(new DjangoEndpoint(filePath, urlPath, httpMethod, parameters, true));
+                    primaryEndpoint.addVariant(new DjangoEndpoint(filePath, urlPath, httpMethod, parameters, true));
                 }
             }
         }
@@ -254,8 +255,6 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             } else if (!new File(sourcePath).isFile()) {
                 continue;
             }
-
-            Collection<AbstractPythonStatement> childStatements = module.getChildStatements();
 
             PythonSourceReader sourceReader = new PythonSourceReader(new File(sourcePath), true);
             sourceReader.ignoreChildren(module, PythonClass.class, PythonFunction.class);

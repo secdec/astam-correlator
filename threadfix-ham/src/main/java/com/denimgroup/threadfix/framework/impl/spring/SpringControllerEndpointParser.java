@@ -441,8 +441,25 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
 
         assert currentMapping != null : "Current mapping should not be null at this point. Check the state machine.";
 
+        String primaryMethod = null;
+        SpringControllerEndpoint primaryEndpoint = null;
+        if (methodMethods.size() > 0) {
+            primaryMethod = methodMethods.get(0).replace("RequestMethod.", "");
+            primaryEndpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
+                    primaryMethod,
+                    currentParameters,
+                    startLineNumber,
+                    endLineNumber,
+                    currentModelObject);
+            endpoints.add(primaryEndpoint);
+        }
+
         for (String method : methodMethods) {
             method = method.replace("RequestMethod.", "");
+            if (primaryMethod.equals(method)) {
+                continue;
+            }
+
             SpringControllerEndpoint endpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
                     method,
                     currentParameters,
@@ -464,7 +481,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 endpoint.setAuthorizationString(currentAuthString);
             }
 
-            endpoints.add(endpoint);
+            primaryEndpoint.addVariant(endpoint);
         }
 
         currentMapping = null;

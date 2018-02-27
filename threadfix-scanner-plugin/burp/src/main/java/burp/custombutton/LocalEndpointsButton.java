@@ -32,6 +32,7 @@ import burp.extention.BurpPropertiesManager;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 
 import java.awt.*;
 
@@ -66,6 +67,7 @@ public class LocalEndpointsButton extends EndpointsButton {
         Endpoint.Info[] endpoints = null;
         if (endpointDatabase != null) {
             java.util.List<Endpoint> endpointList = endpointDatabase.generateEndpoints();
+            endpointList = EndpointUtil.flattenWithVariants(endpointList);
             endpoints = new Endpoint.Info[endpointList.size()];
             int i = 0;
             for (Endpoint endpoint : endpointList) {

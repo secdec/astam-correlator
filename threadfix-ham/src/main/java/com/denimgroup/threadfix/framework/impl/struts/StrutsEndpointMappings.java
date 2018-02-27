@@ -211,6 +211,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
         addFileParameters(endpoints, project);
 
+        autoGroupVariants(endpoints);
 
         for (Endpoint endpoint : endpoints) {
             Collection<RouteParameter> params = endpoint.getParameters().values();
@@ -221,6 +222,60 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             }
         }
 
+    }
+
+    private void autoGroupVariants(List<Endpoint> endpoints) {
+        List<Endpoint> distinctEndpoints = list();
+        List<Endpoint> variantEndpoints = list();
+        for (Endpoint endpoint : endpoints) {
+            StrutsEndpoint strutsEndpoint = (StrutsEndpoint)endpoint;
+            StrutsEndpoint existingDistinctEndpoint = null;
+            boolean isDistinct = true;
+            for (Endpoint distinct : distinctEndpoints) {
+                StrutsEndpoint distinctStrutsEndpoint = (StrutsEndpoint)distinct;
+                if (strutsEndpoint.getStartingLineNumber() == distinctStrutsEndpoint.getStartingLineNumber() &&
+                        strutsEndpoint.getEndLineNumber() == distinctStrutsEndpoint.getEndLineNumber() &&
+                        strutsEndpoint.getHttpMethod().equals(distinctStrutsEndpoint.getHttpMethod()) &&
+                        strutsEndpoint.getFilePath().equals(distinctStrutsEndpoint.getFilePath())) {
+
+                    // Endpoints must both have display paths or neither have display paths
+                    if ((strutsEndpoint.getDisplayFilePath() == null) != (distinctStrutsEndpoint.getDisplayFilePath() == null)) {
+                        continue;
+                    }
+
+                    if (strutsEndpoint.getDisplayFilePath() != null && !strutsEndpoint.getDisplayFilePath().equals(distinctStrutsEndpoint.getDisplayFilePath())) {
+                        continue;
+                    }
+
+                    existingDistinctEndpoint = distinctStrutsEndpoint;
+                    isDistinct = false;
+                    break;
+                }
+            }
+
+            if (isDistinct) {
+                distinctEndpoints.add(endpoint);
+            } else {
+                // The "best" distinct endpoint has the shortest URL path of all variants
+                if (existingDistinctEndpoint.getUrlPath().length() > strutsEndpoint.getUrlPath().length()) {
+                    // Replace the old distinct endpoint and move the variants to the new one
+
+                    strutsEndpoint.addVariants(existingDistinctEndpoint.getVariants());
+                    strutsEndpoint.addVariant(existingDistinctEndpoint);
+                    existingDistinctEndpoint.clearVariants();
+
+                    distinctEndpoints.add(strutsEndpoint);
+
+                    distinctEndpoints.remove(existingDistinctEndpoint);
+                    variantEndpoints.add(existingDistinctEndpoint);
+                } else {
+                    existingDistinctEndpoint.addVariant(strutsEndpoint);
+                    variantEndpoints.add(strutsEndpoint);
+                }
+            }
+        }
+
+        endpoints.removeAll(variantEndpoints);
     }
 
     private void generateMaps(StrutsProject project) {

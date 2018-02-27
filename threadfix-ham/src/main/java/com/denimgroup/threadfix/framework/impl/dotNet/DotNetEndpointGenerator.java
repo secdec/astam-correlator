@@ -212,7 +212,14 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
             DotNetEndpoint dotEndpoint = (DotNetEndpoint)endpoint;
             if (dotEndpoint.hasMultipleMethods()) {
                 ambiguousEndpoints.add(dotEndpoint);
-                dedicatedEndpoints.addAll(dotEndpoint.splitByMethods());
+                List<DotNetEndpoint> splitEndpoints = dotEndpoint.splitByMethods();
+                DotNetEndpoint primaryEndpoint = splitEndpoints.get(0);
+                for (DotNetEndpoint subEndpoint : splitEndpoints) {
+                    if (subEndpoint != primaryEndpoint) {
+                        primaryEndpoint.addVariant(subEndpoint);
+                    }
+                }
+                dedicatedEndpoints.add(primaryEndpoint);
             }
         }
 

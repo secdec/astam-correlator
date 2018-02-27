@@ -31,6 +31,7 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -39,8 +40,32 @@ import static com.denimgroup.threadfix.CollectionUtils.set;
 
 
 public abstract class AbstractEndpoint implements Endpoint {
-	
-	@Override
+
+    List<Endpoint> variants = list();
+
+    @Nonnull
+    @Override
+    public List<Endpoint> getVariants() {
+        return variants;
+    }
+
+    public void addVariant(Endpoint variant) {
+        variants.add(variant);
+    }
+
+    public void addVariants(Collection<Endpoint> variants) {
+        this.variants.addAll(variants);
+    }
+
+    public void removeVariant(Endpoint variant) {
+        this.variants.remove(variant);
+    }
+
+    public void clearVariants() {
+        this.variants.clear();
+    }
+
+    @Override
 	public int compareTo(@Nullable Endpoint otherEndpoint) {
 		int returnValue = 0;
 		

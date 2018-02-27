@@ -410,10 +410,17 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                     continue;
             }
 
+            Map<String, JSPEndpoint> primaryMethodEndpoints = map();
+
             for (String pattern : urlPatterns) {
                 for (String httpMethod : supportedMethods) {
                     JSPEndpoint newEndpoint = new JSPEndpoint(filePath, pattern, httpMethod, methodParameters.get(httpMethod));
-                    endpoints.add(newEndpoint);
+                    if (!primaryMethodEndpoints.containsKey(httpMethod)) {
+                        endpoints.add(newEndpoint);
+                        primaryMethodEndpoints.put(httpMethod, newEndpoint);
+                    } else {
+                        primaryMethodEndpoints.get(httpMethod).addVariant(newEndpoint);
+                    }
                     addToEndpointMap(filePath, newEndpoint);
                 }
             }
@@ -471,18 +478,17 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 	}
 
     void createEndpoint(String staticPath, File file, Map<String, RouteParameter> parserResults) {
-        JSPEndpoint endpoint;
-
         staticPath = getInputOrEmptyString(staticPath);
         String endpointPath = getInputOrEmptyString(FilePathUtils.getRelativePath(file, jspRoot));
 
-        endpoint = new JSPEndpoint(staticPath, endpointPath, "GET", parserResults);
-        addToEndpointMap(staticPath, endpoint);
-        endpoints.add(endpoint);
+        JSPEndpoint primaryEndpoint = new JSPEndpoint(staticPath, endpointPath, "GET", parserResults);
+        addToEndpointMap(staticPath, primaryEndpoint);
+        endpoints.add(primaryEndpoint);
 
-        endpoint = new JSPEndpoint(staticPath, endpointPath, "POST", parserResults);
-        addToEndpointMap(staticPath, endpoint);
-        endpoints.add(endpoint);
+        JSPEndpoint subEndpoint = new JSPEndpoint(staticPath, endpointPath, "POST", parserResults);
+        primaryEndpoint.addVariant(subEndpoint);
+        addToEndpointMap(staticPath, subEndpoint);
+        //endpoints.add(endpoint);
     }
 
     void addToIncludes(String staticPath, Set<File> includedFiles) {

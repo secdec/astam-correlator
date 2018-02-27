@@ -32,6 +32,7 @@ import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -207,6 +208,48 @@ public class EndpointMain {
         System.out.println("The first argument should be a valid file path to scan. Other flags supported: -lint, -debug, -json, -path-list-file, -simple");
     }
 
+    private static int printEndpointWithVariants(int i, int currentDepth, Endpoint endpoint) {
+
+        int numPrinted = 1;
+
+        StringBuilder line = new StringBuilder();
+
+        line.append('[');
+        line.append(i);
+        line.append("] ");
+
+        for (int s = 0; s < currentDepth * 2; s++) {
+            line.append('-');
+        }
+        if (currentDepth > 0) {
+            line.append(' ');
+        }
+
+        line.append(endpoint.getHttpMethod());
+        line.append(": ");
+        line.append(endpoint.getUrlPath());
+
+        line.append(" (");
+        line.append(endpoint.getVariants().size());
+        line.append(" variants): PARAMETERS=");
+            line.append(endpoint.getParameters());
+
+        line.append("; FILE=");
+        line.append(endpoint.getFilePath());
+
+        line.append(" (line ");
+        line.append(endpoint.getStartingLineNumber());
+        line.append(")");
+
+        System.out.println(line.toString());
+
+        for (Endpoint variant : endpoint.getVariants()) {
+            numPrinted += printEndpointWithVariants(i + numPrinted, currentDepth + 1, variant);
+        }
+
+        return numPrinted;
+    }
+
     private static void listEndpoints(File rootFile) {
         List<Endpoint> endpoints = list();
 
@@ -220,11 +263,19 @@ public class EndpointMain {
 
         //Collections.sort(endpoints);
 
+        int numPrimaryEndpoints = endpoints.size();
+        int numEndpoints = EndpointUtil.flattenWithVariants(endpoints).size();
+
         if (endpoints.isEmpty()) {
             System.out.println("No endpoints were found.");
 
         } else {
-            System.out.println("Generated " + endpoints.size() + " endpoints");
+            System.out.println("Generated " + numPrimaryEndpoints +
+                                " distinct endpoints with " +
+                                (numEndpoints - numPrimaryEndpoints) +
+                                " variants for a total of " + numEndpoints +
+                                " endpoints");
+
             if (!simplePrint) {
                 if (printFormat == JSON) {
                     Endpoint.Info[] infos = getEndpointInfo(endpoints);
@@ -236,8 +287,10 @@ public class EndpointMain {
                         throw new RuntimeException(e);
                     }
                 } else {
+                    int i = 0;
                     for (Endpoint endpoint : endpoints) {
-                        System.out.println(endpoint.getCSVLine(printFormat));
+                        //System.out.println(endpoint.getCSVLine(printFormat));
+                        i += printEndpointWithVariants(i, 0, endpoint);
                     }
                 }
             }
@@ -283,10 +336,11 @@ public class EndpointMain {
     }
 
     private static Endpoint.Info[] getEndpointInfo(List<Endpoint> endpoints) {
-        Endpoint.Info[] endpointsInfos = new Endpoint.Info[endpoints.size()];
+        List<Endpoint> allEndpoints = EndpointUtil.flattenWithVariants(endpoints);
+        Endpoint.Info[] endpointsInfos = new Endpoint.Info[allEndpoints.size()];
 
-        for (int i = 0; i < endpoints.size(); i++) {
-            endpointsInfos[i] = Endpoint.Info.fromEndpoint(endpoints.get(i));
+        for (int i = 0; i < allEndpoints.size(); i++) {
+            endpointsInfos[i] = Endpoint.Info.fromEndpoint(allEndpoints.get(i));
         }
 
         return endpointsInfos;

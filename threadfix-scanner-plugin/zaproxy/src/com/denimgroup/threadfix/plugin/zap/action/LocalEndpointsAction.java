@@ -27,6 +27,7 @@ package com.denimgroup.threadfix.plugin.zap.action;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.plugin.zap.dialog.ConfigurationDialogs;
 import org.apache.log4j.Logger;
 import org.parosproxy.paros.extension.ViewDelegate;
@@ -83,6 +84,7 @@ public class LocalEndpointsAction extends EndpointsAction {
         Endpoint.Info[] endpoints = null;
         if (endpointDatabase != null) {
             List<Endpoint> endpointList = endpointDatabase.generateEndpoints();
+            endpointList = EndpointUtil.flattenWithVariants(endpointList);
             endpoints = new Endpoint.Info[endpointList.size()];
             int i = 0;
             for (Endpoint endpoint : endpointList) {
