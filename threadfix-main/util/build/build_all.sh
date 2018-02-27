@@ -57,7 +57,7 @@ cd $THREADFIX_SOURCE
 # Build ZAP plugin
 FOLDER_NAME=$BUILDING_AREA/Build/ThreadFix-ZapPlugin-$VERSION
 mkdir $FOLDER_NAME
-cp $THREADFIX_SOURCE/threadfix-scanner-plugin/zaproxy/target/Zap-Plugin-$VERSION-SNAPSHOT-jar-with-dependencies.jar $FOLDER_NAME/threadfix-release-2.zap
+cp $THREADFIX_SOURCE/threadfix-scanner-plugin/zaproxy/target/Zap-Plugin-$VERSION-SNAPSHOT-jar-with-dependencies.jar $FOLDER_NAME/codept-release-2.zap
 cp $THREADFIX_SOURCE/threadfix-scanner-plugin/zaproxy/README $FOLDER_NAME
 cd  $FOLDER_NAME
 zip -q ThreadFix-ZapPlugin-$VERSION.zip -r ./*

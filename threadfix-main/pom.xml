@@ -154,7 +154,7 @@
                                       tofile="target/classes/downloads/data-migration.jar" />
                                 <copy file="${project.build.directory}/../../threadfix-scanner-plugin/burp/target/codept-release-2-jar-with-dependencies.jar"
                                       tofile="target/classes/downloads/release-2-burp.jar" />
-                                <copy file="${project.build.directory}/../../threadfix-scanner-plugin/zaproxy/target/threadfix-release-2.zap"
+                                <copy file="${project.build.directory}/../../threadfix-scanner-plugin/zaproxy/target/codept-release-1.zap"
                                       tofile="target/classes/downloads/release-2.zap" />
                                 <!--<copy file="${project.build.directory}/../../threadfix-sonar-plugin/target/sonar-threadfix-plugin-${project.version}.jar"
                                       tofile="target/classes/downloads/sonar-threadfix-plugin.jar" />-->
