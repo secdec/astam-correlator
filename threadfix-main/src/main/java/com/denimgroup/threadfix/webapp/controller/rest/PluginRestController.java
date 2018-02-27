@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.ProjectConfig;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.importer.util.IntegerUtils;
 import com.denimgroup.threadfix.remote.response.RestResponse;
 import com.denimgroup.threadfix.service.ApplicationService;
@@ -197,10 +198,11 @@ public class PluginRestController extends TFRestController {
 	}
 
     private Endpoint.Info[] getEndpointInfo(List<Endpoint> endpoints) {
-        Endpoint.Info[] endpointsInfos = new Endpoint.Info[endpoints.size()];
+        List<Endpoint> allEndpoints = EndpointUtil.flattenWithVariants(endpoints);
+        Endpoint.Info[] endpointsInfos = new Endpoint.Info[allEndpoints.size()];
 
-        for (int i = 0; i < endpoints.size(); i++) {
-            endpointsInfos[i] = Endpoint.Info.fromEndpoint(endpoints.get(i));
+        for (int i = 0; i < allEndpoints.size(); i++) {
+            endpointsInfos[i] = Endpoint.Info.fromEndpoint(allEndpoints.get(i));
         }
 
         return endpointsInfos;
