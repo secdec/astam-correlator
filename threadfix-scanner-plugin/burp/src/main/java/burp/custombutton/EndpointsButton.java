@@ -209,7 +209,7 @@ public abstract class EndpointsButton extends JButton {
     }
 
     private void buildRequests(final Component view, final IBurpExtenderCallbacks callbacks, Endpoint.Info[] endpoints, String url) {
-        HashMap<byte[], IHttpService> requests = BurpPropertiesManager.getBurpPropertiesManager().getRequests();
+        HashMap<byte[], IHttpService> requests = new HashMap<byte[], IHttpService>();
         for (Endpoint.Info endpoint : endpoints)
         {
             if (endpoint != null)
@@ -292,6 +292,7 @@ public abstract class EndpointsButton extends JButton {
                  }
             }
         }
+        BurpPropertiesManager.getBurpPropertiesManager().setRequests(requests);
     }
 
     public void logEndpoints(final Component view, Endpoint.Info[] endpoints) {

@@ -29,23 +29,23 @@ import burp.extention.BurpPropertiesManager;
 import javax.swing.*;
 import javax.swing.text.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class UrlDialog {
 
+    public static boolean https;
     public static String show(Component view) {
         BurpPropertiesManager burpPropertiesManager = BurpPropertiesManager.getBurpPropertiesManager();
         String targetHost = burpPropertiesManager.getTargetHost();
         String targetPort = burpPropertiesManager.getTargetPort();
         String targetPath = burpPropertiesManager.getTargetPath();
         String targetProto = new String();
+
         if(burpPropertiesManager.getUseHttps())
             targetProto = "https://";
         else
             targetProto = "http://";
-        //String targetUrl = burpPropertiesManager.getTargetUrl();
-        //if ((targetUrl != null) && !targetUrl.trim().isEmpty() &&(!targetUrl.trim().equalsIgnoreCase("http://") || !targetUrl.trim().equalsIgnoreCase("https://"))) {
-        //return targetUrl;
-        //}
 
         if(targetHost != null && !targetHost.trim().isEmpty() && targetPort != null && !targetPort.trim().isEmpty())
         {
@@ -61,7 +61,17 @@ public class UrlDialog {
         JTextField pathField = new JTextField(40);
         JLabel panelLabel = new JLabel("URL configuration is required to populate the site map with the detected endpoints" + '\n');
         panelLabel.setForeground(Color.DARK_GRAY);
-        JCheckBox httpsField = new JCheckBox();
+       JCheckBox httpsField = new JCheckBox();
+
+        ActionListener applicationCheckBoxHttpActionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                BurpPropertiesManager.getBurpPropertiesManager().setUseHttps(httpsField.isSelected());
+                BurpPropertiesManager.getBurpPropertiesManager().getUseHttpsField().setSelected(true);
+            }
+        };
+
+        httpsField.addActionListener(applicationCheckBoxHttpActionListener);
 
         PlainDocument portDoc = (PlainDocument)portField.getDocument();
         portDoc.setDocumentFilter(new PortFilter());
@@ -179,8 +189,8 @@ public class UrlDialog {
             String port = portField.getText();
             String path = pathField.getText();
             String proto;
-            boolean https = httpsField.isSelected();
-            if(https)
+
+            if(burpPropertiesManager.getUseHttps())
                 proto = "https://";
             else
                 proto = "http://";
@@ -196,13 +206,13 @@ public class UrlDialog {
             if (url != null && !url.isEmpty())
             {
                 burpPropertiesManager.setTargetUrl(url);
-                burpPropertiesManager.setUseHttps(https);
                 burpPropertiesManager.setTargetPort(port);
                 burpPropertiesManager.setTargetHost(host);
                 burpPropertiesManager.setTargetPath(path);
             }
             else
             {
+                burpPropertiesManager.setUseHttps(https);
                 return null;
             }
             return url;

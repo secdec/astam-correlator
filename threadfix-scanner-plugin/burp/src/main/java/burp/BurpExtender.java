@@ -499,6 +499,7 @@ public class BurpExtender implements IBurpExtender, ITab
         targetPathField = addTextFieldToGridBagLayout("Path (optional):", targetPanel, yPosition++, BurpPropertiesManager.TARGET_PATH_KEY);
         useHttpField = addCheckBoxToGridBagLayout("Use Https", targetPanel, yPosition++, applicationCheckBoxHttpActionListener);
         useHttpField.setSelected(BurpPropertiesManager.getBurpPropertiesManager().getUseHttps());
+        BurpPropertiesManager.getBurpPropertiesManager().setUseHttpsField(useHttpField);
         PlainDocument portDoc = (PlainDocument)targetPortField.getDocument();
         portDoc.setDocumentFilter(new PortFilter());
         return targetPanel;
