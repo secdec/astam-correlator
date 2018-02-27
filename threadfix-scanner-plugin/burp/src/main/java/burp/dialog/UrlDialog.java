@@ -44,7 +44,7 @@ public class UrlDialog {
             targetProto = "http://";
         //String targetUrl = burpPropertiesManager.getTargetUrl();
         //if ((targetUrl != null) && !targetUrl.trim().isEmpty() &&(!targetUrl.trim().equalsIgnoreCase("http://") || !targetUrl.trim().equalsIgnoreCase("https://"))) {
-            //return targetUrl;
+        //return targetUrl;
         //}
 
         if(targetHost != null && !targetHost.trim().isEmpty() && targetPort != null && !targetPort.trim().isEmpty())
@@ -59,6 +59,8 @@ public class UrlDialog {
         JTextField hostField = new JTextField(40);
         JTextField portField = new JTextField(40);
         JTextField pathField = new JTextField(40);
+        JLabel panelLabel = new JLabel("URL configuration is required to populate the site map with the detected endpoints" + '\n');
+        panelLabel.setForeground(Color.DARK_GRAY);
         JCheckBox httpsField = new JCheckBox();
 
         PlainDocument portDoc = (PlainDocument)portField.getDocument();
@@ -71,30 +73,53 @@ public class UrlDialog {
         labelConstraints.gridx = 0;
         labelConstraints.gridy = 0;
         labelConstraints.fill = GridBagConstraints.HORIZONTAL;
+
         GridBagConstraints textBoxConstraints = new GridBagConstraints();
         textBoxConstraints.gridwidth = 4;
         textBoxConstraints.gridx = 1;
-        textBoxConstraints.gridy = 0;
+        textBoxConstraints.gridy = 1;
         textBoxConstraints.fill = GridBagConstraints.HORIZONTAL;
 
+        GridBagLayout panelLayout = new GridBagLayout();
+        GridBagConstraints panelConstraints = new GridBagConstraints();
+        panelConstraints.gridwidth = 1;
+        panelConstraints.gridx = 0;
+        panelConstraints.gridy = 0;
+        panelConstraints.fill = GridBagConstraints.HORIZONTAL;
+
         JPanel myPanel = new JPanel();
+        JPanel myBase = new JPanel();
+        JPanel labelPanel = new JPanel();
+        myBase.setLayout(panelLayout);
+
+        labelPanel.add(panelLabel);
+
+        myBase.add(labelPanel,panelConstraints);
+
+
+        panelConstraints = new GridBagConstraints();
+        panelConstraints.gridwidth = 1;
+        panelConstraints.gridx = 0;
+        panelConstraints.gridy = 1;
+        panelConstraints.fill = GridBagConstraints.HORIZONTAL;
+
+
+        myBase.add(myPanel,panelConstraints);
         myPanel.setLayout(experimentLayout);
-        myPanel.add(new JLabel("Host"), labelConstraints);
-        myPanel.add(hostField, textBoxConstraints);
 
         labelConstraints = new GridBagConstraints();
         labelConstraints.gridwidth = 1;
         labelConstraints.gridx = 0;
         labelConstraints.gridy = 1;
         labelConstraints.fill = GridBagConstraints.HORIZONTAL;
-        textBoxConstraints = new GridBagConstraints();
-        textBoxConstraints.gridwidth = 4;
-        textBoxConstraints.gridx = 1;
-        textBoxConstraints.gridy = 1;
-        textBoxConstraints.fill = GridBagConstraints.HORIZONTAL;
 
-        myPanel.add(new JLabel("Port"), labelConstraints);
-        myPanel.add(portField, textBoxConstraints);
+        myPanel.add(new JLabel("Host"), labelConstraints);
+        myPanel.add(hostField, textBoxConstraints);
+
+
+
+
+
 
         labelConstraints = new GridBagConstraints();
         labelConstraints.gridwidth = 1;
@@ -107,8 +132,8 @@ public class UrlDialog {
         textBoxConstraints.gridy = 2;
         textBoxConstraints.fill = GridBagConstraints.HORIZONTAL;
 
-        myPanel.add(new JLabel("Path (optional)"), labelConstraints);
-        myPanel.add(pathField, textBoxConstraints);
+        myPanel.add(new JLabel("Port"), labelConstraints);
+        myPanel.add(portField, textBoxConstraints);
 
         labelConstraints = new GridBagConstraints();
         labelConstraints.gridwidth = 1;
@@ -121,6 +146,20 @@ public class UrlDialog {
         textBoxConstraints.gridy = 3;
         textBoxConstraints.fill = GridBagConstraints.HORIZONTAL;
 
+        myPanel.add(new JLabel("Path (optional)"), labelConstraints);
+        myPanel.add(pathField, textBoxConstraints);
+
+        labelConstraints = new GridBagConstraints();
+        labelConstraints.gridwidth = 1;
+        labelConstraints.gridx = 0;
+        labelConstraints.gridy = 4;
+        labelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        textBoxConstraints = new GridBagConstraints();
+        textBoxConstraints.gridwidth = 4;
+        textBoxConstraints.gridx = 1;
+        textBoxConstraints.gridy = 4;
+        textBoxConstraints.fill = GridBagConstraints.HORIZONTAL;
+
         myPanel.add(new JLabel("Use Https"), labelConstraints);
         myPanel.add(httpsField, textBoxConstraints);
 
@@ -130,13 +169,12 @@ public class UrlDialog {
 
         ImageIcon icon = new ImageIcon(attempt);
 
-        int result = JOptionPane.showConfirmDialog(view,
-                myPanel,
-                "Please enter the target URL",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.INFORMATION_MESSAGE,
-                icon);
-        if (result == JOptionPane.OK_OPTION) {
+        String[] options = new String[2];
+        options[0] = new String("Submit");
+        options[1] = new String("Skip");
+
+        int result = JOptionPane.showOptionDialog(view, myBase, "Target URL Configuration", JOptionPane.YES_NO_OPTION,JOptionPane.INFORMATION_MESSAGE,icon,options,null);
+        if (result == JOptionPane.YES_OPTION) {
             String host = hostField.getText();
             String port = portField.getText();
             String path = pathField.getText();

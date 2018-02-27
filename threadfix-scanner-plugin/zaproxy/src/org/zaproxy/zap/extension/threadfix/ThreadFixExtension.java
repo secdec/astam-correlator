@@ -81,7 +81,7 @@ public class ThreadFixExtension extends ExtensionAdaptor {
      */
     private void initialize() {
        logger.info("Initialize");
-        this.setName("ThreadFix");
+        this.setName("CodePT");
         // Load extension specific language files - these are held in the extension jar
     }
 
@@ -131,13 +131,13 @@ public class ThreadFixExtension extends ExtensionAdaptor {
     @Override
     public String getAuthor() {
         logger.info("Getting Author");
-        return "Denim Group";
+        return "Secure Decisons";
     }
 
     @Override
     public String getDescription() {
         logger.info("Getting Description");
-        return "ThreadFix integration";
+        return "Source Code Analysis";
     }
 
     @Override

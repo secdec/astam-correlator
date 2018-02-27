@@ -127,8 +127,6 @@ public abstract class EndpointsButton extends JButton {
                     }
                         else
                             {
-                                JOptionPane.showMessageDialog(view, "A target URL configuration is required to populate the site map with the detected endpoints",
-                                        "Warning", JOptionPane.WARNING_MESSAGE);
                                 makeReqs = false;
                             }
                     }
@@ -190,9 +188,9 @@ public abstract class EndpointsButton extends JButton {
             boolean hasGet = false;
             boolean hasPost = false;
             String method = endpoint.getHttpMethod();
-            if(method.toString().equalsIgnoreCase("requestmethod.post"))
+            if(method.toString().equalsIgnoreCase("post"))
                 hasPost = true;
-            else if (method.toString().equalsIgnoreCase("requestmethod.get"))
+            else if (method.toString().equalsIgnoreCase("get"))
                 hasGet = true;
             dtm.addRow(new Object[]
             {

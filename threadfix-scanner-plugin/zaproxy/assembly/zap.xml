@@ -25,21 +25,21 @@
     <fileSets>
         <fileSet>
             <outputDirectory>/</outputDirectory>
-            <directory>src/org/zaproxy/zap/extension/${zap.extension.name}</directory>
+            <directory>src/org/zaproxy/zap/extension/threadfix</directory>
             <includes>
                 <include>ZapAddOn.xml</include>
             </includes>
         </fileSet>
         <fileSet>
-            <outputDirectory>org/zaproxy/zap/extension/${zap.extension.name}/</outputDirectory>
-            <directory>src/org/zaproxy/zap/extension/${zap.extension.name}</directory>
+            <outputDirectory>org/zaproxy/zap/extension/threadfix/</outputDirectory>
+            <directory>src/org/zaproxy/zap/extension/threadfix</directory>
             <includes>
                 <include>Messages*</include>
             </includes>
         </fileSet>
         <fileSet>
-            <outputDirectory>org/zaproxy/zap/extension/${zap.extension.name}/resources/</outputDirectory>
-            <directory>src/org/zaproxy/zap/extension/${zap.extension.name}/resources</directory>
+            <outputDirectory>org/zaproxy/zap/extension/threadfix/resources/</outputDirectory>
+            <directory>src/org/zaproxy/zap/extension/threadfix/resources</directory>
         </fileSet>
     </fileSets>
 </assembly>

@@ -1,9 +1,9 @@
 <zapaddon>
-    <name>ThreadFix</name>
-    <version>2</version>
+    <name>CodePT</name>
+    <version>1</version>
     <semver/>
-    <description>Export Scans to ThreadFix</description>
-    <author>Denim Group (Mac Collins)</author>
+    <description>Source Code Analysis</description>
+    <author>Secure Decisions (Matthew DeLetto)</author>
     <url/>
     <changes>First Version</changes>
     <dependencies/>

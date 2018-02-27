@@ -48,8 +48,8 @@ public class ImportAction extends JMenuItem {
     private Model model;
 
     public ImportAction(final ViewDelegate view, final Model model) {
-		logger.info("Initializing ThreadFix menu item: \"ThreadFix: Export Scan\"");
-        setText("ThreadFix: Export Scan");
+		logger.info("Initializing CodePT menu item: \"CodePT: Export Scan\"");
+        setText("CodePT: Export Scan");
 
         this.view = view;
         this.model = model;
