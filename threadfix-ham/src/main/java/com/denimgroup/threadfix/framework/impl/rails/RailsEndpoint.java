@@ -51,6 +51,10 @@ public class RailsEndpoint extends AbstractEndpoint {
     private String httpMethod;
     private Map<String, RouteParameter> parameters;
 
+    private RailsEndpoint() {
+
+    }
+
     public RailsEndpoint(String filePath, String urlPath,
                           String httpMethod, Map<String, RouteParameter> parameters) {
         this.filePath = filePath;

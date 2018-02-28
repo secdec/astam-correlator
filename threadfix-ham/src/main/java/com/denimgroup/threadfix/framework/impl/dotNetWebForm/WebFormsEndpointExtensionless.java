@@ -41,16 +41,17 @@ public class WebFormsEndpointExtensionless extends WebFormsEndpointBase {
 
     private static final SanitizedLogger LOG = new SanitizedLogger(WebFormsEndpointExtensionless.class);
 
+    private WebFormsEndpointExtensionless() {
+
+    }
+
     public WebFormsEndpointExtensionless(File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
         super(aspxRoot, aspxParser, aspxCsParser);
     }
 
     @Override
     protected String calculateUrlPath() {
-        String aspxFilePath = aspxParser.file.getAbsolutePath();
-        String aspxRootPath = aspxRoot.getAbsolutePath();
-
-        String relativePath = calculateRelativePath(aspxFilePath, aspxRootPath);
+        String relativePath = calculateRelativePath(aspxFilePath, aspxRoot);
         int extensionIndex = relativePath.lastIndexOf('.');
 
         return relativePath.substring(0, extensionIndex);

@@ -1,9 +1,16 @@
 package com.denimgroup.threadfix.framework.util;
 
+import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import com.denimgroup.threadfix.framework.impl.dotNet.DotNetEndpoint;
+import com.denimgroup.threadfix.framework.impl.dotNetWebForm.WebFormsEndpointExplicit;
+import com.denimgroup.threadfix.framework.impl.jsp.JSPEndpoint;
+import com.denimgroup.threadfix.framework.impl.spring.SpringControllerEndpoint;
+import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.List;

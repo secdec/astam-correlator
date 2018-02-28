@@ -66,6 +66,10 @@ public class DjangoEndpoint extends AbstractEndpoint {
     private String httpMethod;
     private Map<String, RouteParameter> parameters;
 
+    private DjangoEndpoint() {
+
+    }
+
     public DjangoEndpoint(String filePath, String urlPath,
                           String httpMethod,
                           Map<String, RouteParameter> parameters,

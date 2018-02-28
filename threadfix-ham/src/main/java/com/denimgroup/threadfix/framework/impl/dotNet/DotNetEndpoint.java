@@ -40,13 +40,17 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 /**
  * Created by mac on 6/11/14.
  */
-class DotNetEndpoint extends AbstractEndpoint {
+public class DotNetEndpoint extends AbstractEndpoint {
 
-    @Nonnull final String path;
-    @Nonnull final String filePath;
-    @Nonnull final Action action;
+    @Nonnull String path;
+    @Nonnull String filePath;
+    @Nonnull Action action;
 
     String forcedMethod = null;
+
+    private DotNetEndpoint() {
+
+    }
 
     public DotNetEndpoint(@Nonnull String path, @Nonnull String filePath, @Nonnull Action action) {
         this.path = path;

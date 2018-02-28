@@ -43,16 +43,17 @@ public class WebFormsEndpointImplicit extends WebFormsEndpointBase {
 
     private static final SanitizedLogger LOG = new SanitizedLogger(WebFormsEndpointImplicit.class);
 
+    private WebFormsEndpointImplicit() {
+
+    }
+
     public WebFormsEndpointImplicit(File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
         super(aspxRoot, aspxParser, aspxCsParser);
     }
 
     @Override
     protected String calculateUrlPath() {
-        String aspxFilePath = aspxParser.file.getAbsolutePath();
-        String aspxRootPath = aspxRoot.getAbsolutePath();
-
-        String relativePath = calculateRelativePath(aspxFilePath, aspxRootPath);
+        String relativePath = calculateRelativePath(aspxFilePath, aspxRoot);
         int lastPathIndex = relativePath.lastIndexOf('/');
 
         return relativePath.substring(0, lastPathIndex + 1);

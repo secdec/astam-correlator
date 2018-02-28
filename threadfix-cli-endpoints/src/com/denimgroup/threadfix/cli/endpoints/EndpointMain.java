@@ -30,8 +30,10 @@ import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import com.denimgroup.threadfix.framework.engine.framework.FrameworkCalculator;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
+import com.denimgroup.threadfix.framework.engine.full.EndpointSerialization;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import org.apache.commons.io.FileUtils;
@@ -253,9 +255,11 @@ public class EndpointMain {
     private static void listEndpoints(File rootFile) {
         List<Endpoint> endpoints = list();
 
-        EndpointDatabase database = (framework.equals(FrameworkType.DETECT)) ?
-                EndpointDatabaseFactory.getDatabase(rootFile) :
-                EndpointDatabaseFactory.getDatabase(rootFile, framework);
+        if (framework == FrameworkType.DETECT) {
+            framework = FrameworkCalculator.getType(rootFile);
+        }
+
+        EndpointDatabase database = EndpointDatabaseFactory.getDatabase(rootFile, framework);
 
         if (database != null) {
             endpoints = database.generateEndpoints();
@@ -294,6 +298,12 @@ public class EndpointMain {
                     }
                 }
             }
+        }
+
+        if (EndpointValidation.validateSerialization(framework, endpoints)) {
+            System.out.println("Successfully validated serialization for these endpoints");
+        } else {
+            System.out.println("Failed to validate serialization for at least one of these endpoints");
         }
 
         List<RouteParameter> detectedParameters = list();

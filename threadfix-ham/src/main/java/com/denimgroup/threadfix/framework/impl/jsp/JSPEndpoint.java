@@ -41,15 +41,15 @@ import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.*;
 
-class JSPEndpoint extends AbstractEndpoint {
+public class JSPEndpoint extends AbstractEndpoint {
 
     @Nonnull
-	private final String dynamicPath, staticPath;
+	private String dynamicPath, staticPath;
 
     @Nonnull
 	private final Map<String, RouteParameter> parameters = map();
     @Nonnull
-	private final String method;
+	private String method;
 
     private int startLine, endLine;
 
@@ -58,6 +58,10 @@ class JSPEndpoint extends AbstractEndpoint {
 
 //	@Nonnull
 //    private final Map<Integer, List<String>> parameterMap;
+
+	private JSPEndpoint() {
+
+	}
 	
 	public JSPEndpoint(@Nonnull String staticPath,
                        @Nonnull String dynamicPath,

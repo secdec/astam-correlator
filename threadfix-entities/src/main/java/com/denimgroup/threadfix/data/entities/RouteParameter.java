@@ -37,6 +37,10 @@ public class RouteParameter {
     private String name;
     private List<String> acceptedValues = null;
 
+    public RouteParameter() {
+
+    }
+
     public RouteParameter(String name) {
         this.name = name;
     }

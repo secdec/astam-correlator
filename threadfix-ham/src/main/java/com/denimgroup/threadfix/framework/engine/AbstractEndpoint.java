@@ -28,6 +28,7 @@ package com.denimgroup.threadfix.framework.engine;
 
 import com.denimgroup.threadfix.data.entities.AuthenticationRequired;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -41,7 +42,10 @@ import static com.denimgroup.threadfix.CollectionUtils.set;
 
 public abstract class AbstractEndpoint implements Endpoint {
 
+    @JsonIgnore
     List<Endpoint> variants = list();
+
+    @JsonIgnore
     Endpoint primaryVariant = null;
 
     @Nonnull
@@ -56,6 +60,7 @@ public abstract class AbstractEndpoint implements Endpoint {
     }
 
     public void setPrimaryVariant(Endpoint primaryVariant) {
+        assert this != primaryVariant;
         this.primaryVariant = primaryVariant;
     }
 
@@ -69,10 +74,10 @@ public abstract class AbstractEndpoint implements Endpoint {
         } else if (b.isPrimaryVariant() && b.getVariants().contains(a)) {
             return true;
 
-        } else if (a.getPrimaryVariant() != null && a.getPrimaryVariant().getVariants().contains(b)) {
+        } else if (a.getParentVariant() != null && a.getParentVariant().getVariants().contains(b)) {
             return true;
 
-        } else if (b.getPrimaryVariant() != null && b.getPrimaryVariant().getVariants().contains(a)) {
+        } else if (b.getParentVariant() != null && b.getParentVariant().getVariants().contains(a)) {
             return true;
 
         } else {
@@ -82,10 +87,12 @@ public abstract class AbstractEndpoint implements Endpoint {
     }
 
     public void addVariant(Endpoint variant) {
+        assert this != variant;
         variants.add(variant);
     }
 
     public void addVariants(Collection<Endpoint> variants) {
+        assert !variants.contains(this);
         this.variants.addAll(variants);
     }
 
@@ -98,7 +105,7 @@ public abstract class AbstractEndpoint implements Endpoint {
     }
 
     @Override
-    public Endpoint getPrimaryVariant() {
+    public Endpoint getParentVariant() {
         if (isPrimaryVariant()) {
             return this;
         }

@@ -30,6 +30,7 @@ import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.util.RegexUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,10 +48,10 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 	private static final String requestMappingStart = "RequestMethod.";
 	
 	@Nonnull
-    private final String rawFilePath, rawUrlPath;
+    private String rawFilePath, rawUrlPath;
 	@Nonnull
-    private final Map<String, RouteParameter> parameters;
-	private final int startLineNumber, endLineNumber;
+    private Map<String, RouteParameter> parameters;
+	private int startLineNumber, endLineNumber;
 
 	private String method;
 	
@@ -60,11 +61,17 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     private AuthenticationRequired authenticationRequired = AuthenticationRequired.UNKNOWN;
     private String fileRoot, authorizationString;
 
+    @JsonIgnore
     @Nullable
     private ModelField modelObject;
 
+    @JsonIgnore
     @Nullable
     private SpringDataBinderParser dataBinderParser = null;
+
+    private SpringControllerEndpoint() {
+
+    }
 
     public SpringControllerEndpoint(@Nonnull String filePath,
                                     @Nonnull String urlPath,

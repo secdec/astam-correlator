@@ -44,6 +44,10 @@ public class StrutsEndpoint extends AbstractEndpoint {
     private String method;
     private Map<String, RouteParameter> parameters;
 
+    private StrutsEndpoint() {
+
+    }
+
     public StrutsEndpoint(String filePath, String urlPath,
                           String method, Map<String, RouteParameter> parameters) {
         this.filePath = filePath;

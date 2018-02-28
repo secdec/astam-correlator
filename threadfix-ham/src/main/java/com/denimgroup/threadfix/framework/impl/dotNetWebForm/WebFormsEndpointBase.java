@@ -44,15 +44,19 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
     private static final SanitizedLogger LOG = new SanitizedLogger(WebFormsEndpointBase.class);
 
-    final AspxParser   aspxParser;
-    final AspxCsParser aspxCsParser;
-    final File         aspxRoot;
-    final String       urlPath;
-    final String       filePath;
+    String       aspxFilePath;
+    String       aspxCsFilePath;
+    String       aspxRoot;
+    String       urlPath;
+    String       filePath;
 
     Map<String, List<Integer>> map = map();
     private String httpMethod;
     private Map<String, RouteParameter> params = map();
+
+    protected WebFormsEndpointBase() {
+
+    }
 
     public WebFormsEndpointBase(File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
         if (!checkArguments(aspxParser.aspName, aspxCsParser.aspName)) {
@@ -60,14 +64,14 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
                     aspxParser.aspName + " and " + aspxCsParser.aspName);
         }
 
-        this.aspxParser = aspxParser;
-        this.aspxCsParser = aspxCsParser;
-        this.aspxRoot = aspxRoot;
+        this.aspxFilePath = aspxParser.file.getAbsolutePath();
+        this.aspxCsFilePath = aspxCsParser.file.getAbsolutePath();
+        this.aspxRoot = aspxRoot.getAbsolutePath();
 
         this.urlPath = calculateUrlPath();
         this.filePath = calculateFilePath();
 
-        collectParameters();
+        collectParameters(aspxParser, aspxCsParser);
 
         setHttpMethod("GET");
     }
@@ -90,17 +94,11 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
     }
 
     private String calculateFilePath() {
-        String aspxFilePath = aspxCsParser.file.getAbsolutePath();
-        String aspxRootPath = aspxRoot.getAbsolutePath();
-
-        return calculateRelativePath(aspxFilePath, aspxRootPath);
+        return calculateRelativePath(this.aspxCsFilePath, this.aspxRoot);
     }
 
     protected String calculateUrlPath() {
-        String aspxFilePath = aspxParser.file.getAbsolutePath();
-        String aspxRootPath = aspxRoot.getAbsolutePath();
-
-        return calculateRelativePath(aspxFilePath, aspxRootPath);
+        return calculateRelativePath(this.aspxFilePath, this.aspxRoot);
     }
 
     final protected String calculateRelativePath(String aspxFilePath, String aspxRootPath) {
@@ -112,13 +110,12 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
                     " didn't start with " +
                     aspxRootPath;
             LOG.error(error);
-            assert false : error;
-            return aspxParser.aspName;
+            return null;
         }
     }
 
     // TODO split this up
-    private void collectParameters() {
+    private void collectParameters(AspxParser aspxParser, AspxCsParser aspxCsParser) {
 
         // reverse map to get parameter -> line numbers map
         for (Map.Entry<Integer, Set<String>> entry : aspxCsParser.lineNumberToParametersMap.entrySet()) {
@@ -150,6 +147,10 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
         for (List<Integer> integers : map.values()) {
             Collections.sort(integers);
+        }
+
+        for (String paramName : map.keySet()) {
+            params.put(paramName, new RouteParameter(paramName));
         }
     }
 

@@ -41,6 +41,10 @@ public class WebFormsEndpointExplicit extends WebFormsEndpointBase {
 
     private static final SanitizedLogger LOG = new SanitizedLogger(WebFormsEndpointExplicit.class);
 
+    private WebFormsEndpointExplicit() {
+
+    }
+
     public WebFormsEndpointExplicit(File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
         super(aspxRoot, aspxParser, aspxCsParser);
     }
