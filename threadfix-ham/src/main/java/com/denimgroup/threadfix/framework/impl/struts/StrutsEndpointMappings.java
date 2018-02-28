@@ -37,6 +37,7 @@ import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPluginDetector;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.ParameterMerger;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
@@ -210,8 +211,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
 
         addFileParameters(endpoints, project);
-
         autoGroupVariants(endpoints);
+        EndpointUtil.rectifyVariantHierarchy(endpoints);
 
         for (Endpoint endpoint : endpoints) {
             Collection<RouteParameter> params = endpoint.getParameters().values();

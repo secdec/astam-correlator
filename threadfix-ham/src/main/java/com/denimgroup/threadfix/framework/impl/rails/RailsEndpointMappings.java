@@ -31,6 +31,7 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoute;
 import com.denimgroup.threadfix.framework.impl.rails.routerDetection.RouterDetector;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
@@ -101,6 +102,8 @@ public class RailsEndpointMappings implements EndpointGenerator {
                 endpoints.add(endpoint);
             }
         }
+
+        EndpointUtil.rectifyVariantHierarchy(endpoints);
     }
 
     private String formatRouteModuleName(String fullName) {

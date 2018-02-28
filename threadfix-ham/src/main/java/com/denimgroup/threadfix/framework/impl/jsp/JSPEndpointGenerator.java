@@ -173,6 +173,8 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 
             applyLineNumbers(endpoints);
 
+            EndpointUtil.rectifyVariantHierarchy(endpoints);
+
             EndpointValidationStatistics.printValidationStats(endpoints);
 
 		} else {

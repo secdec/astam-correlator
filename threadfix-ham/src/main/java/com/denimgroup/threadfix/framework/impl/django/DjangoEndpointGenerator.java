@@ -25,6 +25,7 @@ package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
@@ -183,6 +184,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 djangoEndpoint.setFilePath(relativePath);
             }
         }
+
+        EndpointUtil.rectifyVariantHierarchy(endpoints);
 
         long generationDuration = System.currentTimeMillis() - generationStartTime;
         debugLog("Finished python endpoint generation in " + generationDuration + "ms");

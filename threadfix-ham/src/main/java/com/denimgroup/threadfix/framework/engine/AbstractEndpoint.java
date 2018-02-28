@@ -42,11 +42,43 @@ import static com.denimgroup.threadfix.CollectionUtils.set;
 public abstract class AbstractEndpoint implements Endpoint {
 
     List<Endpoint> variants = list();
+    Endpoint primaryVariant = null;
 
     @Nonnull
     @Override
     public List<Endpoint> getVariants() {
         return variants;
+    }
+
+    @Override
+    public boolean isVariantOf(Endpoint endpoint) {
+        return endpoint == this || isImmediateVariant(this, endpoint);
+    }
+
+    public void setPrimaryVariant(Endpoint primaryVariant) {
+        this.primaryVariant = primaryVariant;
+    }
+
+    private static boolean isImmediateVariant(Endpoint a, Endpoint b) {
+        if (a.isPrimaryVariant() && b.isPrimaryVariant() && a != b) {
+            return false;
+
+        } else if (a.isPrimaryVariant() && a.getVariants().contains(b)) {
+            return true;
+
+        } else if (b.isPrimaryVariant() && b.getVariants().contains(a)) {
+            return true;
+
+        } else if (a.getPrimaryVariant() != null && a.getPrimaryVariant().getVariants().contains(b)) {
+            return true;
+
+        } else if (b.getPrimaryVariant() != null && b.getPrimaryVariant().getVariants().contains(a)) {
+            return true;
+
+        } else {
+            return false;
+
+        }
     }
 
     public void addVariant(Endpoint variant) {
@@ -63,6 +95,19 @@ public abstract class AbstractEndpoint implements Endpoint {
 
     public void clearVariants() {
         this.variants.clear();
+    }
+
+    @Override
+    public Endpoint getPrimaryVariant() {
+        if (isPrimaryVariant()) {
+            return this;
+        }
+        return primaryVariant;
+    }
+
+    @Override
+    public boolean isPrimaryVariant() {
+        return primaryVariant == null; // There is no primary variant for this endpoint, so this endpoint is the primary variant
     }
 
     @Override

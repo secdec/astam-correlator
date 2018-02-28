@@ -52,6 +52,12 @@ public interface Endpoint extends Comparable<Endpoint> {
     @Nonnull
     List<Endpoint> getVariants();
 
+    Endpoint getPrimaryVariant();
+
+    boolean isVariantOf(Endpoint endpoint);
+
+    boolean isPrimaryVariant();
+
     enum PrintFormat {
         DYNAMIC, STATIC, LINT, JSON
     }

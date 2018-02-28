@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.data.entities.Document;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.w3c.dom.Node;
@@ -73,6 +74,8 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
 
         defaultPages = collectDefaultPages(webConfig);
         collapseToEndpoints(aspxCsParsers, aspxParsers, rootDirectory);
+
+        EndpointUtil.rectifyVariantHierarchy(endpoints);
     }
 
     private File getWebConfigFile(File rootDirectory) {

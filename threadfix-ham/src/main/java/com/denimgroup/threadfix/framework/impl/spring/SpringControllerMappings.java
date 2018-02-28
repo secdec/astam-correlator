@@ -34,6 +34,7 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.impl.spring.auth.InterceptUrl;
 import com.denimgroup.threadfix.framework.impl.spring.auth.SpringSecurityXmlParser;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
@@ -270,19 +271,55 @@ public class SpringControllerMappings implements EndpointGenerator {
         }
     }
 
+    private void assignVariants(List<Endpoint> endpoints) {
+	    List<Endpoint> primaryVariants = list();
+	    Queue<Endpoint> pendingEndpoints = new ArrayDeque<Endpoint>(endpoints);
+	    while (!pendingEndpoints.isEmpty()) {
+
+	        SpringControllerEndpoint current = (SpringControllerEndpoint)pendingEndpoints.remove();
+
+	        Endpoint existingPrimary = null;
+	        for (Endpoint primary : primaryVariants) {
+	            SpringControllerEndpoint springPrimary = (SpringControllerEndpoint)primary;
+	            if (springPrimary.getFilePath().equals(current.getFilePath()) &&
+                    springPrimary.getStartingLineNumber() == current.getStartingLineNumber() &&
+                    springPrimary.getHttpMethod().equals(current.getHttpMethod())) {
+	                existingPrimary = springPrimary;
+	                break;
+                }
+            }
+
+            if (existingPrimary == null) {
+	            primaryVariants.add(current);
+            } else {
+	            if (current.getUrlPath().length() < existingPrimary.getUrlPath().length()) {
+	                primaryVariants.remove(existingPrimary);
+	                current.addVariants(existingPrimary.getVariants());
+	                current.addVariant(existingPrimary);
+                    ((SpringControllerEndpoint)existingPrimary).clearVariants();
+                    if (current.getVariants().contains(current)) {
+                        current.removeVariant(current);
+                    }
+	                primaryVariants.add(current);
+                }
+            }
+        }
+    }
+
 	@Nonnull
     @Override
 	public List<Endpoint> generateEndpoints() {
 		List<Endpoint> returnEndpoints = list();
 		
 		for (Set<SpringControllerEndpoint> endpointList : urlToControllerMethodsMap.values()) {
-			for (SpringControllerEndpoint endpoint : endpointList) {
-				returnEndpoints.add(endpoint);
-			}
+            returnEndpoints.addAll(endpointList);
 		}
 
 		updateFileParameters(returnEndpoints);
 		bubbleParametricEndpoints(returnEndpoints);
+
+		assignVariants(returnEndpoints);
+        EndpointUtil.rectifyVariantHierarchy(returnEndpoints);
 		
 		return returnEndpoints;
 	}

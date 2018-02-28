@@ -32,6 +32,7 @@ import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.ParameterMerger;
@@ -98,6 +99,8 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 currentParameters.put(paramName, mergedParam);
             }
         }
+
+        EndpointUtil.rectifyVariantHierarchy(endpoints);
 
         EndpointValidationStatistics.printValidationStats(endpoints);
     }
