@@ -64,6 +64,7 @@ public class BurpPropertiesManager extends PropertiesManager {
     private static boolean hasChanges = false;
     private static JTable endpointsTable;
     private  static JLabel countLabel;
+    private static JCheckBox httpsField;
 
     public static boolean
         AUTO_SCAN_KEY = false,
@@ -194,6 +195,10 @@ public class BurpPropertiesManager extends PropertiesManager {
 
     public IBurpExtenderCallbacks getCallbacks(){return callbacks;}
 
+    public JCheckBox getUseHttpsField() {return httpsField;}
+
+    public void setUseHttpsField(JCheckBox newField){httpsField = newField;}
+
     public boolean getUseHttps()
     {
         if(getPropertyValue(USE_HTTPS_KEY).equalsIgnoreCase("true"))
@@ -205,9 +210,15 @@ public class BurpPropertiesManager extends PropertiesManager {
     public void setUseHttps(boolean newUseHttp)
     {
         if(newUseHttp)
+        {
             setPropertyValue(USE_HTTPS_KEY, "true");
+            httpsField.setSelected(true);
+        }
         else
+        {
             setPropertyValue(USE_HTTPS_KEY, "false");
+            httpsField.setSelected(false);
+        }
     }
 
 }
