@@ -172,7 +172,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             routeMap = map();
         }
 
-        this.endpoints = generateMappings(i18Detector.isLocalized());
+        this.endpoints = generateMappings(codebase, i18Detector.isLocalized());
 
         //  Ensure that all file paths are relative to project root
         //  Python interpreter requires that file paths be absolute so that the files can be loaded
@@ -218,9 +218,49 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         }
     }
 
-    private List<Endpoint> generateMappings(boolean i18) {
+    private void inferHttpMethodsBySourceCode(PythonCodeCollection codebase, List<DjangoRoute> routes) {
+        for (DjangoRoute route : routes) {
+            String sourceFile = route.getViewPath();
+            AbstractPythonStatement pythonFunction = codebase.findByLineNumber(sourceFile, route.getStartLineNumber());
+            if (pythonFunction == null || !(pythonFunction instanceof PythonFunction)) {
+                if (route.getHttpMethod() == null) {
+                    route.setHttpMethod("GET");
+                }
+                continue;
+            }
+
+            int startLine = pythonFunction.getSourceCodeStartLine();
+            int endLine = pythonFunction.getSourceCodeEndLine();
+
+            PythonSourceReader reader = new PythonSourceReader(new File(sourceFile), false);
+            reader.accept(startLine, endLine);
+
+            String httpMethod = null;
+
+            Collection<String> lines = reader.getLines();
+            for (String line : lines) {
+                if (line.contains("GET")) {
+                    httpMethod = "GET";
+                } else if (line.contains("POST")) {
+                    httpMethod = "POST";
+                }
+            }
+
+            if (httpMethod != null) {
+                route.setHttpMethod(httpMethod);
+            } else if (route.getHttpMethod() == null) {
+                // Fallback if no method could be discovered
+                route.setHttpMethod("GET");
+            }
+        }
+    }
+
+    private List<Endpoint> generateMappings(PythonCodeCollection codebase, boolean i18) {
         List<Endpoint> mappings = list();
         for (List<DjangoRoute> routeSet : routeMap.values()) {
+
+            inferHttpMethodsBySourceCode(codebase, routeSet);
+
             for (DjangoRoute route : routeSet) {
                 String urlPath = route.getUrl();
                 String filePath = route.getViewPath();
@@ -228,6 +268,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 String httpMethod = route.getHttpMethod();
                 Map<String, RouteParameter> parameters = route.getParameters();
                 DjangoEndpoint primaryEndpoint = new DjangoEndpoint(filePath, urlPath, httpMethod, parameters, false);
+                primaryEndpoint.setLineNumbers(route.getStartLineNumber(), route.getEndLineNumber());
                 mappings.add(primaryEndpoint);
                 if (i18) {
                     primaryEndpoint.addVariant(new DjangoEndpoint(filePath, urlPath, httpMethod, parameters, true));

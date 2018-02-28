@@ -61,12 +61,17 @@ public class PythonCodeCollection {
             for (String importPath : importPaths) {
                 if (importPath.startsWith(".")) {
                     AbstractPythonStatement baseScope = statement.findParent(PythonModule.class);
-                    while ((importPath = importPath.substring(1)).startsWith(".")) {
-                        baseScope = baseScope.findParent(PythonModule.class);
-                    }
 
-                    String basePath = baseScope.getFullName();
-                    importPath = basePath + "." + importPath;
+                    if (baseScope != null) {
+                        while ((importPath = importPath.substring(1)).startsWith(".")) {
+                            baseScope = baseScope.findParent(PythonModule.class);
+                        }
+
+                        String basePath = baseScope.getFullName();
+                        importPath = basePath + "." + importPath;
+                    } else {
+                        importPath = statement.getFullName() + importPath;
+                    }
                 }
 
                 if (importPath.endsWith("*")) {
@@ -458,7 +463,7 @@ public class PythonCodeCollection {
             @Override
             public void visitAny(AbstractPythonStatement statement) {
                 super.visitAny(statement);
-                if (result.size() == 0) {
+                if (result.isEmpty() && statement.getSourceCodePath() != null) {
                     if (statement.getSourceCodePath().equals(filePath)) {
                         if (statement.getSourceCodeStartLine() >= lineNumber && statement.getSourceCodeEndLine() <= lineNumber) {
                             result.add(statement);

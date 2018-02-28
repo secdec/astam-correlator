@@ -71,7 +71,7 @@ public class DjangoEndpoint extends AbstractEndpoint {
     }
 
     public DjangoEndpoint(String filePath, String urlPath,
-                          String httpMethod,
+                          @Nonnull String httpMethod,
                           Map<String, RouteParameter> parameters,
                           boolean isInternationalized) {
 

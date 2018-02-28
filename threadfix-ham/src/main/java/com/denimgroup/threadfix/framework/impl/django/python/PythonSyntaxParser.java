@@ -229,16 +229,6 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         }
     }
 
-    public static PythonModule runPartial(String pythonCode) {
-        log("Running on python code string: " + pythonCode);
-        PythonModule result = new PythonModule();
-        PythonSyntaxParser parser = new PythonSyntaxParser(result);
-
-        EventBasedTokenizerRunner.runString(pythonCode, PythonTokenizerConfigurator.INSTANCE, parser);
-
-        return parser.getThisModule();
-    }
-
     private static PythonModule recurseCodeDirectory(File rootDirectory) {
         File[] allFiles = rootDirectory.listFiles();
         PythonModule directoryModule = new PythonModule();

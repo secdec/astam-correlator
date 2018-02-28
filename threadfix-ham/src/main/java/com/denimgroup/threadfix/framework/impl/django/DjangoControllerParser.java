@@ -48,6 +48,7 @@ public class DjangoControllerParser implements EventBasedTokenizer {
     private DjangoRoute currentRoute = null;
     private List<DjangoRoute> djangoRoutes = list();
     private String url, filePath, methodName = "";
+    private String workingMethodName = "";
     private boolean shouldContinue = true;
 
     public static List<DjangoRoute> parse(@Nonnull File file, String url, String methodName) {
@@ -93,6 +94,8 @@ public class DjangoControllerParser implements EventBasedTokenizer {
             currentPhase = Phase.IN_METHOD;
             currentMethodState = MethodState.START;
             currentRoute = new DjangoRoute(url, filePath);
+            currentRoute.setLineNumbers(lineNumber, 0);
+            workingMethodName = null;
             djangoRoutes.add(currentRoute);
         }
 
@@ -114,10 +117,26 @@ public class DjangoControllerParser implements EventBasedTokenizer {
                 if (METHOD_DEF.equals(stringValue))
                     break;
 
-                if (methodName != null && methodName.equals(stringValue))
+                if (stringValue != null) {
+                    if (workingMethodName == null) {
+                        workingMethodName = stringValue;
+                    } else {
+                        workingMethodName += stringValue;
+                    }
+                } else if (type == '_') {
+                    if (workingMethodName == null) {
+                        workingMethodName = "_";
+                    } else {
+                        workingMethodName += '_';
+                    }
+                }
+
+                if (methodName != null && methodName.equals(workingMethodName)) {
                     currentMethodState = MethodState.PARAMS;
-                else
+                } else if (type == ':' || type == '(') {
+                    djangoRoutes.remove(currentRoute);
                     currentPhase = Phase.PARSING;
+                }
 
                 break;
             case PARAMS:
