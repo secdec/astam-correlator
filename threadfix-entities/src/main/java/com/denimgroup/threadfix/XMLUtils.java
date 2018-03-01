@@ -27,9 +27,7 @@ package com.denimgroup.threadfix;
 import com.denimgroup.threadfix.exception.RestIOException;
 import com.denimgroup.threadfix.exception.RestInvalidScanFormatException;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
+import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
@@ -113,6 +111,26 @@ public final class XMLUtils {
 		XMLReader xmlReader = XMLReaderFactory.createXMLReader();
 		xmlReader.setContentHandler(handler);
 		xmlReader.setErrorHandler(handler);
+
+		//	Ignore DTD/XSD validation
+		xmlReader.setDTDHandler(new DTDHandler() {
+			@Override
+			public void notationDecl(String name, String publicId, String systemId) throws SAXException {
+
+			}
+
+			@Override
+			public void unparsedEntityDecl(String name, String publicId, String systemId, String notationName) throws SAXException {
+
+			}
+		});
+
+		xmlReader.setEntityResolver(new EntityResolver() {
+			@Override
+			public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
+				return new InputSource(new StringReader(""));
+			}
+		});
 				
 		// Wrapping the inputStream in a BufferedInputStream allows us to mark and reset it
 		BufferedInputStream newStream = new BufferedInputStream(stream);

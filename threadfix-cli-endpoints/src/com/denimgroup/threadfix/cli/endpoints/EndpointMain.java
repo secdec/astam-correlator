@@ -69,6 +69,9 @@ public class EndpointMain {
     static boolean simplePrint = false;
     static String pathListFile = null;
 
+    static int totalDetectedEndpoints = 0;
+    static int totalDetectedParameters = 0;
+
     public static void main(String[] args) {
         if (checkArguments(args)) {
             resetLoggingConfiguration();
@@ -141,6 +144,11 @@ public class EndpointMain {
             } else {
                 listEndpoints(new File(args[0]));
             }
+
+            System.out.println("-- DONE --");
+            System.out.println("Generated " + totalDetectedEndpoints + " total endpoints");
+            System.out.println("Generated " + totalDetectedParameters + " total parameters");
+
             if (printFormat != JSON) {
                 System.out.println("To enable logging include the -debug argument");
             }
@@ -270,6 +278,8 @@ public class EndpointMain {
         int numPrimaryEndpoints = endpoints.size();
         int numEndpoints = EndpointUtil.flattenWithVariants(endpoints).size();
 
+        totalDetectedEndpoints += numEndpoints;
+
         if (endpoints.isEmpty()) {
             System.out.println("No endpoints were found.");
 
@@ -310,6 +320,8 @@ public class EndpointMain {
         for (Endpoint endpoint : endpoints) {
             detectedParameters.addAll(endpoint.getParameters().values());
         }
+
+        totalDetectedParameters += detectedParameters.size();
 
         System.out.println("Generated " + detectedParameters.size() + " parameters");
 
