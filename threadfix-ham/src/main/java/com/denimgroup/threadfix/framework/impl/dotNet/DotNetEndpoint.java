@@ -103,6 +103,11 @@ public class DotNetEndpoint extends AbstractEndpoint {
     }
 
     @Override
+    public int getEndingLineNumber() {
+        return action.endLineNumber;
+    }
+
+    @Override
     public int getLineNumberForParameter(String parameter) {
         return -1;
     }

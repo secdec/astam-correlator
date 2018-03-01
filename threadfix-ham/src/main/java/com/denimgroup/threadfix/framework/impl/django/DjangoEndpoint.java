@@ -189,6 +189,11 @@ public class DjangoEndpoint extends AbstractEndpoint {
     }
 
     @Override
+    public int getEndingLineNumber() {
+        return endLineNumber;
+    }
+
+    @Override
     public int getLineNumberForParameter(String parameter) {
         return 0;
     }

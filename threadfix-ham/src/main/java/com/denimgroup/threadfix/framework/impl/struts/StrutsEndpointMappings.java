@@ -235,7 +235,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             for (Endpoint distinct : distinctEndpoints) {
                 StrutsEndpoint distinctStrutsEndpoint = (StrutsEndpoint)distinct;
                 if (strutsEndpoint.getStartingLineNumber() == distinctStrutsEndpoint.getStartingLineNumber() &&
-                        strutsEndpoint.getEndLineNumber() == distinctStrutsEndpoint.getEndLineNumber() &&
+                        strutsEndpoint.getEndingLineNumber() == distinctStrutsEndpoint.getEndingLineNumber() &&
                         strutsEndpoint.getHttpMethod().equals(distinctStrutsEndpoint.getHttpMethod()) &&
                         strutsEndpoint.getFilePath().equals(distinctStrutsEndpoint.getFilePath())) {
 
@@ -362,7 +362,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                     StrutsEndpoint baseEndpoint = (StrutsEndpoint)endpoint;
                     StrutsEndpoint newEndpoint = new StrutsEndpoint(endpoint.getFilePath(), endpoint.getUrlPath(), inferredQueryMethod, baseEndpoint.getParameters());
                     newEndpoint.setDisplayFilePath(baseEndpoint.getDisplayFilePath());
-                    newEndpoint.setLineNumbers(baseEndpoint.getStartingLineNumber(), baseEndpoint.getEndLineNumber());
+                    newEndpoint.setLineNumbers(baseEndpoint.getStartingLineNumber(), baseEndpoint.getEndingLineNumber());
                     relevantEndpoints.add(newEndpoint);
                     endpoints.add(newEndpoint);
                 }

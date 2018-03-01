@@ -71,6 +71,7 @@ public interface Endpoint extends Comparable<Endpoint> {
 	String getCSVLine(PrintFormat... formats);
 
 	int getStartingLineNumber();
+	int getEndingLineNumber();
 
 	int getLineNumberForParameter(String parameter);
 

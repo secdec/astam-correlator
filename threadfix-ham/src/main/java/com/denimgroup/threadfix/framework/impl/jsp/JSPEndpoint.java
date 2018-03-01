@@ -209,6 +209,11 @@ public class JSPEndpoint extends AbstractEndpoint {
 		return startLine;
 	}
 
+	@Override
+	public int getEndingLineNumber() {
+		return endLine;
+	}
+
 	// TODO - Re-enable
 	@Override
 	public int getLineNumberForParameter(String parameter) {

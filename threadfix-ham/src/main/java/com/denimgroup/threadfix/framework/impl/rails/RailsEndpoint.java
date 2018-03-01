@@ -121,12 +121,17 @@ public class RailsEndpoint extends AbstractEndpoint {
 
     @Override
     public int getStartingLineNumber() {
-        return 0;
+        return -1;
+    }
+
+    @Override
+    public int getEndingLineNumber() {
+        return -1;
     }
 
     @Override
     public int getLineNumberForParameter(String parameter) {
-        return 0;
+        return -1;
     }
 
     @Override

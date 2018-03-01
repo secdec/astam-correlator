@@ -253,7 +253,12 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 		return startLineNumber;
 	}
 
-	@Override
+    @Override
+    public int getEndingLineNumber() {
+        return endLineNumber;
+    }
+
+    @Override
 	public int getLineNumberForParameter(String parameter) {
 		return startLineNumber;
 	}
