@@ -49,7 +49,7 @@ public abstract class EndpointsAction extends JMenuItem {
     List<String> nodes = new ArrayList<>();
 
     public EndpointsAction(final ViewDelegate view, final Model model) {
-        getLogger().info("Initializing ThreadFix menu item: \"" + getMenuItemText() + "\"");
+        getLogger().info("Initializing CodePT menu item: \"" + getMenuItemText() + "\"");
         setText(getMenuItemText());
 
         addActionListener(new java.awt.event.ActionListener() {

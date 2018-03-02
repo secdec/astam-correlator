@@ -2,12 +2,8 @@ package com.denimgroup.threadfix.plugin.zap;
 
 //import com.denimgroup.threadfix.data.interfaces.Endpoint;
 //import com.denimgroup.threadfix.plugin.zap.action.LocalEndpointsAction;
-import com.denimgroup.threadfix.data.entities.Application;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
-import com.denimgroup.threadfix.plugin.zap.action.ImportAction;
 import com.denimgroup.threadfix.plugin.zap.action.LocalEndpointsAction;
-import com.denimgroup.threadfix.plugin.zap.action.RemoteEndpointsAction;
-import com.denimgroup.threadfix.remote.PluginClient;
 import com.denimgroup.threadfix.remote.response.RestResponse;
 import net.sf.json.JSONException;
 import net.sf.json.JSONObject;
@@ -18,16 +14,10 @@ import org.zaproxy.zap.extension.api.*;
 import org.zaproxy.zap.extension.threadfix.ThreadFixExtension;
 import org.zaproxy.zap.extension.threadfix.ZapApiPropertiesManager;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Created by dshannon on 2/23/15.
  */
 public class ThreadFixApi extends ApiImplementor {
-    private static final String LIST_THREADFIX_APPLICATIONS = "listThreadFixApplications";
-    private static final String IMPORT_ENDPOINTS_FROM_THREADFIX = "importEndpointsFromThreadFix";
-    private static final String EXPORT_SCAN = "exportScan";
     private static final String IMPORT_ENDPOINTS_FROM_SOURCE = "importEndpointsFromSource";
 
     private static final String PARAM_THREAD_FIX_URL = "threadFixUrl";
@@ -43,11 +33,6 @@ public class ThreadFixApi extends ApiImplementor {
     public ThreadFixApi(ThreadFixExtension threadFixExtension) {
         super();
         this.threadFixExtension = threadFixExtension;
-
-        this.addApiView(new ApiView(LIST_THREADFIX_APPLICATIONS, new String[]{PARAM_THREAD_FIX_URL, PARAM_API_KEY}));
-
-        this.addApiAction(new ApiAction(IMPORT_ENDPOINTS_FROM_THREADFIX, new String[]{PARAM_THREAD_FIX_URL, PARAM_API_KEY, PARAM_APP_ID, PARAM_TARGET_URL}));
-        this.addApiAction(new ApiAction(EXPORT_SCAN, new String[]{PARAM_THREAD_FIX_URL, PARAM_API_KEY, PARAM_APP_ID}));
         this.addApiAction(new ApiAction(IMPORT_ENDPOINTS_FROM_SOURCE, new String[]{PARAM_SOURCE_FOLDER, PARAM_TARGET_URL}));
     }
 
@@ -56,45 +41,6 @@ public class ThreadFixApi extends ApiImplementor {
         return "threadFix";
     }
 
-    @Override
-    public ApiResponse handleApiView(String name, JSONObject params) throws ApiException {
-        logger.info("Request for handleApiView: " + name + " (params: " + params.toString() + ")");
-
-        ZapApiPropertiesManager zapApiPropertiesManager;
-        switch (name) {
-            case LIST_THREADFIX_APPLICATIONS:
-                logger.info(LIST_THREADFIX_APPLICATIONS);
-                String threadFixUrl = getThreadFixUrl(params);
-                String apiKey = getApiKey(params);
-                zapApiPropertiesManager = new ZapApiPropertiesManager(threadFixUrl, apiKey);
-                PluginClient client = new PluginClient(zapApiPropertiesManager);
-
-                RestResponse<Application.Info[]> response = client.getThreadFixApplicationsResponse();
-                if (response.success) {
-                    Application.Info[] apps = response.object;
-                    ApiResponseList applicationList = new ApiResponseList("applications");
-                    if (apps != null) {
-                        for (Application.Info app : apps) {
-                            if (app != null) {
-                                String appCombinedName = app.getOrganizationName() + "/" + app.getApplicationName();
-                                String appId = app.getApplicationId();
-                                if (appCombinedName != null && appId != null) {
-                                    Map<String, String> appValues = new HashMap<String, String>(2);
-                                    appValues.put("name", appCombinedName);
-                                    appValues.put("id", appId);
-                                    ApiResponseSet appElement = new ApiResponseSet("application", appValues);
-                                    applicationList.addItem(appElement);
-                                }
-                            }
-                        }
-                    }
-                    return applicationList;
-                } else {
-                    throwFailedResponseApiException(response, "code/applications");
-                }
-        }
-        throw new ApiException(ApiException.Type.BAD_VIEW, name);
-    }
 
     @Override
     public ApiResponse handleApiAction(String name, JSONObject params) throws ApiException {
@@ -107,40 +53,6 @@ public class ThreadFixApi extends ApiImplementor {
         String targetUrl;
 
         switch (name) {
-            case IMPORT_ENDPOINTS_FROM_THREADFIX:
-                logger.info(IMPORT_ENDPOINTS_FROM_SOURCE);
-                RemoteEndpointsAction remoteEndpointsAction = threadFixExtension.getRemoteEndpointsAction();
-
-                threadFixUrl = getThreadFixUrl(params);
-                apiKey = getApiKey(params);
-                appId = String.valueOf(getAppId(params));
-                targetUrl = getTargetUrl(params);
-                zapApiPropertiesManager = new ZapApiPropertiesManager(threadFixUrl, apiKey, appId);
-
-                RestResponse<Endpoint.Info[]> endpointsResponse = remoteEndpointsAction.getEndpointsResponse(zapApiPropertiesManager);
-                if (endpointsResponse.success) {
-                    Endpoint.Info[] endpoints = endpointsResponse.object;
-                    remoteEndpointsAction.buildNodesFromEndpoints(endpoints);
-                    remoteEndpointsAction.attackUrl(targetUrl);
-                    return ApiResponseElement.OK;
-                } else {
-                    throwFailedResponseApiException(endpointsResponse, "code/applications/" + appId + "/endpoints");
-                }
-            case EXPORT_SCAN:
-                logger.info(EXPORT_SCAN);
-                ImportAction importAction = threadFixExtension.getImportAction();
-
-                threadFixUrl = getThreadFixUrl(params);
-                apiKey = getApiKey(params);
-                appId = String.valueOf(getAppId(params));
-                zapApiPropertiesManager = new ZapApiPropertiesManager(threadFixUrl, apiKey, appId);
-
-                RestResponse<Object> uploadResponse = importAction.uploadReportAndGetResponse(zapApiPropertiesManager);
-                if ((uploadResponse != null) && (uploadResponse.success)) {
-                    return ApiResponseElement.OK;
-                } else {
-                    throwFailedResponseApiException(uploadResponse, "applications/" + appId + "/upload");
-                }
             case IMPORT_ENDPOINTS_FROM_SOURCE:
                 logger.info(IMPORT_ENDPOINTS_FROM_SOURCE);
                 LocalEndpointsAction localEndpointsAction = threadFixExtension.getLocalEndpointsAction();
@@ -195,22 +107,6 @@ public class ThreadFixApi extends ApiImplementor {
             return params.getString(PARAM_THREAD_FIX_URL);
         } catch (JSONException ex) {
             throw new ApiException(ApiException.Type.MISSING_PARAMETER, PARAM_THREAD_FIX_URL);
-        }
-    }
-
-    /**
-     * Gets the ThreadFix API key from the parameters or throws a Missing Parameter exception, if any
-     * problems occured.
-     *
-     * @param params the params
-     * @return the API key
-     * @throws ApiException the api exception
-     */
-    private String getApiKey(JSONObject params) throws ApiException {
-        try {
-            return params.getString(PARAM_API_KEY);
-        } catch (JSONException ex) {
-            throw new ApiException(ApiException.Type.MISSING_PARAMETER, PARAM_API_KEY);
         }
     }
 

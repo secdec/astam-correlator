@@ -25,23 +25,18 @@
 package org.zaproxy.zap.extension.threadfix;
 
 import com.denimgroup.threadfix.plugin.zap.ThreadFixApi;
-import com.denimgroup.threadfix.plugin.zap.action.ImportAction;
 import com.denimgroup.threadfix.plugin.zap.action.LocalEndpointsAction;
-import com.denimgroup.threadfix.plugin.zap.action.RemoteEndpointsAction;
 import org.apache.log4j.Logger;
 import org.parosproxy.paros.extension.ExtensionAdaptor;
 import org.parosproxy.paros.extension.ExtensionHook;
 import org.zaproxy.zap.extension.api.API;
 
-import javax.swing.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
 public class ThreadFixExtension extends ExtensionAdaptor {
 
-    private ImportAction importAction = null;
-    private RemoteEndpointsAction remoteEndpointsAction = null;
     private LocalEndpointsAction localEndpointsAction = null;
     private ResourceBundle messages = null;
 
@@ -93,28 +88,10 @@ public class ThreadFixExtension extends ExtensionAdaptor {
         if (getView() != null) {
             // Register our top menu item, as long as we're not running as a daemon
             // Use one of the other methods to add to a different menu list
-            extensionHook.getHookMenu().addToolsMenuItem(getImportAction());
-            extensionHook.getHookMenu().addToolsMenuItem(getRemoteEndpointsAction());
             extensionHook.getHookMenu().addToolsMenuItem(getLocalEndpointsAction());
         }
 
         API.getInstance().registerApiImplementor(new ThreadFixApi(this));
-    }
-
-    public ImportAction getImportAction() {
-       logger.info("Getting menu");
-        if (importAction == null) {
-            importAction = new ImportAction(getView(), getModel());
-        }
-        return importAction;
-    }
-
-    public RemoteEndpointsAction getRemoteEndpointsAction() {
-       logger.info("Getting menu");
-        if (remoteEndpointsAction == null) {
-            remoteEndpointsAction = new RemoteEndpointsAction(getView(), getModel());
-        }
-        return remoteEndpointsAction;
     }
 
     public LocalEndpointsAction getLocalEndpointsAction() {

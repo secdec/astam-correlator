@@ -38,19 +38,7 @@ public class ConfigurationDialogs {
 	private ConfigurationDialogs() {}
 	
 	public static boolean show(ViewDelegate view, DialogMode mode) {
-        if (mode == DialogMode.THREADFIX_APPLICATION) {
-            logger.info("About to show dialog.");
-
-            boolean shouldContinue = ParametersDialog.show(view);
-
-            if (shouldContinue) {
-                logger.info("Got url and key settings. About to show Application selection.");
-
-                shouldContinue = ApplicationDialog.show(view);
-            }
-
-            return shouldContinue;
-        } else if (mode == DialogMode.SOURCE) {
+       if (mode == DialogMode.SOURCE) {
             logger.info("About to show dialog.");
 
             boolean shouldContinue = SourceDialog.show(view);
