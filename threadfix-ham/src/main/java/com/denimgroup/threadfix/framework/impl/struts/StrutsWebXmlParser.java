@@ -86,7 +86,7 @@ public class StrutsWebXmlParser {
 
 
     String trimPathEnd(String path, int numTrimmedParts) {
-        String[] pathParts = path.split("\\/");
+        String[] pathParts = path.split("[\\/\\\\]");
         StringBuilder result = new StringBuilder();
 
         int endIndex = pathParts.length - numTrimmedParts;

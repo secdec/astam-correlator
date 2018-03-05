@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.struts;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.Collection;
@@ -59,10 +60,24 @@ public class StrutsWebPackBuilder {
     }
 
     String makeRelativePath(String rootPath, String absolutePath) {
-        String result = absolutePath.replaceAll("^" + rootPath, "");
-        if (!result.startsWith("/"))
-            result = "/" + result;
-        return result;
+
+        String[] rootParts = rootPath.split("[\\\\\\/]");
+        String[] pathParts = absolutePath.split("[\\\\\\/]");
+
+        int startIndex = 0;
+        for (; startIndex < rootParts.length && startIndex < pathParts.length; startIndex++) {
+            if (!rootParts[startIndex].equalsIgnoreCase(pathParts[startIndex])) {
+                break;
+            }
+        }
+
+        StringBuilder result = new StringBuilder();
+        for (int i = startIndex; i < pathParts.length; i++) {
+            result.append('/');
+            result.append(pathParts[i]);
+        }
+
+        return result.toString();
     }
 
 }

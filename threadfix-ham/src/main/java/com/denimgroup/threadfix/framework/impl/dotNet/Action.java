@@ -47,9 +47,9 @@ class Action {
     @Nonnull
     Set<String> attributes;
     @Nonnull
-    Integer     lineNumber;
+    Integer     lineNumber = -1;
     @Nonnull
-    Integer     endLineNumber;
+    Integer     endLineNumber = -1;
     @Nonnull
     Map<String, RouteParameter> parameters = map();
     @Nonnull

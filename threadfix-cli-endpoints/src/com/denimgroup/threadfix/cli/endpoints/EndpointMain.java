@@ -93,13 +93,13 @@ public class EndpointMain {
 
                             FrameworkType frameworkType = FrameworkType.DETECT;
                             File asFile;
-                            if (line.contains(":")) {
-                                String[] parts = StringUtils.split(line, ":");
+                            if (line.contains(":") && !(new File(line)).exists()) {
+                                String[] parts = StringUtils.split(line, ":", 2);
                                 frameworkType = FrameworkType.getFrameworkType(parts[0].trim());
                                 asFile = new File(parts[1].trim());
 
                                 if (frameworkType == FrameworkType.NONE || frameworkType == FrameworkType.DETECT) {
-                                    System.out.print("WARN: Couldn't parse framework type: '" + frameworkType + "', for '" + asFile.getName() + "' using DETECT");
+                                    System.out.println("WARN: Couldn't parse framework type: '" + frameworkType + "', for '" + asFile.getName() + "' using DETECT");
                                     frameworkType = FrameworkType.DETECT;
                                 }
                             } else {
@@ -315,6 +315,25 @@ public class EndpointMain {
         } else {
             System.out.println("Failed to validate serialization for at least one of these endpoints");
         }
+
+        int numMissingStartLine = 0;
+        int numMissingEndLine = 0;
+        int numSameLineRange = 0;
+        for (Endpoint endpoint : EndpointUtil.flattenWithVariants(endpoints)) {
+            if (endpoint.getStartingLineNumber() < 0) {
+                numMissingStartLine++;
+            }
+            if (endpoint.getEndingLineNumber() < 0) {
+                numMissingEndLine++;
+            }
+            if (endpoint.getStartingLineNumber() >= 0 && endpoint.getStartingLineNumber() == endpoint.getEndingLineNumber()) {
+                numSameLineRange++;
+            }
+        }
+
+        System.out.println(numMissingStartLine + " endpoints were missing code start line");
+        System.out.println(numMissingEndLine + " endpoints were missing code end line");
+        System.out.println(numSameLineRange + " endpoints had the same code start and end line");
 
         List<RouteParameter> detectedParameters = list();
         for (Endpoint endpoint : endpoints) {

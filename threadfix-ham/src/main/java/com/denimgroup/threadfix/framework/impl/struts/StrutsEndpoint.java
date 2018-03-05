@@ -39,7 +39,7 @@ public class StrutsEndpoint extends AbstractEndpoint {
     private String urlPath;
     private Pattern pathRegex = null;
     private String displayFilePath = null;
-    private int startLine, endLine;
+    private int startLine = -1, endLine = -1;
 
     private String method;
     private Map<String, RouteParameter> parameters;

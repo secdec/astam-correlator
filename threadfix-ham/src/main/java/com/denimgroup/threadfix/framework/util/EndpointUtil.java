@@ -20,7 +20,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class EndpointUtil {
 
-    public static List<Endpoint> flattenWithVariants(@Nonnull List<Endpoint> endpoints) {
+    public static List<Endpoint> flattenWithVariants(@Nonnull Collection<Endpoint> endpoints) {
         List<Endpoint> result = list();
         Queue<Endpoint> pendingEndpoints = new ArrayDeque<Endpoint>(endpoints);
 

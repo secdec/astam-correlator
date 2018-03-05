@@ -51,7 +51,7 @@ public class JSPEndpoint extends AbstractEndpoint {
     @Nonnull
 	private String method;
 
-    private int startLine, endLine;
+    private int startLine = -1, endLine = -1;
 
 //	@Nonnull
 //    private final Map<String, Integer> paramToLineMap;

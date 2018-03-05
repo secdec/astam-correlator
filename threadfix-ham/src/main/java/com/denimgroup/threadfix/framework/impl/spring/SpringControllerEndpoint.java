@@ -51,7 +51,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     private String rawFilePath, rawUrlPath;
 	@Nonnull
     private Map<String, RouteParameter> parameters;
-	private int startLineNumber, endLineNumber;
+	private int startLineNumber = -1, endLineNumber = -1;
 
 	private String method;
 	

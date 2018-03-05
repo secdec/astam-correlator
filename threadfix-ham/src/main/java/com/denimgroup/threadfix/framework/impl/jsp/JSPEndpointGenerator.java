@@ -290,13 +290,14 @@ public class JSPEndpointGenerator implements EndpointGenerator {
     }
 
 	void applyLineNumbers(Collection<Endpoint> endpoints) {
+	    Collection<Endpoint> allEndpoints = EndpointUtil.flattenWithVariants(endpoints);
 	    Map<String, Integer> lineCounts = map();
 
-        for (Endpoint endpoint : endpoints) {
+        for (Endpoint endpoint : allEndpoints) {
             String filePath = endpoint.getFilePath();
             File file = new File(filePath);
             if (!file.isAbsolute()) {
-                filePath = PathUtil.combine(jspRoot.getAbsolutePath(), filePath);
+                filePath = PathUtil.combine(projectRoot.getAbsolutePath(), filePath);
                 file = new File(filePath);
             }
 
@@ -310,11 +311,11 @@ public class JSPEndpointGenerator implements EndpointGenerator {
             }
         }
 
-	    for (Endpoint endpoint : endpoints) {
+	    for (Endpoint endpoint : allEndpoints) {
 	        JSPEndpoint jspEndpoint = (JSPEndpoint)endpoint;
 	        String filePath = jspEndpoint.getFilePath();
 	        if (!new File(filePath).isAbsolute()) {
-	            filePath = PathUtil.combine(jspRoot.getAbsolutePath(), filePath);
+	            filePath = PathUtil.combine(projectRoot.getAbsolutePath(), filePath);
             }
 
             if (lineCounts.containsKey(filePath)) {
@@ -337,7 +338,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
         }
 
         for (File welcomeFile : welcomeFileLocations) {
-            String relativePath = FilePathUtils.getRelativePath(welcomeFile.getAbsolutePath(), jspRoot);
+            String relativePath = FilePathUtils.getRelativePath(welcomeFile.getAbsolutePath(), projectRoot);
             String endpointPath = relativePath.substring(0, relativePath.length() - welcomeFile.getName().length());
             JSPEndpoint welcomeEndpoint = new JSPEndpoint(relativePath, endpointPath, "GET", JSPParameterParser.parse(welcomeFile));
             endpoints.add(welcomeEndpoint);
@@ -399,7 +400,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 
                 case MAP_JSP_SERVLET:
                     JSPWebXmlJspServlet jspServlet = mapping.getMappedJspServlet();
-                    filePath = getFullRelativeWebPath(jspServlet.getFilePath());
+                    filePath = getRelativePath(jspServlet.getFilePath());
                     Map<String, RouteParameter> jspParameters = JSPParameterParser.parse(new File(jspServlet.getFilePath()));
                     methodParameters = map();
                     supportedMethods = list("GET", "POST"); // Can't determine whether GET or POST is required, emit both

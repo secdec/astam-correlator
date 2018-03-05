@@ -376,7 +376,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                     methodStartBraceLevel = scopeTracker.getNumOpenBrace();
                     inClassState = InClassState.IN_METHOD;
                 } else {
-                    inClassState = InClassState.IDENTIFICATION;
+                    break;
                 }
 
                 possibleMethodName = "";

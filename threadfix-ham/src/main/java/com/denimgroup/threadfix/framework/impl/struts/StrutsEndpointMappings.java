@@ -155,11 +155,15 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
             StrutsWebPackBuilder webPackBuilder = new StrutsWebPackBuilder();
             File webContentRoot = new File(webXmlParser.getPrimaryWebContentPath());
-            StrutsWebPack primaryWebPack = webPackBuilder.generate(webContentRoot);
-            for (String welcomeFile : webXmlParser.getWelcomeFiles()) {
-                primaryWebPack.addWelcomeFile(welcomeFile);
+            if (!webContentRoot.isDirectory()) {
+                log.warn("Found a web.xml but the content root did not exist!");
+            } else {
+                StrutsWebPack primaryWebPack = webPackBuilder.generate(webContentRoot);
+                for (String welcomeFile : webXmlParser.getWelcomeFiles()) {
+                    primaryWebPack.addWelcomeFile(welcomeFile);
+                }
+                project.addWebPack(primaryWebPack);
             }
-            project.addWebPack(primaryWebPack);
         } else {
             log.warn("Couldn't find web.xml file, won't generate JSP web-packs");
         }
