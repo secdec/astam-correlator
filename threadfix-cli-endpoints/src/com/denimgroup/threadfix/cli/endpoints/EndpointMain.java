@@ -247,9 +247,11 @@ public class EndpointMain {
         line.append("; FILE=");
         line.append(endpoint.getFilePath());
 
-        line.append(" (line ");
+        line.append(" (lines '");
         line.append(endpoint.getStartingLineNumber());
-        line.append(")");
+        line.append("'-'");
+        line.append(endpoint.getEndingLineNumber());
+        line.append("')");
 
         System.out.println(line.toString());
 
