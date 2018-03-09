@@ -51,6 +51,7 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
             URL_KEY = "url",
             APP_ID_KEY = "application-id",
             SOURCE_FOLDER_KEY = "source-folder",
+            AUTO_SPIDER_KEY = "auto-spider",
             SAVE_MESSAGE = "Saving ZAP properties.";
 
     @Override
@@ -81,6 +82,15 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
         return sourceFolder;
     }
 
+    public boolean getAutoSpider() {
+        String autoSpider = getProperties().getProperty(AUTO_SPIDER_KEY);
+        logger.info("returning autospider " + autoSpider);
+        if (autoSpider.equalsIgnoreCase("true"))
+            return true;
+        else
+            return false;
+    }
+
     public static void setKeyAndUrl(String newKey, String newUrl) {
         Properties properties = getProperties();
         properties.setProperty(API_KEY_KEY, newKey);
@@ -100,6 +110,15 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
         saveProperties(properties);
     }
 
+    public static void setAutoSpider(boolean autoSpider)
+    {
+        Properties properties = getProperties();
+        if (autoSpider)
+            properties.setProperty(AUTO_SPIDER_KEY, "true");
+        else
+            properties.setProperty(AUTO_SPIDER_KEY, "false");
+        saveProperties(properties);
+    }
     private static Properties getProperties() {
         Properties properties = new Properties();
 

@@ -59,6 +59,9 @@ import org.parosproxy.paros.network.HttpSender;
 import org.parosproxy.paros.network.HttpStatusCode;
 import org.zaproxy.zap.extension.ascan.ExtensionActiveScan;
 import org.zaproxy.zap.extension.spider.ExtensionSpider;
+import org.zaproxy.zap.extension.threadfix.ZapPropertiesManager;
+
+import javax.swing.*;
 
 public class AttackThread extends Thread {
     public enum Progress { NOT_STARTED, SPIDER, ASCAN, FAILED, COMPLETE, STOPPED }
@@ -103,8 +106,25 @@ public class AttackThread extends Thread {
                 extension.notifyProgress(Progress.STOPPED);
                 return;
             }
-
-            spider(startNode);
+            if (ZapPropertiesManager.INSTANCE.getAutoSpider())
+                spider(startNode);
+            else
+            {
+                for (String node : nodes)
+                {
+                    logger.info("About to call accessNode.");
+                    SiteNode childNode = accessNode(new URL(url + node));
+                    logger.info("got out of accessNode.");
+                    if (childNode != null)
+                    {
+                        logger.info("Child node != null, child node is " + childNode);
+                    }
+                    else
+                    {
+                        logger.info("child node was null.");
+                    }
+                }
+            }
             
             ExtensionActiveScan extAscan = (ExtensionActiveScan) Control.getSingleton().getExtensionLoader().getExtension(ExtensionActiveScan.NAME);
             if (extAscan == null) {
@@ -113,6 +133,11 @@ public class AttackThread extends Thread {
             } else {
                 extension.notifyProgress(Progress.ASCAN);
                 extAscan.onHttpRequestSend(startNode.getHistoryReference().getHttpMessage());
+                //extAscan.startScanNode(startNode);
+                //extAscan.start();
+
+
+
             }
 
         } catch (Exception e) {
@@ -149,7 +174,7 @@ public class AttackThread extends Thread {
                 } else {
                     logger.info("child node was null.");
                 }
-                //extSpider.startScanNode(childNode);
+               // extSpider.startScanNode(childNode);
             }
             logger.info("about to start the extension. node = " + startNode);
             logger.info("child count = " + startNode.getChildCount());
