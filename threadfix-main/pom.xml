@@ -152,7 +152,7 @@
                                       tofile="target/classes/downloads/endpoints.jar" />
                                 <copy file="${project.build.directory}/../../threadfix-data-migration/target/threadfix-data-migration-${project.version}.jar"
                                       tofile="target/classes/downloads/data-migration.jar" />
-                                <copy file="${project.build.directory}/../../threadfix-scanner-plugin/burp/target/codept-release-2-jar-with-dependencies.jar"
+                                <copy file="${project.build.directory}/../../threadfix-scanner-plugin/burp/target/attacksurfacedetector-release-2-jar-with-dependencies.jar"
                                       tofile="target/classes/downloads/release-2-burp.jar" />
                                 <copy file="${project.build.directory}/../../threadfix-scanner-plugin/zaproxy/target/codept-release-1.zap"
                                       tofile="target/classes/downloads/release-2.zap" />

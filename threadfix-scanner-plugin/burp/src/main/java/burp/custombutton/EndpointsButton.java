@@ -298,7 +298,7 @@ public abstract class EndpointsButton extends JButton {
     public void logEndpoints(final Component view, Endpoint.Info[] endpoints) {
         try
         {
-            FileWriter writer = new FileWriter(javax.swing.filechooser.FileSystemView.getFileSystemView().getHomeDirectory()+"/CodePTlogfile.txt", false);
+            FileWriter writer = new FileWriter(javax.swing.filechooser.FileSystemView.getFileSystemView().getHomeDirectory()+"/AttackSurfaceDetectorlogfile.txt", false);
             PrintWriter printer = new PrintWriter(writer);
             for(Endpoint.Info endpoint : endpoints)
             {
