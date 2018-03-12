@@ -390,7 +390,7 @@ public class BurpExtender implements IBurpExtender, ITab
         int yPosition = 0;
 
         addPanelTitleToGridBagLayout("Source Code Analysis", importExportPanel, yPosition++);
-        addPanelDescriptionToGridBagLayout("Use Attack Surface Detector to analyize the server side source code to detect endpoints and parameters and import them into Burp." , importExportPanel, yPosition++);
+        addPanelDescriptionToGridBagLayout("Use Attack Surface Detector to analyze the server side source code to detect endpoints and parameters and import them into Burp." , importExportPanel, yPosition++);
         addPanelDescriptionToGridBagLayout("These results may include URL endpoints and optional parameters a spider may not find." , importExportPanel, yPosition++);
 
         JButton localEndpointsButton = new LocalEndpointsButton(getUiComponent(), callbacks);
