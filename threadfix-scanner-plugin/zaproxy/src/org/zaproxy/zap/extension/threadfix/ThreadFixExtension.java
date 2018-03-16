@@ -86,7 +86,7 @@ public class ThreadFixExtension extends ExtensionAdaptor {
      */
     private void initialize() {
        logger.info("Initialize");
-        this.setName("CodePT");
+        this.setName("Attack Surface Detector");
         // Load extension specific language files - these are held in the extension jar
     }
 
@@ -99,39 +99,11 @@ public class ThreadFixExtension extends ExtensionAdaptor {
             // Register our top menu item, as long as we're not running as a daemon
             // Use one of the other methods to add to a different menu list
             extensionHook.getHookMenu().addToolsMenuItem(getLocalEndpointsAction());
-            extensionHook.getHookView().addStatusPanel(getStatusPanel());
+            extensionHook.getHookView().addStatusPanel(new AttackSurfaceDetectorPanel(getView()));
 
         }
 
         API.getInstance().registerApiImplementor(new ThreadFixApi(this));
-    }
-    private AbstractPanel getStatusPanel() {
-        if (statusPanel == null)
-        {
-            statusPanel = new AbstractPanel();
-            statusPanel.setLayout(new GridBagLayout());
-            Insets statusPanelInsets = new Insets(10, 10, 10, 10);
-            GridBagConstraints statusPanelConstraints = new GridBagConstraints();
-            statusPanelConstraints.gridx = 0;
-            statusPanelConstraints.gridy = 0;
-            statusPanelConstraints.ipadx = 5;
-            statusPanelConstraints.ipady = 5;
-            statusPanelConstraints.insets = statusPanelInsets;
-            statusPanelConstraints.anchor = GridBagConstraints.NORTHWEST;
-            statusPanelConstraints.fill = GridBagConstraints.BOTH;
-            statusPanelConstraints.weightx = 1.0;
-            statusPanelConstraints.weighty = 1.0;
-
-
-            statusPanel.setName("CodePT");
-            tabbedPane = new JTabbedPane();
-            JPanel optionsPanel = buildOptionsPanel();
-            JScrollPane optionsScrollPane = new JScrollPane(optionsPanel);
-            tabbedPane.addTab("Options", optionsScrollPane);
-            statusPanel.add(tabbedPane, statusPanelConstraints);
-        }
-
-        return statusPanel;
     }
 
     private JPanel buildOptionsPanel()
@@ -163,7 +135,7 @@ public class ThreadFixExtension extends ExtensionAdaptor {
         autoOptionsPanel.setLayout(new GridBagLayout());
         int yPosition = 0;
 
-        final JLabel autoOptionsPanelTitle = addPanelTitleToGridBagLayout("Code PT Plugin Behavior", autoOptionsPanel, yPosition++);
+        final JLabel autoOptionsPanelTitle = addPanelTitleToGridBagLayout("Attack Surface Detector Plugin Behavior", autoOptionsPanel, yPosition++);
         ActionListener applicationCheckBoxSpiderActionListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

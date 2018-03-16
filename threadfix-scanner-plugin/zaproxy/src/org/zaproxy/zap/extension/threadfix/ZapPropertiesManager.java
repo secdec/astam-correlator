@@ -52,6 +52,10 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
             APP_ID_KEY = "application-id",
             SOURCE_FOLDER_KEY = "source-folder",
             AUTO_SPIDER_KEY = "auto-spider",
+            HOST_KEY = "host",
+            PORT_KEY = "port",
+            PATH_KEY = "path",
+            HTTPS_KEY = "use-https",
             SAVE_MESSAGE = "Saving ZAP properties.";
 
     @Override
@@ -66,15 +70,6 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
         return getProperties().getProperty(APP_ID_KEY);
     }
 
-    @Override
-    public String getUrl() {
-        String url = getProperties().getProperty(URL_KEY);
-        if (url == null) {
-            url = "http://localhost:8080/threadfix/rest";
-        }
-        logger.info("returning url " + url);
-        return url;
-    }
 
     public String getSourceFolder() {
         String sourceFolder = getProperties().getProperty(SOURCE_FOLDER_KEY);
@@ -82,10 +77,37 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
         return sourceFolder;
     }
 
+    public String getTargetHost() {
+        String targetHost = getProperties().getProperty(HOST_KEY);
+        logger.info("returning targetHost " + targetHost);
+        return targetHost;
+    }
+
+    public String getTargetPort() {
+        String targetPort = getProperties().getProperty(PORT_KEY);
+        logger.info("returning targetPort " + targetPort);
+        return targetPort;
+    }
+
+    public String getTargetPath() {
+        String sourceFolder = getProperties().getProperty(PATH_KEY);
+        logger.info("returning targetPath " + sourceFolder);
+        return sourceFolder;
+    }
+
     public boolean getAutoSpider() {
         String autoSpider = getProperties().getProperty(AUTO_SPIDER_KEY);
         logger.info("returning autospider " + autoSpider);
         if (autoSpider.equalsIgnoreCase("true"))
+            return true;
+        else
+            return false;
+    }
+
+    public boolean getUseHttps() {
+        String useHttps = getProperties().getProperty(HTTPS_KEY);
+        logger.info("returning useHttps " + useHttps);
+        if (useHttps.equalsIgnoreCase("true"))
             return true;
         else
             return false;
@@ -107,6 +129,34 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
     public static void setSourceFolder(String sourceFolder) {
         Properties properties = getProperties();
         properties.setProperty(SOURCE_FOLDER_KEY, sourceFolder);
+        saveProperties(properties);
+    }
+
+    public static void setTargetHost(String targetHost) {
+        Properties properties = getProperties();
+        properties.setProperty(HOST_KEY, targetHost);
+        saveProperties(properties);
+    }
+
+    public static void setTargetPort(String targetPort) {
+        Properties properties = getProperties();
+        properties.setProperty(PORT_KEY, targetPort);
+        saveProperties(properties);
+    }
+
+    public static void setTargetPath(String targetPath) {
+        Properties properties = getProperties();
+        properties.setProperty(PATH_KEY, targetPath);
+        saveProperties(properties);
+    }
+
+    public static void setUseHttps(boolean useHttps)
+    {
+        Properties properties = getProperties();
+        if (useHttps)
+            properties.setProperty(HTTPS_KEY, "true");
+        else
+            properties.setProperty(HTTPS_KEY, "false");
         saveProperties(properties);
     }
 

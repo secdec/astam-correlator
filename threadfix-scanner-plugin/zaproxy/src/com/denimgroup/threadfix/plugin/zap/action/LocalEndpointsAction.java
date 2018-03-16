@@ -48,7 +48,7 @@ public class LocalEndpointsAction extends EndpointsAction {
 
     @Override
     protected String getMenuItemText() {
-        return "CodePT: Import Endpoints from Source";
+        return "Attack Surface Detector: Import Endpoints from Source";
     }
 
     @Override
