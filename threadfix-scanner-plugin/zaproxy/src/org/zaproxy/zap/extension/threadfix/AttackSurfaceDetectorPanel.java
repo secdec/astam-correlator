@@ -18,17 +18,17 @@
 package org.zaproxy.zap.extension.threadfix;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.awt.event.*;
+import java.util.*;
 import java.util.List;
-import java.util.SortedSet;
-import java.util.TreeSet;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import com.denimgroup.threadfix.plugin.zap.action.EndpointsButton;
 import com.denimgroup.threadfix.plugin.zap.dialog.OptionsDialog;
 import org.apache.log4j.Logger;
 import org.parosproxy.paros.Constant;
@@ -96,7 +96,11 @@ public class AttackSurfaceDetectorPanel extends AbstractPanel{
 
         basePanel.add(buildToolBar(),gridBagConstraints1);
 
-        JScrollPane scrollPane = new JScrollPane(new JTextArea("SCROLLLLL"));
+        JTable endPointsTable = buildEndpointsTable();
+
+        ZapPropertiesManager.INSTANCE.setEndpointsTable(endPointsTable);
+
+        JScrollPane scrollPane = new JScrollPane(endPointsTable);
 
 
         //maybe add table to a panel and then add panel to scrollPane?
@@ -133,7 +137,10 @@ public class AttackSurfaceDetectorPanel extends AbstractPanel{
         panelToolbar.setFont(new java.awt.Font("Dialog", java.awt.Font.PLAIN, 12));
         panelToolbar.setName("Attack Surface Detector");
 
-        JButton importButton = new JButton("Import endpoints from source");
+        //JButton importButton = new JButton("Import endpoints from source");
+        EndpointsButton importButton = new EndpointsButton(view,"Import endpoints From Source");
+        //importButton.setText("Import endpoints From Source");
+
         JButton selectedButton = new JButton("View Selected");
         selectedButton.setEnabled(false);
         JButton optionsButton = new JButton("Options");
@@ -193,5 +200,74 @@ public class AttackSurfaceDetectorPanel extends AbstractPanel{
 
         return panelToolbar;
     }
+
+
+   private JTable buildEndpointsTable()
+   {
+       Object[][] data = {};
+       String[] columnNames =
+               {"Detected Endpoints",
+                       "Number of Detected Parameters",
+                       "GET Method",
+                       "POST Method",
+                       "Endpoint"
+               };
+
+       DefaultTableModel dtm = new DefaultTableModel(data, columnNames){
+
+           @Override
+           public boolean isCellEditable(int row, int column) {
+               //all cells false
+               return false;
+           }
+       };
+
+       JTable endpointsTable = new JTable(dtm);
+       endpointsTable.addMouseListener(new MouseListener()
+       {
+           @Override
+           public void mouseClicked(MouseEvent e)
+           {
+
+           }
+
+           @Override
+           public void mousePressed(MouseEvent e)
+           {
+
+           }
+
+           @Override
+           public void mouseReleased(MouseEvent e)
+           {
+
+           }
+
+           @Override
+           public void mouseEntered(MouseEvent e)
+           {
+
+           }
+
+           @Override
+           public void mouseExited(MouseEvent e)
+           {
+
+           }
+       });
+
+       TableColumn tc = endpointsTable.getColumnModel().getColumn(2);
+       tc.setCellEditor(endpointsTable.getDefaultEditor(Boolean.class));
+       tc.setCellRenderer(endpointsTable.getDefaultRenderer(Boolean.class));
+       tc = endpointsTable.getColumnModel().getColumn(3);
+       tc.setCellEditor(endpointsTable.getDefaultEditor(Boolean.class));
+       tc.setCellRenderer(endpointsTable.getDefaultRenderer(Boolean.class));
+       endpointsTable.getColumnModel().getColumn(4).setMinWidth(0);
+       endpointsTable.getColumnModel().getColumn(4).setMaxWidth(0);
+       endpointsTable.getColumnModel().getColumn(4).setWidth(0);
+
+       return endpointsTable;
+
+   }
 
 }

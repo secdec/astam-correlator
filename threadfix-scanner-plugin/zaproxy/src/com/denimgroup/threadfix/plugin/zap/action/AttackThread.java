@@ -79,6 +79,8 @@ public class AttackThread extends Thread {
         this.extension = ext;
     }
 
+    public AttackThread(){}
+
     public void setURL(URL url) {
         this.url = url;
     }
@@ -98,12 +100,14 @@ public class AttackThread extends Thread {
 
             if (startNode == null) {
                 logger.debug("Failed to access URL " + urlString);
-                extension.notifyProgress(Progress.FAILED);
+                if(extension != null)
+                    extension.notifyProgress(Progress.FAILED);
                 return;
             }
             if (stopAttack) {
                 logger.debug("Attack stopped manually");
-                extension.notifyProgress(Progress.STOPPED);
+                if(extension != null)
+                    extension.notifyProgress(Progress.STOPPED);
                 return;
             }
             if (ZapPropertiesManager.INSTANCE.getAutoSpider())
@@ -142,7 +146,8 @@ public class AttackThread extends Thread {
 
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            extension.notifyProgress(Progress.FAILED);
+            if(extension != null)
+                extension.notifyProgress(Progress.FAILED);
         }
     }
 
@@ -153,15 +158,18 @@ public class AttackThread extends Thread {
 
         if (extSpider == null) {
             logger.error("No spider");
-            extension.notifyProgress(Progress.FAILED);
+            if(extension != null)
+                extension.notifyProgress(Progress.FAILED);
             return;
         } else if (startNode == null) {
             logger.error("start node was null");
-            extension.notifyProgress(Progress.FAILED);
+            if(extension != null)
+                extension.notifyProgress(Progress.FAILED);
             return;
         } else {
             logger.info("Starting spider.");
-            extension.notifyProgress(Progress.SPIDER);
+            if(extension != null)
+                extension.notifyProgress(Progress.SPIDER);
             startNode.setAllowsChildren(true);
             for (String node : nodes) {
                 logger.info("About to call accessNode.");
@@ -199,7 +207,8 @@ public class AttackThread extends Thread {
         }
         if (stopAttack) {
             logger.debug("Attack stopped manually");
-            extension.notifyProgress(Progress.STOPPED);
+            if(extension != null)
+                extension.notifyProgress(Progress.STOPPED);
             return;
         }
 
@@ -208,7 +217,8 @@ public class AttackThread extends Thread {
 
         if (stopAttack) {
             logger.debug("Attack stopped manually");
-            extension.notifyProgress(Progress.STOPPED);
+            if(extension != null)
+                extension.notifyProgress(Progress.STOPPED);
         }
     }
 
@@ -222,7 +232,8 @@ public class AttackThread extends Thread {
             getHttpSender().sendAndReceive(msg, true);
 
             if (msg.getResponseHeader().getStatusCode() != HttpStatusCode.OK) {
-                extension.notifyProgress(Progress.FAILED);
+                if(extension != null)
+                    extension.notifyProgress(Progress.FAILED);
                 logger.info("response header was " + msg.getResponseHeader().getStatusCode());
                 return null;
             }

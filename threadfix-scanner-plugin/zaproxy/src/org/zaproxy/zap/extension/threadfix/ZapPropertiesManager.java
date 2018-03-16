@@ -34,6 +34,8 @@ import java.util.Properties;
 
 import org.parosproxy.paros.Constant;
 
+import javax.swing.*;
+
 /**
  * Created by mac on 9/23/13.
  */
@@ -58,6 +60,8 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
             HTTPS_KEY = "use-https",
             SAVE_MESSAGE = "Saving ZAP properties.";
 
+    private static JTable endpointsTable;
+
     @Override
     public String getKey() {
         String key = getProperties().getProperty(API_KEY_KEY);
@@ -70,12 +74,42 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
         return getProperties().getProperty(APP_ID_KEY);
     }
 
+    public void setEndpointsTable(JTable table){endpointsTable = table;}
+
+    public static JTable getEndpointsTable() {return endpointsTable;}
 
     public String getSourceFolder() {
         String sourceFolder = getProperties().getProperty(SOURCE_FOLDER_KEY);
         logger.info("returning source code folder " + sourceFolder);
         return sourceFolder;
     }
+
+
+    public String getTargetUrl()
+    {
+        String proto = new String();
+        if (getUseHttps())
+            proto = "https://";
+        else
+            proto = "http://";
+
+        String path = getTargetPath();
+        String port = getTargetPort();
+        String host = getTargetHost();
+
+        if(port == null || port.trim().isEmpty() || host == null || host.trim().isEmpty())
+            return null;
+
+        if (path == null || path.trim().isEmpty())
+        {
+            return proto + host + ":" + port;
+        }
+        else
+        {
+            return proto + host + ":" + port + "/" + path;
+        }
+    }
+
 
     public String getTargetHost() {
         String targetHost = getProperties().getProperty(HOST_KEY);

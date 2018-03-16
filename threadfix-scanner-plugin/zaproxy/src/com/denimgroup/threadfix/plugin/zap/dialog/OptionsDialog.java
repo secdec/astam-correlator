@@ -14,6 +14,16 @@ public class OptionsDialog {
     private static final Logger logger = Logger.getLogger(SourceDialog.class);
     static boolean https;
 
+
+    public static boolean Validate(final ViewDelegate view)
+    {
+        if (ZapPropertiesManager.INSTANCE.getTargetUrl() != null && !(ZapPropertiesManager.INSTANCE.getSourceFolder() == null || ZapPropertiesManager.INSTANCE.getSourceFolder().isEmpty()))
+            return true;
+        else
+            return show(view);
+    }
+
+
     public static boolean show(final ViewDelegate view) {
         logger.info("Attempting to show dialog.");
         https = ZapPropertiesManager.INSTANCE.getUseHttps();
