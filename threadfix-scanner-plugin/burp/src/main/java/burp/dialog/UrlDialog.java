@@ -59,9 +59,14 @@ public class UrlDialog {
         JTextField hostField = new JTextField(40);
         JTextField portField = new JTextField(40);
         JTextField pathField = new JTextField(40);
+        hostField.setText(BurpPropertiesManager.getBurpPropertiesManager().getTargetHost());
+        portField.setText(BurpPropertiesManager.getBurpPropertiesManager().getTargetPort());
+        pathField.setText(BurpPropertiesManager.getBurpPropertiesManager().getTargetPath());
+
         JLabel panelLabel = new JLabel("URL configuration is required to populate the site map with the detected endpoints" + '\n');
         panelLabel.setForeground(Color.DARK_GRAY);
        JCheckBox httpsField = new JCheckBox();
+       httpsField.setSelected(BurpPropertiesManager.getBurpPropertiesManager().getUseHttps());
 
         ActionListener applicationCheckBoxHttpActionListener = new ActionListener() {
             @Override
@@ -212,7 +217,11 @@ public class UrlDialog {
             }
             else
             {
-                burpPropertiesManager.setUseHttps(https);
+                burpPropertiesManager.setTargetUrl(url);
+                burpPropertiesManager.setTargetPort(port);
+                burpPropertiesManager.setTargetHost(host);
+                burpPropertiesManager.setTargetPath(path);
+               // burpPropertiesManager.setUseHttps(https);
                 return null;
             }
             return url;

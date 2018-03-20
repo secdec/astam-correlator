@@ -80,7 +80,7 @@ public class BurpExtender implements IBurpExtender, ITab
         helpers = callbacks.getHelpers();
 
         // set our extension name
-        callbacks.setExtensionName("Code PT");
+        callbacks.setExtensionName("Attack Surface Detector");
 
         // create UI
         SwingUtilities.invokeLater(new Runnable()
@@ -389,8 +389,8 @@ public class BurpExtender implements IBurpExtender, ITab
         importExportPanel.setLayout(new GridBagLayout());
         int yPosition = 0;
 
-        addPanelTitleToGridBagLayout("Code PT Source Code Analysis", importExportPanel, yPosition++);
-        addPanelDescriptionToGridBagLayout("Use Code PT to analyize the server side source code to detect endpoints and parameters and import them into Burp." , importExportPanel, yPosition++);
+        addPanelTitleToGridBagLayout("Source Code Analysis", importExportPanel, yPosition++);
+        addPanelDescriptionToGridBagLayout("Use Attack Surface Detector to analyze the server side source code to detect endpoints and parameters and import them into Burp." , importExportPanel, yPosition++);
         addPanelDescriptionToGridBagLayout("These results may include URL endpoints and optional parameters a spider may not find." , importExportPanel, yPosition++);
 
         JButton localEndpointsButton = new LocalEndpointsButton(getUiComponent(), callbacks);
@@ -510,7 +510,7 @@ public class BurpExtender implements IBurpExtender, ITab
         autoOptionsPanel.setLayout(new GridBagLayout());
         int yPosition = 0;
 
-        final JLabel autoOptionsPanelTitle = addPanelTitleToGridBagLayout("Code PT Plugin Behavior", autoOptionsPanel, yPosition++);
+        final JLabel autoOptionsPanelTitle = addPanelTitleToGridBagLayout("Attack Surface Detector Plugin Behavior", autoOptionsPanel, yPosition++);
         ActionListener applicationCheckBoxSpiderActionListener = new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -569,7 +569,7 @@ public class BurpExtender implements IBurpExtender, ITab
     @Override
     public String getTabCaption()
     {
-        return "Code PT";
+        return "Attack Surface Detector";
     }
 
     @Override

@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.github.secdec.astam-correlator</groupId>
         <artifactId>master-pom</artifactId>
-        <version>1.1-SNAPSHOT</version>
+        <version>1.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>threadfix</artifactId>
@@ -152,13 +152,13 @@
                                       tofile="target/classes/downloads/endpoints.jar" />
                                 <copy file="${project.build.directory}/../../threadfix-data-migration/target/threadfix-data-migration-${project.version}.jar"
                                       tofile="target/classes/downloads/data-migration.jar" />
-                                <copy file="${project.build.directory}/../../threadfix-scanner-plugin/burp/target/codept-release-2-jar-with-dependencies.jar"
+                                <copy file="${project.build.directory}/../../threadfix-scanner-plugin/burp/target/attacksurfacedetector-release-2-jar-with-dependencies.jar"
                                       tofile="target/classes/downloads/release-2-burp.jar" />
-                                <copy file="${project.build.directory}/../../threadfix-scanner-plugin/zaproxy/target/codept-release-1.zap"
+                                <copy file="${project.build.directory}/../../threadfix-scanner-plugin/zaproxy/target/attacksurfacedetector-release-1.zap"
                                       tofile="target/classes/downloads/release-2.zap" />
                                 <!--<copy file="${project.build.directory}/../../threadfix-sonar-plugin/target/sonar-threadfix-plugin-${project.version}.jar"
                                       tofile="target/classes/downloads/sonar-threadfix-plugin.jar" />-->
-                                <copy file="${project.build.directory}/../../ssvl-converter/target/ssvl-converter-1.1-SNAPSHOT-jar-with-dependencies.jar"
+                                <copy file="${project.build.directory}/../../ssvl-converter/target/ssvl-converter-1.2-SNAPSHOT-jar-with-dependencies.jar"
                                       tofile="target/classes/downloads/ssvl-converter.jar" />
                             </tasks>
                         </configuration>
