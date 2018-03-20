@@ -25,10 +25,20 @@ public class EndpointValidation {
             }
 
             try {
-                deserialized = EndpointSerialization.deserialize(framework, serialized);
+                deserialized = EndpointSerialization.deserialize(serialized);
             } catch (IOException e) {
                 System.out.println("Exception occurred while deserializing: " + endpoint.toString());
                 e.printStackTrace();
+                return false;
+            }
+
+            if (deserialized == null) {
+                System.out.println("Failed to validate serialization due to NULL DESERIALIZED ENDPOINT on " + endpoint.toString());
+                return false;
+            }
+
+            if (!endpoint.getClass().equals(deserialized.getClass())) {
+                System.out.println("Failed to validate serialization due to MISMATCHED ENDPOINT DATATYPES on " + endpoint.toString());
                 return false;
             }
 
