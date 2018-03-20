@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.framework.engine.full;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.EndpointSerializer;
@@ -23,6 +24,8 @@ import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpointSerializer;
 import java.io.IOException;
 
 public class EndpointSerialization {
+
+    private static ObjectMapper DefaultMapper = new ObjectMapper();
 
     private static EndpointSerializer getSerializer(FrameworkType frameworkType) {
         switch (frameworkType) {
@@ -48,15 +51,22 @@ public class EndpointSerialization {
         if (serializer == null) {
             return null;
         }
-        return serializer.serialize(endpoint);
+        String serializedEndpoint = serializer.serialize(endpoint);
+        EndpointSerializationWrapper endpointWrapper = new EndpointSerializationWrapper();
+        endpointWrapper.endpointFrameworkType = frameworkType;
+        endpointWrapper.serializedEndpoint = serializedEndpoint;
+        return DefaultMapper.writeValueAsString(endpointWrapper);
     }
 
-    public static Endpoint deserialize(FrameworkType frameworkType, String serializedEndpoint) throws IOException {
-        EndpointSerializer serializer = getSerializer(frameworkType);
+    public static Endpoint deserialize(String serializedEndpoint) throws IOException {
+        EndpointSerializationWrapper endpointWrapper = DefaultMapper.readValue(serializedEndpoint, EndpointSerializationWrapper.class);
+
+        EndpointSerializer serializer = getSerializer(endpointWrapper.endpointFrameworkType);
         if (serializer == null) {
             return null;
         }
-        return serializer.deserialize(serializedEndpoint);
+
+        return serializer.deserialize(endpointWrapper.serializedEndpoint);
     }
 
     public static FrameworkType getEndpointFrameworkType(Endpoint endpoint) {

@@ -26,10 +26,11 @@ package com.denimgroup.threadfix.plugin.zap.action;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
+import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.plugin.zap.dialog.OptionsDialog;
-import org.apache.log4j.Logger;
 import org.parosproxy.paros.extension.ViewDelegate;
-import org.parosproxy.paros.model.Model;
 import org.zaproxy.zap.extension.threadfix.ZapPropertiesManager;
 
 import javax.swing.*;
@@ -40,40 +41,35 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public abstract class EndpointsAction extends JMenuItem {
+public class EndpointsButton extends JButton {
 
-	public static final String GENERIC_INT_SEGMENT = "\\{id\\}";
-
+    private String name;
+    public static final String GENERIC_INT_SEGMENT = "\\{id\\}";
     private AttackThread attackThread = null;
-
     List<String> nodes = new ArrayList<>();
 
-    public EndpointsAction(final ViewDelegate view, final Model model) {
-        getLogger().info("Initializing Attack Surface Detector menu item: \"" + getMenuItemText() + "\"");
+    public EndpointsButton(final ViewDelegate view, String name) {
+        this.name = name;
         setText(getMenuItemText());
 
         addActionListener(new java.awt.event.ActionListener() {
             @Override
             public void actionPerformed(java.awt.event.ActionEvent e) {
 
-                getLogger().info("About to show dialog.");
-                
+
                 boolean configured = OptionsDialog.Validate(view);
                 boolean completed = false;
-                
+
                 if (configured) {
-	                Endpoint.Info[] endpoints = getEndpoints();
-	                fillEndpointsToTable(endpoints);
-
+                    Endpoint.Info[] endpoints = getEndpoints();
+                    fillEndpointsToTable(endpoints);
                     if ((endpoints == null) || (endpoints.length == 0)) {
-	                	view.showWarningDialog(getNoEndpointsMessage());
-	                } else {
-
-                        getLogger().info("Got " + endpoints.length + " endpoints.");
+                        view.showWarningDialog("Failed to retrieve endpoints from the source. Check your inputs.");
+                    } else {
 
                         buildNodesFromEndpoints(endpoints);
 
-		                String url = ZapPropertiesManager.INSTANCE.getTargetUrl();
+                        String url = ZapPropertiesManager.INSTANCE.getTargetUrl();
 
                         if (url != null) { // cancel not pressed
                             completed = attackUrl(url);
@@ -81,8 +77,9 @@ public abstract class EndpointsAction extends JMenuItem {
                                 view.showWarningDialog("Invalid URL.");
                             }
                         }
-	                }
-                } else if(ZapPropertiesManager.INSTANCE.getSourceFolder() != null &&!ZapPropertiesManager.INSTANCE.getSourceFolder().trim().isEmpty())
+                    }
+                }
+                else if(ZapPropertiesManager.INSTANCE.getSourceFolder() != null &&!ZapPropertiesManager.INSTANCE.getSourceFolder().trim().isEmpty())
                 {
                     Endpoint.Info[] endpoints = getEndpoints();
                     if ((endpoints == null) || (endpoints.length == 0)) {
@@ -91,13 +88,13 @@ public abstract class EndpointsAction extends JMenuItem {
                     else
                     {
                         fillEndpointsToTable(endpoints);
-                        view.showMessageDialog(getCompletedMessage());
+                        view.showMessageDialog("The endpoints were successfully generated from source.");
                     }
 
                 }
 
                 if (completed) {
-                	view.showMessageDialog(getCompletedMessage());
+                    view.showMessageDialog("The endpoints were successfully generated from source.");
                 }
             }
         });
@@ -105,7 +102,6 @@ public abstract class EndpointsAction extends JMenuItem {
 
     public void buildNodesFromEndpoints(Endpoint.Info[] endpoints) {
         for (Endpoint.Info endpoint : endpoints) {
-            getLogger().debug("  " + endpoint.getCsvLine());
             if (endpoint != null) {
 
                 String urlPath = endpoint.getUrlPath();
@@ -137,24 +133,48 @@ public abstract class EndpointsAction extends JMenuItem {
             attack(new URL(url));
             return true;
         } catch (MalformedURLException e1) {
-            getLogger().warn("Bad URL format.");
             return false;
         }
     }
 
     private void attack (URL url) {
-        getLogger().info("Starting url " + url);
 
         if (attackThread != null && attackThread.isAlive()) {
             return;
         }
-        attackThread = new AttackThread(this);
+        attackThread = new AttackThread();
         attackThread.setNodes(nodes);
         attackThread.setURL(url);
         attackThread.start();
 
     }
 
+    public Endpoint.Info[] getEndpoints() {
+        return getEndpoints(ZapPropertiesManager.INSTANCE.getSourceFolder());
+    }
+
+    public Endpoint.Info[] getEndpoints(String sourceFolder) {
+
+        EndpointDatabase endpointDatabase = EndpointDatabaseFactory.getDatabase(sourceFolder);
+
+        Endpoint.Info[] endpoints = null;
+        if (endpointDatabase != null) {
+            List<Endpoint> endpointList = endpointDatabase.generateEndpoints();
+            endpointList = EndpointUtil.flattenWithVariants(endpointList);
+            endpoints = new Endpoint.Info[endpointList.size()];
+            int i = 0;
+            for (Endpoint endpoint : endpointList) {
+                endpoints[i++] = Endpoint.Info.fromEndpoint(endpoint);
+            }
+        }
+
+        return endpoints;
+    }
+
+   public String getMenuItemText()
+   {
+       return name;
+   }
 
     private void fillEndpointsToTable(Endpoint.Info[] endpoints)
     {
@@ -185,20 +205,6 @@ public abstract class EndpointsAction extends JMenuItem {
             count++;
         }
 
-    }
-
-    protected abstract String getMenuItemText();
-
-    protected abstract String getNoEndpointsMessage();
-
-    protected abstract String getCompletedMessage();
-
-    protected abstract Logger getLogger();
-
-    public abstract Endpoint.Info[] getEndpoints();
-
-    public void notifyProgress(AttackThread.Progress progress) {
-        getLogger().info("Status is " + progress);
     }
 
 }

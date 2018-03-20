@@ -82,6 +82,7 @@ public class SourceDialog {
         myPanel.add(sourceFolderField, textBoxConstraints);
         myPanel.add(browseButton, browseButtonConstraints);
 
+
         String attempt = SourceDialog.class.getProtectionDomain().getCodeSource().getLocation().getFile() + "/dg-icon.png";
 
         logger.info("Trying " + attempt);
