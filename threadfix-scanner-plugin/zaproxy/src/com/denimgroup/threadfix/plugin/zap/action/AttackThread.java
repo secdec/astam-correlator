@@ -50,6 +50,7 @@ import java.util.List;
 import org.apache.commons.httpclient.URI;
 import org.apache.log4j.Logger;
 import org.parosproxy.paros.control.Control;
+import org.parosproxy.paros.extension.ViewDelegate;
 import org.parosproxy.paros.extension.history.ExtensionHistory;
 import org.parosproxy.paros.model.HistoryReference;
 import org.parosproxy.paros.model.Model;
@@ -70,13 +71,15 @@ public class AttackThread extends Thread {
     private URL url;
     private HttpSender httpSender = null;
     private boolean stopAttack = false;
+    private ViewDelegate view = null;
 
     private List<String> nodes = null;
 
     private static final Logger logger = Logger.getLogger(AttackThread.class);
 
-    public AttackThread(EndpointsAction ext) {
+    public AttackThread(EndpointsAction ext,  ViewDelegate view) {
         this.extension = ext;
+        this.view = view;
     }
 
     public void setURL(URL url) {
@@ -107,7 +110,9 @@ public class AttackThread extends Thread {
                 return;
             }
             if (ZapPropertiesManager.INSTANCE.getAutoSpider())
+            {
                 spider(startNode);
+            }
             else
             {
                 for (String node : nodes)
@@ -150,7 +155,6 @@ public class AttackThread extends Thread {
         logger.info("About to grab spider.");
         ExtensionSpider extSpider = (ExtensionSpider) Control.getSingleton().getExtensionLoader().getExtension(ExtensionSpider.NAME);
         logger.info("Starting spider.");
-
         if (extSpider == null) {
             logger.error("No spider");
             extension.notifyProgress(Progress.FAILED);
@@ -256,6 +260,7 @@ public class AttackThread extends Thread {
         logger.warn("returning " + startNode);
         return startNode;
     }
+
 
     private HttpSender getHttpSender() {
         if (httpSender == null) {

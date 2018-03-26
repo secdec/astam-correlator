@@ -28,12 +28,15 @@ import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.plugin.zap.dialog.ConfigurationDialogs;
+import com.denimgroup.threadfix.plugin.zap.dialog.OptionsDialog;
 import com.denimgroup.threadfix.plugin.zap.dialog.UrlDialog;
 import org.apache.log4j.Logger;
 import org.parosproxy.paros.extension.ViewDelegate;
 import org.parosproxy.paros.model.Model;
+import org.zaproxy.zap.extension.threadfix.ZapPropertiesManager;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -58,31 +61,33 @@ public abstract class EndpointsAction extends JMenuItem {
 
                 getLogger().info("About to show dialog.");
                 
-                boolean configured = ConfigurationDialogs.show(view, getDialogMode());
+                boolean configured = OptionsDialog.Validate(view);
                 boolean completed = false;
                 
                 if (configured) {
-	                Endpoint.Info[] endpoints = getEndpoints();
+                    getLogger().info("configured");Endpoint.Info[] endpoints = getEndpoints();
 
                     if ((endpoints == null) || (endpoints.length == 0)) {
 	                	view.showWarningDialog(getNoEndpointsMessage());
 	                } else {
-
+                        fillEndpointsToTable(endpoints);
                         getLogger().info("Got " + endpoints.length + " endpoints.");
 
                         buildNodesFromEndpoints(endpoints);
 
-		                String url = UrlDialog.show(view);
-
+		                String url = ZapPropertiesManager.INSTANCE.getTargetUrl();
                         if (url != null) { // cancel not pressed
-                            completed = attackUrl(url);
+                            completed = attackUrl(url, view);
                             if (!completed) {
                                 view.showWarningDialog("Invalid URL.");
                             }
                         }
+                        else
+                        {
+                            view.showMessageDialog(getCompletedMessage());
+                        }
 	                }
                 }
-
                 if (completed) {
                 	view.showMessageDialog(getCompletedMessage());
                 }
@@ -116,12 +121,12 @@ public abstract class EndpointsAction extends JMenuItem {
         }
     }
 
-    public boolean attackUrl(String url) {
+    public boolean attackUrl(String url,  ViewDelegate view) {
         try {
             if(!url.substring(url.length()-1).equals("/")){
                 url = url+"/";
             }
-            attack(new URL(url));
+            attack(new URL(url), view);
             return true;
         } catch (MalformedURLException e1) {
             getLogger().warn("Bad URL format.");
@@ -129,16 +134,47 @@ public abstract class EndpointsAction extends JMenuItem {
         }
     }
 
-    private void attack (URL url) {
+    private void attack (URL url,  ViewDelegate view) {
         getLogger().info("Starting url " + url);
 
         if (attackThread != null && attackThread.isAlive()) {
             return;
         }
-        attackThread = new AttackThread(this);
+        attackThread = new AttackThread(this, view);
         attackThread.setNodes(nodes);
         attackThread.setURL(url);
         attackThread.start();
+
+    }
+
+    private void fillEndpointsToTable(Endpoint.Info[] endpoints)
+    {
+        int count = 0;
+        JTable endpointTable = ZapPropertiesManager.INSTANCE.getEndpointsTable();
+        DefaultTableModel dtm = (DefaultTableModel)endpointTable.getModel();
+        while(dtm.getRowCount() > 0)
+        {
+            dtm.removeRow(0);
+        }
+        for (Endpoint.Info endpoint : endpoints)
+        {
+            boolean hasGet = false;
+            boolean hasPost = false;
+            String method = endpoint.getHttpMethod();
+            if(method.toString().equalsIgnoreCase("post"))
+                hasPost = true;
+            else if (method.toString().equalsIgnoreCase("get"))
+                hasGet = true;
+            dtm.addRow(new Object[]
+                    {
+                            endpoint.getUrlPath(),
+                            endpoint.getParameters().size(),
+                            hasGet,
+                            hasPost,
+                            endpoint
+                    });
+            count++;
+        }
 
     }
 

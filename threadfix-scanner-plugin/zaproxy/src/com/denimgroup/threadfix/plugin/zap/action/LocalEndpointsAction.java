@@ -78,9 +78,10 @@ public class LocalEndpointsAction extends EndpointsAction {
 
     public Endpoint.Info[] getEndpoints(String sourceFolder) {
         getLogger().info("Got source information, about to generate endpoints.");
+        if (sourceFolder== null || sourceFolder.trim().isEmpty())
+            return  null;
 
         EndpointDatabase endpointDatabase = EndpointDatabaseFactory.getDatabase(sourceFolder);
-
         Endpoint.Info[] endpoints = null;
         if (endpointDatabase != null) {
             List<Endpoint> endpointList = endpointDatabase.generateEndpoints();

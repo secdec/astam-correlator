@@ -24,6 +24,7 @@
 
 package org.zaproxy.zap.extension.threadfix;
 
+import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import org.apache.log4j.Logger;
 
 import java.io.File;
@@ -33,6 +34,8 @@ import java.io.IOException;
 import java.util.Properties;
 
 import org.parosproxy.paros.Constant;
+
+import javax.swing.*;
 
 /**
  * Created by mac on 9/23/13.
@@ -65,11 +68,27 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
         return key;
     }
 
+    private static JTable endpointsTable;
+
+    private Endpoint.Info endpoint;
+
     @Override
     public String getAppId() {
         return getProperties().getProperty(APP_ID_KEY);
     }
 
+    public Endpoint.Info getEndpoint() {
+        return endpoint;
+    }
+
+    public void setEndpoint(Endpoint.Info endpoint)
+    {
+        this.endpoint = endpoint;
+    }
+
+    public void setEndpointsTable(JTable table){endpointsTable = table;}
+
+    public static JTable getEndpointsTable() {return endpointsTable;}
 
     public String getSourceFolder() {
         String sourceFolder = getProperties().getProperty(SOURCE_FOLDER_KEY);
@@ -98,6 +117,8 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
     public boolean getAutoSpider() {
         String autoSpider = getProperties().getProperty(AUTO_SPIDER_KEY);
         logger.info("returning autospider " + autoSpider);
+        if (autoSpider == null)
+            return false;
         if (autoSpider.equalsIgnoreCase("true"))
             return true;
         else
@@ -107,6 +128,8 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
     public boolean getUseHttps() {
         String useHttps = getProperties().getProperty(HTTPS_KEY);
         logger.info("returning useHttps " + useHttps);
+        if (useHttps == null)
+            return false;
         if (useHttps.equalsIgnoreCase("true"))
             return true;
         else
@@ -198,7 +221,30 @@ public class ZapPropertiesManager extends AbstractZapPropertiesManager {
 
         return properties;
     }
+    public String getTargetUrl()
+    {
+        String proto = new String();
+        if (getUseHttps())
+            proto = "https://";
+        else
+            proto = "http://";
 
+        String path = getTargetPath();
+        String port = getTargetPort();
+        String host = getTargetHost();
+
+        if(port == null || port.trim().isEmpty() || host == null || host.trim().isEmpty())
+            return null;
+
+         if (path == null || path.trim().isEmpty())
+         {
+             return proto + host + ":" + port;
+        }
+        else
+        {
+            return proto + host + ":" + port + "/" + path;
+        }
+    }
     private static void saveProperties(Properties properties) {
         try (FileWriter writer = new FileWriter(new File(Constant.getZapHome(), FILE_NAME))) {
             properties.store(writer, SAVE_MESSAGE);
