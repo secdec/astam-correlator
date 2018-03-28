@@ -217,7 +217,11 @@ public class UrlDialog {
             }
             else
             {
-                burpPropertiesManager.setUseHttps(https);
+                burpPropertiesManager.setTargetUrl(url);
+                burpPropertiesManager.setTargetPort(port);
+                burpPropertiesManager.setTargetHost(host);
+                burpPropertiesManager.setTargetPath(path);
+               // burpPropertiesManager.setUseHttps(https);
                 return null;
             }
             return url;

@@ -28,7 +28,6 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
-import com.denimgroup.threadfix.plugin.zap.dialog.ConfigurationDialogs;
 import org.apache.log4j.Logger;
 import org.parosproxy.paros.extension.ViewDelegate;
 import org.parosproxy.paros.model.Model;
@@ -61,12 +60,6 @@ public class LocalEndpointsAction extends EndpointsAction {
         return "The endpoints were successfully generated from source.";
     }
 
-    @Override
-    protected ConfigurationDialogs.DialogMode getDialogMode() {
-        return ConfigurationDialogs.DialogMode.SOURCE;
-    }
-
-    @Override
     protected Logger getLogger() {
         return LOGGER;
     }

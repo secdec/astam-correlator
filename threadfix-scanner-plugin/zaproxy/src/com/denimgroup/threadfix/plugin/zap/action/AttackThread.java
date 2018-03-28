@@ -46,6 +46,7 @@ package com.denimgroup.threadfix.plugin.zap.action;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.httpclient.URI;
 import org.apache.log4j.Logger;
@@ -72,8 +73,7 @@ public class AttackThread extends Thread {
     private HttpSender httpSender = null;
     private boolean stopAttack = false;
     private ViewDelegate view = null;
-
-    private List<String> nodes = null;
+    private Map<String, String> nodes = null;
 
     private static final Logger logger = Logger.getLogger(AttackThread.class);
 
@@ -86,27 +86,27 @@ public class AttackThread extends Thread {
         this.url = url;
     }
 
-    public void setNodes(List<String> nodes) {
-        this.nodes = nodes;
-    }
+    public void setNodes(Map<String, String> nodes) {this.nodes = nodes;}
 
     @Override
     public void run() {
         stopAttack = false;
         try {
-            SiteNode startNode = accessNode(this.url);
+            SiteNode startNode = accessNode(this.url, "get");
             String urlString = url.toString();
 
             logger.info("Starting at url : " + urlString);
 
             if (startNode == null) {
                 logger.debug("Failed to access URL " + urlString);
-                extension.notifyProgress(Progress.FAILED);
+                if(extension != null)
+                    extension.notifyProgress(Progress.FAILED);
                 return;
             }
             if (stopAttack) {
                 logger.debug("Attack stopped manually");
-                extension.notifyProgress(Progress.STOPPED);
+                if(extension != null)
+                    extension.notifyProgress(Progress.STOPPED);
                 return;
             }
             if (ZapPropertiesManager.INSTANCE.getAutoSpider())
@@ -115,10 +115,10 @@ public class AttackThread extends Thread {
             }
             else
             {
-                for (String node : nodes)
+                for (Map.Entry<String, String> node : nodes.entrySet())
                 {
                     logger.info("About to call accessNode.");
-                    SiteNode childNode = accessNode(new URL(url + node));
+                    SiteNode childNode = accessNode(new URL(url + node.getKey()), node.getValue());
                     logger.info("got out of accessNode.");
                     if (childNode != null)
                     {
@@ -147,7 +147,8 @@ public class AttackThread extends Thread {
 
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            extension.notifyProgress(Progress.FAILED);
+            if(extension != null)
+                extension.notifyProgress(Progress.FAILED);
         }
     }
 
@@ -157,19 +158,22 @@ public class AttackThread extends Thread {
         logger.info("Starting spider.");
         if (extSpider == null) {
             logger.error("No spider");
-            extension.notifyProgress(Progress.FAILED);
+            if(extension != null)
+                extension.notifyProgress(Progress.FAILED);
             return;
         } else if (startNode == null) {
             logger.error("start node was null");
-            extension.notifyProgress(Progress.FAILED);
+            if(extension != null)
+                extension.notifyProgress(Progress.FAILED);
             return;
         } else {
             logger.info("Starting spider.");
-            extension.notifyProgress(Progress.SPIDER);
+            if(extension != null)
+                extension.notifyProgress(Progress.SPIDER);
             startNode.setAllowsChildren(true);
-            for (String node : nodes) {
+            for (Map.Entry<String, String> node : nodes.entrySet()){
                 logger.info("About to call accessNode.");
-                SiteNode childNode = accessNode(new URL(url + node));
+                SiteNode childNode = accessNode(new URL(url + node.getKey()), node.getValue());
                 logger.info("got out of accessNode.");
                 if (childNode != null) {
                     logger.info("Child node != null, child node is " + childNode);
@@ -203,7 +207,8 @@ public class AttackThread extends Thread {
         }
         if (stopAttack) {
             logger.debug("Attack stopped manually");
-            extension.notifyProgress(Progress.STOPPED);
+            if(extension != null)
+                extension.notifyProgress(Progress.STOPPED);
             return;
         }
 
@@ -212,34 +217,34 @@ public class AttackThread extends Thread {
 
         if (stopAttack) {
             logger.debug("Attack stopped manually");
-            extension.notifyProgress(Progress.STOPPED);
+            if(extension != null)
+                extension.notifyProgress(Progress.STOPPED);
         }
     }
 
-    private SiteNode accessNode(URL url) {
+    private SiteNode accessNode(URL url, String method) {
         logger.info("Trying to find a node for " + url);
 
         SiteNode startNode = null;
         // Request the URL
         try {
-            HttpMessage msg = new HttpMessage(new URI(url.toString(), true));
-            getHttpSender().sendAndReceive(msg, true);
-
-            if (msg.getResponseHeader().getStatusCode() != HttpStatusCode.OK) {
-                extension.notifyProgress(Progress.FAILED);
-                logger.info("response header was " + msg.getResponseHeader().getStatusCode());
-                return null;
+            if(method.toString().equalsIgnoreCase("requestmethod.post") || method.toString().equalsIgnoreCase("post"))
+            {
+                HttpMessage msg2 = new HttpMessage(new URI(url.toString(), true));
+                msg2.getRequestHeader().setMethod("post");
+                getHttpSender().sendAndReceive(msg2, true);
+                ExtensionHistory extHistory = (ExtensionHistory)Control.getSingleton().getExtensionLoader().getExtension(ExtensionHistory.NAME);
+                extHistory.addHistory(msg2, HistoryReference.TYPE_MANUAL);
+                Model.getSingleton().getSession().getSiteTree().addPath(msg2.getHistoryRef());
             }
-
-            if (msg.getResponseHeader().isEmpty()) {
-                logger.info("Response header was empty.");
-                return null;
+            else
+            {
+                HttpMessage msg = new HttpMessage(new URI(url.toString(), true));
+                getHttpSender().sendAndReceive(msg, true);
+                ExtensionHistory extHistory = (ExtensionHistory) Control.getSingleton().getExtensionLoader().getExtension(ExtensionHistory.NAME);
+                extHistory.addHistory(msg, HistoryReference.TYPE_MANUAL);
+                Model.getSingleton().getSession().getSiteTree().addPath(msg.getHistoryRef());
             }
-
-            ExtensionHistory extHistory = (ExtensionHistory)Control.getSingleton().getExtensionLoader().getExtension(ExtensionHistory.NAME);
-            extHistory.addHistory(msg, HistoryReference.TYPE_MANUAL);
-
-            Model.getSingleton().getSession().getSiteTree().addPath(msg.getHistoryRef());
 
             for (int i=0; i < 10; i++) {
                 startNode = Model.getSingleton().getSession().getSiteTree().findNode(new URI(url.toString(), false));

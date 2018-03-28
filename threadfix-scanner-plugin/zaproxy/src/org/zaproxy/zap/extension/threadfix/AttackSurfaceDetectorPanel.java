@@ -26,6 +26,7 @@ import java.util.List;
 
 import javax.swing.*;
 
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
@@ -69,8 +70,8 @@ public class AttackSurfaceDetectorPanel extends AbstractPanel{
     private JButton viewSelectedButton;
     private Model model;
     private AttackThread attackThread = null;
-    List<String> nodes = new ArrayList<>();
-
+    //List<String> nodes = new ArrayList<>();
+    Map<String, String> nodes = new HashMap<String, String>();
 
     /**
      * This is the default constructor
@@ -255,9 +256,6 @@ public class AttackSurfaceDetectorPanel extends AbstractPanel{
                     detailPanel.add(new JLabel("No Endpoint Selected"));
 
                 }
-
-                JOptionPane.showMessageDialog(view.getMainFrame(), detailPanel, "Endpoint details", JOptionPane.INFORMATION_MESSAGE);
-
             }
         });
 
@@ -390,27 +388,67 @@ public class AttackSurfaceDetectorPanel extends AbstractPanel{
     }
 
     public void buildNodesFromEndpoints(Endpoint.Info[] endpoints) {
-        for (Endpoint.Info endpoint : endpoints) {
-            if (endpoint != null) {
+        int count = 0;
+        for (Endpoint.Info endpoint : endpoints)
+        {
+            String endpointPath = endpoint.getUrlPath();
+            if (endpointPath.startsWith("/"))
+            {
+                endpointPath = endpointPath.substring(1);
+            }
+            endpointPath = endpointPath.replaceAll(GENERIC_INT_SEGMENT, "1");
 
-                String urlPath = endpoint.getUrlPath();
-
-                if (urlPath.startsWith("/")) {
-                    urlPath = urlPath.substring(1);
+            boolean first = true;
+            String reqString = endpointPath;
+            String method = endpoint.getHttpMethod();
+            for (Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())
+            {
+                if (first)
+                {
+                    first = false;
+                    reqString = reqString + "?";
+                }
+                else
+                {
+                    reqString = reqString + "&";
                 }
 
-                urlPath = urlPath.replaceAll(GENERIC_INT_SEGMENT, "1");
+                if (parameter.getValue().getDataType() == ParameterDataType.STRING)
+                {
+                    reqString = reqString + parameter.getKey() + "="+"debug";
+                }
 
-                nodes.add(urlPath);
+                else if (parameter.getValue().getDataType() == ParameterDataType.INTEGER)
+                {
+                    reqString = reqString + parameter.getKey() + "="+"-1";
+                }
 
-                Map<String, RouteParameter> params = endpoint.getParameters();
-
-                if (!params.isEmpty()) {
-                    for(Map.Entry<String, RouteParameter> parameter : params.entrySet()){
-                        nodes.add(urlPath + "?" + parameter.getKey() + "=" + parameter.getValue());
-                    }
+                else if (parameter.getValue().getDataType() == ParameterDataType.BOOLEAN)
+                {
+                    reqString = reqString + parameter.getKey() + "="+"true";
+                }
+                else if (parameter.getValue().getDataType() == ParameterDataType.DECIMAL)
+                {
+                    reqString = reqString + parameter.getKey() + "="+".1";
+                }
+                else if (parameter.getValue().getDataType() == ParameterDataType.DATE_TIME)
+                {
+                    reqString = reqString + parameter.getKey() + "="+ new Date();
+                }
+                else if (parameter.getValue().getDataType() == ParameterDataType.LOCAL_DATE)
+                {
+                    reqString = reqString + parameter.getKey() + "="+new Date();
+                }
+                else
+                {
+                    reqString = reqString + parameter.getKey() + "=default";
                 }
             }
+            reqString = reqString.replace("{", "");
+            reqString = reqString.replace("}", "");
+            reqString = reqString.replace(" ", "");
+            nodes.put(reqString, method);
+
         }
     }
 
