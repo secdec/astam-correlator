@@ -256,6 +256,8 @@ public class AttackSurfaceDetectorPanel extends AbstractPanel{
                     detailPanel.add(new JLabel("No Endpoint Selected"));
 
                 }
+
+                JOptionPane.showMessageDialog(view.getMainFrame(), detailPanel, "Endpoint Details", JOptionPane.INFORMATION_MESSAGE);
             }
         });
 
