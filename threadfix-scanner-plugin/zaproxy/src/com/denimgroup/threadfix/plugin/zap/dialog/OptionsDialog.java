@@ -13,20 +13,20 @@ import java.awt.event.ActionListener;
 public class OptionsDialog {
     private static final Logger logger = Logger.getLogger(SourceDialog.class);
     static boolean https;
-
+    static boolean autoSpider;
 
     public static boolean Validate(final ViewDelegate view)
-    {
-        if (ZapPropertiesManager.INSTANCE.getTargetUrl() != null && !(ZapPropertiesManager.INSTANCE.getSourceFolder() == null || ZapPropertiesManager.INSTANCE.getSourceFolder().isEmpty()))
-            return true;
-        else
+   {
+       if (ZapPropertiesManager.INSTANCE.getTargetUrl() != null && !(ZapPropertiesManager.INSTANCE.getSourceFolder() == null || ZapPropertiesManager.INSTANCE.getSourceFolder().isEmpty()))
+          return true;
+       else
             return show(view);
-    }
-
+   }
 
     public static boolean show(final ViewDelegate view) {
         logger.info("Attempting to show dialog.");
         https = ZapPropertiesManager.INSTANCE.getUseHttps();
+        autoSpider = ZapPropertiesManager.INSTANCE.getAutoSpider();
         final JLabel sourceFolderLabel = new JLabel("Source Code Folder");
         final JTextField sourceFolderField = new JTextField(40);
         sourceFolderField.setText(ZapPropertiesManager.INSTANCE.getSourceFolder());
@@ -75,6 +75,18 @@ public class OptionsDialog {
         httpsField.addActionListener(applicationCheckBoxHttpActionListener);
 
 
+        JLabel autoSpiderLabel = new JLabel("Automatically start spider after importing endpoints: ");
+        JCheckBox autoSpiderField = new JCheckBox();
+        autoSpiderField.setSelected(autoSpider);
+
+        ActionListener applicationCheckBoxSpiderActionListener = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                autoSpider = autoSpiderField.isSelected();
+            }
+        };
+
+        autoSpiderField.addActionListener(applicationCheckBoxSpiderActionListener);
 
 
         GridBagLayout experimentLayout = new GridBagLayout();
@@ -195,6 +207,29 @@ public class OptionsDialog {
         optionsPanel.add(httpsField, textBoxConstraints);
 
 
+        labelConstraints = new GridBagConstraints();
+        labelConstraints.gridwidth = 1;
+        labelConstraints.gridx = 0;
+        labelConstraints.gridy = 4;
+        labelConstraints.weightx = 1.0;
+        labelConstraints.fill = GridBagConstraints.HORIZONTAL;
+        labelConstraints.anchor = GridBagConstraints.WEST;
+
+
+        textBoxConstraints = new GridBagConstraints();
+        textBoxConstraints.gridwidth = 4;
+        textBoxConstraints.gridx = 1;
+        textBoxConstraints.gridy = 4;
+        textBoxConstraints.weighty = 1.0;
+        textBoxConstraints.weightx = 1.0;
+        textBoxConstraints.fill = GridBagConstraints.HORIZONTAL;
+        textBoxConstraints.anchor = GridBagConstraints.EAST;
+
+        optionsPanel.add(autoSpiderLabel, labelConstraints);
+        optionsPanel.add(autoSpiderField, textBoxConstraints);
+
+
+
         GridBagConstraints panelConstraints = new GridBagConstraints();
         panelConstraints.gridwidth = 1;
         panelConstraints.gridx = 0;
@@ -222,6 +257,7 @@ public class OptionsDialog {
             ZapPropertiesManager.setTargetPath(pathField.getText());
             ZapPropertiesManager.setTargetPort(portField.getText());
             ZapPropertiesManager.setUseHttps(https);
+            ZapPropertiesManager.setAutoSpider(autoSpider);
             ZapPropertiesManager.setSourceFolder(sourceFolderField.getText());
 
             return true;

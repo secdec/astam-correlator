@@ -271,7 +271,7 @@ public abstract class EndpointsButton extends JButton {
                           callbacks.getHelpers().addParameter(req, param);
                     }
                     byte[] manReq = callbacks.getHelpers().buildHttpRequest(new URL(url + reqString));
-                    if(method.toString().equalsIgnoreCase("requestmethod.post"))
+                    if(method.toString().equalsIgnoreCase("requestmethod.post") || method.toString().equalsIgnoreCase("post"))
                     {
                         manReq = callbacks.getHelpers().toggleRequestMethod(manReq);
                     }

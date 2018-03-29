@@ -25,8 +25,10 @@
 package com.denimgroup.threadfix.plugin.zap.action;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.plugin.zap.dialog.OptionsDialog;
+import com.denimgroup.threadfix.plugin.zap.dialog.UrlDialog;
 import org.apache.log4j.Logger;
 import org.parosproxy.paros.extension.ViewDelegate;
 import org.parosproxy.paros.model.Model;
@@ -36,9 +38,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class EndpointsAction extends JMenuItem {
 
@@ -46,7 +46,7 @@ public abstract class EndpointsAction extends JMenuItem {
 
     private AttackThread attackThread = null;
 
-    List<String> nodes = new ArrayList<>();
+    Map<String, String> nodes = new HashMap<String, String>();
 
     public EndpointsAction(final ViewDelegate view, final Model model) {
         getLogger().info("Initializing Attack Surface Detector menu item: \"" + getMenuItemText() + "\"");
@@ -62,40 +62,29 @@ public abstract class EndpointsAction extends JMenuItem {
                 boolean completed = false;
                 
                 if (configured) {
-	                Endpoint.Info[] endpoints = getEndpoints();
-	                fillEndpointsToTable(endpoints);
+                    getLogger().info("configured");Endpoint.Info[] endpoints = getEndpoints();
 
                     if ((endpoints == null) || (endpoints.length == 0)) {
 	                	view.showWarningDialog(getNoEndpointsMessage());
 	                } else {
-
+                        fillEndpointsToTable(endpoints);
                         getLogger().info("Got " + endpoints.length + " endpoints.");
 
-                        buildNodesFromEndpoints(endpoints);
+                        buildNodesFromEndpoints(endpoints, view);
 
 		                String url = ZapPropertiesManager.INSTANCE.getTargetUrl();
-
                         if (url != null) { // cancel not pressed
-                            completed = attackUrl(url);
+                            completed = attackUrl(url, view);
                             if (!completed) {
                                 view.showWarningDialog("Invalid URL.");
                             }
                         }
+                        else
+                        {
+                            view.showMessageDialog(getCompletedMessage());
+                        }
 	                }
-                } else if(ZapPropertiesManager.INSTANCE.getSourceFolder() != null &&!ZapPropertiesManager.INSTANCE.getSourceFolder().trim().isEmpty())
-                {
-                    Endpoint.Info[] endpoints = getEndpoints();
-                    if ((endpoints == null) || (endpoints.length == 0)) {
-                        view.showWarningDialog("Failed to retrieve endpoints from the source. Check your inputs.");
-                    }
-                    else
-                    {
-                        fillEndpointsToTable(endpoints);
-                        view.showMessageDialog(getCompletedMessage());
-                    }
-
                 }
-
                 if (completed) {
                 	view.showMessageDialog(getCompletedMessage());
                 }
@@ -103,38 +92,75 @@ public abstract class EndpointsAction extends JMenuItem {
         });
     }
 
-    public void buildNodesFromEndpoints(Endpoint.Info[] endpoints) {
-        for (Endpoint.Info endpoint : endpoints) {
-            getLogger().debug("  " + endpoint.getCsvLine());
-            if (endpoint != null) {
-
-                String urlPath = endpoint.getUrlPath();
-
-                if (urlPath.startsWith("/")) {
-                    urlPath = urlPath.substring(1);
+    public void buildNodesFromEndpoints(Endpoint.Info[] endpoints , final ViewDelegate view) {
+        for (Endpoint.Info endpoint : endpoints)
+        {
+                String endpointPath = endpoint.getUrlPath();
+                if (endpointPath.startsWith("/"))
+                {
+                    endpointPath = endpointPath.substring(1);
                 }
+                endpointPath = endpointPath.replaceAll(GENERIC_INT_SEGMENT, "1");
 
-                urlPath = urlPath.replaceAll(GENERIC_INT_SEGMENT, "1");
+                boolean first = true;
+                String reqString = endpointPath;
+                String method = endpoint.getHttpMethod();
+                    for (Map.Entry<String, RouteParameter> parameter : endpoint.getParameters().entrySet())
+                    {
+                        if (first)
+                        {
+                            first = false;
+                            reqString = reqString + "?";
+                        }
+                        else
+                        {
+                            reqString = reqString + "&";
+                        }
 
-                nodes.add(urlPath);
+                        if (parameter.getValue().getDataType() == ParameterDataType.STRING)
+                        {
+                            reqString = reqString + parameter.getKey() + "="+"debug";
+                        }
 
-                Map<String, RouteParameter> params = endpoint.getParameters();
+                        else if (parameter.getValue().getDataType() == ParameterDataType.INTEGER)
+                        {
+                            reqString = reqString + parameter.getKey() + "="+"-1";
+                        }
 
-                if (!params.isEmpty()) {
-                    for(Map.Entry<String, RouteParameter> parameter : params.entrySet()){
-                        nodes.add(urlPath + "?" + parameter.getKey() + "=" + parameter.getValue());
+                        else if (parameter.getValue().getDataType() == ParameterDataType.BOOLEAN)
+                        {
+                            reqString = reqString + parameter.getKey() + "="+"true";
+                        }
+                        else if (parameter.getValue().getDataType() == ParameterDataType.DECIMAL)
+                        {
+                            reqString = reqString + parameter.getKey() + "="+".1";
+                        }
+                        else if (parameter.getValue().getDataType() == ParameterDataType.DATE_TIME)
+                        {
+                            reqString = reqString + parameter.getKey() + "="+ new Date();
+                        }
+                        else if (parameter.getValue().getDataType() == ParameterDataType.LOCAL_DATE)
+                        {
+                            reqString = reqString + parameter.getKey() + "="+new Date();
+                        }
+                        else
+                        {
+                            reqString = reqString + parameter.getKey() + "=default";
+                        }
                     }
-                }
-            }
+                    reqString = reqString.replace("{", "");
+                    reqString = reqString.replace("}", "");
+                    reqString = reqString.replace(" ", "");
+                    nodes.put(reqString, method);
         }
     }
 
-    public boolean attackUrl(String url) {
+    public boolean attackUrl(String url,  ViewDelegate view) {
         try {
             if(!url.substring(url.length()-1).equals("/")){
                 url = url+"/";
             }
-            attack(new URL(url));
+            attack(new URL(url), view);
             return true;
         } catch (MalformedURLException e1) {
             getLogger().warn("Bad URL format.");
@@ -142,19 +168,18 @@ public abstract class EndpointsAction extends JMenuItem {
         }
     }
 
-    private void attack (URL url) {
+    private void attack (URL url,  ViewDelegate view) {
         getLogger().info("Starting url " + url);
 
         if (attackThread != null && attackThread.isAlive()) {
             return;
         }
-        attackThread = new AttackThread(this);
+        attackThread = new AttackThread(this, view);
         attackThread.setNodes(nodes);
         attackThread.setURL(url);
         attackThread.start();
 
     }
-
 
     private void fillEndpointsToTable(Endpoint.Info[] endpoints)
     {
@@ -192,6 +217,7 @@ public abstract class EndpointsAction extends JMenuItem {
     protected abstract String getNoEndpointsMessage();
 
     protected abstract String getCompletedMessage();
+
 
     protected abstract Logger getLogger();
 

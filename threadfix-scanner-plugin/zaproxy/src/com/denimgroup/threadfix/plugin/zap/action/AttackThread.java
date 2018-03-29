@@ -46,10 +46,12 @@ package com.denimgroup.threadfix.plugin.zap.action;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.httpclient.URI;
 import org.apache.log4j.Logger;
 import org.parosproxy.paros.control.Control;
+import org.parosproxy.paros.extension.ViewDelegate;
 import org.parosproxy.paros.extension.history.ExtensionHistory;
 import org.parosproxy.paros.model.HistoryReference;
 import org.parosproxy.paros.model.Model;
@@ -70,30 +72,27 @@ public class AttackThread extends Thread {
     private URL url;
     private HttpSender httpSender = null;
     private boolean stopAttack = false;
-
-    private List<String> nodes = null;
+    private ViewDelegate view = null;
+    private Map<String, String> nodes = null;
 
     private static final Logger logger = Logger.getLogger(AttackThread.class);
 
-    public AttackThread(EndpointsAction ext) {
+    public AttackThread(EndpointsAction ext,  ViewDelegate view) {
         this.extension = ext;
+        this.view = view;
     }
-
-    public AttackThread(){}
 
     public void setURL(URL url) {
         this.url = url;
     }
 
-    public void setNodes(List<String> nodes) {
-        this.nodes = nodes;
-    }
+    public void setNodes(Map<String, String> nodes) {this.nodes = nodes;}
 
     @Override
     public void run() {
         stopAttack = false;
         try {
-            SiteNode startNode = accessNode(this.url);
+            SiteNode startNode = accessNode(this.url, "get");
             String urlString = url.toString();
 
             logger.info("Starting at url : " + urlString);
@@ -111,13 +110,15 @@ public class AttackThread extends Thread {
                 return;
             }
             if (ZapPropertiesManager.INSTANCE.getAutoSpider())
+            {
                 spider(startNode);
+            }
             else
             {
-                for (String node : nodes)
+                for (Map.Entry<String, String> node : nodes.entrySet())
                 {
                     logger.info("About to call accessNode.");
-                    SiteNode childNode = accessNode(new URL(url + node));
+                    SiteNode childNode = accessNode(new URL(url + node.getKey()), node.getValue());
                     logger.info("got out of accessNode.");
                     if (childNode != null)
                     {
@@ -155,7 +156,6 @@ public class AttackThread extends Thread {
         logger.info("About to grab spider.");
         ExtensionSpider extSpider = (ExtensionSpider) Control.getSingleton().getExtensionLoader().getExtension(ExtensionSpider.NAME);
         logger.info("Starting spider.");
-
         if (extSpider == null) {
             logger.error("No spider");
             if(extension != null)
@@ -171,9 +171,9 @@ public class AttackThread extends Thread {
             if(extension != null)
                 extension.notifyProgress(Progress.SPIDER);
             startNode.setAllowsChildren(true);
-            for (String node : nodes) {
+            for (Map.Entry<String, String> node : nodes.entrySet()){
                 logger.info("About to call accessNode.");
-                SiteNode childNode = accessNode(new URL(url + node));
+                SiteNode childNode = accessNode(new URL(url + node.getKey()), node.getValue());
                 logger.info("got out of accessNode.");
                 if (childNode != null) {
                     logger.info("Child node != null, child node is " + childNode);
@@ -222,31 +222,29 @@ public class AttackThread extends Thread {
         }
     }
 
-    private SiteNode accessNode(URL url) {
+    private SiteNode accessNode(URL url, String method) {
         logger.info("Trying to find a node for " + url);
 
         SiteNode startNode = null;
         // Request the URL
         try {
-            HttpMessage msg = new HttpMessage(new URI(url.toString(), true));
-            getHttpSender().sendAndReceive(msg, true);
-
-            if (msg.getResponseHeader().getStatusCode() != HttpStatusCode.OK) {
-                if(extension != null)
-                    extension.notifyProgress(Progress.FAILED);
-                logger.info("response header was " + msg.getResponseHeader().getStatusCode());
-                return null;
+            if(method.toString().equalsIgnoreCase("requestmethod.post") || method.toString().equalsIgnoreCase("post"))
+            {
+                HttpMessage msg2 = new HttpMessage(new URI(url.toString(), true));
+                msg2.getRequestHeader().setMethod("post");
+                getHttpSender().sendAndReceive(msg2, true);
+                ExtensionHistory extHistory = (ExtensionHistory)Control.getSingleton().getExtensionLoader().getExtension(ExtensionHistory.NAME);
+                extHistory.addHistory(msg2, HistoryReference.TYPE_MANUAL);
+                Model.getSingleton().getSession().getSiteTree().addPath(msg2.getHistoryRef());
             }
-
-            if (msg.getResponseHeader().isEmpty()) {
-                logger.info("Response header was empty.");
-                return null;
+            else
+            {
+                HttpMessage msg = new HttpMessage(new URI(url.toString(), true));
+                getHttpSender().sendAndReceive(msg, true);
+                ExtensionHistory extHistory = (ExtensionHistory) Control.getSingleton().getExtensionLoader().getExtension(ExtensionHistory.NAME);
+                extHistory.addHistory(msg, HistoryReference.TYPE_MANUAL);
+                Model.getSingleton().getSession().getSiteTree().addPath(msg.getHistoryRef());
             }
-
-            ExtensionHistory extHistory = (ExtensionHistory)Control.getSingleton().getExtensionLoader().getExtension(ExtensionHistory.NAME);
-            extHistory.addHistory(msg, HistoryReference.TYPE_MANUAL);
-
-            Model.getSingleton().getSession().getSiteTree().addPath(msg.getHistoryRef());
 
             for (int i=0; i < 10; i++) {
                 startNode = Model.getSingleton().getSession().getSiteTree().findNode(new URI(url.toString(), false));
@@ -267,6 +265,7 @@ public class AttackThread extends Thread {
         logger.warn("returning " + startNode);
         return startNode;
     }
+
 
     private HttpSender getHttpSender() {
         if (httpSender == null) {
