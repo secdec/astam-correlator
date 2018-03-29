@@ -5,7 +5,7 @@
 
     <groupId>com.github.secdec.astam-correlator</groupId>
     <artifactId>master-pom</artifactId>
-    <version>1.2-SNAPSHOT</version>
+    <version>1.2.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ThreadFix</name>
