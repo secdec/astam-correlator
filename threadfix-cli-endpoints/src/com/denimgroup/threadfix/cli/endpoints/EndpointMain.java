@@ -312,7 +312,7 @@ public class EndpointMain {
             }
         }
 
-        if (EndpointValidation.validateSerialization(framework, endpoints)) {
+        if (EndpointValidation.validateSerialization(framework, rootFile, endpoints)) {
             System.out.println("Successfully validated serialization for these endpoints");
         } else {
             System.out.println("Failed to validate serialization for at least one of these endpoints");

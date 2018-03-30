@@ -6,14 +6,21 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointSerialization;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 public class EndpointValidation {
-    public static boolean validateSerialization(FrameworkType framework, List<Endpoint> endpoints) {
+    public static boolean validateSerialization(FrameworkType framework, File sourceCodeFolder, List<Endpoint> endpoints) {
         List<Endpoint> allEndpoints = EndpointUtil.flattenWithVariants(endpoints);
         for (Endpoint endpoint : allEndpoints) {
+
+            if (endpoint.getFilePath().startsWith(sourceCodeFolder.getAbsolutePath())) {
+                System.out.println("Got an absolute file path when a relative path was expected instead, for: " + endpoint.toString());
+                return false;
+            }
+
             String serialized;
             Endpoint deserialized;
             try {
