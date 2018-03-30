@@ -23,10 +23,12 @@
 
 package com.denimgroup.threadfix.framework.util;
 
+import org.apache.commons.lang3.SystemUtils;
+
 public class PathUtil {
 
     public static String combine(String begin, String end) {
-        return combine(begin, end, true);
+        return combine(begin, end, !SystemUtils.IS_OS_WINDOWS);
     }
 
     public static String combine(String begin, String end, boolean prefixWithSlash) {
