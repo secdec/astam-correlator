@@ -54,26 +54,6 @@ cd $THREADFIX_SOURCE
 # cp ThreadFix-ScanAgent-$VERSION.zip $ARTIFACTS_FOLDER
 # cd ../../
 
-# Build ZAP plugin
-FOLDER_NAME=$BUILDING_AREA/Build/ThreadFix-ZapPlugin-$VERSION
-mkdir $FOLDER_NAME
-cp $THREADFIX_SOURCE/threadfix-scanner-plugin/zaproxy/target/Zap-Plugin-$VERSION-SNAPSHOT-jar-with-dependencies.jar $FOLDER_NAME/attacksurfacedetector-release-1.zap
-cp $THREADFIX_SOURCE/threadfix-scanner-plugin/zaproxy/README $FOLDER_NAME
-cd  $FOLDER_NAME
-zip -q ThreadFix-ZapPlugin-$VERSION.zip -r ./*
-cp ThreadFix-ZapPlugin-$VERSION.zip $ARTIFACTS_FOLDER
-cd $THREADFIX_SOURCE
-
-# Build Burp plugin
-FOLDER_NAME=$BUILDING_AREA/Build/ThreadFix-BurpPlugin-$VERSION
-mkdir $FOLDER_NAME
-cp $THREADFIX_SOURCE/threadfix-scanner-plugin/burp/target/threadfix-release-2-jar-with-dependencies.jar $FOLDER_NAME/threadfix-release-2.jar
-cp $THREADFIX_SOURCE/threadfix-scanner-plugin/burp/README $FOLDER_NAME
-cd  $FOLDER_NAME
-zip  -q ThreadFix-BurpPlugin-$VERSION.zip -r ./*
-cp ThreadFix-BurpPlugin-$VERSION.zip $ARTIFACTS_FOLDER
-cd $THREADFIX_SOURCE
-
 # Build IntelliJ--export intellij.zip to Build folder using "Prepare module for deployment"
 FOLDER_NAME=$BUILDING_AREA/Build/ThreadFix-IntelliJPlugin-$VERSION
 mkdir $FOLDER_NAME
