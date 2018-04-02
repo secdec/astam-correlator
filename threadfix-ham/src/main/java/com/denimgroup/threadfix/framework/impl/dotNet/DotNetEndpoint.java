@@ -36,6 +36,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
@@ -48,6 +49,7 @@ public class DotNetEndpoint extends AbstractEndpoint {
     @Nonnull String filePath;
     @Nonnull Action action;
 
+    Pattern pathPattern;
     String forcedMethod = null;
 
     private DotNetEndpoint() {
@@ -58,12 +60,15 @@ public class DotNetEndpoint extends AbstractEndpoint {
         this.path = path;
         this.filePath = filePath;
         this.action = action;
+        this.pathPattern = Pattern.compile(path.replaceAll("\\{.+\\}", "[^\\/]+"));
     }
 
     @Override
     public int compareRelevance(String endpoint) {
         if (endpoint.equalsIgnoreCase(path)) {
             return 100;
+        } else if (pathPattern.matcher(endpoint).find()) {
+            return path.length();
         } else {
             return -1;
         }

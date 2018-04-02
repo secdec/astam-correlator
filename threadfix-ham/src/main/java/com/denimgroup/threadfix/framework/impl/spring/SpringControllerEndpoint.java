@@ -48,6 +48,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 	
 	@Nonnull
     private String rawFilePath, rawUrlPath;
+	Pattern rawUrlPathPattern;
 	@Nonnull
     private Map<String, RouteParameter> parameters;
 	private int startLineNumber = -1, endLineNumber = -1;
@@ -89,6 +90,8 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 
         this.parameters = parameters;
         this.method = method;
+
+        this.rawUrlPathPattern = Pattern.compile(urlPath.replaceAll("\\{.+\\}", "[^\\/]+"));
     }
 
     /**
@@ -154,6 +157,8 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     public int compareRelevance(String endpoint) {
         if (getUrlPath().equalsIgnoreCase(endpoint)) {
             return 100;
+        } else if (rawUrlPathPattern.matcher(endpoint).find()) {
+            return rawUrlPath.length();
         } else {
             return -1;
         }
