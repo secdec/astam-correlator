@@ -21,8 +21,6 @@ public final class ExplicitEndpointPathNode implements EndpointPathNode {
     public boolean matches(@Nonnull EndpointPathNode node) {
         if (node instanceof ExplicitEndpointPathNode) {
             return matches(((ExplicitEndpointPathNode) node).pathPart);
-        } else if (node instanceof WildcardEndpointPathNode) {
-            return true;
         } else {
             return node.matches(this);
         }

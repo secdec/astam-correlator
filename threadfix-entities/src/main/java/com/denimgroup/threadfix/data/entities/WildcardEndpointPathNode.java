@@ -19,7 +19,7 @@ public class WildcardEndpointPathNode implements EndpointPathNode {
 
     @Override
     public boolean matches(@Nonnull EndpointPathNode node) {
-        return true;
+        return node instanceof WildcardEndpointPathNode;
     }
 
     public boolean hasPattern() {

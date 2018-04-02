@@ -36,6 +36,8 @@ public class EndpointStructure {
                     EndpointStructureNode newNode = new EndpointStructureNode(node);
                     parent.addChild(newNode);
                     parent = newNode;
+                } else {
+                    parent = newParent;
                 }
             }
         }
