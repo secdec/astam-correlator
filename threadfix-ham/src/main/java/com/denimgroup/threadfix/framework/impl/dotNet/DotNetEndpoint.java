@@ -27,6 +27,7 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.WildcardEndpointPathNode;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import org.apache.commons.lang3.StringUtils;
@@ -100,7 +101,11 @@ public class DotNetEndpoint extends AbstractEndpoint {
 
         String[] pathParts = StringUtils.split(path, '/');
         for (String part : pathParts) {
-            result.add(new ExplicitEndpointPathNode(part));
+            if (part.contains("{")) {
+                result.add(new WildcardEndpointPathNode(null));
+            } else {
+                result.add(new ExplicitEndpointPathNode(part));
+            }
         }
 
         return result;

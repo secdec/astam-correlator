@@ -248,7 +248,11 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 
         String[] parts = StringUtils.split(getUrlPath(), '/');
         for (String part : parts) {
-            result.add(new ExplicitEndpointPathNode(part));
+            if (part.contains("{")) {
+                result.add(new WildcardEndpointPathNode(null));
+            } else {
+                result.add(new ExplicitEndpointPathNode(part));
+            }
         }
 
         return result;
