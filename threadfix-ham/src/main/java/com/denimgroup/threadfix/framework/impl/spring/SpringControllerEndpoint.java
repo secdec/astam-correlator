@@ -27,17 +27,16 @@ package com.denimgroup.threadfix.framework.impl.spring;
 
 import com.denimgroup.threadfix.data.entities.*;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.util.RegexUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.*;
@@ -242,7 +241,20 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         }
 	}
 
-	@Nonnull
+    @Nonnull
+    @Override
+    public List<EndpointPathNode> getUrlPathNodes() {
+        List<EndpointPathNode> result = new ArrayList<EndpointPathNode>();
+
+        String[] parts = StringUtils.split(getUrlPath(), '/');
+        for (String part : parts) {
+            result.add(new ExplicitEndpointPathNode(part));
+        }
+
+        return result;
+    }
+
+    @Nonnull
     @Override
 	public String getFilePath() {
 		return getCleanedFilePath();

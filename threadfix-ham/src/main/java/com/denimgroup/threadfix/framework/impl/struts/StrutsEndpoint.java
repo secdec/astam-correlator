@@ -25,10 +25,15 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.WildcardEndpointPathNode;
+import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -94,6 +99,25 @@ public class StrutsEndpoint extends AbstractEndpoint {
     @Override
     public String getUrlPath() {
         return urlPath;
+    }
+
+    @Nonnull
+    @Override
+    public List<EndpointPathNode> getUrlPathNodes() {
+        List<EndpointPathNode> result = new ArrayList<EndpointPathNode>();
+        String[] pathParts = StringUtils.split(urlPath, '/');
+
+        for (String part : pathParts) {
+            if (part.contains("{") && part.contains("}")) {
+                result.add(new WildcardEndpointPathNode(null));
+            } else if (part.contains("*")) {
+                result.add(new WildcardEndpointPathNode(part.replaceAll("\\*", ".*")));
+            } else {
+                result.add(new ExplicitEndpointPathNode(part));
+            }
+        }
+
+        return result;
     }
 
     @Nonnull

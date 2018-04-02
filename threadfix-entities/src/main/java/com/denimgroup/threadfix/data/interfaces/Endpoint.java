@@ -46,6 +46,9 @@ public interface Endpoint extends Comparable<Endpoint> {
 	String getUrlPath();
 
     @Nonnull
+    List<EndpointPathNode> getUrlPathNodes();
+
+    @Nonnull
 	String getFilePath();
 
     int compareRelevance(String endpoint);

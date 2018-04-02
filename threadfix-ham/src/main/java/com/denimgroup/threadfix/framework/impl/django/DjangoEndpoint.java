@@ -24,8 +24,10 @@
 
 package com.denimgroup.threadfix.framework.impl.django;
 
-import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.*;
+import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -171,6 +173,36 @@ public class DjangoEndpoint extends AbstractEndpoint {
         } else {
             return "/^(?P<i18>[\\w\\-_]+)" + urlPath;
         }
+    }
+
+    @Nonnull
+    @Override
+    public List<EndpointPathNode> getUrlPathNodes() {
+        List<EndpointPathNode> result = new ArrayList<EndpointPathNode>();
+        String[] pathParts = StringUtils.split(urlPath);
+
+        if (isInternationalized) {
+            result.add(new MultiValueEndpointPathNode(I18_SUPPORTED_LANGS));
+        }
+
+        for (String part : pathParts) {
+            if (part.startsWith("^")) {
+                part = part.substring(1);
+            }
+            if (part.endsWith("$")) {
+                part = part.substring(0, part.length() - 1);
+            }
+            if (part.isEmpty()) {
+                continue;
+            }
+            if (part.contains("(") || part.contains("[")) {
+                result.add(new WildcardEndpointPathNode(part));
+            } else {
+                result.add(new ExplicitEndpointPathNode(part));
+            }
+        }
+
+        return result;
     }
 
     @Nonnull

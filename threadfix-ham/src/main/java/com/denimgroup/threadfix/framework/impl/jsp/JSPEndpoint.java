@@ -25,15 +25,18 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.jsp;
 
+import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.data.entities.WildcardEndpointPathNode;
+import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.engine.CodePoint;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.List;
@@ -185,6 +188,23 @@ public class JSPEndpoint extends AbstractEndpoint {
     @Override
 	public String getUrlPath() {
 		return dynamicPath;
+	}
+
+	@Nonnull
+	@Override
+	public List<EndpointPathNode> getUrlPathNodes() {
+		List<EndpointPathNode> result = new ArrayList<EndpointPathNode>();
+
+		String[] pathParts = StringUtils.split(dynamicPath, '/');
+		for (String part : pathParts) {
+			if (part.contains("*")) {
+				result.add(new WildcardEndpointPathNode(part.replaceAll("\\*", ".*")));
+			} else {
+				result.add(new ExplicitEndpointPathNode(part));
+			}
+		}
+
+		return result;
 	}
 
 	@Nonnull

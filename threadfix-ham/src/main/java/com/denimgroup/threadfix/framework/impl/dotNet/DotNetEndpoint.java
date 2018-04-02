@@ -25,13 +25,14 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
-import com.denimgroup.threadfix.data.entities.ModelField;
+import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -89,6 +90,20 @@ public class DotNetEndpoint extends AbstractEndpoint {
     @Override
     public String getUrlPath() {
         return path;
+    }
+
+    @Nonnull
+    @Override
+    public List<EndpointPathNode> getUrlPathNodes() {
+
+        List<EndpointPathNode> result = new ArrayList<EndpointPathNode>();
+
+        String[] pathParts = StringUtils.split(path, '/');
+        for (String part : pathParts) {
+            result.add(new ExplicitEndpointPathNode(part));
+        }
+
+        return result;
     }
 
     @Nonnull

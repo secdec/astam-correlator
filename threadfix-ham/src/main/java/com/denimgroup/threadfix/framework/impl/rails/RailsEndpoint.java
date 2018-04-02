@@ -25,24 +25,26 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.data.entities.WildcardEndpointPathNode;
+import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.denimgroup.threadfix.CollectionUtils.setFrom;
 
 /**
  * Created by sgerick on 5/5/2015.
  */
 public class RailsEndpoint extends AbstractEndpoint {
+
+    private static String regexCaptureGroupPattern = "([^\\/]+)";
 
     private String filePath;
     private String urlPath;
@@ -64,7 +66,6 @@ public class RailsEndpoint extends AbstractEndpoint {
         if (parameters != null)
             this.parameters = parameters;
 
-        String regexCaptureGroupPattern = "([^\\/]+)";
         String urlFormat = urlPath;
         urlFormat = urlFormat
                 .replaceAll("\\{.+\\}", regexCaptureGroupPattern)
@@ -111,6 +112,25 @@ public class RailsEndpoint extends AbstractEndpoint {
     @Override
     public String getUrlPath() {
         return urlPath;
+    }
+
+    @Nonnull
+    @Override
+    public List<EndpointPathNode> getUrlPathNodes() {
+        List<EndpointPathNode> result = new ArrayList<EndpointPathNode>();
+
+        String simplifiedPath = urlPath.replaceAll(regexCaptureGroupPattern, "*");
+
+        String[] pathParts = StringUtils.split(simplifiedPath, '/');
+        for (String part : pathParts) {
+            if (part.contains("*")) {
+                result.add(new WildcardEndpointPathNode(part.replaceAll("\\*", ".*")));
+            } else {
+                result.add(new ExplicitEndpointPathNode(part));
+            }
+        }
+
+        return result;
     }
 
     @Nonnull
