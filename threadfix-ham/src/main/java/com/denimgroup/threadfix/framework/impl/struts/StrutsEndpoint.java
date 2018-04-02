@@ -60,6 +60,8 @@ public class StrutsEndpoint extends AbstractEndpoint {
         this.method = method;
         this.parameters = parameters;
 
+        this.urlPath = this.urlPath.replaceAll("\\\\", "/");
+
         String regexString = "^" + urlPath
                 .replaceAll("\\{.+\\}", "([^\\/]+)")
                 .replaceAll("/", "\\\\/");

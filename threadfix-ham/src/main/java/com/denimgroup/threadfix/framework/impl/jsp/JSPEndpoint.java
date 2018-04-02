@@ -70,10 +70,13 @@ public class JSPEndpoint extends AbstractEndpoint {
                        @Nonnull String dynamicPath,
                        @Nonnull String method,
 			           @Nonnull Map<String, RouteParameter> parameterMap) {
+
 		this.method = method;
 		this.staticPath = staticPath;
 		this.dynamicPath = dynamicPath;
 		this.parameters.putAll(parameterMap);
+
+		this.dynamicPath = this.dynamicPath.replaceAll("\\\\", "/");
 
 //		for (List<String> lineParams : parameterMap.values()) {
 //			for (String param : lineParams) {

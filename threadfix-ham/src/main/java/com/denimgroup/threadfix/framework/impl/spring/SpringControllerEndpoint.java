@@ -86,6 +86,8 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         this.startLineNumber = startLineNumber;
         this.endLineNumber = endLineNumber;
 
+        this.rawUrlPath = this.rawUrlPath.replaceAll("\\\\", "/");
+
         this.modelObject = modelObject;
 
         this.parameters = parameters;

@@ -66,6 +66,8 @@ public class RailsEndpoint extends AbstractEndpoint {
         if (parameters != null)
             this.parameters = parameters;
 
+        this.urlPath = this.urlPath.replaceAll("\\\\", "/");
+
         String urlFormat = urlPath;
         urlFormat = urlFormat
                 .replaceAll("\\{.+\\}", regexCaptureGroupPattern)

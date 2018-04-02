@@ -58,6 +58,7 @@ public class DotNetEndpoint extends AbstractEndpoint {
 
     public DotNetEndpoint(@Nonnull String path, @Nonnull String filePath, @Nonnull Action action) {
         this.path = path;
+        this.path = this.path.replaceAll("\\\\", "/");
         this.filePath = filePath;
         this.action = action;
         this.pathPattern = Pattern.compile(path.replaceAll("\\{.+\\}", "[^\\/]+"));

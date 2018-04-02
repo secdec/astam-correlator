@@ -83,6 +83,8 @@ public class DjangoEndpoint extends AbstractEndpoint {
         if (parameters != null)
             this.parameters = parameters;
 
+        this.urlPath = this.urlPath.replaceAll("\\\\", "/");
+
         if (!this.urlPath.startsWith("/")) {
             this.urlPath = "/" + urlPath;
         }

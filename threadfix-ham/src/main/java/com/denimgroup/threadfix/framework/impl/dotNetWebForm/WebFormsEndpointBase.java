@@ -72,6 +72,8 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
         this.urlPath = calculateUrlPath();
         this.filePath = calculateFilePath();
 
+        this.urlPath = this.urlPath.replaceAll("\\\\", "/");
+
         collectParameters(aspxParser, aspxCsParser);
 
         setHttpMethod("GET");
