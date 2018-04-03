@@ -33,6 +33,7 @@ public class EndpointStructureNode {
     }
 
     public boolean matchesUrlPath(String urlPath) {
+
         if (urlPath.startsWith("/")) {
             urlPath = urlPath.substring(1);
         }
@@ -40,18 +41,29 @@ public class EndpointStructureNode {
             urlPath = urlPath.substring(0, urlPath.length() - 1);
         }
 
-        String firstPart = urlPath.substring(0, urlPath.indexOf('/'));
-        String remainder = urlPath.substring(firstPart.length());
+        int firstPartStartIndex = urlPath.indexOf('/');
 
-        if (this.pathNode.matches(firstPart)) {
-            boolean childMatches = false;
-            for (int i = 0; i < children.size() && !childMatches; i++) {
-                childMatches = children.get(i).matchesUrlPath(remainder);
-            }
-            return childMatches;
-        } else {
+        String firstPart = firstPartStartIndex < 0
+                ? urlPath
+                : urlPath.substring(0, firstPartStartIndex);
+
+        String remainder = firstPartStartIndex < 0
+                ? ""
+                : urlPath.substring(firstPartStartIndex);
+
+        if (this.pathNode == null || !this.pathNode.matches(firstPart)) {
             return false;
         }
+
+        if (remainder.length() == 0) {
+            return true;
+        }
+
+        boolean childMatches = false;
+        for (int i = 0; i < children.size() && !childMatches; i++) {
+            childMatches = children.get(i).matchesUrlPath(remainder);
+        }
+        return childMatches;
     }
 
     @Override
