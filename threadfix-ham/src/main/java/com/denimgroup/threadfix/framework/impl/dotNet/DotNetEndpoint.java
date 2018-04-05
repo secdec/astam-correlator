@@ -28,14 +28,17 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.WildcardEndpointPathNode;
+import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -59,6 +62,9 @@ public class DotNetEndpoint extends AbstractEndpoint {
     public DotNetEndpoint(@Nonnull String path, @Nonnull String filePath, @Nonnull Action action) {
         this.path = path;
         this.path = this.path.replaceAll("\\\\", "/");
+        if (this.path.endsWith("/") && this.path.length() > 1) {
+            this.path = this.path.substring(0, this.path.length() - 1);
+        }
         this.filePath = filePath;
         this.action = action;
         this.pathPattern = Pattern.compile(path.replaceAll("\\{.+\\}", "[^\\/]+"));
@@ -73,6 +79,27 @@ public class DotNetEndpoint extends AbstractEndpoint {
         } else {
             return -1;
         }
+    }
+
+    @Override
+    public boolean isRelevant(String endpoint, EndpointRelevanceStrictness strictness) {
+        boolean isGenerallyRelevant = compareRelevance(endpoint) >= 0;
+        if (strictness == EndpointRelevanceStrictness.LOOSE) {
+            return isGenerallyRelevant;
+        } else if (!isGenerallyRelevant) {
+            return false;
+        }
+
+        if (endpoint.equalsIgnoreCase(path)) {
+            return true;
+        }
+
+        //  At this point the endpoint must at least contain the expected pattern
+        //  The endpoint will be well-matched if the whole endpoint matches the whole pattern
+        String strippedEndpoint = endpoint.replaceFirst(pathPattern.pattern(), "");
+        strippedEndpoint = CodeParseUtil.trim(strippedEndpoint, "/");
+
+        return strippedEndpoint.length() == 0;
     }
 
     @Nonnull

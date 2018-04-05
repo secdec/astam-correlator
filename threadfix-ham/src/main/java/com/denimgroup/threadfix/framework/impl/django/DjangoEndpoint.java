@@ -25,12 +25,16 @@
 package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.data.entities.*;
+import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.regex.MatchResult;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -153,6 +157,40 @@ public class DjangoEndpoint extends AbstractEndpoint {
         } else {
             return -1;
         }
+    }
+
+    @Override
+    public boolean isRelevant(String endpoint, EndpointRelevanceStrictness strictness) {
+        boolean generallyRelevant = compareRelevance(endpoint) >= 0;
+        if (strictness == EndpointRelevanceStrictness.LOOSE) {
+            return generallyRelevant;
+        } else if (!generallyRelevant) {
+            return false;
+        }
+
+        if (isInternationalized) {
+            //  The initial compareRelevance showed that the endpoint at least contains
+            //  proper internationalization, so we just need to strip the language
+            //  code for endpoint comparison
+            if (endpoint.startsWith("/")) {
+                endpoint = endpoint.substring(1);
+            }
+
+            //  The first part was a supported language code (ie 'en', 'fr'), remove that part of
+            //  the path so that it doesn't interfere with pattern matching
+            endpoint = endpoint.substring(endpoint.indexOf('/'));
+        }
+
+        if (endpoint.equalsIgnoreCase(urlPath)) {
+            return true;
+        }
+
+        String strippedEndpoint = endpoint.replaceFirst(urlPattern.pattern(), "");
+        strippedEndpoint = CodeParseUtil.trim(strippedEndpoint, "/");
+
+        //  If this endpoint is a perfect match then there shouldn't be anything after replacing
+        //  it in the URL
+        return strippedEndpoint.length() == 0;
     }
 
     @Nonnull

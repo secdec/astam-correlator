@@ -28,6 +28,7 @@ package com.denimgroup.threadfix.framework.impl.jsp;
 import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.WildcardEndpointPathNode;
+import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.engine.CodePoint;
@@ -100,7 +101,6 @@ public class JSPEndpoint extends AbstractEndpoint {
 		String[] endpointParts = CodeParseUtil.trim(dynamicPath, "/").split("/");
 
 		int numMatchedParts = 0;
-		boolean isWildCard = dynamicPath.contains("*");
 
 		for (int i = 0; i < pathParts.length && i < endpointParts.length; i++) {
 			String currentPathPart = pathParts[i];
@@ -131,7 +131,35 @@ public class JSPEndpoint extends AbstractEndpoint {
 		return relevance + numMatchedParts * 100;
 	}
 
-//	@Nonnull
+	@Override
+	public boolean isRelevant(String endpoint, EndpointRelevanceStrictness strictness) {
+		boolean isGenerallyRelevant = compareRelevance(endpoint) >= 0;
+		if (strictness == EndpointRelevanceStrictness.LOOSE) {
+			return isGenerallyRelevant;
+		} else if (!isGenerallyRelevant) {
+			return false;
+		}
+
+		String[] thisEndpointParts = StringUtils.split(CodeParseUtil.trim(dynamicPath, "/"), '/');
+		String[] endpointParts = StringUtils.split(CodeParseUtil.trim(endpoint, "/"), '/');
+
+		if (thisEndpointParts.length != endpointParts.length) {
+			return false;
+		}
+
+		for (int i = 0; i < thisEndpointParts.length; i++) {
+			String thisPart = thisEndpointParts[i];
+			String part = endpointParts[i];
+
+			if (!thisPart.equalsIgnoreCase(part) && !thisPart.contains("*")) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	//	@Nonnull
 //    private Map<String, Integer> getParamToLineMap(
 //			Map<Integer, List<String>> parameterMap) {
 //		Map<String, Integer> paramMap = map();

@@ -26,9 +26,11 @@
 package com.denimgroup.threadfix.framework.impl.spring;
 
 import com.denimgroup.threadfix.data.entities.*;
+import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.RegexUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import org.apache.commons.lang3.StringUtils;
@@ -163,6 +165,17 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
             return rawUrlPath.length();
         } else {
             return -1;
+        }
+    }
+
+    @Override
+    public boolean isRelevant(String endpoint, EndpointRelevanceStrictness strictness) {
+        if (getUrlPath().equalsIgnoreCase(endpoint)) {
+            return true;
+        } else if (strictness == EndpointRelevanceStrictness.LOOSE) {
+            return rawUrlPathPattern.matcher(endpoint).find();
+        } else {
+            return endpoint.replaceFirst(rawUrlPathPattern.pattern(), "").length() == 0;
         }
     }
 

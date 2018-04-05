@@ -28,8 +28,10 @@ package com.denimgroup.threadfix.framework.impl.rails;
 import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.WildcardEndpointPathNode;
+import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -74,7 +76,10 @@ public class RailsEndpoint extends AbstractEndpoint {
                 .replaceAll("\\:([\\w\\-_]+)", regexCaptureGroupPattern)
                 .replaceAll("\\*([\\w\\-_]+)", regexCaptureGroupPattern)
                 .replaceAll("\\(\\/\\:([\\w\\-_]+)\\)", "\\/([^\\/]+)");
-        urlFormat = "^" + urlFormat + "$";
+        if (urlFormat.endsWith("/")) {
+            urlFormat = urlFormat.substring(0, urlFormat.length() - 1);
+        }
+        urlFormat = "^" + urlFormat;
         urlPattern = Pattern.compile(urlFormat);
     }
 
@@ -89,6 +94,20 @@ public class RailsEndpoint extends AbstractEndpoint {
             } else {
                 return -1;
             }
+        }
+    }
+
+    @Override
+    public boolean isRelevant(String endpoint, EndpointRelevanceStrictness strictness) {
+        if (urlPath.equalsIgnoreCase(endpoint)) {
+            return true;
+        } else if (strictness == EndpointRelevanceStrictness.LOOSE) {
+            return urlPattern.matcher(endpoint).matches();
+        } else {
+            return CodeParseUtil.trim(
+                    endpoint.replaceFirst(urlPattern.pattern(), ""),
+                    "/"
+            ).length() == 0;
         }
     }
 
