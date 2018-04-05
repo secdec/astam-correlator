@@ -140,6 +140,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         project.addPackages(strutsPackages);
         project.addClasses(discoveredClasses);
 
+        expandClassBaseTypes(project);
+
         for (StrutsPackage strutsPackage : strutsPackages) {
             project.addActions(strutsPackage.getActions());
         }
@@ -186,6 +188,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         this.actionMapper = mapperFactory.detectMapper(project);
 
         for (StrutsPlugin plugin : project.getPlugins()) {
+            log.debug("Applying Struts plugin " + plugin.getClass().getSimpleName());
             plugin.apply(project);
         }
 
@@ -349,7 +352,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             //  of that endpoint has that HTTP method
             Map<String, List<String>> currentHttpMethods = map();
             for (Endpoint endpoint : relevantEndpoints) {
-                List<String> currentMethods = currentHttpMethods.get(endpoint);
+                List<String> currentMethods = currentHttpMethods.get(endpoint.getUrlPath());
                 if (currentMethods == null) {
                     currentHttpMethods.put(endpoint.getUrlPath(), currentMethods = list());
                 }
@@ -579,8 +582,35 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         return result;
     }
 
+    //  Import super-base types from base types
     private void expandClassBaseTypes(StrutsProject project) {
-        
+        for (StrutsClass strutsClass : project.getClasses()) {
+            List<String> checkedBaseTypes = list();
+            Queue<String> pendingBaseTypes = new LinkedList<String>();
+            pendingBaseTypes.addAll(strutsClass.getBaseTypes());
+            while (!pendingBaseTypes.isEmpty()) {
+                String baseType = pendingBaseTypes.remove();
+                if (checkedBaseTypes.contains(baseType)) {
+                    continue;
+                }
+
+                StrutsClass baseClass = project.findClassByName(baseType);
+                if (baseClass != null) {
+                    pendingBaseTypes.addAll(baseClass.getBaseTypes());
+                    for (String newBase : baseClass.getBaseTypes()) {
+                        strutsClass.addBaseType(newBase);
+                    }
+
+                    strutsClass.addAllMethods(baseClass.getMethods());
+
+                    for (ModelField mf : baseClass.getFields()) {
+                        strutsClass.addField(mf);
+                    }
+                }
+
+                checkedBaseTypes.add(baseType);
+            }
+        }
     }
 
     private String cleanArrayName(String paramName) {

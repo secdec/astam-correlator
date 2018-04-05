@@ -197,10 +197,6 @@ public class DefaultActionMapper implements ActionMapper {
                                 String firstPart = methodPath.substring(0, wildcardStartIndex);
                                 String secondPart = methodPath.substring(wildcardStartIndex + 1);
                                 methodPath = firstPart + method.getName() + secondPart;
-
-                                if (method.getName().equals("execute")) {
-                                    methodPath = firstPart + secondPart;
-                                }
                             }
 
                             for (ModelField modelField : classForAction.getProperties()) {
@@ -212,7 +208,9 @@ public class DefaultActionMapper implements ActionMapper {
 
                             StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), methodPath, "GET", parameters);
                             newEndpoint.setLineNumbers(method.getStartLine(), method.getEndLine());
-                            newEndpoint.setDisplayFilePath(strutsAction.getPrimaryResult().getValue());
+                            if (strutsAction.getPrimaryResult() != null) {
+                                newEndpoint.setDisplayFilePath(strutsAction.getPrimaryResult().getValue());
+                            }
                             endpoints.add(newEndpoint);
                         }
                     } else {

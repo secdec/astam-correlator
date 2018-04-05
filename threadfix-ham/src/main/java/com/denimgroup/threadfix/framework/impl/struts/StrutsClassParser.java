@@ -70,7 +70,14 @@ public class StrutsClassParser {
         resultClass.setFields(classSigParser.getFields());
         resultClass.setProperties(collectParameters(classSigParser.getParsedMethods()));
         resultClass.setImportedPackages(classSigParser.getImports());
-        resultClass.setPackage(classSigParser.getClassPackage());
+
+        //  Technically, a Java file doesn't HAVE to declare its package; include this to handle that case,
+        //  but it could also lead us to swallow bugs in syntax parsing
+        if (classSigParser.getClassPackage() == null) {
+            resultClass.setPackage("");
+        } else {
+            resultClass.setPackage(classSigParser.getClassPackage());
+        }
 
 
         for (String baseType : classSigParser.getBaseTypes()) {
