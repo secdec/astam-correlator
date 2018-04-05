@@ -41,35 +41,26 @@ public class StrutsConventionPluginDetector implements StrutsPluginDetectorImpl 
     @Override
     public boolean detect(File projectRoot) {
 
-        boolean wasDetected = false;
-
-        Collection<File> files = FileUtils.listFiles(projectRoot, new String[] { "xml", "jar" }, true);
-
-        File pomFile = null;
-        File conventionLibFile = null;
+        Collection<File> files = FileUtils.listFiles(projectRoot, new String[] { "xml", "properties", "jar" }, true);
 
         for (File file : files) {
             String fileName = file.getName();
 
-            if (fileName.equals("pom.xml")) {
-                pomFile = file;
+            if (!fileName.endsWith("jar")) {
+                if (fileReferencesConventionPlugin(file)) {
+                    return true;
+                }
             } else if (fileName.contains(CONVENTION_PLUGIN_KEYWORD)) {
-                conventionLibFile = file;
+                return true;
             }
         }
 
-        if (conventionLibFile != null) {
-            wasDetected = true;
-        } else if (pomFile != null) {
-            wasDetected = pomContainsConventionPlugin(pomFile);
-        }
-
-        return wasDetected;
+        return false;
     }
 
-    private boolean pomContainsConventionPlugin(File pomFile) {
+    private boolean fileReferencesConventionPlugin(File anyFile) {
         try {
-            String fileContents = FileUtils.readFileToString(pomFile);
+            String fileContents = FileUtils.readFileToString(anyFile);
             return fileContents.contains(CONVENTION_PLUGIN_KEYWORD);
         } catch (IOException e) {
             e.printStackTrace();

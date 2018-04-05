@@ -40,6 +40,7 @@ public class StrutsAction {
 	private String method;
 	private String actClass;
 	private String actClassLocation;
+	private List<String> allowedMethodNames = list();
 	private Map<String, String> params;
 	private List<StrutsResult> results = list();
 	private List<String> parameterHints = list();
@@ -83,6 +84,14 @@ public class StrutsAction {
 
 	public void setActClassLocation(String newActClassLocation) {
 		actClassLocation = newActClassLocation;
+	}
+
+	public List<String> getAllowedMethodNames() {
+		return this.allowedMethodNames;
+	}
+
+	public void addAllowedMethodName(String methodName) {
+		this.allowedMethodNames.add(methodName);
 	}
 
 	public Map<String, String> getParams() {

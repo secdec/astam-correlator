@@ -74,7 +74,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         this.rootDirectory = rootDirectory;
 //        urlToControllerMethodsMap = map();
         List<File> strutsConfigFiles = list();
-        File strutsPropertiesFile = null;
+        List<File> strutsPropertiesFiles = list();
 
         entityMappings = new EntityMappings(rootDirectory);
 
@@ -92,8 +92,22 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             File file = (File) configFile;
             if (file.getName().equals(STRUTS_CONFIG_NAME) || (file.getName().contains("struts") && file.getName().endsWith("xml")))
                 strutsConfigFiles.add(file);
-            if (file.getName().equals(STRUTS_PROPERTIES_NAME) && strutsPropertiesFile == null)
-                strutsPropertiesFile = file;
+            if (file.getName().equals(STRUTS_PROPERTIES_NAME))
+                strutsPropertiesFiles.add(file);
+        }
+
+        //  In the case of Ant projects, properties may be contained in the project file
+        if (strutsPropertiesFiles.size() == 0) {
+            //  We'd prefer to have the proper "struts.properties" file; in absence of that, we'll
+            //  take what we can get
+            for (Object configFile : configFiles) {
+                File file = (File) configFile;
+                if (!file.getName().endsWith(".properties")) {
+                    continue;
+                }
+
+                strutsPropertiesFiles.add(file);
+            }
         }
 
         Collection<File> javaFiles = FileUtils.listFiles(rootDirectory, new String[] { "java" }, true);
@@ -108,8 +122,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         configurationProperties = new StrutsConfigurationProperties();
         for (File cfgFile : strutsConfigFiles)
             configurationProperties.loadFromStrutsXml(cfgFile);
-        if (strutsPropertiesFile != null)
-            configurationProperties.loadFromStrutsProperties(strutsPropertiesFile);
+        for (File propsFile : strutsPropertiesFiles)
+            configurationProperties.loadFromStrutsProperties(propsFile);
 
 
         strutsPackages = list();
@@ -273,7 +287,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
                     distinctEndpoints.remove(existingDistinctEndpoint);
                     variantEndpoints.add(existingDistinctEndpoint);
-                } else {
+                } else if (!existingDistinctEndpoint.getUrlPath().equalsIgnoreCase(strutsEndpoint.getUrlPath())) {
                     existingDistinctEndpoint.addVariant(strutsEndpoint);
                     variantEndpoints.add(strutsEndpoint);
                 }
@@ -565,6 +579,10 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         return result;
     }
 
+    private void expandClassBaseTypes(StrutsProject project) {
+        
+    }
+
     private String cleanArrayName(String paramName) {
         paramName = StringUtils.replace(paramName, "[", "");
         paramName = StringUtils.replace(paramName, "]", "");
@@ -623,6 +641,57 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
 
         return result;
+    }
+
+    private void resolveDuplicateEndpoints() {
+        //  Resolve duplicates in order of priority:
+        //  1. Actions with user-defined classes over raw JSP files
+        //  2. Actions declared nearest the end (which overwrite previous actions)
+
+        Map<String, List<Endpoint>> mappedEndpoints = new HashMap<String, List<Endpoint>>();
+
+        //  Work with a reversed list to prioritize last declarations
+        List<Endpoint> flattenedEndpoints = EndpointUtil.flattenWithVariants(endpoints);
+        Collections.reverse(flattenedEndpoints);
+
+        for (final Endpoint endpoint : flattenedEndpoints) {
+            String path = endpoint.getUrlPath();
+            if (!mappedEndpoints.containsKey(path)) {
+                mappedEndpoints.put(path, new ArrayList<Endpoint>() {{
+                    add(endpoint);
+                }});
+            } else {
+                mappedEndpoints.get(path).add(endpoint);
+            }
+        }
+
+        List<Endpoint> invalidatedDuplicates = new LinkedList<Endpoint>();
+        for (List<Endpoint> boundEndpoints : mappedEndpoints.values()) {
+            if (boundEndpoints.size() < 2) {
+                continue;
+            }
+
+            Endpoint bestEndpoint = null;
+            for (Endpoint option : boundEndpoints) {
+                if (bestEndpoint == null) {
+                    bestEndpoint = option;
+                } else if (option.getFilePath().toLowerCase().endsWith(".java")) {
+                    bestEndpoint = option;
+                }
+            }
+
+            //  If it's a Java file, keep it as the best option; otherwise, use the last (highest priority)
+            //  option in the list
+            if (!bestEndpoint.getFilePath().toLowerCase().endsWith(".java")) {
+                bestEndpoint = boundEndpoints.get(boundEndpoints.size() - 1);
+            }
+
+            for (Endpoint option : boundEndpoints) {
+                if (option != bestEndpoint) {
+                    invalidatedDuplicates.add(option);
+                }
+            }
+        }
     }
 
     @Nonnull

@@ -23,6 +23,7 @@
 
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.framework.util.PathUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -40,8 +41,8 @@ public class StrutsWebPack {
     List<String> welcomeFiles = list();
 
     public StrutsWebPack(String absoluteRootDirectoryPath) {
-        this.absoluteRootDirectoryPath = absoluteRootDirectoryPath;
-        if (!this.absoluteRootDirectoryPath.startsWith("/")) {
+        this.absoluteRootDirectoryPath = PathUtil.normalizeSeparator(absoluteRootDirectoryPath);
+        if (!this.absoluteRootDirectoryPath.startsWith("/") && !new File(this.absoluteRootDirectoryPath).isAbsolute()) {
             this.absoluteRootDirectoryPath = "/" + this.absoluteRootDirectoryPath;
         }
     }

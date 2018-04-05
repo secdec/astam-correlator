@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.framework.impl.struts.model.StrutsAction;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsPackage;
 import com.denimgroup.threadfix.framework.impl.struts.model.StrutsResult;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.lang3.StringUtils;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -97,6 +98,7 @@ public class StrutsXmlParser {
 		boolean bResult = false;
 		boolean bParam = false;
 		boolean bInclude = false;
+		boolean bAllowedMethods = false;
 		StrutsPackage strutsPackage;
 		StrutsAction strutsAction;
 		StrutsResult strutsResult;
@@ -150,6 +152,9 @@ public class StrutsXmlParser {
 				}
             }
 
+            if (qName.equalsIgnoreCase("allowed-methods")) {
+				bAllowedMethods = true;
+			}
 		}
 
 		public final void endElement(String uri, String localName,
@@ -184,6 +189,10 @@ public class StrutsXmlParser {
 			    bInclude = false;
             }
 
+            if (qName.equalsIgnoreCase("allowed-methods")) {
+				bAllowedMethods = false;
+			}
+
 		}
 
 		public final void characters(char ch[], int start, int length) throws SAXException {
@@ -192,17 +201,24 @@ public class StrutsXmlParser {
 				if (bAction) {  // action in Package
 					if (bParam) {   // param in Action
 						paramValue = new String(ch, start, length).trim();
-					} else
-						if (bResult) {  // result in Action
-							if (bParam) {   // param in Result
-								paramValue = new String(ch, start, length).trim();
-							} else {
-								String s = new String(ch, start, length).trim();
-								if (s.length() == 0)
-									s = null;
-								strutsResult.setValue(s);
-							}
+					} else if (bResult) {  // result in Action
+						if (bParam) {   // param in Result
+							paramValue = new String(ch, start, length).trim();
+						} else {
+							String s = new String(ch, start, length).trim();
+							if (s.length() == 0)
+								s = null;
+							strutsResult.setValue(s);
 						}
+					}
+
+					if (bAllowedMethods) {
+						String methodsValue = new String(ch, start, length).trim();
+						String[] methods = StringUtils.split(methodsValue, ',');
+						for (String method : methods) {
+							strutsAction.addAllowedMethodName(method.trim());
+						}
+					}
 				}
 			}
 

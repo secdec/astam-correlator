@@ -88,8 +88,14 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
         return !isInterface;
     }
 
+    int lineno = -1;
+
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
+
+        if (lineNumber != lineno) {
+            lineno = lineNumber;
+        }
 
         // Parsing can break (and is not necessary) for interfaces
         if (isInterface) {
@@ -346,7 +352,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                     canParse = false;
                 }
 
-                if (type == '{' && canParse) {
+                if ((type == '{' || (stringValue != null && stringValue.equals("throws"))) && canParse) {
 
                     StrutsMethod newMethod = new StrutsMethod();
                     String methodName = possibleMethodName;
@@ -374,9 +380,14 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                     methods.add(newMethod);
 
                     methodStartBraceLevel = scopeTracker.getNumOpenBrace();
+                    if (stringValue != null && stringValue.equals("throws")) {
+                        //  We've marked this as a method but aren't actually in the method yet
+                        //  Brace count will be off-by-one, correct this
+                        methodStartBraceLevel += 1;
+                    }
                     inClassState = InClassState.IN_METHOD;
-                } else {
-                    break;
+                } else if (type == ';') {
+                    inClassState = InClassState.IDENTIFICATION;
                 }
 
                 possibleMethodName = "";
