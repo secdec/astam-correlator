@@ -614,7 +614,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 StrutsClass baseClass = project.findClassByName(baseType);
                 if (baseClass != null) {
                     pendingBaseTypes.addAll(baseClass.getBaseTypes());
-                    for (String newBase : baseClass.getBaseTypes()) {
+                    //  Copy array to avoid concurrent modification
+                    for (String newBase : new ArrayList<String>(baseClass.getBaseTypes())) {
                         strutsClass.addBaseType(newBase);
                     }
 
