@@ -71,7 +71,12 @@ public class StrutsEndpoint extends AbstractEndpoint {
         if (!regexString.endsWith("*")) {
             regexString += "$";
         }
+
         pathRegex = Pattern.compile(regexString);
+
+        if (!this.urlPath.startsWith("/")) {
+            this.urlPath = "/" + this.urlPath;
+        }
     }
 
     @Nonnull

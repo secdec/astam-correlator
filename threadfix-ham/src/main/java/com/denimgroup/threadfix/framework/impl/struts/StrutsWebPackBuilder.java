@@ -28,16 +28,28 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class StrutsWebPackBuilder {
 
     static final String[] RESERVED_FILE_NAMES = new String[] { "WEB-INF", "META-INF" };
 
+    private List<String> acceptedFileTypes = list();
+
     public StrutsWebPack generate(File contentRoot) {
 
         StrutsWebPack result = new StrutsWebPack(contentRoot.getAbsolutePath());
 
-        Collection<File> files = FileUtils.listFiles(contentRoot, null, true);
+        String[] fileExtensions;
+        if (acceptedFileTypes.isEmpty()) {
+            fileExtensions = null;
+        } else {
+            fileExtensions = acceptedFileTypes.toArray(new String[acceptedFileTypes.size()]);
+        }
+
+        Collection<File> files = FileUtils.listFiles(contentRoot, fileExtensions, true);
         for (File contentFile : files) {
             String relativePath = makeRelativePath(contentRoot.getAbsolutePath(), contentFile.getAbsolutePath());
 
@@ -57,6 +69,15 @@ public class StrutsWebPackBuilder {
         }
 
         return result;
+    }
+
+    public void acceptFileType(String ...fileTypes) {
+        for (String ext : fileTypes) {
+            if (ext.startsWith(".")) {
+                ext = ext.substring(1);
+            }
+            acceptedFileTypes.add(ext);
+        }
     }
 
     String makeRelativePath(String rootPath, String absolutePath) {

@@ -70,6 +70,19 @@ public class StrutsEndpointMappings implements EndpointGenerator {
     private StrutsConfigurationProperties configurationProperties;
     private ActionMapper actionMapper;
 
+    private String[] acceptedWebFileTypes = new String[] {
+            ".jsp",
+            ".jspf",
+            ".html",
+            ".xhtml",
+
+            //  These shouldn't be web files, but if they exist we should
+            //  report them
+            ".sh",
+            ".exe",
+            ".bin"
+    };
+
     public StrutsEndpointMappings(@Nonnull File rootDirectory) {
         this.rootDirectory = rootDirectory;
 //        urlToControllerMethodsMap = map();
@@ -170,6 +183,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             project.setWebInfPath(webXmlParser.getWebInfFolderPath());
 
             StrutsWebPackBuilder webPackBuilder = new StrutsWebPackBuilder();
+            webPackBuilder.acceptFileType(acceptedWebFileTypes);
+
             File webContentRoot = new File(webXmlParser.getPrimaryWebContentPath());
             if (!webContentRoot.isDirectory()) {
                 log.warn("Found a web.xml but the content root did not exist!");
@@ -193,6 +208,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
 
         generateMaps(project);
+
+        resolveDuplicateEndpoints();
 
         // Assign parametric route parameters
         Pattern routeParameterPattern = Pattern.compile("\\{(\\w+)[^\\}]*\\}");
@@ -645,12 +662,12 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             return result;
         }
 
-        url = CodeParseUtil.trim(url, new String[] { "/" });
+        url = CodeParseUtil.trim(url, "/");
 
         int numUrlPaths = StringUtils.countMatches(url, "/");
 
         for (Endpoint endpoint : endpoints) {
-            String trimmedEndpoint = CodeParseUtil.trim(endpoint.getUrlPath(), new String[] { "/" });
+            String trimmedEndpoint = CodeParseUtil.trim(endpoint.getUrlPath(), "/");
             if (!trimmedEndpoint.startsWith(url)) {
                 continue;
             }
@@ -710,7 +727,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 }
             }
 
-            //  If it's a Java file, keep it as the best option; otherwise, use the last (highest priority)
+            //  If it's handled by a Java file, keep it as the best option; otherwise, use the last (highest priority)
             //  option in the list
             if (!bestEndpoint.getFilePath().toLowerCase().endsWith(".java")) {
                 bestEndpoint = boundEndpoints.get(boundEndpoints.size() - 1);
@@ -722,6 +739,19 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 }
             }
         }
+
+        //  Remove duplicates
+        endpoints.removeAll(invalidatedDuplicates);
+        for (Endpoint remaining : endpoints) {
+            //  Search for duplicates in endpoint variants
+            StrutsEndpoint strutsEndpoint = (StrutsEndpoint)remaining;
+            for (Endpoint invalidated : invalidatedDuplicates) {
+                if (strutsEndpoint.getVariants().contains(invalidated)) {
+                    strutsEndpoint.removeVariant(invalidated);
+                }
+            }
+        }
+
     }
 
     @Nonnull
