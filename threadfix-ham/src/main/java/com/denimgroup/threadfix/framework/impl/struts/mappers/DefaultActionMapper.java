@@ -83,6 +83,10 @@ public class DefaultActionMapper implements ActionMapper {
                 String endpointPath = makeRelativePath(fullPath, project);
                 StrutsEndpoint endpoint;
 
+                if (!new File(fullPath).exists()) {
+                    continue;
+                }
+
                 int numLines = -1;
                 try {
                     numLines = FileUtils.readLines(new File(fullPath)).size();
