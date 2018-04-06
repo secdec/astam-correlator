@@ -14,7 +14,7 @@
 
         ThreadFix is developed and maintained by Denim Group, Ltd (http://www.denimgroup.com) For information about commercial support and other services, contact Denim Group about ThreadFix http://www.denimgroup.com/threadfix/
 
-        The ASTAM Correlator is a branch of the public Community Edition of the ThreadFix software. This branch is maintained by Secure Decisions (http://www.securedecisions.com), a subdivision of Applied Visions, Inc (http://www.avi.com).
+        The ASTAM Correlator is a branch of the public Community Edition of the ThreadFix software. This branch is maintained by Secure Decisions (http://www.securedecisions.com), a Division of Applied Visions, Inc (http://www.avi.com).
     </description>
 
     <modules>
@@ -81,7 +81,7 @@
     </developers>
 
     <organization>
-        <name>Denim Group, Ltd.; Secure Decisions, A Subdivision of Applied Visions, Inc.</name>
+        <name>Denim Group, Ltd.; Secure Decisions, A Division of Applied Visions, Inc.</name>
         <url>http://www.denimgroup.com/ | http://www.securedecisions.com/</url>
     </organization>
 

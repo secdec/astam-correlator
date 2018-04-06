@@ -70,11 +70,24 @@ public class StrutsEndpointMappings implements EndpointGenerator {
     private StrutsConfigurationProperties configurationProperties;
     private ActionMapper actionMapper;
 
+    private String[] acceptedWebFileTypes = new String[] {
+            ".jsp",
+            ".jspf",
+            ".html",
+            ".xhtml",
+
+            //  These shouldn't be web files, but if they exist we should
+            //  report them
+            ".sh",
+            ".exe",
+            ".bin"
+    };
+
     public StrutsEndpointMappings(@Nonnull File rootDirectory) {
         this.rootDirectory = rootDirectory;
 //        urlToControllerMethodsMap = map();
         List<File> strutsConfigFiles = list();
-        File strutsPropertiesFile = null;
+        List<File> strutsPropertiesFiles = list();
 
         entityMappings = new EntityMappings(rootDirectory);
 
@@ -92,8 +105,22 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             File file = (File) configFile;
             if (file.getName().equals(STRUTS_CONFIG_NAME) || (file.getName().contains("struts") && file.getName().endsWith("xml")))
                 strutsConfigFiles.add(file);
-            if (file.getName().equals(STRUTS_PROPERTIES_NAME) && strutsPropertiesFile == null)
-                strutsPropertiesFile = file;
+            if (file.getName().equals(STRUTS_PROPERTIES_NAME))
+                strutsPropertiesFiles.add(file);
+        }
+
+        //  In the case of Ant projects, properties may be contained in the project file
+        if (strutsPropertiesFiles.size() == 0) {
+            //  We'd prefer to have the proper "struts.properties" file; in absence of that, we'll
+            //  take what we can get
+            for (Object configFile : configFiles) {
+                File file = (File) configFile;
+                if (!file.getName().endsWith(".properties")) {
+                    continue;
+                }
+
+                strutsPropertiesFiles.add(file);
+            }
         }
 
         Collection<File> javaFiles = FileUtils.listFiles(rootDirectory, new String[] { "java" }, true);
@@ -108,8 +135,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         configurationProperties = new StrutsConfigurationProperties();
         for (File cfgFile : strutsConfigFiles)
             configurationProperties.loadFromStrutsXml(cfgFile);
-        if (strutsPropertiesFile != null)
-            configurationProperties.loadFromStrutsProperties(strutsPropertiesFile);
+        for (File propsFile : strutsPropertiesFiles)
+            configurationProperties.loadFromStrutsProperties(propsFile);
 
 
         strutsPackages = list();
@@ -125,6 +152,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
         project.addPackages(strutsPackages);
         project.addClasses(discoveredClasses);
+
+        expandClassBaseTypes(project);
 
         for (StrutsPackage strutsPackage : strutsPackages) {
             project.addActions(strutsPackage.getActions());
@@ -154,6 +183,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             project.setWebInfPath(webXmlParser.getWebInfFolderPath());
 
             StrutsWebPackBuilder webPackBuilder = new StrutsWebPackBuilder();
+            webPackBuilder.acceptFileType(acceptedWebFileTypes);
+
             File webContentRoot = new File(webXmlParser.getPrimaryWebContentPath());
             if (!webContentRoot.isDirectory()) {
                 log.warn("Found a web.xml but the content root did not exist!");
@@ -172,10 +203,13 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         this.actionMapper = mapperFactory.detectMapper(project);
 
         for (StrutsPlugin plugin : project.getPlugins()) {
+            log.debug("Applying Struts plugin " + plugin.getClass().getSimpleName());
             plugin.apply(project);
         }
 
         generateMaps(project);
+
+        resolveDuplicateEndpoints();
 
         // Assign parametric route parameters
         Pattern routeParameterPattern = Pattern.compile("\\{(\\w+)[^\\}]*\\}");
@@ -273,7 +307,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
                     distinctEndpoints.remove(existingDistinctEndpoint);
                     variantEndpoints.add(existingDistinctEndpoint);
-                } else {
+                } else if (!existingDistinctEndpoint.getUrlPath().equalsIgnoreCase(strutsEndpoint.getUrlPath())) {
                     existingDistinctEndpoint.addVariant(strutsEndpoint);
                     variantEndpoints.add(strutsEndpoint);
                 }
@@ -335,7 +369,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             //  of that endpoint has that HTTP method
             Map<String, List<String>> currentHttpMethods = map();
             for (Endpoint endpoint : relevantEndpoints) {
-                List<String> currentMethods = currentHttpMethods.get(endpoint);
+                List<String> currentMethods = currentHttpMethods.get(endpoint.getUrlPath());
                 if (currentMethods == null) {
                     currentHttpMethods.put(endpoint.getUrlPath(), currentMethods = list());
                 }
@@ -565,6 +599,38 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         return result;
     }
 
+    //  Import super-base types from base types
+    private void expandClassBaseTypes(StrutsProject project) {
+        for (StrutsClass strutsClass : project.getClasses()) {
+            List<String> checkedBaseTypes = list();
+            Queue<String> pendingBaseTypes = new LinkedList<String>();
+            pendingBaseTypes.addAll(strutsClass.getBaseTypes());
+            while (!pendingBaseTypes.isEmpty()) {
+                String baseType = pendingBaseTypes.remove();
+                if (checkedBaseTypes.contains(baseType)) {
+                    continue;
+                }
+
+                StrutsClass baseClass = project.findClassByName(baseType);
+                if (baseClass != null) {
+                    pendingBaseTypes.addAll(baseClass.getBaseTypes());
+                    //  Copy array to avoid concurrent modification
+                    for (String newBase : new ArrayList<String>(baseClass.getBaseTypes())) {
+                        strutsClass.addBaseType(newBase);
+                    }
+
+                    strutsClass.addAllMethods(baseClass.getMethods());
+
+                    for (ModelField mf : baseClass.getFields()) {
+                        strutsClass.addField(mf);
+                    }
+                }
+
+                checkedBaseTypes.add(baseType);
+            }
+        }
+    }
+
     private String cleanArrayName(String paramName) {
         paramName = StringUtils.replace(paramName, "[", "");
         paramName = StringUtils.replace(paramName, "]", "");
@@ -597,12 +663,12 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             return result;
         }
 
-        url = CodeParseUtil.trim(url, new String[] { "/" });
+        url = CodeParseUtil.trim(url, "/");
 
         int numUrlPaths = StringUtils.countMatches(url, "/");
 
         for (Endpoint endpoint : endpoints) {
-            String trimmedEndpoint = CodeParseUtil.trim(endpoint.getUrlPath(), new String[] { "/" });
+            String trimmedEndpoint = CodeParseUtil.trim(endpoint.getUrlPath(), "/");
             if (!trimmedEndpoint.startsWith(url)) {
                 continue;
             }
@@ -623,6 +689,70 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
 
         return result;
+    }
+
+    private void resolveDuplicateEndpoints() {
+        //  Resolve duplicates in order of priority:
+        //  1. Actions with user-defined classes over raw JSP files
+        //  2. Actions declared nearest the end (which overwrite previous actions)
+
+        Map<String, List<Endpoint>> mappedEndpoints = new HashMap<String, List<Endpoint>>();
+
+        //  Work with a reversed list to prioritize last declarations
+        List<Endpoint> flattenedEndpoints = EndpointUtil.flattenWithVariants(endpoints);
+        Collections.reverse(flattenedEndpoints);
+
+        for (final Endpoint endpoint : flattenedEndpoints) {
+            String path = endpoint.getUrlPath();
+            if (!mappedEndpoints.containsKey(path)) {
+                mappedEndpoints.put(path, new ArrayList<Endpoint>() {{
+                    add(endpoint);
+                }});
+            } else {
+                mappedEndpoints.get(path).add(endpoint);
+            }
+        }
+
+        List<Endpoint> invalidatedDuplicates = new LinkedList<Endpoint>();
+        for (List<Endpoint> boundEndpoints : mappedEndpoints.values()) {
+            if (boundEndpoints.size() < 2) {
+                continue;
+            }
+
+            Endpoint bestEndpoint = null;
+            for (Endpoint option : boundEndpoints) {
+                if (bestEndpoint == null) {
+                    bestEndpoint = option;
+                } else if (option.getFilePath().toLowerCase().endsWith(".java")) {
+                    bestEndpoint = option;
+                }
+            }
+
+            //  If it's handled by a Java file, keep it as the best option; otherwise, use the last (highest priority)
+            //  option in the list
+            if (!bestEndpoint.getFilePath().toLowerCase().endsWith(".java")) {
+                bestEndpoint = boundEndpoints.get(boundEndpoints.size() - 1);
+            }
+
+            for (Endpoint option : boundEndpoints) {
+                if (option != bestEndpoint) {
+                    invalidatedDuplicates.add(option);
+                }
+            }
+        }
+
+        //  Remove duplicates
+        endpoints.removeAll(invalidatedDuplicates);
+        for (Endpoint remaining : endpoints) {
+            //  Search for duplicates in endpoint variants
+            StrutsEndpoint strutsEndpoint = (StrutsEndpoint)remaining;
+            for (Endpoint invalidated : invalidatedDuplicates) {
+                if (strutsEndpoint.getVariants().contains(invalidated)) {
+                    strutsEndpoint.removeVariant(invalidated);
+                }
+            }
+        }
+
     }
 
     @Nonnull

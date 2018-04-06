@@ -27,6 +27,10 @@ import org.apache.commons.lang3.SystemUtils;
 
 public class PathUtil {
 
+    public static String normalizeSeparator(String filePath) {
+        return filePath.replaceAll("\\\\", "/");
+    }
+
     public static String combine(String begin, String end) {
         return combine(begin, end, !SystemUtils.IS_OS_WINDOWS);
     }

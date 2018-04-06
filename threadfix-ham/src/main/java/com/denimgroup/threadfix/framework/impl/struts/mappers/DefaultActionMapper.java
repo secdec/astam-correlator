@@ -83,6 +83,10 @@ public class DefaultActionMapper implements ActionMapper {
                 String endpointPath = makeRelativePath(fullPath, project);
                 StrutsEndpoint endpoint;
 
+                if (!new File(fullPath).exists()) {
+                    continue;
+                }
+
                 int numLines = -1;
                 try {
                     numLines = FileUtils.readLines(new File(fullPath)).size();
@@ -163,7 +167,22 @@ public class DefaultActionMapper implements ActionMapper {
                 for (String path : availablePaths) {
                     if (path.contains("*") && classForAction != null) { // wildcard
                         for (StrutsMethod method : classForAction.getMethods()) {
-                            path = sbUrl.toString();
+
+                            //  Response methods must return strings
+                            if (!method.getReturnType().equals("String")) {
+                                continue;
+                            }
+
+                            //  Ignore getters/setters
+                            if (method.getName().startsWith("get") || method.getName().startsWith("set")) {
+                                continue;
+                            }
+
+                            if (strutsAction.getAllowedMethodNames().size() > 0 && !strutsAction.getAllowedMethodNames().contains(method.getName())) {
+                                continue;
+                            }
+
+                            String methodPath = path;
                             parameters = map();
 
                             if (strutsAction.getMethod().startsWith("{")) {
@@ -178,10 +197,10 @@ public class DefaultActionMapper implements ActionMapper {
                                     continue;
                                 }
 
-                                int wildcardStartIndex = StringUtils.ordinalIndexOf(path, "*", index);
-                                String firstPart = path.substring(0, wildcardStartIndex);
-                                String secondPart = path.substring(wildcardStartIndex + 1);
-                                path = firstPart + method.getName() + secondPart;
+                                int wildcardStartIndex = StringUtils.ordinalIndexOf(methodPath, "*", index);
+                                String firstPart = methodPath.substring(0, wildcardStartIndex);
+                                String secondPart = methodPath.substring(wildcardStartIndex + 1);
+                                methodPath = firstPart + method.getName() + secondPart;
                             }
 
                             for (ModelField modelField : classForAction.getProperties()) {
@@ -191,14 +210,12 @@ public class DefaultActionMapper implements ActionMapper {
                                 parameters.put(modelField.getParameterKey(), newParameter);
                             }
 
-                            if ("execute".equals(method.getName())) {
-                                path = path.replace("!*", "");
-                                path = path.replace("*", "");
-                                StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters);
-                                newEndpoint.setLineNumbers(method.getStartLine(), method.getEndLine());
+                            StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), methodPath, "GET", parameters);
+                            newEndpoint.setLineNumbers(method.getStartLine(), method.getEndLine());
+                            if (strutsAction.getPrimaryResult() != null) {
                                 newEndpoint.setDisplayFilePath(strutsAction.getPrimaryResult().getValue());
-                                endpoints.add(newEndpoint);
                             }
+                            endpoints.add(newEndpoint);
                         }
                     } else {
                         StrutsMethod executeMethod = null;

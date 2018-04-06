@@ -28,8 +28,10 @@ package com.denimgroup.threadfix.framework.impl.struts;
 import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.WildcardEndpointPathNode;
+import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -69,7 +71,12 @@ public class StrutsEndpoint extends AbstractEndpoint {
         if (!regexString.endsWith("*")) {
             regexString += "$";
         }
+
         pathRegex = Pattern.compile(regexString);
+
+        if (!this.urlPath.startsWith("/")) {
+            this.urlPath = "/" + this.urlPath;
+        }
     }
 
     @Nonnull
@@ -82,6 +89,17 @@ public class StrutsEndpoint extends AbstractEndpoint {
             return pathRegex.toString().length();
         } else {
             return -1;
+        }
+    }
+
+    @Override
+    public boolean isRelevant(String endpoint, EndpointRelevanceStrictness strictness) {
+        if (urlPath.equalsIgnoreCase(endpoint)) {
+            return true;
+        } else if (strictness == EndpointRelevanceStrictness.LOOSE) {
+            return pathRegex.matcher(endpoint).find();
+        } else {
+            return CodeParseUtil.trim(endpoint.replaceFirst(pathRegex.pattern(), ""), "/").length() == 0;
         }
     }
 

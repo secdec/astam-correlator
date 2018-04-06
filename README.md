@@ -26,7 +26,7 @@ Instructions for the usage and installation of the ASTAM Correlator can be found
 # Contributors
 
 This project is a modification of Denim Group's software ThreadFix, Community Edition, which provides the [Hybrid Analysis Mapping (HAM)](https://github.com/denimgroup/threadfix/wiki/HAM-Merging-Process-Explained) that runs the correlation. A collaboration between Denim Group Ltd., and Secure
-Decisions, a subdivision of Applied Visions Inc., has improved upon the open-source ThreadFix tool
+Decisions, a division of Applied Visions Inc., has improved upon the open-source ThreadFix tool
 with a focused interface and improved HAM capabilities.
 
 The original ThreadFix project can be found here: https://github.com/denimgroup/threadfix

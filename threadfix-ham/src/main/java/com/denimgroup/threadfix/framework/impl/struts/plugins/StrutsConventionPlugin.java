@@ -71,7 +71,7 @@ public class StrutsConventionPlugin implements StrutsPlugin {
                     break;
                 }
             }
-            if (!hasSuffix) {
+            if (!hasSuffix && !strutsClass.getBaseTypes().contains("ActionSupport")) {
                 continue;
             }
 
@@ -100,6 +100,33 @@ public class StrutsConventionPlugin implements StrutsPlugin {
                 parameters.put(field.getParameterKey(), field.getType());
             }
 
+            if (strutsClass.getMethod("execute") == null && !strutsClass.getAnnotations(ResultAnnotation.class).isEmpty()) {
+                //  This class has default results but no execute class; in this case 'execute' will automatically defer to the results
+                Collection<ResultAnnotation> resultAnnotations = strutsClass.getAnnotations(ResultAnnotation.class);
+                ResultAnnotation defaultResult = null;
+                for (ResultAnnotation annotation : resultAnnotations) {
+                    //  Assign the first known result as our "default" in case none of te results are nameless
+                    if (defaultResult == null) {
+                        defaultResult = annotation;
+                    }
+                    if (annotation.getResultName() == null) {
+                        defaultResult = annotation;
+                        break;
+                    }
+                }
+
+                //  Should always be non-null, but just in case
+                if (defaultResult != null) {
+                    StrutsAction defaultAction = new StrutsAction("", null, strutsClass.getName(), strutsClass.getSourceFile());
+                    StrutsResult fileResult = new StrutsResult();
+                    fileResult.setName(defaultResult.getResultName());
+                    fileResult.setType(defaultResult.getResultType());
+                    fileResult.setValue(defaultResult.getResultLocation());
+                    defaultAction.addResult(fileResult);
+                    newPackage.addAction(defaultAction);
+                }
+            }
+
             for (StrutsMethod method : strutsClass.getMethods()) {
 
                 String methodName = method.getName();
@@ -118,7 +145,7 @@ public class StrutsConventionPlugin implements StrutsPlugin {
                 StrutsAction action = new StrutsAction(endpointPath, methodName, strutsClass.getName(), strutsClass.getSourceFile());
                 action.setParams(parameters);
 
-                File resultFile = findBestFile(new File(resultsPath), cleanClassName + "-" + methodName);
+                File resultFile = findBestFile(new File(currentResultPath), cleanClassName + "-" + methodName);
                 if (resultFile != null) {
                     StrutsResult fileResult = new StrutsResult();
                     fileResult.setValue(resultFile.getAbsolutePath());

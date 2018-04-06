@@ -123,6 +123,10 @@ public class RestPluginActionMapper implements ActionMapper {
                 }
 
                 String actionMethod = action.getMethod();
+                if (actionMethod == null) {
+                    continue;
+                }
+
                 String httpMethod = "GET";
                 if (actionMethod.equals(indexMethodName)) {
                     // exposed at base endpoint

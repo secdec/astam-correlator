@@ -28,6 +28,7 @@ package com.denimgroup.threadfix.data.interfaces;
 
 import com.denimgroup.threadfix.data.entities.AuthenticationRequired;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import javax.annotation.Nonnull;
@@ -52,6 +53,7 @@ public interface Endpoint extends Comparable<Endpoint> {
 	String getFilePath();
 
     int compareRelevance(String endpoint);
+    boolean isRelevant(String endpoint, EndpointRelevanceStrictness strictness);
 
     @JsonIgnore
     @Nonnull

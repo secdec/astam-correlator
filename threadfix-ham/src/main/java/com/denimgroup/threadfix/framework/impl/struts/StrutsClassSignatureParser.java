@@ -46,6 +46,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     boolean skipNonPublic = true;
     boolean skipConstructors = true;
     boolean isInterface = false;
+    boolean currentMethodThrows = false;
     ScopeTracker scopeTracker = new ScopeTracker();
 
 
@@ -88,8 +89,14 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
         return !isInterface;
     }
 
+    int lineno = -1;
+
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
+
+        if (lineNumber != lineno) {
+            lineno = lineNumber;
+        }
 
         // Parsing can break (and is not necessary) for interfaces
         if (isInterface) {
@@ -346,7 +353,11 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                     canParse = false;
                 }
 
-                if (type == '{' && canParse) {
+                if ((type == '{' || (stringValue != null && stringValue.equals("throws"))) && canParse) {
+
+                    if (stringValue != null && stringValue.equals("throws")) {
+                        currentMethodThrows = true;
+                    }
 
                     StrutsMethod newMethod = new StrutsMethod();
                     String methodName = possibleMethodName;
@@ -374,9 +385,14 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
                     methods.add(newMethod);
 
                     methodStartBraceLevel = scopeTracker.getNumOpenBrace();
+                    if (stringValue != null && stringValue.equals("throws")) {
+                        //  We've marked this as a method but aren't actually in the method yet
+                        //  Brace count will be off-by-one, correct this
+                        methodStartBraceLevel += 1;
+                    }
                     inClassState = InClassState.IN_METHOD;
-                } else {
-                    break;
+                } else if (type == ';') {
+                    inClassState = InClassState.IDENTIFICATION;
                 }
 
                 possibleMethodName = "";
@@ -388,6 +404,19 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
 
             case IN_METHOD:
                 StrutsMethod currentMethod = methods.get(methods.size() - 1);
+
+                //  If the current method throws an exception, the brace level will be advanced by 1 early
+                //  but this state expects the brace levels to be equal while in the method; ignore
+                //  parsing if the current method throws, until we finally reach the inner part
+                //  of the method
+                if (currentMethodThrows) {
+                    if (scopeTracker.getNumOpenBrace() < methodStartBraceLevel) {
+                        break;
+                    } else {
+                        currentMethodThrows = false;
+                    }
+                }
+
                 if (scopeTracker.getNumOpenBrace() < methodStartBraceLevel) {
                     methodStartBraceLevel = -1;
                     currentMethod.setEndLine(lineNumber);

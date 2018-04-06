@@ -27,8 +27,10 @@ package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
 import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.lang3.StringUtils;
 
@@ -195,6 +197,42 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
         }
 
         return relevance + numMatchedParts * 100;
+    }
+
+    @Override
+    public boolean isRelevant(String endpoint, EndpointRelevanceStrictness strictness) {
+        boolean isGenerallyRelevant = compareRelevance(endpoint) >= 0;
+        if (strictness == EndpointRelevanceStrictness.LOOSE) {
+            return isGenerallyRelevant;
+        } else if (!isGenerallyRelevant) {
+            return false;
+        }
+
+        String thisEndpoint = CodeParseUtil.trim(urlPath, "/");
+        endpoint = CodeParseUtil.trim(endpoint, "/");
+
+        if (thisEndpoint.equalsIgnoreCase(endpoint)) {
+            return true;
+        }
+
+        String[] thisEndpointParts = StringUtils.split(thisEndpoint, '/');
+        String[] endpointParts = StringUtils.split(endpoint, '/');
+
+        if (thisEndpointParts.length != endpointParts.length) {
+            return false;
+        }
+
+        for (int i = 0; i < thisEndpointParts.length; i++) {
+            String thisPart = thisEndpointParts[i];
+            String part = endpointParts[i];
+
+            if (!thisPart.equalsIgnoreCase(part) && !thisPart.contains("{")) {
+                return false;
+            }
+        }
+
+        return true;
+
     }
 
     private static String cleanViewParam(String param){
