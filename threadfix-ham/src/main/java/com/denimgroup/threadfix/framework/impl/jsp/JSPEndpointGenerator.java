@@ -296,7 +296,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
         for (Endpoint endpoint : allEndpoints) {
             String filePath = endpoint.getFilePath();
             File file = new File(filePath);
-            if (!file.isAbsolute()) {
+            if (!file.isAbsolute() || !file.exists()) {
                 filePath = PathUtil.combine(projectRoot.getAbsolutePath(), filePath);
                 file = new File(filePath);
             }
@@ -314,7 +314,8 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 	    for (Endpoint endpoint : allEndpoints) {
 	        JSPEndpoint jspEndpoint = (JSPEndpoint)endpoint;
 	        String filePath = jspEndpoint.getFilePath();
-	        if (!new File(filePath).isAbsolute()) {
+	        File file = new File(filePath);
+	        if (!file.isAbsolute() || !file.exists()) {
 	            filePath = PathUtil.combine(projectRoot.getAbsolutePath(), filePath);
             }
 
