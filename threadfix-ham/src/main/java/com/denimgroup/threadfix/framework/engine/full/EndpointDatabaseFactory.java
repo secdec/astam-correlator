@@ -44,6 +44,15 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.Enumeration;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.BufferedOutputStream;
+import org.apache.commons.io.FileUtils;
+
 
 public class EndpointDatabaseFactory {
 	
@@ -67,15 +76,42 @@ public class EndpointDatabaseFactory {
         return database;
     }
 
-	@Nullable
+    @Nullable
     public static EndpointDatabase getDatabase(@Nonnull String rootFile) {
+        boolean fromZip = false;
+        String format = rootFile.substring(rootFile.lastIndexOf('.') + 1).trim();
+        int pos = rootFile.lastIndexOf("/");
+        if (format != null && !format.trim().isEmpty())
+        {
+            if (format.equalsIgnoreCase("zip"))
+            {
+                fromZip = true;
+                String newSource = extractFolder(rootFile, rootFile.substring(0,pos));
+                String folderName = rootFile.substring(rootFile.lastIndexOf('/') + 1).trim();
+                folderName = folderName.substring(0, folderName.lastIndexOf('.')).trim();
+                newSource = newSource + "/" + folderName;
+                rootFile = newSource;
+            }
+        }
         File file = new File(rootFile);
 
         assert file.exists() : rootFile + " didn't exist.";
         assert file.isDirectory() : rootFile + " wasn't a directory.";
 
-        return getDatabase(file);
-	}
+        EndpointDatabase db = getDatabase(file);
+        try
+        {
+            if (fromZip)
+                FileUtils.deleteDirectory(new File(rootFile));
+        }
+        catch (Exception e)
+        {
+
+        }
+
+        return db;
+    }
+
 
 	@Nullable
     public static EndpointDatabase getDatabase(@Nonnull File rootFile) {
@@ -150,5 +186,65 @@ public class EndpointDatabaseFactory {
                                                @Nonnull FrameworkType frameworkType, PathCleaner cleaner) {
         return new GeneratorBasedEndpointDatabase(generator, cleaner, frameworkType);
 	}
+
+    private static String extractFolder(String zipFile,String extractFolder)
+    {
+        try
+        {
+            int BUFFER = 2048;
+            File file = new File(zipFile);
+
+            ZipFile zip = new ZipFile(file);
+            String newPath = extractFolder;
+
+            new File(newPath).mkdir();
+            Enumeration zipFileEntries = zip.entries();
+
+            // Process each entry
+            while (zipFileEntries.hasMoreElements())
+            {
+                // grab a zip file entry
+                ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
+                String currentEntry = entry.getName();
+
+                File destFile = new File(newPath, currentEntry);
+                //destFile = new File(newPath, destFile.getName());
+                File destinationParent = destFile.getParentFile();
+
+                // create the parent directory structure if needed
+                destinationParent.mkdirs();
+
+                if (!entry.isDirectory())
+                {
+                    BufferedInputStream is = new BufferedInputStream(zip
+                            .getInputStream(entry));
+                    int currentByte;
+                    // establish buffer for writing file
+                    byte data[] = new byte[BUFFER];
+
+                    // write the current file to disk
+                    FileOutputStream fos = new FileOutputStream(destFile);
+                    BufferedOutputStream dest = new BufferedOutputStream(fos,
+                            BUFFER);
+
+                    // read and write until last byte is encountered
+                    while ((currentByte = is.read(data, 0, BUFFER)) != -1) {
+                        dest.write(data, 0, currentByte);
+                    }
+                    dest.flush();
+                    dest.close();
+                    is.close();
+                }
+
+
+            }
+            return extractFolder;
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+
+    }
 	
 }
