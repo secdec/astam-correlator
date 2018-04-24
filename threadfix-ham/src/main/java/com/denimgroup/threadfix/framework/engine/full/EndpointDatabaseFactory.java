@@ -55,8 +55,8 @@ import org.apache.commons.io.FileUtils;
 
 
 public class EndpointDatabaseFactory {
-	
-	private static final SanitizedLogger log = new SanitizedLogger("EndpointDatabaseFactory");
+
+    private static final SanitizedLogger log = new SanitizedLogger("EndpointDatabaseFactory");
 
     @Nullable
     public static EndpointDatabase getDatabase(@Nonnull ProjectConfig projectConfig) {
@@ -80,16 +80,25 @@ public class EndpointDatabaseFactory {
     public static EndpointDatabase getDatabase(@Nonnull String rootFile) {
         boolean fromZip = false;
         String format = rootFile.substring(rootFile.lastIndexOf('.') + 1).trim();
-        int pos = rootFile.lastIndexOf("/");
         if (format != null && !format.trim().isEmpty())
         {
             if (format.equalsIgnoreCase("zip"))
             {
+                String folderName = new String();
                 fromZip = true;
-                String newSource = extractFolder(rootFile, rootFile.substring(0,pos));
-                String folderName = rootFile.substring(rootFile.lastIndexOf('/') + 1).trim();
+                String newSource = extractFolder(rootFile, javax.swing.filechooser.FileSystemView.getFileSystemView().getDefaultDirectory().getPath());
+                if(rootFile.contains("/"))
+                {
+                    folderName = rootFile.substring(rootFile.lastIndexOf('/') + 1).trim();
+                    newSource = newSource + "/";
+                }
+                else
+                {
+                    folderName = rootFile.substring(rootFile.lastIndexOf("\\") + 1).trim();
+                    newSource = newSource + "\\";
+                }
                 folderName = folderName.substring(0, folderName.lastIndexOf('.')).trim();
-                newSource = newSource + "/" + folderName;
+                newSource = newSource+ folderName;
                 rootFile = newSource;
             }
         }
@@ -113,32 +122,32 @@ public class EndpointDatabaseFactory {
     }
 
 
-	@Nullable
+    @Nullable
     public static EndpointDatabase getDatabase(@Nonnull File rootFile) {
-		FrameworkType type = FrameworkCalculator.getType(rootFile);
-		return getDatabase(rootFile, type);
-	}
-	
-	@Nullable
-    public static EndpointDatabase getDatabase(@Nonnull File rootFile, List<PartialMapping> partialMappings) {
-		FrameworkType type = FrameworkCalculator.getType(rootFile);
-		
-		return getDatabase(rootFile, type, partialMappings);
-	}
+        FrameworkType type = FrameworkCalculator.getType(rootFile);
+        return getDatabase(rootFile, type);
+    }
 
-	@Nullable
+    @Nullable
+    public static EndpointDatabase getDatabase(@Nonnull File rootFile, List<PartialMapping> partialMappings) {
+        FrameworkType type = FrameworkCalculator.getType(rootFile);
+
+        return getDatabase(rootFile, type, partialMappings);
+    }
+
+    @Nullable
     public static EndpointDatabase getDatabase(@Nonnull File rootFile, @Nonnull FrameworkType frameworkType) {
-		return getDatabase(rootFile, frameworkType, new ArrayList<PartialMapping>());
-	}
-	
-	@Nullable
+        return getDatabase(rootFile, frameworkType, new ArrayList<PartialMapping>());
+    }
+
+    @Nullable
     public static EndpointDatabase getDatabase(@Nonnull File rootFile, @Nonnull FrameworkType frameworkType, List<PartialMapping> partialMappings) {
-		PathCleaner cleaner = PathCleanerFactory.getPathCleaner(frameworkType, partialMappings);
-		
-		return getDatabase(rootFile, frameworkType, cleaner);
-	}
-	
-	@Nullable
+        PathCleaner cleaner = PathCleanerFactory.getPathCleaner(frameworkType, partialMappings);
+
+        return getDatabase(rootFile, frameworkType, cleaner);
+    }
+
+    @Nullable
     public static EndpointDatabase getDatabase(@Nonnull File rootFile, @Nonnull FrameworkType frameworkType, PathCleaner cleaner) {
 
         log.info("Creating database with root file = " +
@@ -149,43 +158,43 @@ public class EndpointDatabaseFactory {
                 cleaner);
 
 
-		EndpointGenerator generator = null;
-		
-		switch (frameworkType) {
+        EndpointGenerator generator = null;
+
+        switch (frameworkType) {
             case NONE:
             case DETECT:      break;
             case JSP:         generator = new JSPEndpointGenerator(rootFile);              break;
             case RAILS:       generator = new RailsEndpointMappings(rootFile);    break;
-			case SPRING_MVC:  generator = new SpringControllerMappings(rootFile); break;
-			case DOT_NET_MVC: generator = new DotNetMappings(rootFile);           break;
+            case SPRING_MVC:  generator = new SpringControllerMappings(rootFile); break;
+            case DOT_NET_MVC: generator = new DotNetMappings(rootFile);           break;
             case DOT_NET_WEB_FORMS: generator = new WebFormsEndpointGenerator(rootFile); break;
             case STRUTS:      generator = new StrutsEndpointMappings(rootFile);   break;
             case PYTHON:      generator = new DjangoEndpointGenerator(rootFile); break;
 
-			default:
+            default:
                 String logError = "You should never be here. You are missing a case statement for " + frameworkType;
                 log.error(logError);
                 assert false : logError;
-		}
-		
-		log.info("Returning database with generator (" + (generator == null ? "null" : generator.getClass().getName()) +"): " + generator);
+        }
+
+        log.info("Returning database with generator (" + (generator == null ? "null" : generator.getClass().getName()) +"): " + generator);
 
         if (cleaner != null) {
             cleaner.setEndpointGenerator(generator);
         }
 
-		if (generator == null) {
+        if (generator == null) {
             return null;
         } else {
-		    return new GeneratorBasedEndpointDatabase(generator, cleaner, frameworkType);
+            return new GeneratorBasedEndpointDatabase(generator, cleaner, frameworkType);
         }
-	}
+    }
 
-	@Nullable
+    @Nullable
     public static EndpointDatabase getDatabase(@Nonnull EndpointGenerator generator,
                                                @Nonnull FrameworkType frameworkType, PathCleaner cleaner) {
         return new GeneratorBasedEndpointDatabase(generator, cleaner, frameworkType);
-	}
+    }
 
     private static String extractFolder(String zipFile,String extractFolder)
     {
@@ -208,7 +217,6 @@ public class EndpointDatabaseFactory {
                 String currentEntry = entry.getName();
 
                 File destFile = new File(newPath, currentEntry);
-                //destFile = new File(newPath, destFile.getName());
                 File destinationParent = destFile.getParentFile();
 
                 // create the parent directory structure if needed
@@ -224,20 +232,22 @@ public class EndpointDatabaseFactory {
 
                     // write the current file to disk
                     FileOutputStream fos = new FileOutputStream(destFile);
-                    BufferedOutputStream dest = new BufferedOutputStream(fos,
-                            BUFFER);
+                    BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);
 
                     // read and write until last byte is encountered
-                    while ((currentByte = is.read(data, 0, BUFFER)) != -1) {
+                    while ((currentByte = is.read(data, 0, BUFFER)) != -1)
+                    {
                         dest.write(data, 0, currentByte);
                     }
                     dest.flush();
                     dest.close();
                     is.close();
+                    fos.flush();
+                    fos.close();
+
                 }
-
-
             }
+
             return extractFolder;
         }
         catch (Exception e)
@@ -246,5 +256,5 @@ public class EndpointDatabaseFactory {
         }
 
     }
-	
+
 }
