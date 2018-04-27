@@ -56,7 +56,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
     }
 
     private static boolean isModuleFolder(File folder) {
-        return (new File(folder.getAbsolutePath() + "/__init__.py")).exists();
+        return (new File(folder.getAbsolutePath() + File.separator + "__init__.py")).exists();
     }
 
     static String makeModuleName(File file) {
@@ -146,7 +146,7 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         Collections.sort(folders, new Comparator<File>() {
             @Override
             public int compare(File o1, File o2) {
-                return StringUtils.countMatches(o1.getAbsolutePath(), "/") - StringUtils.countMatches(o2.getAbsolutePath(), "/");
+                return StringUtils.countMatches(o1.getAbsolutePath(), File.separator) - StringUtils.countMatches(o2.getAbsolutePath(), File.separator);
             }
         });
 
@@ -158,17 +158,17 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
                 continue;
             }
 
-            String relativePath = folderPath.replace(rootDirectory.getAbsolutePath() + "/", "");
+            String relativePath = folderPath.replace(rootDirectory.getAbsolutePath() + File.separator, "");
             if (relativePath.length() == 0 || relativePath.contains(".")) {
                 continue;
             }
             PythonModule module = new PythonModule();
             module.setSourceCodePath(folder.getAbsolutePath());
             module.setName(makeModuleName(folder));
-            if (!relativePath.contains("/")) {
+            if (!relativePath.contains(File.separator)) {
                 codebase.add(module);
             } else {
-                String modulePath = relativePath.replaceAll("\\/", ".");
+                String modulePath = StringUtils.replace(relativePath, File.separator, ".");
                 String basePath = modulePath.substring(0, modulePath.lastIndexOf('.'));
                 PythonModule parentModule = codebase.findByFullName(basePath, PythonModule.class);
                 if (parentModule != null) {
@@ -181,16 +181,16 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
         Queue<PythonModule> modulesQueue = new LinkedList<PythonModule>(finishedModules);
         while (!modulesQueue.isEmpty()) {
             PythonModule currentModule = modulesQueue.remove();
-            String baseModule = currentModule.getSourceCodePath().replace(rootDirectory.getAbsolutePath() + "/", "");
+            String baseModule = currentModule.getSourceCodePath().replace(rootDirectory.getAbsolutePath() + File.separator, "");
 
-            if (!baseModule.contains("/")) {
+            if (!baseModule.contains(File.separator)) {
                 codebase.add(currentModule);
                 continue;
             }
 
             // Remove file name
-            baseModule = baseModule.substring(0, baseModule.lastIndexOf('/'));
-            baseModule = baseModule.replaceAll("\\/", ".");
+            baseModule = baseModule.substring(0, baseModule.lastIndexOf(File.separator));
+            baseModule = StringUtils.replace(baseModule, File.separator, ".");
 
             PythonModule parentModule = codebase.findByFullName(baseModule, PythonModule.class);
             if (parentModule != null) {

@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
+import com.denimgroup.threadfix.framework.impl.django.python.PythonDebugUtil;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonSyntaxParser;
 import com.denimgroup.threadfix.framework.impl.django.python.runtime.*;
 import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
@@ -118,6 +119,10 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 + codebase.get(PythonFunctionCall.class).size() + " function calls.");
 
         //PythonDebugUtil.printDuplicateStatements(codebase);
+
+
+	    PythonDebugUtil.printFullTypeNames(codebase);
+
 
         debugLog("Preparing Python interpreter...");
 
