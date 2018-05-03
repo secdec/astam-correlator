@@ -1,0 +1,27 @@
+# This is a sample project listing file for use with the threadfix-endpoints-cli tool.
+# This is used via the -path-list-file="<file-path>" parameter.
+
+# 1 folder path per line - HAM will auto-detect the framework types for these
+/files/Project 1/src
+/files/Project 2/src
+
+# .NET WEB FORMS
+DOT_NET_WEB_FORMS:/files/ASP Web Forms Project/src
+
+# .NET MVC
+DOT_NET_MVC:/files/ASP MVC Project/src
+
+# STRUTS
+STRUTS:/files/Struts Project/src
+
+# JSP
+JSP:/files/JSP Project/src
+
+# Spring MVC
+SPRING_MVC:/files/Spring MVC Project/src
+
+# Rails
+RAILS:/files/Rails Project/src
+
+# Django
+PYTHON:/files/Django Project/src
