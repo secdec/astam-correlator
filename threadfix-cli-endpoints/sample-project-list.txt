@@ -5,6 +5,12 @@
 /files/Project 1/src
 /files/Project 2/src
 
+# Define a specific framework to use when parsing endpoints
+# by adding "FRAMEWORK_TYPE:" before the folder path.
+# The list of currently accepted values are demonstrated below.
+# If a new framework is added, its "FrameworkType" name will
+# automatically be usable in this file.
+
 # .NET WEB FORMS
 DOT_NET_WEB_FORMS:/files/ASP Web Forms Project/src
 
