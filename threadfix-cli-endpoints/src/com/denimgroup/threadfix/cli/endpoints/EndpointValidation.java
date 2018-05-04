@@ -16,9 +16,20 @@ public class EndpointValidation {
         List<Endpoint> allEndpoints = EndpointUtil.flattenWithVariants(endpoints);
         for (Endpoint endpoint : allEndpoints) {
 
-            if (endpoint.getFilePath().startsWith(sourceCodeFolder.getAbsolutePath())) {
+            if (endpoint.getFilePath().startsWith(sourceCodeFolder.getAbsolutePath().replace('\\', '/'))) {
                 System.out.println("Got an absolute file path when a relative path was expected instead, for: " + endpoint.toString());
                 return false;
+            }
+
+            if (endpoint.getFilePath().isEmpty()) {
+            	System.out.println("Got an empty file path for: " + endpoint.toString());
+            }
+            else {
+	            File fullPath = new File(sourceCodeFolder, endpoint.getFilePath());
+	            if (!fullPath.exists()) {
+		            System.out.println("The source code path '" + fullPath.getAbsolutePath() + "' does not exist for: " + endpoint.toString());
+		            return false;
+	            }
             }
 
             String serialized;
