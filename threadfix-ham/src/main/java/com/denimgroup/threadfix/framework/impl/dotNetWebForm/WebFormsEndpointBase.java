@@ -61,7 +61,7 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
     }
 
-    public WebFormsEndpointBase(File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
+    public WebFormsEndpointBase(File projectRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
         if (!checkArguments(aspxParser.aspName, aspxCsParser.aspName)) {
             throw new IllegalArgumentException("Invalid aspx mappings pairs passed to WebFormsEndpointBase constructor: " +
                     aspxParser.aspName + " and " + aspxCsParser.aspName);
@@ -69,7 +69,7 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
         this.aspxFilePath = aspxParser.file.getAbsolutePath();
         this.aspxCsFilePath = aspxCsParser.file.getAbsolutePath();
-        this.aspxRoot = aspxRoot.getAbsolutePath();
+        this.aspxRoot = projectRoot.getAbsolutePath();
 
         this.urlPath = calculateUrlPath();
         this.filePath = calculateFilePath();

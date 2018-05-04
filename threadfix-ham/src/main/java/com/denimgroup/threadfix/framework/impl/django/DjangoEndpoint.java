@@ -81,13 +81,13 @@ public class DjangoEndpoint extends AbstractEndpoint {
                           Map<String, RouteParameter> parameters,
                           boolean isInternationalized) {
 
-        this.filePath = filePath;
+        this.filePath = filePath.replace('\\', '/');
         this.urlPath = urlPath;
         this.httpMethod = httpMethod;
         if (parameters != null)
             this.parameters = parameters;
 
-        this.urlPath = this.urlPath.replaceAll("\\\\", "/");
+        this.urlPath = this.urlPath.replace('\\', '/');
 
         if (!this.urlPath.startsWith("/")) {
             this.urlPath = "/" + urlPath;
