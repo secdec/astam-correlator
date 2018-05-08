@@ -75,10 +75,14 @@ public class EndpointMain {
     public static void main(String[] args) {
         if (checkArguments(args)) {
             resetLoggingConfiguration();
+            int numProjectsWithEndpoints = 0;
+            int numProjects = 0;
+
             if (pathListFile != null) {
                 System.out.println("Loading path list file at '" + pathListFile + "'");
                 List<String> fileContents;
                 boolean isLongComment = false;
+
                 try {
                     fileContents = FileUtils.readLines(new File(pathListFile));
                     List<EndpointJob> requestedTargets = list();
@@ -120,6 +124,8 @@ public class EndpointMain {
                         ++lineNo;
                     }
 
+                    numProjects = requestedTargets.size();
+
                     boolean isFirst = true;
                     FrameworkType baseType = framework;
                     for (EndpointJob job : requestedTargets) {
@@ -130,10 +136,14 @@ public class EndpointMain {
                         System.out.println("Beginning endpoint detection for '" + job.sourceCodePath.getAbsolutePath() + "'");
                         framework = job.frameworkType;
                         System.out.println("Using framework=" + framework);
-                        listEndpoints(job.sourceCodePath);
+                        List<Endpoint> generatedEndpoints = listEndpoints(job.sourceCodePath);
                         framework = baseType;
                         System.out.println("Finished endpoint detection for '" + job.sourceCodePath.getAbsolutePath() + "'");
                         System.out.println(PRINTLN_SEPARATOR);
+
+                        if (!generatedEndpoints.isEmpty()) {
+                            ++numProjectsWithEndpoints;
+                        }
                     }
 
                 } catch (IOException e) {
@@ -142,12 +152,17 @@ public class EndpointMain {
                     printError();
                 }
             } else {
-                listEndpoints(new File(args[0]));
+	        ++numProjects;
+
+                if (!listEndpoints(new File(args[0])).isEmpty()) {
+                    ++numProjectsWithEndpoints;
+                }
             }
 
             System.out.println("-- DONE --");
             System.out.println("Generated " + totalDetectedEndpoints + " total endpoints");
             System.out.println("Generated " + totalDetectedParameters + " total parameters");
+            System.out.println(numProjectsWithEndpoints + "/" + numProjects + " projects had endpoints generated");
 
             if (printFormat != JSON) {
                 System.out.println("To enable logging include the -debug argument");
@@ -262,7 +277,7 @@ public class EndpointMain {
         return numPrinted;
     }
 
-    private static void listEndpoints(File rootFile) {
+    private static List<Endpoint> listEndpoints(File rootFile) {
         List<Endpoint> endpoints = list();
 
         if (framework == FrameworkType.DETECT) {
@@ -376,6 +391,8 @@ public class EndpointMain {
         for (RouteParameterType paramType : typeOccurrences.keySet()) {
             System.out.println("--- " + paramType.name() + ": " + typeOccurrences.get(paramType));
         }
+
+        return endpoints;
     }
 
     private static Endpoint.Info[] getEndpointInfo(List<Endpoint> endpoints) {
