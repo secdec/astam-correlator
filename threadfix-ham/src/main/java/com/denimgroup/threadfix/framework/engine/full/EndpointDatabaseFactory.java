@@ -80,11 +80,11 @@ public class EndpointDatabaseFactory {
     public static EndpointDatabase getDatabase(@Nonnull String rootFile) {
         boolean fromZip = false;
         String format = rootFile.substring(rootFile.lastIndexOf('.') + 1).trim();
-        if (format != null && !format.trim().isEmpty())
+        if (!format.isEmpty())
         {
-            if (format.equalsIgnoreCase("zip"))
+            if (format.equalsIgnoreCase("zip") || format.equalsIgnoreCase("war"))
             {
-                String folderName = new String();
+                String folderName;
                 fromZip = true;
                 String newSource = extractFolder(rootFile, javax.swing.filechooser.FileSystemView.getFileSystemView().getDefaultDirectory().getPath());
                 if(rootFile.contains("/"))
@@ -115,7 +115,7 @@ public class EndpointDatabaseFactory {
         }
         catch (Exception e)
         {
-
+            log.warn("Unable to delete old extracted ZIP directory at: " + rootFile + "\n(" + e.toString() + ")");
         }
 
         return db;
