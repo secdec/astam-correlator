@@ -44,82 +44,82 @@ import java.util.List;
 import static org.junit.Assert.assertTrue;
 
 public class PetClinicEndpointDatabaseTests {
-	
-	@Nullable
+
+    @Nullable
     private EndpointDatabase getSpringEndpointDatabaseDynamic() {
-		File file = new File(TestConstants.PETCLINIC_SOURCE_LOCATION);
-		
-		return EndpointDatabaseFactory.getDatabase(file, FrameworkType.SPRING_MVC, new SpringPathCleaner("/petclinic", null));
-	}
-	
-	@Test
-	public void testPetClinicDynamicToStaticPathQueries() {
-		
-		EndpointDatabase db = getSpringEndpointDatabaseDynamic();
-		
-		for (String[] pair : dynamicToStaticTests) {
-			String result = getStaticPath(db, pair[0]);
-			assertTrue("Input: " + pair[0] + ", expected " + pair[1] + " but got " + result, result.equals(pair[1]));
-		}
-	}
-	
-	@Nonnull
+        File file = new File(TestConstants.PETCLINIC_SOURCE_LOCATION);
+
+        return EndpointDatabaseFactory.getDatabase(file, FrameworkType.SPRING_MVC, new SpringPathCleaner("/petclinic", null));
+    }
+
+    @Test
+    public void testPetClinicDynamicToStaticPathQueries() {
+
+        EndpointDatabase db = getSpringEndpointDatabaseDynamic();
+
+        for (String[] pair : dynamicToStaticTests) {
+            String result = getStaticPath(db, pair[0]);
+            assertTrue("Input: " + pair[0] + ", expected " + pair[1] + " but got " + result, result.equals(pair[1]));
+        }
+    }
+
+    @Nonnull
     String[][] dynamicToStaticTests = new String[][] {
-			{ "/petclinic/owners", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
-			{ "/petclinic/owners.html", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
-			{ "/petclinic/owners/{id}", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
-			{ "/petclinic/owners/3463", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
-			{ "/petclinic/owners/346323/edit", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
-			{ "/petclinic/owners/{id}/edit", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
-			{ "/petclinic/owners/find", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
-			{ "/petclinic/owners/new", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
-			{ "/petclinic/owners/3463", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
-			{ "/petclinic/owners/3463", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
-			{ "/petclinic/owners/{id}/pets/{id}/visits/new", "/src/main/java/org/springframework/samples/petclinic/web/VisitController.java" },
-			{ "/petclinic/owners/5/pets/2/visits/new", "/src/main/java/org/springframework/samples/petclinic/web/VisitController.java" },
-			{ "/petclinic/owners/45683568/pets/6457247/visits/new", "/src/main/java/org/springframework/samples/petclinic/web/VisitController.java" },
-			{ "/petclinic/oups", "/src/main/java/org/springframework/samples/petclinic/web/CrashController.java" },
-			{ "/petclinic/oups.html", "/src/main/java/org/springframework/samples/petclinic/web/CrashController.java" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "/src/main/java/org/springframework/samples/petclinic/web/PetController.java" },
-			{ "/petclinic/owners/5/pets/2/edit", "/src/main/java/org/springframework/samples/petclinic/web/PetController.java" },
-			{ "/petclinic/owners/24562/pets/345724824/edit", "/src/main/java/org/springframework/samples/petclinic/web/PetController.java" },
-			{ "/petclinic/vets", "/src/main/java/org/springframework/samples/petclinic/web/VetController.java" },
-			{ "/petclinic/owners/{id}/pets/new", "/src/main/java/org/springframework/samples/petclinic/web/PetController.java" },
-			{ "/petclinic/owners/36/pets/new", "/src/main/java/org/springframework/samples/petclinic/web/PetController.java" },
-	};
-	
-	@Nonnull
+            { "/petclinic/owners", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
+            { "/petclinic/owners.html", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
+            { "/petclinic/owners/{id}", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
+            { "/petclinic/owners/3463", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
+            { "/petclinic/owners/346323/edit", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
+            { "/petclinic/owners/{id}/edit", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
+            { "/petclinic/owners/find", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
+            { "/petclinic/owners/new", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
+            { "/petclinic/owners/3463", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
+            { "/petclinic/owners/3463", "/src/main/java/org/springframework/samples/petclinic/web/OwnerController.java" },
+            { "/petclinic/owners/{id}/pets/{id}/visits/new", "/src/main/java/org/springframework/samples/petclinic/web/VisitController.java" },
+            { "/petclinic/owners/5/pets/2/visits/new", "/src/main/java/org/springframework/samples/petclinic/web/VisitController.java" },
+            { "/petclinic/owners/45683568/pets/6457247/visits/new", "/src/main/java/org/springframework/samples/petclinic/web/VisitController.java" },
+            { "/petclinic/oups", "/src/main/java/org/springframework/samples/petclinic/web/CrashController.java" },
+            { "/petclinic/oups.html", "/src/main/java/org/springframework/samples/petclinic/web/CrashController.java" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "/src/main/java/org/springframework/samples/petclinic/web/PetController.java" },
+            { "/petclinic/owners/5/pets/2/edit", "/src/main/java/org/springframework/samples/petclinic/web/PetController.java" },
+            { "/petclinic/owners/24562/pets/345724824/edit", "/src/main/java/org/springframework/samples/petclinic/web/PetController.java" },
+            { "/petclinic/vets", "/src/main/java/org/springframework/samples/petclinic/web/VetController.java" },
+            { "/petclinic/owners/{id}/pets/new", "/src/main/java/org/springframework/samples/petclinic/web/PetController.java" },
+            { "/petclinic/owners/36/pets/new", "/src/main/java/org/springframework/samples/petclinic/web/PetController.java" },
+    };
+
+    @Nonnull
     private String getStaticPath(@Nonnull EndpointDatabase db, String dynamicPath) {
-		EndpointQuery query = EndpointQueryBuilder.start()
-				.setInformationSourceType(InformationSourceType.DYNAMIC)
-				.setDynamicPath(dynamicPath)
-				.generateQuery();
-		
-		return db.findBestMatch(query).getFilePath();
-	}
-	
-	@Nonnull
+        EndpointQuery query = EndpointQueryBuilder.start()
+                .setInformationSourceType(InformationSourceType.DYNAMIC)
+                .setDynamicPath(dynamicPath)
+                .generateQuery();
+
+        return db.findBestMatch(query).getFilePath();
+    }
+
+    @Nonnull
     String[][] httpMethodTests = new String[][] {
-			{ "/petclinic/owners/new", "GET", "60" },
-			{ "/petclinic/owners/new", "POST", "67" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "GET", "85" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "POST", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "PUT", "92" },
-			{ "/petclinic/owners/{id}/pets/new", "GET", "64" },
-			{ "/petclinic/owners/{id}/pets/new", "POST", "73" },
-			{ "/petclinic/oups", "GET", "33" },
-			{ "/petclinic/oups", "POST", null },
-			{ "/petclinic/owners/find", "GET", "78" },
-			{ "/petclinic/owners/find", "POST", null },
-			{ "/petclinic/owners/{id}/pets/{id}/visits", "GET", "79" },
-			{ "/petclinic/owners/{id}/pets/{id}/visits", "POST", null },
-			{ "/petclinic/owners/{id}/pets/{id}/visits/new", "GET", "59" },
-			{ "/petclinic/owners/{id}/pets/{id}/visits/new", "POST", "68" },
-			{ "/petclinic/owners/{id}/edit", "GET", "110" },
-			{ "/petclinic/owners/{id}/edit", "PUT", "117" },
-			{ "/petclinic/owners", "GET", "84" },
-			{ "/petclinic/owners", "POST", null },
-	};
+            { "/petclinic/owners/new", "GET", "60" },
+            { "/petclinic/owners/new", "POST", "67" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "GET", "85" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "POST", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "PUT", "92" },
+            { "/petclinic/owners/{id}/pets/new", "GET", "64" },
+            { "/petclinic/owners/{id}/pets/new", "POST", "73" },
+            { "/petclinic/oups", "GET", "33" },
+            { "/petclinic/oups", "POST", null },
+            { "/petclinic/owners/find", "GET", "78" },
+            { "/petclinic/owners/find", "POST", null },
+            { "/petclinic/owners/{id}/pets/{id}/visits", "GET", "79" },
+            { "/petclinic/owners/{id}/pets/{id}/visits", "POST", null },
+            { "/petclinic/owners/{id}/pets/{id}/visits/new", "GET", "59" },
+            { "/petclinic/owners/{id}/pets/{id}/visits/new", "POST", "68" },
+            { "/petclinic/owners/{id}/edit", "GET", "110" },
+            { "/petclinic/owners/{id}/edit", "PUT", "117" },
+            { "/petclinic/owners", "GET", "84" },
+            { "/petclinic/owners", "POST", null },
+    };
 
 
     @Nullable
@@ -129,94 +129,94 @@ public class PetClinicEndpointDatabaseTests {
         return EndpointDatabaseFactory.getDatabase(file, FrameworkType.SPRING_MVC, new SpringPathCleaner("/petclinic", null));
     }
 
-	@Test
-	public void testHttpMethodRecognition() {
-		EndpointDatabase db = getSpringEndpointDatabaseStatic();
-		
-		for (String[] httpMethodTest : httpMethodTests) {
-			EndpointQuery query =
-					EndpointQueryBuilder.start()
-						.setDynamicPath(httpMethodTest[0])
-						.setHttpMethod(httpMethodTest[1])
-						.generateQuery();
-			
-			Endpoint result = db.findBestMatch(query);
-			
-			String currentQuery = httpMethodTest[0] + ": " + httpMethodTest[1];
-			
-			if (result == null) {
-				assertTrue("No result was found, but line " + httpMethodTest[2] + " was expected for " + currentQuery,
-						httpMethodTest[2] == null);
-			} else {
-				
-				//String currentQuery = httpMethodTest[0] + ": " + httpMethodTest[1];
-				
-				assertTrue("Got an endpoint, but was not expecting one with " + currentQuery,
-						httpMethodTest[2] != null);
-				
-				Integer value = Integer.valueOf(httpMethodTest[2]);
-				
-				assertTrue("Got " + result.getStartingLineNumber() + " but was expecting " + value + " with " + currentQuery,
-						value.equals(result.getStartingLineNumber()));
-			}
-		}
-	}
+    @Test
+    public void testHttpMethodRecognition() {
+        EndpointDatabase db = getSpringEndpointDatabaseStatic();
+
+        for (String[] httpMethodTest : httpMethodTests) {
+            EndpointQuery query =
+                    EndpointQueryBuilder.start()
+                        .setDynamicPath(httpMethodTest[0])
+                        .setHttpMethod(httpMethodTest[1])
+                        .generateQuery();
+
+            Endpoint result = db.findBestMatch(query);
+
+            String currentQuery = httpMethodTest[0] + ": " + httpMethodTest[1];
+
+            if (result == null) {
+                assertTrue("No result was found, but line " + httpMethodTest[2] + " was expected for " + currentQuery,
+                        httpMethodTest[2] == null);
+            } else {
+
+                //String currentQuery = httpMethodTest[0] + ": " + httpMethodTest[1];
+
+                assertTrue("Got an endpoint, but was not expecting one with " + currentQuery,
+                        httpMethodTest[2] != null);
+
+                Integer value = Integer.valueOf(httpMethodTest[2]);
+
+                assertTrue("Got " + result.getStartingLineNumber() + " but was expecting " + value + " with " + currentQuery,
+                        value.equals(result.getStartingLineNumber()));
+            }
+        }
+    }
 
 
     // TODO once we figure out what's going on with parameters let's patch these up
-	@Nonnull
+    @Nonnull
     String[][] parameterTests = new String[][] {
-			{ "/petclinic/owners/new", null, "60" },
-			{ "/petclinic/owners/new", "lastName", "67" },
-			{ "/petclinic/owners/new", "city", "67" },
-			{ "/petclinic/owners/new", "firstName", "67" },
-			{ "/petclinic/owners/new", "telephone", "67" },
-			{ "/petclinic/owners/new", "pet.type.id", "67" },
-			{ "/petclinic/owners/new", "pet.name", "67" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "petId", "85" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.pet.type.id", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.city", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.pet.type.name", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.firstName", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.id", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.id", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.id", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.telephone", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "name", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "type.name", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.address", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.firstName", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "birthDate", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.city", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.pet.name", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.birthDate", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.pet.id", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.lastName", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.type.id", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.name", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.type.name", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.telephone", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.address", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.pet.birthDate", "92" },
-			{ "/petclinic/owners/{id}/pets/{id}/edit", "type.id", "92" },
-			{ "/petclinic/owners/{id}/pets/new", "ownerId", "64" },
-			{ "/petclinic/owners/{id}/pets/new", "owner.pet.birthDate", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "owner.city", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "owner.lastName", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "owner.pet.type.id", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "owner.pet.name", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "owner.id", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "owner.pet.type.name", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "owner.telephone", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "owner.pet.id", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "owner.address", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "name", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "type.name", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "owner.firstName", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "birthDate", "73" },
-			{ "/petclinic/owners/{id}/pets/new", "type.id", "73" },
+            { "/petclinic/owners/new", null, "60" },
+            { "/petclinic/owners/new", "lastName", "67" },
+            { "/petclinic/owners/new", "city", "67" },
+            { "/petclinic/owners/new", "firstName", "67" },
+            { "/petclinic/owners/new", "telephone", "67" },
+            { "/petclinic/owners/new", "pet.type.id", "67" },
+            { "/petclinic/owners/new", "pet.name", "67" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "petId", "85" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.pet.type.id", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.city", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.pet.type.name", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.firstName", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.id", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.id", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.id", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.telephone", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "name", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "type.name", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.address", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.firstName", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "birthDate", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.city", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.pet.name", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.birthDate", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.pet.id", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.lastName", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.type.id", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.name", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.type.name", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.telephone", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.address", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "owner.pet.owner.pet.birthDate", "92" },
+            { "/petclinic/owners/{id}/pets/{id}/edit", "type.id", "92" },
+            { "/petclinic/owners/{id}/pets/new", "ownerId", "64" },
+            { "/petclinic/owners/{id}/pets/new", "owner.pet.birthDate", "73" },
+            { "/petclinic/owners/{id}/pets/new", "owner.city", "73" },
+            { "/petclinic/owners/{id}/pets/new", "owner.lastName", "73" },
+            { "/petclinic/owners/{id}/pets/new", "owner.pet.type.id", "73" },
+            { "/petclinic/owners/{id}/pets/new", "owner.pet.name", "73" },
+            { "/petclinic/owners/{id}/pets/new", "owner.id", "73" },
+            { "/petclinic/owners/{id}/pets/new", "owner.pet.type.name", "73" },
+            { "/petclinic/owners/{id}/pets/new", "owner.telephone", "73" },
+            { "/petclinic/owners/{id}/pets/new", "owner.pet.id", "73" },
+            { "/petclinic/owners/{id}/pets/new", "owner.address", "73" },
+            { "/petclinic/owners/{id}/pets/new", "name", "73" },
+            { "/petclinic/owners/{id}/pets/new", "type.name", "73" },
+            { "/petclinic/owners/{id}/pets/new", "owner.firstName", "73" },
+            { "/petclinic/owners/{id}/pets/new", "birthDate", "73" },
+            { "/petclinic/owners/{id}/pets/new", "type.id", "73" },
 
-	};
+    };
 
     // TODO add parameter stuff
     @Test
@@ -277,6 +277,6 @@ public class PetClinicEndpointDatabaseTests {
         assertTrue("Result was null!", result != null);
     }
 
-	
-	
+
+
 }

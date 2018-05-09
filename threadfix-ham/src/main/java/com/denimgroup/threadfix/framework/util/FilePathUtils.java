@@ -31,58 +31,58 @@ import java.io.File;
 
 public class FilePathUtils {
 
-	private FilePathUtils(){}
-	
-	@Nullable
-    public static String getRelativePath(@Nullable File projectFile, @Nullable File rootFile) {
-		String returnPath = null;
-		
-		if (projectFile != null && rootFile != null) {
-			returnPath = getRelativePath(projectFile.getAbsolutePath(), rootFile.getAbsolutePath());
-		}
-		
-		return returnPath;
-	}
-	
-	@Nullable
-    public static String getRelativePath(@Nullable String projectFileString, @Nullable File projectRootFile) {
-		String returnPath = null;
-		
-		if (projectFileString != null && projectRootFile != null) {
-			returnPath = getRelativePath(projectFileString, projectRootFile.getAbsolutePath());
-		}
-		
-		return returnPath;
-	}
-	
-	@Nullable
-    public static String getRelativePath(@Nullable File projectFile, @Nullable String projectRoot) {
-		String returnPath = null;
-		
-		if (projectFile != null && projectRoot != null) {
-			returnPath = getRelativePath(projectFile.getAbsolutePath(), projectRoot);
-		}
-		
-		return returnPath;
-	}
-	
-	@Nullable
-    public static String getRelativePath(@Nullable String string, @Nullable String projectRoot) {
-		String returnPath = null;
-		
-		if (string != null && projectRoot != null && 
-				string.startsWith(projectRoot)) {
-			returnPath = string
-					.substring(projectRoot.length())
-					.replace('\\', '/');
-		}
-		
-		return returnPath;
-	}
+    private FilePathUtils(){}
 
-	@Nonnull
-	public static String getFolder(@Nonnull File file) {
-		return file.getAbsoluteFile().getParentFile().getAbsolutePath();
-	}
-	
+    @Nullable
+    public static String getRelativePath(@Nullable File projectFile, @Nullable File rootFile) {
+        String returnPath = null;
+
+        if (projectFile != null && rootFile != null) {
+            returnPath = getRelativePath(projectFile.getAbsolutePath(), rootFile.getAbsolutePath());
+        }
+
+        return returnPath;
+    }
+
+    @Nullable
+    public static String getRelativePath(@Nullable String projectFileString, @Nullable File projectRootFile) {
+        String returnPath = null;
+
+        if (projectFileString != null && projectRootFile != null) {
+            returnPath = getRelativePath(projectFileString, projectRootFile.getAbsolutePath());
+        }
+
+        return returnPath;
+    }
+
+    @Nullable
+    public static String getRelativePath(@Nullable File projectFile, @Nullable String projectRoot) {
+        String returnPath = null;
+
+        if (projectFile != null && projectRoot != null) {
+            returnPath = getRelativePath(projectFile.getAbsolutePath(), projectRoot);
+        }
+
+        return returnPath;
+    }
+
+    @Nullable
+    public static String getRelativePath(@Nullable String string, @Nullable String projectRoot) {
+        String returnPath = null;
+
+        if (string != null && projectRoot != null &&
+                string.startsWith(projectRoot)) {
+            returnPath = string
+                    .substring(projectRoot.length())
+                    .replace('\\', '/');
+        }
+
+        return returnPath;
+    }
+
+    @Nonnull
+    public static String getFolder(@Nonnull File file) {
+        return file.getAbsoluteFile().getParentFile().getAbsolutePath();
+    }
+
 }

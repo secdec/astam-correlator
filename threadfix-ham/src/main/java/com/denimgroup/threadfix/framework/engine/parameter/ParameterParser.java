@@ -28,11 +28,11 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public interface ParameterParser {
-	
-	/**
-	 * Return the parameter based on the data flow elements
-	 */
+
+    /**
+     * Return the parameter based on the data flow elements
+     */
     @Nullable
-	String parse(@Nonnull EndpointQuery query);
+    String parse(@Nonnull EndpointQuery query);
 
 }

@@ -29,19 +29,19 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import javax.annotation.Nonnull;
 
 public class NoDotDirectoryFileFilter implements IOFileFilter {
-	
-	@Nonnull
-    public final static IOFileFilter INSTANCE = new NoDotDirectoryFileFilter();
-	
-	private NoDotDirectoryFileFilter(){}
-	
-	@Override
-	public boolean accept(@Nonnull File file) {
-		return file.getName().charAt(0) != '.';
-	}
 
-	@Override
-	public boolean accept(File dir, @Nonnull String name) {
-		return name.charAt(0) != '.';
-	}
+    @Nonnull
+    public final static IOFileFilter INSTANCE = new NoDotDirectoryFileFilter();
+
+    private NoDotDirectoryFileFilter(){}
+
+    @Override
+    public boolean accept(@Nonnull File file) {
+        return file.getName().charAt(0) != '.';
+    }
+
+    @Override
+    public boolean accept(File dir, @Nonnull String name) {
+        return name.charAt(0) != '.';
+    }
 }

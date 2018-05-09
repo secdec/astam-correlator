@@ -29,13 +29,13 @@ import javax.annotation.Nullable;
 
 public interface PartialMapping {
 
-	@Nullable
+    @Nullable
     String getStaticPath();
 
     @Nullable
-	String getDynamicPath();
+    String getDynamicPath();
 
     @Nonnull
     FrameworkType guessFrameworkType();
-	
+
 }

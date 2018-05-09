@@ -30,44 +30,44 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public class DefaultPartialMapping implements PartialMapping {
-	
-	@Nullable
+
+    @Nullable
     private final String staticPath, dynamicPath, frameworkGuess;
-	
-	public DefaultPartialMapping(@Nullable String staticPath, @Nullable String dynamicPath, @Nullable String frameworkGuess) {
-		this.staticPath = staticPath;
-		this.dynamicPath = dynamicPath;
-		this.frameworkGuess = frameworkGuess;
-	}
-	
-	public DefaultPartialMapping(@Nullable String staticPath, @Nullable String dynamicPath) {
-		this.staticPath = staticPath;
-		this.dynamicPath = dynamicPath;
-		this.frameworkGuess = null;
-	}
 
-	@Override
-    @Nullable
-	public String getStaticPath() {
-		return staticPath;
-	}
+    public DefaultPartialMapping(@Nullable String staticPath, @Nullable String dynamicPath, @Nullable String frameworkGuess) {
+        this.staticPath = staticPath;
+        this.dynamicPath = dynamicPath;
+        this.frameworkGuess = frameworkGuess;
+    }
 
-	@Override
-    @Nullable
-	public String getDynamicPath() {
-		return dynamicPath;
-	}
+    public DefaultPartialMapping(@Nullable String staticPath, @Nullable String dynamicPath) {
+        this.staticPath = staticPath;
+        this.dynamicPath = dynamicPath;
+        this.frameworkGuess = null;
+    }
 
-	@Nonnull
     @Override
-	public FrameworkType guessFrameworkType() {
-		return FrameworkType.getFrameworkType(frameworkGuess);
-	}
+    @Nullable
+    public String getStaticPath() {
+        return staticPath;
+    }
 
-	@Nonnull
     @Override
-	public String toString() {
-		return staticPath + " <--> " + dynamicPath;
-	}
-	
+    @Nullable
+    public String getDynamicPath() {
+        return dynamicPath;
+    }
+
+    @Nonnull
+    @Override
+    public FrameworkType guessFrameworkType() {
+        return FrameworkType.getFrameworkType(frameworkGuess);
+    }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return staticPath + " <--> " + dynamicPath;
+    }
+
 }

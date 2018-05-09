@@ -28,53 +28,53 @@ import javax.annotation.Nullable;
 
 public class ClassMapping {
 
-	@Nonnull
+    @Nonnull
     private final String servletName, classWithPackage;
 
     @Nullable
     private final String contextConfigLocation, contextClass;
-	
-	private static final String CLASSPATH_START = "classpath:";
-	
-	public ClassMapping(@Nonnull String servletName, @Nonnull String classWithPackage,
+
+    private static final String CLASSPATH_START = "classpath:";
+
+    public ClassMapping(@Nonnull String servletName, @Nonnull String classWithPackage,
                         @Nullable String contextConfigLocation,
                         @Nullable String contextClass) {
 
         this.contextClass = contextClass;
-		this.servletName = servletName.trim();
-		this.classWithPackage = classWithPackage.trim();
+        this.servletName = servletName.trim();
+        this.classWithPackage = classWithPackage.trim();
 
-		if (contextConfigLocation != null && contextConfigLocation.startsWith(CLASSPATH_START)) {
-			this.contextConfigLocation = contextConfigLocation.substring(CLASSPATH_START.length());
-		} else {
-			this.contextConfigLocation = contextConfigLocation;
-		}
-	}
-	
-	@Nonnull
+        if (contextConfigLocation != null && contextConfigLocation.startsWith(CLASSPATH_START)) {
+            this.contextConfigLocation = contextConfigLocation.substring(CLASSPATH_START.length());
+        } else {
+            this.contextConfigLocation = contextConfigLocation;
+        }
+    }
+
+    @Nonnull
     public String getServletName() {
-		return servletName;
-	}
-	
-	@Nonnull
+        return servletName;
+    }
+
+    @Nonnull
     public String getClassWithPackage() {
-		return classWithPackage;
-	}
-	
-	@Nullable
+        return classWithPackage;
+    }
+
+    @Nullable
     public String getContextConfigLocation() {
-		return contextConfigLocation;
-	}
+        return contextConfigLocation;
+    }
 
     @Nullable
     public String getContextClass() {
         return contextClass;
     }
-	
-	@Nonnull
+
+    @Nonnull
     @Override
-	public String toString() {
-		return getServletName() + " -> " + getClassWithPackage();
-	}
-	
+    public String toString() {
+        return getServletName() + " -> " + getClassWithPackage();
+    }
+
 }

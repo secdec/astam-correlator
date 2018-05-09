@@ -37,32 +37,32 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class PathCleanerFactory {
-	
-	private PathCleanerFactory(){}
-	
-	// TODO add an option for manual roots
-	
-	@Nonnull
+
+    private PathCleanerFactory(){}
+
+    // TODO add an option for manual roots
+
+    @Nonnull
     public static PathCleaner getPathCleaner(FrameworkType frameworkType, List<PartialMapping> partialMappings) {
-		PathCleaner returnCleaner;
-		
-		if (frameworkType == FrameworkType.SPRING_MVC) {
-			returnCleaner = new SpringPathCleaner(partialMappings);
+        PathCleaner returnCleaner;
+
+        if (frameworkType == FrameworkType.SPRING_MVC) {
+            returnCleaner = new SpringPathCleaner(partialMappings);
         } else if (frameworkType == FrameworkType.JSP) {
             returnCleaner = new JSPPathCleaner(partialMappings);
         } else if (frameworkType == FrameworkType.DOT_NET_WEB_FORMS) {
             returnCleaner = new WebFormsPathCleaner(partialMappings);
-		} else if (frameworkType == FrameworkType.STRUTS) {
-			returnCleaner = new StrutsPathCleaner(partialMappings);
+        } else if (frameworkType == FrameworkType.STRUTS) {
+            returnCleaner = new StrutsPathCleaner(partialMappings);
         } else if (frameworkType == FrameworkType.RAILS) {
-			returnCleaner = new RailsPathCleaner(partialMappings);
-		} else if (frameworkType == FrameworkType.PYTHON) {
-			returnCleaner = new DjangoPathCleaner(partialMappings);
-		} else {
-			returnCleaner = new DefaultPathCleaner(partialMappings);
-		}
-		
-		return returnCleaner;
-	}
+            returnCleaner = new RailsPathCleaner(partialMappings);
+        } else if (frameworkType == FrameworkType.PYTHON) {
+            returnCleaner = new DjangoPathCleaner(partialMappings);
+        } else {
+            returnCleaner = new DefaultPathCleaner(partialMappings);
+        }
+
+        return returnCleaner;
+    }
 
 }

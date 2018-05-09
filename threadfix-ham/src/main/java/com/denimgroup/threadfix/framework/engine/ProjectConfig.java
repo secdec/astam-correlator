@@ -33,38 +33,38 @@ import javax.annotation.Nullable;
 
 public class ProjectConfig {
 
-	private final FrameworkType frameworkType;
-	private final SourceCodeAccessLevel sourceCodeAccessLevel;
-	private final File rootFile;
-	private final String urlPathRoot;
-	
-	public ProjectConfig(@Nonnull FrameworkType frameworkType,
+    private final FrameworkType frameworkType;
+    private final SourceCodeAccessLevel sourceCodeAccessLevel;
+    private final File rootFile;
+    private final String urlPathRoot;
+
+    public ProjectConfig(@Nonnull FrameworkType frameworkType,
                          @Nonnull SourceCodeAccessLevel sourceCodeAccessLevel,
                          @Nullable File rootFile,
                          @Nullable String urlPathRoot) {
-		this.frameworkType = frameworkType;
-		this.sourceCodeAccessLevel = sourceCodeAccessLevel;
-		this.rootFile = rootFile;
-		this.urlPathRoot = urlPathRoot;
-	}
+        this.frameworkType = frameworkType;
+        this.sourceCodeAccessLevel = sourceCodeAccessLevel;
+        this.rootFile = rootFile;
+        this.urlPathRoot = urlPathRoot;
+    }
 
     @Nonnull
-	public FrameworkType getFrameworkType() {
-		return frameworkType;
-	}
+    public FrameworkType getFrameworkType() {
+        return frameworkType;
+    }
 
     @Nonnull
-	public SourceCodeAccessLevel getSourceCodeAccessLevel() {
-		return sourceCodeAccessLevel;
-	}
+    public SourceCodeAccessLevel getSourceCodeAccessLevel() {
+        return sourceCodeAccessLevel;
+    }
 
     @Nullable
-	public File getRootFile() {
-		return rootFile;
-	}
+    public File getRootFile() {
+        return rootFile;
+    }
 
     @Nullable
-	public String getUrlPathRoot() {
-		return urlPathRoot;
-	}
+    public String getUrlPathRoot() {
+        return urlPathRoot;
+    }
 }

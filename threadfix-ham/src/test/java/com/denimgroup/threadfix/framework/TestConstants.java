@@ -29,7 +29,7 @@ import java.io.File;
 import static org.junit.Assert.assertTrue;
 
 public class TestConstants {
-	private TestConstants(){}
+    private TestConstants(){}
 
 
     private static final String VARIABLE_NAME = "PROJECTS_ROOT",
@@ -42,21 +42,21 @@ public class TestConstants {
     }
 
     // TODO move relevant files to the src/test/resources folder and use that
-	public static final String
+    public static final String
         ROLLER_FOLDER_NAME = "roller-weblogger-5.1.1-source",
         PETCLINIC_FOLDER_NAME = "petclinic",
         WAVSEP_FOLDER_NAME = "wavsep",
         BODGEIT_FOLDER_NAME = "bodgeit",
         ROLLER_SOURCE_LOCATION = testRoot + ROLLER_FOLDER_NAME,
         RAILSGOAT_FOLDER_NAME = "railsgoat-master",
-		PETCLINIC_SOURCE_LOCATION = testRoot + PETCLINIC_FOLDER_NAME,
-		WAVSEP_SOURCE_LOCATION = testRoot + WAVSEP_FOLDER_NAME,
-		BODGEIT_SOURCE_LOCATION = testRoot + BODGEIT_FOLDER_NAME,
+        PETCLINIC_SOURCE_LOCATION = testRoot + PETCLINIC_FOLDER_NAME,
+        WAVSEP_SOURCE_LOCATION = testRoot + WAVSEP_FOLDER_NAME,
+        BODGEIT_SOURCE_LOCATION = testRoot + BODGEIT_FOLDER_NAME,
         RAILSGOAT_SOURCE_LOCATION = testRoot + RAILSGOAT_FOLDER_NAME,
-		BODGEIT_JSP_ROOT = BODGEIT_SOURCE_LOCATION + "/root",
-		PETCLINIC_WEB_XML = PETCLINIC_SOURCE_LOCATION + "/src/main/webapp/WEB-INF/web.xml",
-		WAVSEP_WEB_XML = WAVSEP_SOURCE_LOCATION + "/trunk/WebContent/WEB-INF/web.xml",
-		BODGEIT_WEB_XML = BODGEIT_JSP_ROOT + "/WEB-INF/web.xml",
+        BODGEIT_JSP_ROOT = BODGEIT_SOURCE_LOCATION + "/root",
+        PETCLINIC_WEB_XML = PETCLINIC_SOURCE_LOCATION + "/src/main/webapp/WEB-INF/web.xml",
+        WAVSEP_WEB_XML = WAVSEP_SOURCE_LOCATION + "/trunk/WebContent/WEB-INF/web.xml",
+        BODGEIT_WEB_XML = BODGEIT_JSP_ROOT + "/WEB-INF/web.xml",
         WEB_FORMS_ROOT = testRoot + "ASP.NET",
         WEB_FORMS_SAMPLE = WEB_FORMS_ROOT + "/Add new DropDownList option",
         WEB_FORMS_CONTOSO = WEB_FORMS_ROOT + "/ASP.NET Web Forms Application Using Entity Framework 4.0 Database First",
@@ -66,18 +66,18 @@ public class TestConstants {
         WEBGOAT_DOT_NET = WEB_FORMS_ROOT + "/webgoat.net",
         DOT_NET_ROOT = testRoot + "/ASP.NET MVC",
         DOT_NET_SAMPLE = DOT_NET_ROOT + "/ASP.NET MVC Application Using Entity Framework Code First",
-		FAKE_FILE = "",
-		SPRING_CONTROLLERS_PREFIX = "/src/main/java/org/springframework/samples/petclinic/web/",
-		SPRING_CRASH_CONTROLLER = SPRING_CONTROLLERS_PREFIX + "CrashController.java",
-		SPRING_OWNER_CONTROLLER = SPRING_CONTROLLERS_PREFIX + "OwnerController.java",
-		SPRING_PET_CONTROLLER   = SPRING_CONTROLLERS_PREFIX + "PetController.java",
-		SPRING_VET_CONTROLLER   = SPRING_CONTROLLERS_PREFIX + "VetController.java",
-		SPRING_VISIT_CONTROLLER = SPRING_CONTROLLERS_PREFIX + "VisitController.java",
-		SPRING_MODELS_PREFIX = "/src/main/java/org/springframework/samples/petclinic/model/",
-		SPRING_OWNER_MODEL = "Owner.java",
-		SPRING_CONTROLLER_WITH_CLASS_REQUEST_MAPPING = "ControllerWithClassAnnotation.java.txt",
-        	THREADFIX_SOURCE_ROOT = testRoot + "threadfix/"
-		;
+        FAKE_FILE = "",
+        SPRING_CONTROLLERS_PREFIX = "/src/main/java/org/springframework/samples/petclinic/web/",
+        SPRING_CRASH_CONTROLLER = SPRING_CONTROLLERS_PREFIX + "CrashController.java",
+        SPRING_OWNER_CONTROLLER = SPRING_CONTROLLERS_PREFIX + "OwnerController.java",
+        SPRING_PET_CONTROLLER   = SPRING_CONTROLLERS_PREFIX + "PetController.java",
+        SPRING_VET_CONTROLLER   = SPRING_CONTROLLERS_PREFIX + "VetController.java",
+        SPRING_VISIT_CONTROLLER = SPRING_CONTROLLERS_PREFIX + "VisitController.java",
+        SPRING_MODELS_PREFIX = "/src/main/java/org/springframework/samples/petclinic/model/",
+        SPRING_OWNER_MODEL = "Owner.java",
+        SPRING_CONTROLLER_WITH_CLASS_REQUEST_MAPPING = "ControllerWithClassAnnotation.java.txt",
+            THREADFIX_SOURCE_ROOT = testRoot + "threadfix/"
+        ;
 
     public static String getFolderName(String name) {
 

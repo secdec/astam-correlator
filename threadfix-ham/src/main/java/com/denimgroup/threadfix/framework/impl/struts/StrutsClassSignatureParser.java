@@ -94,7 +94,7 @@ public class StrutsClassSignatureParser implements EventBasedTokenizer {
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
 
-    	//      For debugging
+        //      For debugging
 //        if (lineNumber != lineno) {
 //            lineno = lineNumber;
 //        }

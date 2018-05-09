@@ -36,9 +36,9 @@ public interface EndpointDatabase extends EndpointGenerator {
     Endpoint findBestMatch(@Nonnull EndpointQuery query);
 
     @Nonnull
-	Set<Endpoint> findAllMatches(@Nonnull EndpointQuery query);
+    Set<Endpoint> findAllMatches(@Nonnull EndpointQuery query);
 
     @Nonnull
     FrameworkType getFrameworkType();
-	
+
 }

@@ -28,11 +28,11 @@ import javax.annotation.Nullable;
 public interface CodePoint {
 
     @Nullable
-	public String getLineText();
+    public String getLineText();
 
-	public int getLineNumber();
+    public int getLineNumber();
 
     @Nullable
-	public String getSourceFileName();
-	
+    public String getSourceFileName();
+
 }

@@ -34,10 +34,10 @@ import java.util.List;
 
 public class DefaultPathCleaner implements PathCleaner {
 
-	protected final String staticRoot, dynamicRoot;
-	
-	public DefaultPathCleaner(String staticRoot, String dynamicRoot) {
-		this.staticRoot  = staticRoot;
+    protected final String staticRoot, dynamicRoot;
+
+    public DefaultPathCleaner(String staticRoot, String dynamicRoot) {
+        this.staticRoot  = staticRoot;
 
         // let's make sure that the last segment doesn't contain a .
         if (dynamicRoot != null) {
@@ -59,50 +59,50 @@ public class DefaultPathCleaner implements PathCleaner {
         } else {
             this.dynamicRoot = null;
         }
-	}
-	
-	public DefaultPathCleaner(List<PartialMapping> partialMappings){
-		this(CommonPathFinder.findOrParseProjectRoot(partialMappings),
-				CommonPathFinder.findOrParseUrlPath(partialMappings));
-	}
+    }
 
-	@Override
-	public String cleanStaticPath(@Nonnull String filePath) {
-		String cleanedPath = filePath;
-		
-		if (staticRoot != null && cleanedPath.startsWith(staticRoot)) {
-			cleanedPath = cleanedPath.substring(staticRoot.length());
-		}
-		
-		if (cleanedPath.contains("\\")) {
-			cleanedPath = cleanedPath.replace('\\','/');
-		}
+    public DefaultPathCleaner(List<PartialMapping> partialMappings){
+        this(CommonPathFinder.findOrParseProjectRoot(partialMappings),
+                CommonPathFinder.findOrParseUrlPath(partialMappings));
+    }
+
+    @Override
+    public String cleanStaticPath(@Nonnull String filePath) {
+        String cleanedPath = filePath;
+
+        if (staticRoot != null && cleanedPath.startsWith(staticRoot)) {
+            cleanedPath = cleanedPath.substring(staticRoot.length());
+        }
+
+        if (cleanedPath.contains("\\")) {
+            cleanedPath = cleanedPath.replace('\\','/');
+        }
 
         if (cleanedPath.indexOf("/") != 0) {
-			cleanedPath = "/" + cleanedPath;
-		}
-		
-		return cleanedPath;
-	}
+            cleanedPath = "/" + cleanedPath;
+        }
 
-	@Override
-	public String cleanDynamicPath(@Nonnull String urlPath) {
-		String cleanedPath = urlPath;
-		
-		if (dynamicRoot != null && cleanedPath.startsWith(dynamicRoot)) {
-			cleanedPath = cleanedPath.substring(dynamicRoot.length());
-		}
-		
-		if (cleanedPath.contains("\\")) {
+        return cleanedPath;
+    }
+
+    @Override
+    public String cleanDynamicPath(@Nonnull String urlPath) {
+        String cleanedPath = urlPath;
+
+        if (dynamicRoot != null && cleanedPath.startsWith(dynamicRoot)) {
+            cleanedPath = cleanedPath.substring(dynamicRoot.length());
+        }
+
+        if (cleanedPath.contains("\\")) {
             cleanedPath = cleanedPath.replace('\\', '/');
-		}
-		
-		if (cleanedPath.indexOf("/") != 0) {
-			cleanedPath = "/" + cleanedPath;
-		}
-		
-		return cleanedPath;
-	}
+        }
+
+        if (cleanedPath.indexOf("/") != 0) {
+            cleanedPath = "/" + cleanedPath;
+        }
+
+        return cleanedPath;
+    }
 
     public void setEndpointGenerator(EndpointGenerator generator) {
         // we don't care about this
@@ -115,19 +115,19 @@ public class DefaultPathCleaner implements PathCleaner {
     }
 
     @Override
-	public String getDynamicRoot() {
-		return dynamicRoot;
-	}
+    public String getDynamicRoot() {
+        return dynamicRoot;
+    }
 
-	@Override
-	public String getStaticRoot() {
-		return staticRoot;
-	}
-	
-	@Nonnull
     @Override
-	public String toString() {
-		return "[PathCleaner dynamicRoot=" + dynamicRoot + ", staticRoot=" + staticRoot + "]";
-	}
+    public String getStaticRoot() {
+        return staticRoot;
+    }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return "[PathCleaner dynamicRoot=" + dynamicRoot + ", staticRoot=" + staticRoot + "]";
+    }
 
 }

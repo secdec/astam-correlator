@@ -41,7 +41,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 // TODO make this more generic
 public class FrameworkCalculator {
 
-	private static final SanitizedLogger log = new SanitizedLogger("FrameworkCalculator");
+    private static final SanitizedLogger log = new SanitizedLogger("FrameworkCalculator");
 
     private Collection<FrameworkChecker> frameworkCheckers = list();
 
@@ -65,14 +65,14 @@ public class FrameworkCalculator {
         return getType(new File(rootFileString));
     }
 
-	@Nonnull
+    @Nonnull
     public static FrameworkType getType(@Nonnull File rootFile) {
-		log.info("Attempting to guess Framework Type from source tree.");
-		log.info("File: " + rootFile);
-		
-		FrameworkType frameworkType = FrameworkType.NONE;
-		
-		if (rootFile.exists() && rootFile.isDirectory()) {
+        log.info("Attempting to guess Framework Type from source tree.");
+        log.info("File: " + rootFile);
+
+        FrameworkType frameworkType = FrameworkType.NONE;
+
+        if (rootFile.exists() && rootFile.isDirectory()) {
             ProjectDirectory projectDirectory = new ProjectDirectory(rootFile);
 
             for (FrameworkChecker checker : INSTANCE.frameworkCheckers) {
@@ -81,13 +81,13 @@ public class FrameworkCalculator {
                     break;
                 }
             }
-		} else {
+        } else {
             log.warn("Invalid directory passed to FrameworkCalculator.getType(File): " + rootFile);
         }
-		
-		log.info("Source tree framework type detection returned: " + frameworkType.getDisplayName());
 
-		return frameworkType;
-	}
+        log.info("Source tree framework type detection returned: " + frameworkType.getDisplayName());
+
+        return frameworkType;
+    }
 
 }

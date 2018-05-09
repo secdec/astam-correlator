@@ -54,44 +54,44 @@ import static com.denimgroup.threadfix.data.entities.AuthenticationRequired.ANON
 import static com.denimgroup.threadfix.data.entities.AuthenticationRequired.AUTHENTICATED;
 
 public class SpringControllerMappings implements EndpointGenerator {
-	
-	@Nonnull
+
+    @Nonnull
     private final Collection<File> javaFiles;
-	@Nonnull
+    @Nonnull
     private final Collection<File> xmlFiles;
 
     private static final SanitizedLogger LOG = new SanitizedLogger(SpringControllerMappings.class);
-	
-	@Nonnull
+
+    @Nonnull
     private final Map<String, Set<SpringControllerEndpoint>>
             urlToControllerMethodsMap, controllerToUrlsMap;
-	
-	@Nonnull
+
+    @Nonnull
     private final File rootDirectory;
 
     @Nonnull
     private List<SpringControllerEndpoint> endpointsList = list();
-	
-	@SuppressWarnings("unchecked")
-	public SpringControllerMappings(@Nonnull File rootDirectory) {
-		this.rootDirectory = rootDirectory;
+
+    @SuppressWarnings("unchecked")
+    public SpringControllerMappings(@Nonnull File rootDirectory) {
+        this.rootDirectory = rootDirectory;
 
         urlToControllerMethodsMap = map();
         controllerToUrlsMap = map();
 
         LOG.info("Gathering files...");
 
-		if (rootDirectory.exists()) {
-		    LOG.info("Confirmed that directory exists: " + rootDirectory.getAbsolutePath());
-			javaFiles = getFiles(rootDirectory, "java");
+        if (rootDirectory.exists()) {
+            LOG.info("Confirmed that directory exists: " + rootDirectory.getAbsolutePath());
+            javaFiles = getFiles(rootDirectory, "java");
             xmlFiles  = getFiles(rootDirectory, "xml");
-		    generateMaps();
-		} else {
-		    LOG.warn("Requested directory does not exist: " + rootDirectory.getAbsolutePath());
-			javaFiles = Collections.emptyList();
+            generateMaps();
+        } else {
+            LOG.warn("Requested directory does not exist: " + rootDirectory.getAbsolutePath());
+            javaFiles = Collections.emptyList();
             xmlFiles  = Collections.emptyList();
-		}
-	}
+        }
+    }
 
     private Collection<File> getFiles(File rootDirectory, String extension) {
         return FileUtils.listFiles(rootDirectory,
@@ -99,26 +99,26 @@ public class SpringControllerMappings implements EndpointGenerator {
     }
 
     @Nonnull
-	public Set<SpringControllerEndpoint> getEndpointsFromController(String controllerPath) {
-		if (controllerToUrlsMap.containsKey(controllerPath)) {
-			return controllerToUrlsMap.get(controllerPath);
-		} else {
-			return set();
-		}
-	}
+    public Set<SpringControllerEndpoint> getEndpointsFromController(String controllerPath) {
+        if (controllerToUrlsMap.containsKey(controllerPath)) {
+            return controllerToUrlsMap.get(controllerPath);
+        } else {
+            return set();
+        }
+    }
 
     @Nonnull
-	public Set<SpringControllerEndpoint> getEndpointsFromUrl(String controllerPath) {
-		if (urlToControllerMethodsMap.containsKey(controllerPath)) {
-			return urlToControllerMethodsMap.get(controllerPath);
-		} else {
-			return set();
-		}
-	}
-	
-	private void generateMaps() {
+    public Set<SpringControllerEndpoint> getEndpointsFromUrl(String controllerPath) {
+        if (urlToControllerMethodsMap.containsKey(controllerPath)) {
+            return urlToControllerMethodsMap.get(controllerPath);
+        } else {
+            return set();
+        }
+    }
 
-	    LOG.info("Generating Spring MVC controller mappings...");
+    private void generateMaps() {
+
+        LOG.info("Generating Spring MVC controller mappings...");
 
         List<EntityParser> entityParsers = list();
 
@@ -145,9 +145,9 @@ public class SpringControllerMappings implements EndpointGenerator {
             }
         }
 
-		for (File file: javaFiles) {
-			if (file != null && file.exists() && file.isFile() &&
-					file.getAbsolutePath().contains(rootDirectory.getAbsolutePath())) {
+        for (File file: javaFiles) {
+            if (file != null && file.exists() && file.isFile() &&
+                    file.getAbsolutePath().contains(rootDirectory.getAbsolutePath())) {
 
                 SpringControllerEndpointParser endpointParser = new SpringControllerEndpointParser(rootDirectory, file.getAbsolutePath());
                 EntityParser entityParser = new EntityParser();
@@ -160,8 +160,8 @@ public class SpringControllerMappings implements EndpointGenerator {
                 if (dataBinderParser.isGlobal) {
                     globalDataBinderParser = dataBinderParser;
                 }
-			}
-		}
+            }
+        }
 
         EntityMappings mappings = new EntityMappings(entityParsers);
 
@@ -179,7 +179,7 @@ public class SpringControllerMappings implements EndpointGenerator {
                 endpoint.setAuthenticationRequired(AUTHENTICATED);
             }
         }
-	}
+    }
 
     private String getFileName(File file) {
         String fileNameWithoutRoot = FilePathUtils.getRelativePath(file, rootDirectory);
@@ -212,49 +212,49 @@ public class SpringControllerMappings implements EndpointGenerator {
     }
 
     private void bubbleParametricEndpoints(List<Endpoint> endpoints) {
-	    Map<String, List<Endpoint>> endpointHierarchyMap = map();
-	    for (Endpoint endpoint : endpoints) {
-	        String url = endpoint.getUrlPath();
-	        if (!endpointHierarchyMap.containsKey(url)) {
-	            endpointHierarchyMap.put(url, new ArrayList<Endpoint>());
+        Map<String, List<Endpoint>> endpointHierarchyMap = map();
+        for (Endpoint endpoint : endpoints) {
+            String url = endpoint.getUrlPath();
+            if (!endpointHierarchyMap.containsKey(url)) {
+                endpointHierarchyMap.put(url, new ArrayList<Endpoint>());
             }
 
             for (String existingEntry : endpointHierarchyMap.keySet()) {
-	            if (url.startsWith(existingEntry) && !existingEntry.equalsIgnoreCase(url)) {
-	                endpointHierarchyMap.get(existingEntry).add(endpoint);
+                if (url.startsWith(existingEntry) && !existingEntry.equalsIgnoreCase(url)) {
+                    endpointHierarchyMap.get(existingEntry).add(endpoint);
                 }
             }
         }
 
         for (String baseEndpointUrl : endpointHierarchyMap.keySet()) {
-	        Endpoint baseEndpoint = null;
-	        for (Endpoint endpoint : endpoints) {
-	            if (endpoint.getUrlPath().equalsIgnoreCase(baseEndpointUrl)) {
-	                baseEndpoint = endpoint;
-	                break;
+            Endpoint baseEndpoint = null;
+            for (Endpoint endpoint : endpoints) {
+                if (endpoint.getUrlPath().equalsIgnoreCase(baseEndpointUrl)) {
+                    baseEndpoint = endpoint;
+                    break;
                 }
             }
             if (baseEndpoint == null) {
-	            continue;
+                continue;
             }
 
             List<RouteParameter> parametrics = list();
-	        for (RouteParameter param : baseEndpoint.getParameters().values()) {
-	            if (param.getParamType() == RouteParameterType.PARAMETRIC_ENDPOINT) {
-	                parametrics.add(param);
+            for (RouteParameter param : baseEndpoint.getParameters().values()) {
+                if (param.getParamType() == RouteParameterType.PARAMETRIC_ENDPOINT) {
+                    parametrics.add(param);
                 }
             }
 
             for (Endpoint child : endpointHierarchyMap.get(baseEndpointUrl)) {
-	            for (RouteParameter parametric : parametrics) {
-	                if (!child.getParameters().containsKey(parametric.getName())) {
-	                    RouteParameter copy = new RouteParameter(parametric.getName());
-	                    copy.setParamType(parametric.getParamType());
-	                    copy.setDataType(parametric.getDataTypeSource());
-	                    if (parametric.getAcceptedValues() != null) {
+                for (RouteParameter parametric : parametrics) {
+                    if (!child.getParameters().containsKey(parametric.getName())) {
+                        RouteParameter copy = new RouteParameter(parametric.getName());
+                        copy.setParamType(parametric.getParamType());
+                        copy.setDataType(parametric.getDataTypeSource());
+                        if (parametric.getAcceptedValues() != null) {
                             copy.setAcceptedValues(new ArrayList<String>(parametric.getAcceptedValues()));
                         }
-	                    child.getParameters().put(parametric.getName(), copy);
+                        child.getParameters().put(parametric.getName(), copy);
                     }
                 }
             }
@@ -262,79 +262,79 @@ public class SpringControllerMappings implements EndpointGenerator {
     }
 
     private void updateFileParameters(List<Endpoint> endpoints) {
-	    for (Endpoint endpoint : endpoints) {
-	        for (RouteParameter param : endpoint.getParameters().values()) {
-	            if (param.getDataTypeSource().equals("MultipartFile")) {
-	                param.setParamType(RouteParameterType.FILES);
+        for (Endpoint endpoint : endpoints) {
+            for (RouteParameter param : endpoint.getParameters().values()) {
+                if (param.getDataTypeSource().equals("MultipartFile")) {
+                    param.setParamType(RouteParameterType.FILES);
                 }
             }
         }
     }
 
     private void assignVariants(List<Endpoint> endpoints) {
-	    List<Endpoint> primaryVariants = list();
-	    Queue<Endpoint> pendingEndpoints = new ArrayDeque<Endpoint>(endpoints);
-	    while (!pendingEndpoints.isEmpty()) {
+        List<Endpoint> primaryVariants = list();
+        Queue<Endpoint> pendingEndpoints = new ArrayDeque<Endpoint>(endpoints);
+        while (!pendingEndpoints.isEmpty()) {
 
-	        SpringControllerEndpoint current = (SpringControllerEndpoint)pendingEndpoints.remove();
+            SpringControllerEndpoint current = (SpringControllerEndpoint)pendingEndpoints.remove();
 
-	        Endpoint existingPrimary = null;
-	        for (Endpoint primary : primaryVariants) {
-	            SpringControllerEndpoint springPrimary = (SpringControllerEndpoint)primary;
-	            if (springPrimary.getFilePath().equals(current.getFilePath()) &&
+            Endpoint existingPrimary = null;
+            for (Endpoint primary : primaryVariants) {
+                SpringControllerEndpoint springPrimary = (SpringControllerEndpoint)primary;
+                if (springPrimary.getFilePath().equals(current.getFilePath()) &&
                     springPrimary.getStartingLineNumber() == current.getStartingLineNumber() &&
                     springPrimary.getHttpMethod().equals(current.getHttpMethod())) {
-	                existingPrimary = springPrimary;
-	                break;
+                    existingPrimary = springPrimary;
+                    break;
                 }
             }
 
             if (existingPrimary == null) {
-	            primaryVariants.add(current);
+                primaryVariants.add(current);
             } else {
-	            if (current.getUrlPath().length() < existingPrimary.getUrlPath().length()) {
-	                primaryVariants.remove(existingPrimary);
-	                current.addVariants(existingPrimary.getVariants());
-	                current.addVariant(existingPrimary);
+                if (current.getUrlPath().length() < existingPrimary.getUrlPath().length()) {
+                    primaryVariants.remove(existingPrimary);
+                    current.addVariants(existingPrimary.getVariants());
+                    current.addVariant(existingPrimary);
                     ((SpringControllerEndpoint)existingPrimary).clearVariants();
                     if (current.getVariants().contains(current)) {
                         current.removeVariant(current);
                     }
-	                primaryVariants.add(current);
+                    primaryVariants.add(current);
                 }
             }
         }
     }
 
-	@Nonnull
+    @Nonnull
     @Override
-	public List<Endpoint> generateEndpoints() {
-		List<Endpoint> returnEndpoints = list();
-		
-		for (Set<SpringControllerEndpoint> endpointList : urlToControllerMethodsMap.values()) {
+    public List<Endpoint> generateEndpoints() {
+        List<Endpoint> returnEndpoints = list();
+
+        for (Set<SpringControllerEndpoint> endpointList : urlToControllerMethodsMap.values()) {
             returnEndpoints.addAll(endpointList);
-		}
+        }
 
-		updateFileParameters(returnEndpoints);
-		bubbleParametricEndpoints(returnEndpoints);
+        updateFileParameters(returnEndpoints);
+        bubbleParametricEndpoints(returnEndpoints);
 
-		assignVariants(returnEndpoints);
+        assignVariants(returnEndpoints);
         EndpointUtil.rectifyVariantHierarchy(returnEndpoints);
-		
-		return returnEndpoints;
-	}
-	
-	@Nonnull
+
+        return returnEndpoints;
+    }
+
+    @Nonnull
     @Override
-	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		
-		for (Endpoint endpoint : generateEndpoints()) {
-			builder.append(endpoint).append("\n");
-		}
-		
-		return builder.toString();
-	}
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+
+        for (Endpoint endpoint : generateEndpoints()) {
+            builder.append(endpoint).append("\n");
+        }
+
+        return builder.toString();
+    }
 
     @Override
     public Iterator<Endpoint> iterator() {

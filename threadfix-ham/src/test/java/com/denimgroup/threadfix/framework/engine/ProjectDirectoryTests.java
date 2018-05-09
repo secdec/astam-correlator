@@ -33,63 +33,63 @@ import java.util.List;
 import static org.junit.Assert.assertTrue;
 
 public class ProjectDirectoryTests {
-	
-	@Nonnull
+
+    @Nonnull
     ProjectDirectory
-		springDirectory = new ProjectDirectory(new File(TestConstants.PETCLINIC_SOURCE_LOCATION));
-	
-	@Test
-	public void testMultipleMatchResolution() {
-		String[][] tests = {
-			{ "/mysql/initDB.sql", "/src/main/resources/db/mysql/initDB.sql" },
-			{ "/hsqldb/initDB.sql", "/src/main/resources/db/hsqldb/initDB.sql" },
-		};
-		
-		for (String[] test : tests) {
-			File file = springDirectory.findFile(test[0]);
-			
-			String result = springDirectory.findCanonicalFilePath(file.getAbsolutePath());
+        springDirectory = new ProjectDirectory(new File(TestConstants.PETCLINIC_SOURCE_LOCATION));
 
-			assertTrue("Found " + result + " results instead of " + test[1] + " for " + test[0],
-					test[1].equals(result));
-		}
-	}
+    @Test
+    public void testMultipleMatchResolution() {
+        String[][] tests = {
+            { "/mysql/initDB.sql", "/src/main/resources/db/mysql/initDB.sql" },
+            { "/hsqldb/initDB.sql", "/src/main/resources/db/hsqldb/initDB.sql" },
+        };
 
-	@Test
-	public void testStarFilePaths() {
-		Object[][] tests = {
-				{ "po*.xml", 1 },
-				{ "*Entity.java", 2 },
-				{ "ClinicService*.java", 5},
-				{ "*Controller*", 5 },
-				{ "A*st*act*li*icSe*ice*t*ava", 1 }
-			};
-		
-		for (Object[] test : tests) {
+        for (String[] test : tests) {
+            File file = springDirectory.findFile(test[0]);
+
+            String result = springDirectory.findCanonicalFilePath(file.getAbsolutePath());
+
+            assertTrue("Found " + result + " results instead of " + test[1] + " for " + test[0],
+                    test[1].equals(result));
+        }
+    }
+
+    @Test
+    public void testStarFilePaths() {
+        Object[][] tests = {
+                { "po*.xml", 1 },
+                { "*Entity.java", 2 },
+                { "ClinicService*.java", 5},
+                { "*Controller*", 5 },
+                { "A*st*act*li*icSe*ice*t*ava", 1 }
+            };
+
+        for (Object[] test : tests) {
             List<File> results = springDirectory.findFiles((String) test[0]);
-			int numResults = results.size();
-			assertTrue("Found " + numResults + " results instead of " + test[1] + " for " + test[0],
-					numResults == ((Integer) test[1]));
-		}
-	}
-	
-	@Test
-	public void testCanonicalRoot() {
-		String[][] tests = {
-				{ "/User/test/scratch/some/directory/petclinic/src/main/resources/db/mysql/initDB.sql", "/src/main/resources/db/mysql/initDB.sql" },
-				{ "/User/test/scratch/some/directory/petclinic/pom.xml", "/pom.xml" },
-				{ "/User/test/scratch/some/directory/petclinic/src/main/resources/ehcache.xml", "/src/main/resources/ehcache.xml" },
-		};
-		
-		String root = "/User/test/scratch/some/directory/";
-		
-		for (String[] test : tests) {
-			String result = springDirectory.findCanonicalFilePath(test[0], root);
-			assertTrue("Found " + result + " instead of " + test[1] + " for " + test[0],
-					test[1].equals(result));
-		}
-	}
-	
-	
-	
+            int numResults = results.size();
+            assertTrue("Found " + numResults + " results instead of " + test[1] + " for " + test[0],
+                    numResults == ((Integer) test[1]));
+        }
+    }
+
+    @Test
+    public void testCanonicalRoot() {
+        String[][] tests = {
+                { "/User/test/scratch/some/directory/petclinic/src/main/resources/db/mysql/initDB.sql", "/src/main/resources/db/mysql/initDB.sql" },
+                { "/User/test/scratch/some/directory/petclinic/pom.xml", "/pom.xml" },
+                { "/User/test/scratch/some/directory/petclinic/src/main/resources/ehcache.xml", "/src/main/resources/ehcache.xml" },
+        };
+
+        String root = "/User/test/scratch/some/directory/";
+
+        for (String[] test : tests) {
+            String result = springDirectory.findCanonicalFilePath(test[0], root);
+            assertTrue("Found " + result + " instead of " + test[1] + " for " + test[0],
+                    test[1].equals(result));
+        }
+    }
+
+
+
 }

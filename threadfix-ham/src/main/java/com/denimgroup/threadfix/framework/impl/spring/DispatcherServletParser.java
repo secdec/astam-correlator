@@ -29,45 +29,45 @@ import javax.annotation.Nonnull;
 import java.io.*;
 
 public class DispatcherServletParser {
-	
-	private static final SanitizedLogger log = new SanitizedLogger("DispatcherServletParser");
-	
-	// this is much faster than an implementation using the tokenizer.
-	public static boolean usesSpringMvcAnnotations(@Nonnull File file) {
-		boolean returnValue = false;
-		
-		if (file.exists()) {
-			BufferedReader reader = null;
 
-			try {
-				reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+    private static final SanitizedLogger log = new SanitizedLogger("DispatcherServletParser");
 
-				String line = reader.readLine();
-				while (line != null) {
-					if (line.contains("annotation-driven") || line.contains("context:component-scan")) {
-						returnValue = true;
-						break;
-					}
-					
-					line = reader.readLine();
-				}
-			} catch (IOException e) {
-				log.error("Encountered IOException while trying to read stream.", e);
-			} finally {
-				if (reader != null) {
-					try {
-						reader.close();
-					} catch (IOException e) {
-						log.error("Encountered IOException while trying to close stream.", e);
-					}
-				}
-			}
-		}
-		
-		if (!returnValue) {
-			log.info("annotation-driven was not found, the annotations are not supported.");
-		}
-		
-		return returnValue;
-	}
+    // this is much faster than an implementation using the tokenizer.
+    public static boolean usesSpringMvcAnnotations(@Nonnull File file) {
+        boolean returnValue = false;
+
+        if (file.exists()) {
+            BufferedReader reader = null;
+
+            try {
+                reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8"));
+
+                String line = reader.readLine();
+                while (line != null) {
+                    if (line.contains("annotation-driven") || line.contains("context:component-scan")) {
+                        returnValue = true;
+                        break;
+                    }
+
+                    line = reader.readLine();
+                }
+            } catch (IOException e) {
+                log.error("Encountered IOException while trying to read stream.", e);
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        log.error("Encountered IOException while trying to close stream.", e);
+                    }
+                }
+            }
+        }
+
+        if (!returnValue) {
+            log.info("annotation-driven was not found, the annotations are not supported.");
+        }
+
+        return returnValue;
+    }
 }

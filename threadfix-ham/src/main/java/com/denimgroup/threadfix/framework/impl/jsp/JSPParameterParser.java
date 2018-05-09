@@ -47,70 +47,70 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
  *
  */
 public class JSPParameterParser implements EventBasedTokenizer {
-	
-//	private Map<Integer, String> lineNumberToParameterMap = map();
-	@Nonnull
+
+//    private Map<Integer, String> lineNumberToParameterMap = map();
+    @Nonnull
     private Map<String, List<Integer>> parameterToLineNumbersMap = map();
-	@Nonnull
+    @Nonnull
     private Map<String, String>
-		variableToParametersMap = map(),
-		stringsTable = map();
-	
-	private static final String REQUEST_GET_PARAMETER = "request.getParameter", STRING = "String";
-	
-	@Nonnull
+        variableToParametersMap = map(),
+        stringsTable = map();
+
+    private static final String REQUEST_GET_PARAMETER = "request.getParameter", STRING = "String";
+
+    @Nonnull
     private State state = State.START;
-	@Nonnull
+    @Nonnull
     private PageState pageState = PageState.START;
-	
-	@Nullable
+
+    @Nullable
     private String varName = null;
-	
-	JSPParameterParser() {}
-	
-	private enum State {
-		START, STRING, VAR_NAME, EQUALS, GET_PARAMETER, NO_VARIABLE, ADDED_TO_STRINGS_TABLE
-	}
-	
-	private enum PageState {
-		START, OPEN_ANGLE_BRACKET, IN_JSP, PERCENTAGE
-	}
-	
-	@Nonnull
+
+    JSPParameterParser() {}
+
+    private enum State {
+        START, STRING, VAR_NAME, EQUALS, GET_PARAMETER, NO_VARIABLE, ADDED_TO_STRINGS_TABLE
+    }
+
+    private enum PageState {
+        START, OPEN_ANGLE_BRACKET, IN_JSP, PERCENTAGE
+    }
+
+    @Nonnull
     public static Map<String, RouteParameter> parse(File file) {
-		JSPParameterParser parser = new JSPParameterParser();
-		EventBasedTokenizerRunner.run(file, false, parser);
-		return parser.buildParametersMap();
-	}
-	
-	@Nonnull
+        JSPParameterParser parser = new JSPParameterParser();
+        EventBasedTokenizerRunner.run(file, false, parser);
+        return parser.buildParametersMap();
+    }
+
+    @Nonnull
     Map<String, RouteParameter> buildParametersMap() {
-//		Map<Integer, List<String>> lineNumToParamMap = map();
+//        Map<Integer, List<String>> lineNumToParamMap = map();
 //
-//		for (String key : parameterToLineNumbersMap.keySet()) {
-//			List<Integer> lineNumbers = parameterToLineNumbersMap.get(key);
+//        for (String key : parameterToLineNumbersMap.keySet()) {
+//            List<Integer> lineNumbers = parameterToLineNumbersMap.get(key);
 //
-//			for (Integer lineNumber : lineNumbers) {
-//				if (!lineNumToParamMap.containsKey(lineNumber)) {
-//					lineNumToParamMap.put(lineNumber, new ArrayList<String>());
-//				}
-//				lineNumToParamMap.get(lineNumber).add(key);
-//			}
-//		}
+//            for (Integer lineNumber : lineNumbers) {
+//                if (!lineNumToParamMap.containsKey(lineNumber)) {
+//                    lineNumToParamMap.put(lineNumber, new ArrayList<String>());
+//                }
+//                lineNumToParamMap.get(lineNumber).add(key);
+//            }
+//        }
 //
-//		return lineNumToParamMap;
+//        return lineNumToParamMap;
 
-		Map<String, RouteParameter> result = map();
-		//	All variables captured are from getParameter calls, which are populated via FORM data
-		for (String key : parameterToLineNumbersMap.keySet()) {
-			RouteParameter newParam = new RouteParameter(key);
-			newParam.setParamType(RouteParameterType.FORM_DATA);
-			newParam.setDataType("String");
-			result.put(key, newParam);
-		}
+        Map<String, RouteParameter> result = map();
+        //    All variables captured are from getParameter calls, which are populated via FORM data
+        for (String key : parameterToLineNumbersMap.keySet()) {
+            RouteParameter newParam = new RouteParameter(key);
+            newParam.setParamType(RouteParameterType.FORM_DATA);
+            newParam.setDataType("String");
+            result.put(key, newParam);
+        }
 
-		return result;
-	}
+        return result;
+    }
 
     @Override
     public boolean shouldContinue() {
@@ -118,124 +118,124 @@ public class JSPParameterParser implements EventBasedTokenizer {
     }
 
     @Override
-	public void processToken(int type, int lineNumber, String stringValue) {
-		switch (pageState) {
-			case START:
-				if (type == OPEN_ANGLE_BRACKET) {
-					pageState = PageState.OPEN_ANGLE_BRACKET;
-				}
-				break;
-			case OPEN_ANGLE_BRACKET:
-				if (type == PERCENT) {
-					pageState = PageState.IN_JSP;
-				} else if (type != OPEN_ANGLE_BRACKET){
-					pageState = PageState.START;
-				}
-				break;
-			case IN_JSP:
-				if (type == PERCENT) {
-					pageState = PageState.PERCENTAGE;
-				} else {
-					parseParameters(type, lineNumber, stringValue);
-				}
-				break;
-			case PERCENTAGE:
-				if (type == CLOSE_ANGLE_BACKET) {
-					pageState = PageState.START;
-				} else {
-					pageState = PageState.IN_JSP;
-					parseParameters(type, lineNumber, stringValue);
-				}
-				break;
-		}
-		
-	}
-	
-	public void parseParameters(int type, int lineNumber, @Nullable String stringValue) {
-		switch (state) {
-		case START:
-			if (stringValue != null && stringValue.equals(REQUEST_GET_PARAMETER)) {
-				state = State.NO_VARIABLE;
-			} else if (stringValue != null && stringValue.equals(STRING)) {
-				state = State.STRING;
-			} else if (type == StreamTokenizer.TT_WORD){
-				checkForParam(stringValue, lineNumber);
-			}
-			break;
-		case STRING:
-			if (stringValue != null) {
-				varName = stringValue;
-				state = State.VAR_NAME;
-			}
-			break;
-		case VAR_NAME:
-			if (!isSemicolonOrComma(type) && type == EQUALS) {
-				state = State.EQUALS;
-			}
-			break;
-		case EQUALS:
-			if (!isSemicolonOrComma(type)) {
-				if (stringValue != null && stringValue.equals(REQUEST_GET_PARAMETER)) {
-					state = State.GET_PARAMETER;
-				} else if (type == DOUBLE_QUOTE) {
-					stringsTable.put(varName, stringValue);
-					state = State.ADDED_TO_STRINGS_TABLE;
-				}
-			}
-			break;
-		case GET_PARAMETER:
-			if (!isSemicolonOrComma(type)) {
-				if (type == DOUBLE_QUOTE) {
-					addVariableEntry(stringValue, lineNumber);
-					state = State.START;
-				} else if (type == StreamTokenizer.TT_WORD && stringValue != null) {
-					if (stringsTable.containsKey(stringValue)) {
-						addVariableEntry(stringsTable.get(stringValue), lineNumber);
-					}
-					state = State.START;
-				}
-			}
-			
-			break;
-		case NO_VARIABLE:
-			if (stringValue != null) {
-				if (!parameterToLineNumbersMap.containsKey(stringValue)) {
-					parameterToLineNumbersMap.put(stringValue, new ArrayList<Integer>());
-				}
-				parameterToLineNumbersMap.get(stringValue).add(lineNumber);
-				state = State.START;
-			}
-			break;
-		case ADDED_TO_STRINGS_TABLE:
-			isSemicolonOrComma(type);
-			break;
-		}
-	}
-	
-	private void addVariableEntry(String parameterName, int lineNumber) {
-		variableToParametersMap.put(varName, parameterName);
-		varName = null;
-		parameterToLineNumbersMap.put(parameterName, new ArrayList<Integer>());
-		parameterToLineNumbersMap.get(parameterName).add(lineNumber);
-	}
-	
-	// Sets state and returns whether state was changed
-	private boolean isSemicolonOrComma(int type) {
-		if (type == COMMA) {
-			state = State.STRING;
-		} else if (type == SEMICOLON) {
-			state = State.START;
-		}
-		
-		return type == COMMA || type == SEMICOLON;
-	}
-	
-	private void checkForParam(@Nullable String string, int lineNumber) {
-		if (string != null &&
-				variableToParametersMap.get(string) != null &&
-				parameterToLineNumbersMap.get(variableToParametersMap.get(string)) != null) {
-			parameterToLineNumbersMap.get(variableToParametersMap.get(string)).add(lineNumber);
-		}
-	}
+    public void processToken(int type, int lineNumber, String stringValue) {
+        switch (pageState) {
+            case START:
+                if (type == OPEN_ANGLE_BRACKET) {
+                    pageState = PageState.OPEN_ANGLE_BRACKET;
+                }
+                break;
+            case OPEN_ANGLE_BRACKET:
+                if (type == PERCENT) {
+                    pageState = PageState.IN_JSP;
+                } else if (type != OPEN_ANGLE_BRACKET){
+                    pageState = PageState.START;
+                }
+                break;
+            case IN_JSP:
+                if (type == PERCENT) {
+                    pageState = PageState.PERCENTAGE;
+                } else {
+                    parseParameters(type, lineNumber, stringValue);
+                }
+                break;
+            case PERCENTAGE:
+                if (type == CLOSE_ANGLE_BACKET) {
+                    pageState = PageState.START;
+                } else {
+                    pageState = PageState.IN_JSP;
+                    parseParameters(type, lineNumber, stringValue);
+                }
+                break;
+        }
+
+    }
+
+    public void parseParameters(int type, int lineNumber, @Nullable String stringValue) {
+        switch (state) {
+        case START:
+            if (stringValue != null && stringValue.equals(REQUEST_GET_PARAMETER)) {
+                state = State.NO_VARIABLE;
+            } else if (stringValue != null && stringValue.equals(STRING)) {
+                state = State.STRING;
+            } else if (type == StreamTokenizer.TT_WORD){
+                checkForParam(stringValue, lineNumber);
+            }
+            break;
+        case STRING:
+            if (stringValue != null) {
+                varName = stringValue;
+                state = State.VAR_NAME;
+            }
+            break;
+        case VAR_NAME:
+            if (!isSemicolonOrComma(type) && type == EQUALS) {
+                state = State.EQUALS;
+            }
+            break;
+        case EQUALS:
+            if (!isSemicolonOrComma(type)) {
+                if (stringValue != null && stringValue.equals(REQUEST_GET_PARAMETER)) {
+                    state = State.GET_PARAMETER;
+                } else if (type == DOUBLE_QUOTE) {
+                    stringsTable.put(varName, stringValue);
+                    state = State.ADDED_TO_STRINGS_TABLE;
+                }
+            }
+            break;
+        case GET_PARAMETER:
+            if (!isSemicolonOrComma(type)) {
+                if (type == DOUBLE_QUOTE) {
+                    addVariableEntry(stringValue, lineNumber);
+                    state = State.START;
+                } else if (type == StreamTokenizer.TT_WORD && stringValue != null) {
+                    if (stringsTable.containsKey(stringValue)) {
+                        addVariableEntry(stringsTable.get(stringValue), lineNumber);
+                    }
+                    state = State.START;
+                }
+            }
+
+            break;
+        case NO_VARIABLE:
+            if (stringValue != null) {
+                if (!parameterToLineNumbersMap.containsKey(stringValue)) {
+                    parameterToLineNumbersMap.put(stringValue, new ArrayList<Integer>());
+                }
+                parameterToLineNumbersMap.get(stringValue).add(lineNumber);
+                state = State.START;
+            }
+            break;
+        case ADDED_TO_STRINGS_TABLE:
+            isSemicolonOrComma(type);
+            break;
+        }
+    }
+
+    private void addVariableEntry(String parameterName, int lineNumber) {
+        variableToParametersMap.put(varName, parameterName);
+        varName = null;
+        parameterToLineNumbersMap.put(parameterName, new ArrayList<Integer>());
+        parameterToLineNumbersMap.get(parameterName).add(lineNumber);
+    }
+
+    // Sets state and returns whether state was changed
+    private boolean isSemicolonOrComma(int type) {
+        if (type == COMMA) {
+            state = State.STRING;
+        } else if (type == SEMICOLON) {
+            state = State.START;
+        }
+
+        return type == COMMA || type == SEMICOLON;
+    }
+
+    private void checkForParam(@Nullable String string, int lineNumber) {
+        if (string != null &&
+                variableToParametersMap.get(string) != null &&
+                parameterToLineNumbersMap.get(variableToParametersMap.get(string)) != null) {
+            parameterToLineNumbersMap.get(variableToParametersMap.get(string)).add(lineNumber);
+        }
+    }
 
 }

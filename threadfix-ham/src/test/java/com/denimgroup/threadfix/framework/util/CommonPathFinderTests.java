@@ -33,13 +33,13 @@ import com.denimgroup.threadfix.framework.TestConstants;
 
 public class CommonPathFinderTests {
 
-	@Test
-	public void testProjectRootDetection() {
-		String root = CommonPathFinder.findOrParseProjectRootFromDirectory(
-				new File(TestConstants.BODGEIT_SOURCE_LOCATION), "jsp");
-				
-		assertTrue("Expected " + TestConstants.BODGEIT_JSP_ROOT + " but got " + root,
-				root.equals(TestConstants.BODGEIT_JSP_ROOT));
-	}
-	
+    @Test
+    public void testProjectRootDetection() {
+        String root = CommonPathFinder.findOrParseProjectRootFromDirectory(
+                new File(TestConstants.BODGEIT_SOURCE_LOCATION), "jsp");
+
+        assertTrue("Expected " + TestConstants.BODGEIT_JSP_ROOT + " but got " + root,
+                root.equals(TestConstants.BODGEIT_JSP_ROOT));
+    }
+
 }

@@ -45,75 +45,75 @@ import static org.junit.Assert.assertTrue;
 
 public class JspEndpointDatabaseTests {
 
-	@Nullable
+    @Nullable
     private EndpointDatabase getBodgeItDatabase() {
-		File file = new File(TestConstants.BODGEIT_SOURCE_LOCATION);
-		
-		List<PartialMapping> partialMappings = list();
-		
-		for (String page : pages) {
-			partialMappings.add(new DefaultPartialMapping(null, dynamicRoot + page));
-		}
-		
-		EndpointDatabase db = EndpointDatabaseFactory.getDatabase(file, partialMappings);
-		
-		assertTrue(db.getFrameworkType() == FrameworkType.JSP);
-		
-		return db;
-	}
-	
-	@Test
-	public void testBodgeItDynamicToStaticPathQueries() {
-		
-		EndpointDatabase db = getBodgeItDatabase();
-		
-		for (String page : pages) {
-			
-			String dynamicPage = dynamicRoot + page;
-			String staticPage  = staticRoot + page;
-			
-			String result = getStaticPath(db, dynamicPage);
-			assertTrue("Input: " + dynamicPage + ", expected " + staticPage + " but got " + result, staticPage.equals(result));
-		}
-	}
-	
-	@Nonnull
+        File file = new File(TestConstants.BODGEIT_SOURCE_LOCATION);
+
+        List<PartialMapping> partialMappings = list();
+
+        for (String page : pages) {
+            partialMappings.add(new DefaultPartialMapping(null, dynamicRoot + page));
+        }
+
+        EndpointDatabase db = EndpointDatabaseFactory.getDatabase(file, partialMappings);
+
+        assertTrue(db.getFrameworkType() == FrameworkType.JSP);
+
+        return db;
+    }
+
+    @Test
+    public void testBodgeItDynamicToStaticPathQueries() {
+
+        EndpointDatabase db = getBodgeItDatabase();
+
+        for (String page : pages) {
+
+            String dynamicPage = dynamicRoot + page;
+            String staticPage  = staticRoot + page;
+
+            String result = getStaticPath(db, dynamicPage);
+            assertTrue("Input: " + dynamicPage + ", expected " + staticPage + " but got " + result, staticPage.equals(result));
+        }
+    }
+
+    @Nonnull
     String dynamicRoot = "/bodgeit/", staticRoot = "/root/";
-	
-	@Nonnull
+
+    @Nonnull
     String[] pages = {
-		"about.jsp",
-		"admin.jsp",
-		"advanced.jsp",
-		"basket.jsp",
-		"contact.jsp",
-		"footer.jsp",
-		"header.jsp",
-		"home.jsp",
-		"init.jsp",
-		"login.jsp",
-		"logout.jsp",
-		"password.jsp",
-		"product.jsp",
-		"register.jsp",
-		"score.jsp",
-		"search.jsp",
-	};
-	
-	@Nonnull
+        "about.jsp",
+        "admin.jsp",
+        "advanced.jsp",
+        "basket.jsp",
+        "contact.jsp",
+        "footer.jsp",
+        "header.jsp",
+        "home.jsp",
+        "init.jsp",
+        "login.jsp",
+        "logout.jsp",
+        "password.jsp",
+        "product.jsp",
+        "register.jsp",
+        "score.jsp",
+        "search.jsp",
+    };
+
+    @Nonnull
     private String getStaticPath(@Nonnull EndpointDatabase db, String dynamicPath) {
-		EndpointQuery query = EndpointQueryBuilder.start()
-				.setInformationSourceType(InformationSourceType.DYNAMIC)
-				.setDynamicPath(dynamicPath)
-				.generateQuery();
-		
-		Endpoint endpoint = db.findBestMatch(query);
-		
-		if (endpoint == null) {
-			return "null result";
-		} else {
-			return endpoint.getFilePath();
-		}
-	}
-	
+        EndpointQuery query = EndpointQueryBuilder.start()
+                .setInformationSourceType(InformationSourceType.DYNAMIC)
+                .setDynamicPath(dynamicPath)
+                .generateQuery();
+
+        Endpoint endpoint = db.findBestMatch(query);
+
+        if (endpoint == null) {
+            return "null result";
+        } else {
+            return endpoint.getFilePath();
+        }
+    }
+
 }

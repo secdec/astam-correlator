@@ -41,8 +41,8 @@ import static org.junit.Assert.assertTrue;
 // TODO add more tests
 public class JSPIncludeParserTests {
 
-	@Test
-	public void testPercentArrobaFormat() {
+    @Test
+    public void testPercentArrobaFormat() {
         String file = TestConstants.WAVSEP_SOURCE_LOCATION + "/trunk/WebContent/active/LFI-Detection-Evaluation-GET-404Error/Case49-LFI-ContextStream-FilenameContext-UnixTraversalValidation-OSPath-DefaultFullInput-SlashPathReq-Read.jsp";
 
         String[] files = {
@@ -53,7 +53,7 @@ public class JSPIncludeParserTests {
         Set<File> includedFiles = JSPIncludeParser.parse(new File(file));
 
         compare(includedFiles, Arrays.asList(files));
-	}
+    }
 
     @Test
     public void testJspIncludeFormat() {
@@ -82,24 +82,24 @@ public class JSPIncludeParserTests {
                     endpoint.getParameters().keySet().contains("debug"));
         }
     }
-	
-	@Test
-	public void testFakeFile() {
-		assertTrue("failure.", JSPIncludeParser.parse(new File(TestConstants.FAKE_FILE)).isEmpty());
-	}
 
-	private void compare(@Nonnull Collection<File> results, @Nonnull Collection<String> expected) {
-		Set<String> resultsCopy = set();
-		Set<String> expectedCopy = setFrom(expected);
+    @Test
+    public void testFakeFile() {
+        assertTrue("failure.", JSPIncludeParser.parse(new File(TestConstants.FAKE_FILE)).isEmpty());
+    }
+
+    private void compare(@Nonnull Collection<File> results, @Nonnull Collection<String> expected) {
+        Set<String> resultsCopy = set();
+        Set<String> expectedCopy = setFrom(expected);
 
         for (File file : results) {
             resultsCopy.add(file.getAbsolutePath());
         }
-		
-		expectedCopy.removeAll(resultsCopy);
+
+        expectedCopy.removeAll(resultsCopy);
         resultsCopy.removeAll(expected);
 
-		assertTrue("There were more results than expected: " + resultsCopy, resultsCopy.isEmpty());
-		assertTrue("The results were missing some entries: " + expectedCopy, expectedCopy.isEmpty());
-	}
+        assertTrue("There were more results than expected: " + resultsCopy, resultsCopy.isEmpty());
+        assertTrue("The results were missing some entries: " + expectedCopy, expectedCopy.isEmpty());
+    }
 }

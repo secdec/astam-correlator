@@ -45,85 +45,85 @@ import com.denimgroup.threadfix.framework.engine.parameter.ParameterParser;
 import com.denimgroup.threadfix.framework.engine.parameter.ParameterParserFactory;
 
 public class JSPParameterParserTests {
-	
-	@Nonnull
-    ProjectConfig
-		fullSourceConfig = new ProjectConfig(FrameworkType.JSP, SourceCodeAccessLevel.FULL,
-				new File(TestConstants.BODGEIT_SOURCE_LOCATION), "/"),
-		noSourceConfig = new ProjectConfig(FrameworkType.JSP, SourceCodeAccessLevel.NONE, null, null);
 
-	@Nonnull
+    @Nonnull
+    ProjectConfig
+        fullSourceConfig = new ProjectConfig(FrameworkType.JSP, SourceCodeAccessLevel.FULL,
+                new File(TestConstants.BODGEIT_SOURCE_LOCATION), "/"),
+        noSourceConfig = new ProjectConfig(FrameworkType.JSP, SourceCodeAccessLevel.NONE, null, null);
+
+    @Nonnull
     ParameterParser
-		factoryParser = ParameterParserFactory.getParameterParser(fullSourceConfig),
-		fullSourceParser = new JSPDataFlowParser(fullSourceConfig),
-		noSourceParser = new JSPDataFlowParser(noSourceConfig);
-	
-	// These are from the PetClinic Fortify results
-	@Nonnull
+        factoryParser = ParameterParserFactory.getParameterParser(fullSourceConfig),
+        fullSourceParser = new JSPDataFlowParser(fullSourceConfig),
+        noSourceParser = new JSPDataFlowParser(noSourceConfig);
+
+    // These are from the PetClinic Fortify results
+    @Nonnull
     private static List<? extends CodePoint> basicModelElements = Arrays.asList(
-		new DefaultCodePoint("root/register.jsp",32,
-				"String username = (String) request.getParameter(\"username\");"),
-		new DefaultCodePoint("root/register.jsp",32,
-				"String username = (String) request.getParameter(\"username\");"),
-		new DefaultCodePoint("root/register.jsp",60,
-				" 	session.setAttribute(\"username\", username);"),
-		new DefaultCodePoint("root/contact.jsp",33,
-				"String username = (String) session.getAttribute(\"username\");"),
-		new DefaultCodePoint("root/contact.jsp",33,
-				"String username = (String) session.getAttribute(\"username\");"),
-		new DefaultCodePoint("root/contact.jsp",115,
-				"<input type=\"hidden\" id=\"user\" name=\"<%=username%>\" value=\"\"/>")
-		);
-	
-	@Test
-	public void testBasicNoSourceParsing() {
-		EndpointQuery query = EndpointQueryBuilder.start().setCodePoints(basicModelElements).generateQuery();
-		
-		String result = noSourceParser.parse(query);
-		assertTrue("Parameter was " + result + " instead of username", "username".equals(result));
-	}
-	
-	@Test
-	public void testBasicWithSourceParsing() {
-		EndpointQuery query = EndpointQueryBuilder.start().setCodePoints(basicModelElements).generateQuery();
-		
-		String result = fullSourceParser.parse(query);
-		assertTrue("Parameter was " + result + " instead of username", "username".equals(result));
-	}
+        new DefaultCodePoint("root/register.jsp",32,
+                "String username = (String) request.getParameter(\"username\");"),
+        new DefaultCodePoint("root/register.jsp",32,
+                "String username = (String) request.getParameter(\"username\");"),
+        new DefaultCodePoint("root/register.jsp",60,
+                "     session.setAttribute(\"username\", username);"),
+        new DefaultCodePoint("root/contact.jsp",33,
+                "String username = (String) session.getAttribute(\"username\");"),
+        new DefaultCodePoint("root/contact.jsp",33,
+                "String username = (String) session.getAttribute(\"username\");"),
+        new DefaultCodePoint("root/contact.jsp",115,
+                "<input type=\"hidden\" id=\"user\" name=\"<%=username%>\" value=\"\"/>")
+        );
+
+    @Test
+    public void testBasicNoSourceParsing() {
+        EndpointQuery query = EndpointQueryBuilder.start().setCodePoints(basicModelElements).generateQuery();
+
+        String result = noSourceParser.parse(query);
+        assertTrue("Parameter was " + result + " instead of username", "username".equals(result));
+    }
+
+    @Test
+    public void testBasicWithSourceParsing() {
+        EndpointQuery query = EndpointQueryBuilder.start().setCodePoints(basicModelElements).generateQuery();
+
+        String result = fullSourceParser.parse(query);
+        assertTrue("Parameter was " + result + " instead of username", "username".equals(result));
+    }
 
     @Test(expected= NullPointerException.class)
     public void testNullArgument() {
         factoryParser.parse(null);
     }
-	
-	@Test
-	public void testNullInput() {
-		EndpointQuery emptyDataFlowFinding = EndpointQueryBuilder.start().setCodePoints(new ArrayList<CodePoint>()).generateQuery();
-		EndpointQuery nonEmptyDataFlowFinding = EndpointQueryBuilder.start().setCodePoints(basicModelElements).generateQuery();
-		
-		for (ParameterParser parser : new ParameterParser[] {
-				factoryParser, fullSourceParser, noSourceParser
-				}) {
-			assertTrue("Parameter was not null and should have been.", parser.parse(EndpointQueryBuilder.start().generateQuery()) == null);
-			assertTrue("Parameter was not null and should have been.", parser.parse(emptyDataFlowFinding) == null);
-		}
-		
-		File[] rootFiles = { null, new File(TestConstants.BODGEIT_SOURCE_LOCATION) };
 
-		for (File file : rootFiles) {
-			for (SourceCodeAccessLevel accessLevel : SourceCodeAccessLevel.values()) {
-				ProjectConfig config = new ProjectConfig(FrameworkType.JSP, accessLevel, file, null);
+    @Test
+    public void testNullInput() {
+        EndpointQuery emptyDataFlowFinding = EndpointQueryBuilder.start().setCodePoints(new ArrayList<CodePoint>()).generateQuery();
+        EndpointQuery nonEmptyDataFlowFinding = EndpointQueryBuilder.start().setCodePoints(basicModelElements).generateQuery();
+
+        for (ParameterParser parser : new ParameterParser[] {
+                factoryParser, fullSourceParser, noSourceParser
+                }) {
+            assertTrue("Parameter was not null and should have been.", parser.parse(EndpointQueryBuilder.start().generateQuery()) == null);
+            assertTrue("Parameter was not null and should have been.", parser.parse(emptyDataFlowFinding) == null);
+        }
+
+        File[] rootFiles = { null, new File(TestConstants.BODGEIT_SOURCE_LOCATION) };
+
+        for (File file : rootFiles) {
+            for (SourceCodeAccessLevel accessLevel : SourceCodeAccessLevel.values()) {
+                ProjectConfig config = new ProjectConfig(FrameworkType.JSP, accessLevel, file, null);
                 JSPDataFlowParser parser = new JSPDataFlowParser(config);
-				assertTrue("Parameter was not null and should have been.",
-						parser.parse(EndpointQueryBuilder.start().generateQuery()) == null);
-				assertTrue("Parameter was not null and should have been.",
-						parser.parse(emptyDataFlowFinding) == null);
-				assertTrue("Parameter was not username and should have been.",
-						"username".equals(parser.parse(nonEmptyDataFlowFinding)));
-			}
-		}
-		
-	}
+                assertTrue("Parameter was not null and should have been.",
+                        parser.parse(EndpointQueryBuilder.start().generateQuery()) == null);
+                assertTrue("Parameter was not null and should have been.",
+                        parser.parse(emptyDataFlowFinding) == null);
+                assertTrue("Parameter was not username and should have been.",
+                        "username".equals(parser.parse(nonEmptyDataFlowFinding)));
+            }
+        }
+
+    }
 
     @Test(expected=NullPointerException.class)
     public void testParserNullInput() {
@@ -132,5 +132,5 @@ public class JSPParameterParserTests {
         JSPDataFlowParser parser = new JSPDataFlowParser(config);
         parser.parse(null);
     }
-	
+
 }

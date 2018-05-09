@@ -31,19 +31,19 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import javax.annotation.Nonnull;
 
 public class FileExtensionFileFilter implements IOFileFilter {
-	private final String fileExtension;
-	
-	public FileExtensionFileFilter(String fileExtension) {
-		this.fileExtension = fileExtension;
-	}
-	
-	@Override
-	public boolean accept(@Nonnull File file) {
-		return file.getName().toLowerCase().endsWith(fileExtension.toLowerCase());
-	}
+    private final String fileExtension;
 
-	@Override
-	public boolean accept(File dir, @Nonnull String name) {
-		return name.toLowerCase().endsWith(fileExtension.toLowerCase());
-	}
+    public FileExtensionFileFilter(String fileExtension) {
+        this.fileExtension = fileExtension;
+    }
+
+    @Override
+    public boolean accept(@Nonnull File file) {
+        return file.getName().toLowerCase().endsWith(fileExtension.toLowerCase());
+    }
+
+    @Override
+    public boolean accept(File dir, @Nonnull String name) {
+        return name.toLowerCase().endsWith(fileExtension.toLowerCase());
+    }
 }

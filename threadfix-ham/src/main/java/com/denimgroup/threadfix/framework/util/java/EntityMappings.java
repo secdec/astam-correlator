@@ -87,55 +87,55 @@ public class EntityMappings {
      */
     public ModelFieldSet getPossibleParametersForModelType(String className) {
         return FieldSetLookupUtils.getPossibleParametersForModelType(fieldMap, className);
-	}
-	
-	@Nonnull
+    }
+
+    @Nonnull
     public List<ModelField> getFieldsFromMethodCalls(@Nullable String methodCalls, @Nullable ModelField initialField) {
-		List<ModelField> fields = list();
+        List<ModelField> fields = list();
 
-		if (methodCalls != null && initialField != null) {
-			fields.add(initialField);
-			
-			ModelField currentField = initialField;
-			String editedCalls = methodCalls;
-			
-			if (methodCalls.startsWith(initialField.getParameterKey())) {
-				editedCalls = methodCalls.substring(initialField.getParameterKey().length());
-			}
-			
-			String[] calls = editedCalls.split("(\\(\\))");
-			
-			for (String call : calls) {
-				if (call != null && ! call.isEmpty()) {
-					String beanAccessor = getParameterFromBeanAccessor(call);
-					if (fieldMap.containsKey(currentField.getType()) &&
-							fieldMap.get(currentField.getType()).contains(beanAccessor)) {
-						ModelField resultField = fieldMap.get(currentField.getType()).getField(beanAccessor);
-						if (resultField != null && !resultField.equals(currentField)) {
-							fields.add(resultField);
-							currentField = resultField;
-						}
-					} else {
-						break;
-					}
-				}
-			}
-		}
-		
-		return fields;
-	}
-	
-	public boolean isEmpty() {
-		return fieldMap.isEmpty();
-	}
+        if (methodCalls != null && initialField != null) {
+            fields.add(initialField);
 
-	private void generateMap() {
-		Map<String, String> superClassMap = map();
-		
-		addModelsToSuperClassAndFieldMaps(superClassMap);
-		
-		addSuperClassFieldsToModels(fieldMap, superClassMap);
-	}
+            ModelField currentField = initialField;
+            String editedCalls = methodCalls;
+
+            if (methodCalls.startsWith(initialField.getParameterKey())) {
+                editedCalls = methodCalls.substring(initialField.getParameterKey().length());
+            }
+
+            String[] calls = editedCalls.split("(\\(\\))");
+
+            for (String call : calls) {
+                if (call != null && ! call.isEmpty()) {
+                    String beanAccessor = getParameterFromBeanAccessor(call);
+                    if (fieldMap.containsKey(currentField.getType()) &&
+                            fieldMap.get(currentField.getType()).contains(beanAccessor)) {
+                        ModelField resultField = fieldMap.get(currentField.getType()).getField(beanAccessor);
+                        if (resultField != null && !resultField.equals(currentField)) {
+                            fields.add(resultField);
+                            currentField = resultField;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return fields;
+    }
+
+    public boolean isEmpty() {
+        return fieldMap.isEmpty();
+    }
+
+    private void generateMap() {
+        Map<String, String> superClassMap = map();
+
+        addModelsToSuperClassAndFieldMaps(superClassMap);
+
+        addSuperClassFieldsToModels(fieldMap, superClassMap);
+    }
 
     private void addModelsToSuperClassAndFieldMaps(@Nonnull Map<String, String> superClassMap) {
         for (EntityParser entityParser : entityParsers) {
@@ -150,23 +150,23 @@ public class EntityMappings {
             }
         }
     }
-	
-	@Nullable
+
+    @Nullable
     private String getParameterFromBeanAccessor(@Nonnull String methodCall) {
-		
-		String propertyName = null;
-		
-		if (methodCall.startsWith(".get")) {
-			propertyName = methodCall.substring(4);
-			propertyName = propertyName.substring(0,1).toLowerCase() + propertyName.substring(1);
-		}
-		
-		return propertyName;
-	}
-	
-	@Override
-	public String toString() {
-		return fieldMap.toString();
-	}
-	
+
+        String propertyName = null;
+
+        if (methodCall.startsWith(".get")) {
+            propertyName = methodCall.substring(4);
+            propertyName = propertyName.substring(0,1).toLowerCase() + propertyName.substring(1);
+        }
+
+        return propertyName;
+    }
+
+    @Override
+    public String toString() {
+        return fieldMap.toString();
+    }
+
 }

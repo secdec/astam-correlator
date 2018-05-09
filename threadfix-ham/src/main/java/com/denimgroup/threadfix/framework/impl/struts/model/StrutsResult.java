@@ -31,80 +31,80 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
  * Created by sgerick on 11/12/2014.
  */
 public class StrutsResult {
-	private String name;
-	private String type;
-	private String value;
+    private String name;
+    private String type;
+    private String value;
 
-	public StrutsResult() {	}
+    public StrutsResult() {    }
 
-	public StrutsResult(String name, String type, String value) {
-		this.name = name;
-		this.type = type;
-		this.value = value;
-	}
+    public StrutsResult(String name, String type, String value) {
+        this.name = name;
+        this.type = type;
+        this.value = value;
+    }
 
-	private Map params;
+    private Map params;
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getType() {
-		return type;
-	}
+    public String getType() {
+        return type;
+    }
 
-	public void setType(String type) {
-		this.type = type;
-	}
+    public void setType(String type) {
+        this.type = type;
+    }
 
-	public String getValue() {
-		return value;
-	}
+    public String getValue() {
+        return value;
+    }
 
-	public void setValue(String value) {
-		this.value = value;
-	}
+    public void setValue(String value) {
+        this.value = value;
+    }
 
-	public Map getParams() {
-		return params;
-	}
+    public Map getParams() {
+        return params;
+    }
 
-	public void setParams(Map params) {
-		this.params = params;
-	}
+    public void setParams(Map params) {
+        this.params = params;
+    }
 
-	public void addParam(String name, String value) {
-		if (params == null)
-			params = map();
-		params.put(name, value);
-	}
+    public void addParam(String name, String value) {
+        if (params == null)
+            params = map();
+        params.put(name, value);
+    }
 
-	@Override
-	public String toString() {
-		if (name==null && type==null && value==null)
-			return "null";
-		StringBuilder sb = new StringBuilder("<result");
-		if (name != null) {
-			sb.append(" name=\"");
-			sb.append( name );
-			sb.append("\"");
-		}
-		if (type != null) {
-			sb.append(" type=\"");
-			sb.append( type );
-			sb.append("\"");
-		}
-		if (value != null) {
-			sb.append(">");
-			sb.append( value );
-			sb.append("</result");
-		}
-		sb.append(">");
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        if (name==null && type==null && value==null)
+            return "null";
+        StringBuilder sb = new StringBuilder("<result");
+        if (name != null) {
+            sb.append(" name=\"");
+            sb.append( name );
+            sb.append("\"");
+        }
+        if (type != null) {
+            sb.append(" type=\"");
+            sb.append( type );
+            sb.append("\"");
+        }
+        if (value != null) {
+            sb.append(">");
+            sb.append( value );
+            sb.append("</result");
+        }
+        sb.append(">");
+        return sb.toString();
+    }
 
 }

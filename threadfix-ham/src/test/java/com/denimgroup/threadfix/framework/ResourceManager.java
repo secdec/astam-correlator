@@ -31,23 +31,23 @@ import static org.junit.Assert.assertTrue;
 
 public class ResourceManager {
 
-	@Nonnull
+    @Nonnull
     public static File getFile(String name) {
-		File file = new File(TestConstants.THREADFIX_SOURCE_ROOT + "threadfix-ham/target/test-classes/" + name);
+        File file = new File(TestConstants.THREADFIX_SOURCE_ROOT + "threadfix-ham/target/test-classes/" + name);
         assertTrue("File " + file.getAbsolutePath() + " didn't exist. Please fix your configuration.", file.exists());
 
         return file;
     }
 
-	@Nonnull
+    @Nonnull
     public static File getSpringFile(String name) {
-		return getFile("code/spring/" + name);
-	}
+        return getFile("code/spring/" + name);
+    }
 
-	@Nonnull
+    @Nonnull
     public static File getStrutsFile(String name) {
-		return getFile("code.struts/" + name);
-	}
+        return getFile("code.struts/" + name);
+    }
 
     @Nonnull
     public static File getDotNetMvcFile(String name) {

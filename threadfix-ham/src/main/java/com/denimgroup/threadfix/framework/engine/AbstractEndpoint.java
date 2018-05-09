@@ -118,22 +118,22 @@ public abstract class AbstractEndpoint implements Endpoint {
     }
 
     @Override
-	public int compareTo(@Nullable Endpoint otherEndpoint) {
-		int returnValue = 0;
-		
-		if (otherEndpoint != null) {
-			
+    public int compareTo(@Nullable Endpoint otherEndpoint) {
+        int returnValue = 0;
+
+        if (otherEndpoint != null) {
+
             returnValue -= 2 * otherEndpoint.getFilePath().compareTo(getFilePath());
 
-			if (getStartingLineNumber() < otherEndpoint.getStartingLineNumber()) {
-				returnValue -= 1;
-			} else {
-				returnValue += 1;
-			}
-		}
-		
-		return returnValue;
-	}
+            if (getStartingLineNumber() < otherEndpoint.getStartingLineNumber()) {
+                returnValue -= 1;
+            } else {
+                returnValue += 1;
+            }
+        }
+
+        return returnValue;
+    }
 
     @Override
     public int compareRelevance(String endpoint) {
@@ -145,9 +145,9 @@ public abstract class AbstractEndpoint implements Endpoint {
     }
 
     // TODO finalize this
-	@Nonnull
+    @Nonnull
     @Override
-	public String getCSVLine(PrintFormat... formats) {
+    public String getCSVLine(PrintFormat... formats) {
         Set<PrintFormat> formatSet = set(formats);
 
         StringBuilder builder = new StringBuilder();
@@ -173,11 +173,11 @@ public abstract class AbstractEndpoint implements Endpoint {
         } else if (formatSet.contains(PrintFormat.STATIC)) {
             builder.append(getStaticCSVFields());
         } else if (!formatSet.contains(PrintFormat.LINT)) {
-		    builder.append(getDynamicCSVFields());
+            builder.append(getDynamicCSVFields());
         }
 
         return builder.toString();
-	}
+    }
 
     @Nonnull
     protected abstract List<String> getLintLine();
@@ -197,10 +197,10 @@ public abstract class AbstractEndpoint implements Endpoint {
     protected String getStaticCSVFields() {
         return getFilePath() + "," + getStartingLineNumber();
     }
-	
-	private String getToStringNoCommas(@Nonnull Object object) {
+
+    private String getToStringNoCommas(@Nonnull Object object) {
         return object.toString().replaceAll(",", "");
-	}
+    }
 
     @Nonnull
     @Override
@@ -210,9 +210,9 @@ public abstract class AbstractEndpoint implements Endpoint {
 
     @Nonnull
     @Override
-	public String toString() {
-		return getCSVLine();
-	}
+    public String toString() {
+        return getCSVLine();
+    }
 
     @Nonnull
     @Override

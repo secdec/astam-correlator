@@ -33,47 +33,47 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 public class SpringPathCleaner implements PathCleaner {
-	
-	public static final String GENERIC_INT_SEGMENT = "{id}";
-	public static final String JSESSIONID = ";jsessionid=";
-	@Nullable
-    public static final SpringPathCleaner INSTANCE = new SpringPathCleaner(null);
-	
-	private final String dynamicRoot, staticRoot;
-	
-	// with scan
-	public SpringPathCleaner(List<PartialMapping> partialMappings) {
-		staticRoot  = CommonPathFinder.findOrParseProjectRoot(partialMappings);
-		dynamicRoot = CommonPathFinder.findOrParseUrlPath(partialMappings);
-	}
-	
-	// no scan
-	public SpringPathCleaner(String dynamicRoot, String staticRoot) {
-		this.staticRoot  = staticRoot;
-		this.dynamicRoot = dynamicRoot;
-	}
-	
-	@Override
-	public String cleanStaticPath(@Nonnull String filePath) {
-		String relativeFilePath = filePath;
-		
-		if (staticRoot != null && filePath.startsWith(staticRoot)) {
-			relativeFilePath = filePath.substring(staticRoot.length());
-		}
-		
-		return relativeFilePath;
-	}
 
-	@Override
-	public String cleanDynamicPath(@Nonnull String urlPath) {
-		
-		String relativeUrlPath = urlPath;
-		
-		if (dynamicRoot != null &&
-				urlPath.startsWith(dynamicRoot)) {
-			relativeUrlPath = urlPath.substring(dynamicRoot.length());
-		}
-		
+    public static final String GENERIC_INT_SEGMENT = "{id}";
+    public static final String JSESSIONID = ";jsessionid=";
+    @Nullable
+    public static final SpringPathCleaner INSTANCE = new SpringPathCleaner(null);
+
+    private final String dynamicRoot, staticRoot;
+
+    // with scan
+    public SpringPathCleaner(List<PartialMapping> partialMappings) {
+        staticRoot  = CommonPathFinder.findOrParseProjectRoot(partialMappings);
+        dynamicRoot = CommonPathFinder.findOrParseUrlPath(partialMappings);
+    }
+
+    // no scan
+    public SpringPathCleaner(String dynamicRoot, String staticRoot) {
+        this.staticRoot  = staticRoot;
+        this.dynamicRoot = dynamicRoot;
+    }
+
+    @Override
+    public String cleanStaticPath(@Nonnull String filePath) {
+        String relativeFilePath = filePath;
+
+        if (staticRoot != null && filePath.startsWith(staticRoot)) {
+            relativeFilePath = filePath.substring(staticRoot.length());
+        }
+
+        return relativeFilePath;
+    }
+
+    @Override
+    public String cleanDynamicPath(@Nonnull String urlPath) {
+
+        String relativeUrlPath = urlPath;
+
+        if (dynamicRoot != null &&
+                urlPath.startsWith(dynamicRoot)) {
+            relativeUrlPath = urlPath.substring(dynamicRoot.length());
+        }
+
         String escaped = relativeUrlPath;
 
         if (escaped.contains(JSESSIONID)) {
@@ -89,7 +89,7 @@ public class SpringPathCleaner implements PathCleaner {
                 .replaceAll("\\{[^\\}]+\\}", GENERIC_INT_SEGMENT);
 
         return escaped;
-	}
+    }
 
     @Override
     public void setEndpointGenerator(EndpointGenerator generator) {
@@ -103,19 +103,19 @@ public class SpringPathCleaner implements PathCleaner {
     }
 
     @Override
-	public String getDynamicRoot() {
-		return dynamicRoot;
-	}
+    public String getDynamicRoot() {
+        return dynamicRoot;
+    }
 
-	@Override
-	public String getStaticRoot() {
-		return staticRoot;
-	}
-	
-	@Nonnull
     @Override
-	public String toString() {
-		return "Spring PathCleaner with dynamic root = " + dynamicRoot + ", static root = " + staticRoot;
-	}
+    public String getStaticRoot() {
+        return staticRoot;
+    }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return "Spring PathCleaner with dynamic root = " + dynamicRoot + ", static root = " + staticRoot;
+    }
 
 }

@@ -151,7 +151,7 @@ public class DefaultActionMapper implements ActionMapper {
 
                 String classLocation = strutsAction.getActClassLocation();
                 if (classLocation != null)
-                	classLocation = classLocation.replace('\\', '/');
+                    classLocation = classLocation.replace('\\', '/');
 
                 StrutsClass classForAction = project.findClassByFileLocation(classLocation);
                 Set<ModelField> fieldMappings = set();

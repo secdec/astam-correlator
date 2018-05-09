@@ -46,20 +46,20 @@ public class EventBasedTokenizerRunner {
 
     public static final boolean logEnabled = false;
 
-	private static final SanitizedLogger log = new SanitizedLogger("EventBasedTokenizerRunner");
-	
-	/**
-	 * The default idiom for parsing and getting results using this
-	 * class is
-	 * 
-	 * <code>
-	 *  EventBasedTokenizer parser = new EventBasedTokenizer();<br>
-	 *	EventBasedTokenizerRunner.run(file, parser);<br>
-	 *  return parser.results;
-	 * </code>
-	 * @param file
-	 * @param eventBasedTokenizers
-	 */
+    private static final SanitizedLogger log = new SanitizedLogger("EventBasedTokenizerRunner");
+
+    /**
+     * The default idiom for parsing and getting results using this
+     * class is
+     *
+     * <code>
+     *  EventBasedTokenizer parser = new EventBasedTokenizer();<br>
+     *    EventBasedTokenizerRunner.run(file, parser);<br>
+     *  return parser.results;
+     * </code>
+     * @param file
+     * @param eventBasedTokenizers
+     */
     public static void run(@Nullable File file, @Nonnull EventBasedTokenizer... eventBasedTokenizers ) {
         run(file, true, eventBasedTokenizers);
     }
@@ -108,23 +108,23 @@ public class EventBasedTokenizerRunner {
         }
     }
 
-	public static void run(@Nullable File file, boolean javaComments, @Nonnull EventBasedTokenizer... eventBasedTokenizers ) {
+    public static void run(@Nullable File file, boolean javaComments, @Nonnull EventBasedTokenizer... eventBasedTokenizers ) {
 
-		if (file != null && file.exists() && file.isFile()) {
+        if (file != null && file.exists() && file.isFile()) {
             Reader reader = null;
-			try {
+            try {
                 reader = new InputStreamReader(new FileInputStream(file), "UTF-8");
-				StreamTokenizer tokenizer = new StreamTokenizer(reader);
+                StreamTokenizer tokenizer = new StreamTokenizer(reader);
                 tokenizer.slashSlashComments(javaComments);
                 tokenizer.slashStarComments(javaComments);
-				tokenizer.ordinaryChar('<');
-				tokenizer.wordChars(':', ':');
+                tokenizer.ordinaryChar('<');
+                tokenizer.wordChars(':', ':');
                 if (!javaComments)
                     tokenizer.ordinaryChar('/');
 
                 // stop only if all of the tokenizers return false from shouldContinue();
                 boolean keepGoing = true;
-				while (tokenizer.nextToken() != StreamTokenizer.TT_EOF && keepGoing) {
+                while (tokenizer.nextToken() != StreamTokenizer.TT_EOF && keepGoing) {
 
                     log(tokenizer);
 
@@ -137,14 +137,14 @@ public class EventBasedTokenizerRunner {
                             keepGoing = eventBasedTokenizer.shouldContinue();
                         }
                     }
-				}
-				
-			} catch (FileNotFoundException e) {
-				// shouldn't happen, we check to make sure it exists
-				log.error("Encountered FileNotFoundException while looking for file", e);
-			} catch (IOException e) {
-				log.warn("Encountered IOException while tokenizing file.", e);
-			} finally {
+                }
+
+            } catch (FileNotFoundException e) {
+                // shouldn't happen, we check to make sure it exists
+                log.error("Encountered FileNotFoundException while looking for file", e);
+            } catch (IOException e) {
+                log.warn("Encountered IOException while tokenizing file.", e);
+            } finally {
                 if (reader != null) {
                     try {
                         reader.close();
@@ -153,8 +153,8 @@ public class EventBasedTokenizerRunner {
                     }
                 }
             }
-		}
-	}
+        }
+    }
 
     public static void runString(@Nonnull String string, @Nonnull EventBasedTokenizerConfigurator configurator, @Nonnull EventBasedTokenizer... eventBasedTokenizers) {
         Reader reader = null;

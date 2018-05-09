@@ -40,16 +40,16 @@ import static com.denimgroup.threadfix.CollectionUtils.setFrom;
  *
  */
 class SpringControllerFileFilter extends ClassAnnotationBasedFileFilter {
-	
-	private SpringControllerFileFilter(){}
-	
-	public static final SpringControllerFileFilter INSTANCE = new SpringControllerFileFilter();
-	
-	private static final Set<String> annotations = setFrom(Arrays.asList("Controller"));
-	
-	@Nonnull
+
+    private SpringControllerFileFilter(){}
+
+    public static final SpringControllerFileFilter INSTANCE = new SpringControllerFileFilter();
+
+    private static final Set<String> annotations = setFrom(Arrays.asList("Controller"));
+
+    @Nonnull
     @Override
-	protected Set<String> getClassAnnotations() {
-		return annotations;
-	}
+    protected Set<String> getClassAnnotations() {
+        return annotations;
+    }
 }

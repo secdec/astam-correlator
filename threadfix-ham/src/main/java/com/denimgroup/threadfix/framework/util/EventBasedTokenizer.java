@@ -31,24 +31,24 @@ package com.denimgroup.threadfix.framework.util;
  * @author mcollins
  */
 public interface EventBasedTokenizer {
-	
-	static Character 
-		ARROBA = '@',
-		EQUALS = '=', 
-		COMMA = ',', 
-		DOUBLE_QUOTE = '"',
-		COLON = ':',
-		SEMICOLON = ';',
-		PERCENT = '%',
-		OPEN_ANGLE_BRACKET = '<',
-		CLOSE_ANGLE_BACKET = '>',
-		OPEN_PAREN = '(',
-		CLOSE_PAREN = ')',
-		OPEN_CURLY = '{',
-		CLOSE_CURLY = '}';
+
+    static Character
+        ARROBA = '@',
+        EQUALS = '=',
+        COMMA = ',',
+        DOUBLE_QUOTE = '"',
+        COLON = ':',
+        SEMICOLON = ';',
+        PERCENT = '%',
+        OPEN_ANGLE_BRACKET = '<',
+        CLOSE_ANGLE_BACKET = '>',
+        OPEN_PAREN = '(',
+        CLOSE_PAREN = ')',
+        OPEN_CURLY = '{',
+        CLOSE_CURLY = '}';
 
     boolean shouldContinue();
-	
-	void processToken(int type, int lineNumber, String stringValue);
+
+    void processToken(int type, int lineNumber, String stringValue);
 
 }

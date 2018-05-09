@@ -37,16 +37,16 @@ import static org.junit.Assert.assertTrue;
 
 public class TestUtils {
 
-	@Nonnull
+    @Nonnull
     public static List<PartialMapping> getMappings(@Nonnull String[][] strings) {
-		List<PartialMapping> mappings = list();
-		
-		for (String[] stringArray : strings) {
-			mappings.add(new DefaultPartialMapping(stringArray[0], stringArray[1]));
-		}
-		
-		return mappings;
-	}
+        List<PartialMapping> mappings = list();
+
+        for (String[] stringArray : strings) {
+            mappings.add(new DefaultPartialMapping(stringArray[0], stringArray[1]));
+        }
+
+        return mappings;
+    }
 
     public static void compare(Collection<String> parsed, Collection<String> expected, String name) {
         Set<String> paramsCopy = setFrom(parsed),
@@ -58,5 +58,5 @@ public class TestUtils {
         assertTrue(name + " has extra strings " + expectedCopy, expectedCopy.size() == 0);
         assertTrue(name + " were missing " + paramsCopy, paramsCopy.size() == 0);
     }
-	
+
 }

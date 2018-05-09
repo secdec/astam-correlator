@@ -40,28 +40,28 @@ import static com.denimgroup.threadfix.CollectionUtils.*;
 
 class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
-	@Nonnull
+    @Nonnull
     private final List<Endpoint> endpoints;
 
     @Nonnull
-	private final PathCleaner pathCleaner;
+    private final PathCleaner pathCleaner;
 
     @Nonnull
-	private final FrameworkType frameworkType;
+    private final FrameworkType frameworkType;
 
-	private final Map<String, Set<Endpoint>>
-		dynamicMap = map(),
-		staticMap  = map(),
-		parameterMap = map(),
+    private final Map<String, Set<Endpoint>>
+        dynamicMap = map(),
+        staticMap  = map(),
+        parameterMap = map(),
         httpMethodMap = map();
 
-	protected final static SanitizedLogger log = new SanitizedLogger(GeneratorBasedEndpointDatabase.class);
+    protected final static SanitizedLogger log = new SanitizedLogger(GeneratorBasedEndpointDatabase.class);
 
-	public GeneratorBasedEndpointDatabase(@Nonnull EndpointGenerator endpointGenerator,
+    public GeneratorBasedEndpointDatabase(@Nonnull EndpointGenerator endpointGenerator,
                                           @Nonnull PathCleaner pathCleaner,
                                           @Nonnull FrameworkType frameworkType) {
 
-		log.info("Using generic EndpointGenerator-based translator.");
+        log.info("Using generic EndpointGenerator-based translator.");
 
         endpoints = endpointGenerator.generateEndpoints();
 
@@ -75,19 +75,19 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
             log.info(msg);
         }
 
-		this.frameworkType = frameworkType;
-		this.pathCleaner = pathCleaner;
+        this.frameworkType = frameworkType;
+        this.pathCleaner = pathCleaner;
 
-		buildMappings();
-	}
+        buildMappings();
+    }
 
-	private void buildMappings() {
-		log.info("Building mappings.");
-		for (Endpoint endpoint : endpoints) {
-			addToMap(dynamicMap, endpoint.getUrlPath(), endpoint);
-			addToMap(staticMap, endpoint.getFilePath(), endpoint);
+    private void buildMappings() {
+        log.info("Building mappings.");
+        for (Endpoint endpoint : endpoints) {
+            addToMap(dynamicMap, endpoint.getUrlPath(), endpoint);
+            addToMap(staticMap, endpoint.getFilePath(), endpoint);
 
-			String method = endpoint.getHttpMethod();
+            String method = endpoint.getHttpMethod();
             addToMap(httpMethodMap, method, endpoint);
 
             // If non-standard methods are used, add post because that's what scanners might have
@@ -102,33 +102,33 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
                     addToMap(parameterMap, paramName, endpoint);
                 }
             }
-		}
-		log.info("Done building mappings. Static keys: " + staticMap.size() + ", dynamic keys: " + dynamicMap.size());
-	}
+        }
+        log.info("Done building mappings. Static keys: " + staticMap.size() + ", dynamic keys: " + dynamicMap.size());
+    }
 
-	private void addToMap(@Nonnull Map<String, Set<Endpoint>> map,
+    private void addToMap(@Nonnull Map<String, Set<Endpoint>> map,
                           @Nonnull String value, @Nonnull Endpoint endpoint) {
         if (!map.containsKey(value)) {
             map.put(value, new HashSet<Endpoint>());
         }
 
         map.get(value).add(endpoint);
-	}
+    }
 
-	@Override
-	public Endpoint findBestMatch(@Nonnull EndpointQuery query) {
+    @Override
+    public Endpoint findBestMatch(@Nonnull EndpointQuery query) {
 
-		Endpoint bestEndpoint = null;
-		int bestEndpointRelevance = -1;
+        Endpoint bestEndpoint = null;
+        int bestEndpointRelevance = -1;
 
-		if (query.getDynamicPath() == null) {
-		    return null;
+        if (query.getDynamicPath() == null) {
+            return null;
         }
-		String dynamicPath = pathCleaner.cleanDynamicPath(query.getDynamicPath());
+        String dynamicPath = pathCleaner.cleanDynamicPath(query.getDynamicPath());
 
-		Set<Endpoint> endpoints = findAllMatches(query);
+        Set<Endpoint> endpoints = findAllMatches(query);
 
-		for (Endpoint currentEndpoint : endpoints) {
+        for (Endpoint currentEndpoint : endpoints) {
             int relevance = currentEndpoint.compareRelevance(dynamicPath);
             if (relevance > bestEndpointRelevance) {
                 bestEndpoint = currentEndpoint;
@@ -139,20 +139,20 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
         if (bestEndpointRelevance > 0) {
             return bestEndpoint;
         } else {
-		    return null;
+            return null;
         }
-	}
+    }
 
-	@Nonnull
+    @Nonnull
     @Override
-	public Set<Endpoint> findAllMatches(@Nonnull EndpointQuery query) {
-		Set<Endpoint> resultingSet = set(), fromCodePoints = set();
+    public Set<Endpoint> findAllMatches(@Nonnull EndpointQuery query) {
+        Set<Endpoint> resultingSet = set(), fromCodePoints = set();
 
         List<Set<Endpoint>> resultSets = list();
         boolean assignedInitial = false;
 
         boolean useStatic = query.getStaticPath() != null &&
-        		query.getInformationSourceType() == InformationSourceType.STATIC;
+                query.getInformationSourceType() == InformationSourceType.STATIC;
 
         List<CodePoint> codePoints = query.getCodePoints();
         if (codePoints != null && !codePoints.isEmpty()) {
@@ -223,8 +223,8 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
         resultingSet.addAll(findEligibleEndpoints(pathCleaner.cleanDynamicPath(query.getDynamicPath())));
 
-		return resultingSet;
-	}
+        return resultingSet;
+    }
 
     @Nonnull
     private Set<Endpoint> getFromCodePoints(@Nonnull List<CodePoint> codePoints) {
@@ -285,43 +285,43 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
         return set();
     }
 
-	@Nonnull
+    @Nonnull
     private Set<Endpoint> getValueOrEmptySetWithSimpleKey(@Nullable String key,
                                              @Nonnull Map<String, Set<Endpoint>> map) {
-		if (key != null && map.containsKey(key) && map.get(key) != null) {
-			return setFrom(map.get(key));
-		} else {
-			return set();
-		}
-	}
+        if (key != null && map.containsKey(key) && map.get(key) != null) {
+            return setFrom(map.get(key));
+        } else {
+            return set();
+        }
+    }
 
-	private Set<Endpoint> findEligibleEndpoints(String endpointPath) {
-	    Set<Endpoint> result = set();
-	    for (Endpoint endpoint : endpoints) {
-	        if (endpoint.compareRelevance(endpointPath) > 0) {
+    private Set<Endpoint> findEligibleEndpoints(String endpointPath) {
+        Set<Endpoint> result = set();
+        for (Endpoint endpoint : endpoints) {
+            if (endpoint.compareRelevance(endpointPath) > 0) {
                 result.add(endpoint);
             }
         }
         return result;
     }
 
-	@Nonnull
+    @Nonnull
     @Override
-	public List<Endpoint> generateEndpoints() {
-		return endpoints;
-	}
+    public List<Endpoint> generateEndpoints() {
+        return endpoints;
+    }
 
-	@Nonnull
+    @Nonnull
     @Override
-	public FrameworkType getFrameworkType() {
-		return frameworkType;
-	}
+    public FrameworkType getFrameworkType() {
+        return frameworkType;
+    }
 
-	@Nonnull
+    @Nonnull
     @Override
-	public String toString() {
-		return frameworkType.toString() + " EndpointDatabase with " + endpoints.size() + " total records.";
-	}
+    public String toString() {
+        return frameworkType.toString() + " EndpointDatabase with " + endpoints.size() + " total records.";
+    }
 
     @Override
     public Iterator<Endpoint> iterator() {

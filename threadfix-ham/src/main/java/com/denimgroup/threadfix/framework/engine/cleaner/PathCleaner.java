@@ -31,10 +31,10 @@ import javax.annotation.Nullable;
 public interface PathCleaner {
 
     @Nullable
-	String cleanStaticPath(@Nonnull String filePath);
+    String cleanStaticPath(@Nonnull String filePath);
 
     @Nullable
-	String cleanDynamicPath(@Nonnull String urlPath);
+    String cleanDynamicPath(@Nonnull String urlPath);
 
     /**
      * Optional method. Classes wishing to skip this method should return filePath.
@@ -45,10 +45,10 @@ public interface PathCleaner {
     String getDynamicPathFromStaticPath(@Nonnull String filePath);
 
     @Nullable
-	String getDynamicRoot();
+    String getDynamicRoot();
 
     @Nullable
-	String getStaticRoot();
+    String getStaticRoot();
 
     void setEndpointGenerator(EndpointGenerator generator);
 }

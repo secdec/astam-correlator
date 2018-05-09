@@ -39,37 +39,37 @@ import java.util.regex.Pattern;
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class CommonPathFinder {
-	
-	private static final Pattern
-		BACKSLASH_PATTERN = Pattern.compile("\\\\"), // we have to double escape for Java String + regex pattern
-		FORWARD_SLASH_PATTERN = Pattern.compile("/");
-	
-	private static final char forwardSlash = '/', backwardSlash = '\\';
-	
-	private CommonPathFinder(){}
 
-	@Nullable
+    private static final Pattern
+        BACKSLASH_PATTERN = Pattern.compile("\\\\"), // we have to double escape for Java String + regex pattern
+        FORWARD_SLASH_PATTERN = Pattern.compile("/");
+
+    private static final char forwardSlash = '/', backwardSlash = '\\';
+
+    private CommonPathFinder(){}
+
+    @Nullable
     public static String findOrParseProjectRoot(List<PartialMapping> partialMappings) {
-		if (partialMappings == null || partialMappings.size() == 1) {
-			return ""; // otherwise it will remove the whole path
-		}
+        if (partialMappings == null || partialMappings.size() == 1) {
+            return ""; // otherwise it will remove the whole path
+        }
 
-		return findOrParseProjectRoot(partialMappings, null);
-	}
-	
-	@Nullable
+        return findOrParseProjectRoot(partialMappings, null);
+    }
+
+    @Nullable
     public static String findOrParseProjectRoot(List<PartialMapping> partialMappings, String fileExtension) {
-		return parseRoot(getFilePaths(partialMappings, fileExtension));
-	}
+        return parseRoot(getFilePaths(partialMappings, fileExtension));
+    }
 
-	@Nullable
+    @Nullable
     public static String findOrParseUrlPath(List<PartialMapping> partialMappings) {
-		if (partialMappings == null || partialMappings.size() == 1) {
-			return ""; // otherwise it will remove the whole path
-		}
+        if (partialMappings == null || partialMappings.size() == 1) {
+            return ""; // otherwise it will remove the whole path
+        }
 
-		return findOrParseUrlPath(partialMappings, null);
-	}
+        return findOrParseUrlPath(partialMappings, null);
+    }
 
     @Nullable
     public static String findOrParseUrlPath(List<PartialMapping> partialMappings, String extension) {
@@ -78,148 +78,148 @@ public class CommonPathFinder {
 
     @Nullable
     public static String findOrParseProjectRootFromDirectory(File rootFile, String fileExtension) {
-		return parseRoot(getFilePathsFromDirectory(rootFile, fileExtension));
-	}
-	
-	@Nonnull
-    @SuppressWarnings("unchecked")
-	private static List<String> getFilePathsFromDirectory(File rootFile, String fileExtension) {
-		Collection<File> files = FileUtils.listFiles(rootFile,
-				new FileExtensionFileFilter(fileExtension),
-				TrueFileFilter.INSTANCE);
-		
-		List<String> strings = list();
-		
-		for (File file : files) {
-			strings.add(file.getAbsolutePath());
-		}
-		
-		return strings;
-	}
+        return parseRoot(getFilePathsFromDirectory(rootFile, fileExtension));
+    }
 
-	@Nullable
+    @Nonnull
+    @SuppressWarnings("unchecked")
+    private static List<String> getFilePathsFromDirectory(File rootFile, String fileExtension) {
+        Collection<File> files = FileUtils.listFiles(rootFile,
+                new FileExtensionFileFilter(fileExtension),
+                TrueFileFilter.INSTANCE);
+
+        List<String> strings = list();
+
+        for (File file : files) {
+            strings.add(file.getAbsolutePath());
+        }
+
+        return strings;
+    }
+
+    @Nullable
     private static List<String> getFilePaths(@Nullable List<PartialMapping> partialMappings,
                                              @Nullable String extension) {
-		if (partialMappings == null || partialMappings.isEmpty()) {
-			return null;
-		}
+        if (partialMappings == null || partialMappings.isEmpty()) {
+            return null;
+        }
 
-		List<String> returnStrings = list();
+        List<String> returnStrings = list();
 
-		for (PartialMapping partialMapping : partialMappings) {
-			if (partialMapping != null && partialMapping.getStaticPath() != null) {
+        for (PartialMapping partialMapping : partialMappings) {
+            if (partialMapping != null && partialMapping.getStaticPath() != null) {
                 if (extension == null ||
                         partialMapping.getStaticPath().endsWith(extension)) {
                     returnStrings.add(partialMapping.getStaticPath());
                 }
             }
-		}
+        }
 
-		return returnStrings;
-	}
+        return returnStrings;
+    }
 
-	@Nonnull
+    @Nonnull
     private static List<String> getUrlPaths(@Nullable List<PartialMapping> partialMappings,
                                             @Nullable String extension) {
-		if (partialMappings == null || partialMappings.isEmpty()) {
-			return list();
-		}
+        if (partialMappings == null || partialMappings.isEmpty()) {
+            return list();
+        }
 
-		List<String> returnStrings = list();
+        List<String> returnStrings = list();
 
-		for (PartialMapping partialMapping : partialMappings) {
-			if (partialMapping != null && partialMapping.getDynamicPath() != null &&
+        for (PartialMapping partialMapping : partialMappings) {
+            if (partialMapping != null && partialMapping.getDynamicPath() != null &&
                     (extension == null || partialMapping.getDynamicPath().endsWith(extension))) {
-				returnStrings.add(partialMapping.getDynamicPath());
-			}
-		}
+                returnStrings.add(partialMapping.getDynamicPath());
+            }
+        }
 
-		return returnStrings;
-	}
+        return returnStrings;
+    }
 
-	@Nullable
+    @Nullable
     private static String parseRoot(@Nullable List<String> items) {
-		if (items == null || items.isEmpty()) {
-			return null;
-		}
-		
-		String response = null;
-		
-		String[] commonParts = null;
-		int maxLength = Integer.MAX_VALUE;
-		boolean startsWithCharacter = false;
-		
-		Pattern splitPattern = null;
-		char splitChar = 0;
-		
-		for (String item : items) {
-			if (splitPattern == null) {
-				if (item.indexOf('\\') != -1) {
-					splitPattern = BACKSLASH_PATTERN;
-					splitChar = backwardSlash;
-				} else {
-					splitPattern = FORWARD_SLASH_PATTERN;
-					splitChar = forwardSlash;
-				}
-				startsWithCharacter = item.indexOf(splitChar) == 0;
-			}
-			
-			String[] parts = splitPattern.split(item);
-			
-			if (parts.length < maxLength) {
-				maxLength = parts.length;
-			}
-			
-			commonParts = getCommonParts(commonParts, parts);
-		}
-		
-		if (commonParts != null) {
-			StringBuilder builder = new StringBuilder();
-			
-			for (String string : commonParts) {
-				if (string != null && !string.equals("")) {
-					builder.append(splitChar).append(string);
-				}
-			}
-			
-			response = builder.toString();
-			
-			if (!startsWithCharacter && response.indexOf(splitChar) == 0) {
-				response = response.substring(1);
-			}
-		}
-		
-		return response;
-	}
+        if (items == null || items.isEmpty()) {
+            return null;
+        }
 
-	@Nullable
+        String response = null;
+
+        String[] commonParts = null;
+        int maxLength = Integer.MAX_VALUE;
+        boolean startsWithCharacter = false;
+
+        Pattern splitPattern = null;
+        char splitChar = 0;
+
+        for (String item : items) {
+            if (splitPattern == null) {
+                if (item.indexOf('\\') != -1) {
+                    splitPattern = BACKSLASH_PATTERN;
+                    splitChar = backwardSlash;
+                } else {
+                    splitPattern = FORWARD_SLASH_PATTERN;
+                    splitChar = forwardSlash;
+                }
+                startsWithCharacter = item.indexOf(splitChar) == 0;
+            }
+
+            String[] parts = splitPattern.split(item);
+
+            if (parts.length < maxLength) {
+                maxLength = parts.length;
+            }
+
+            commonParts = getCommonParts(commonParts, parts);
+        }
+
+        if (commonParts != null) {
+            StringBuilder builder = new StringBuilder();
+
+            for (String string : commonParts) {
+                if (string != null && !string.equals("")) {
+                    builder.append(splitChar).append(string);
+                }
+            }
+
+            response = builder.toString();
+
+            if (!startsWithCharacter && response.indexOf(splitChar) == 0) {
+                response = response.substring(1);
+            }
+        }
+
+        return response;
+    }
+
+    @Nullable
     private static String[] getCommonParts(@Nullable String[] soFar, @Nonnull String[] newParts) {
-		
-		String[] returnParts = newParts;
-		
-		if (soFar != null && soFar.length == 0) {
-			returnParts = soFar;
-		} else if (soFar != null) {
-			int endIndex = 0;
-			
-			for (int i = 0; i < soFar.length && i < newParts.length; i++) {
-				if (!soFar[i].equalsIgnoreCase(newParts[i])) {
-					break;
-				} else {
-					endIndex += 1;
-				}
-			}
-			
-			if (endIndex == 0) {
-				returnParts = new String[]{};
-			} else if (endIndex == soFar.length) {
-				returnParts = soFar;
-			} else {
-				returnParts = Arrays.copyOfRange(soFar, 0, endIndex);
-			}
-		}
-		
-		return returnParts;
-	}
-	
+
+        String[] returnParts = newParts;
+
+        if (soFar != null && soFar.length == 0) {
+            returnParts = soFar;
+        } else if (soFar != null) {
+            int endIndex = 0;
+
+            for (int i = 0; i < soFar.length && i < newParts.length; i++) {
+                if (!soFar[i].equalsIgnoreCase(newParts[i])) {
+                    break;
+                } else {
+                    endIndex += 1;
+                }
+            }
+
+            if (endIndex == 0) {
+                returnParts = new String[]{};
+            } else if (endIndex == soFar.length) {
+                returnParts = soFar;
+            } else {
+                returnParts = Arrays.copyOfRange(soFar, 0, endIndex);
+            }
+        }
+
+        return returnParts;
+    }
+
 }

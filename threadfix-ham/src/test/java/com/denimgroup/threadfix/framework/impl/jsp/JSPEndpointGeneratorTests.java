@@ -34,75 +34,75 @@ import com.denimgroup.threadfix.framework.TestConstants;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 
 public class JSPEndpointGeneratorTests {
-	@Nonnull
+    @Nonnull
     String[] pages = { "/root/about.jsp",
-			"/root/admin.jsp",
-			"/root/advanced.jsp",
-			"/root/basket.jsp",
-			"/root/contact.jsp",
-			"/root/footer.jsp",
-			"/root/header.jsp",
-			"/root/home.jsp",
-			"/root/init.jsp",
-			"/root/login.jsp",
-			"/root/logout.jsp",
-			"/root/password.jsp",
-			"/root/product.jsp",
-			"/root/register.jsp",
-			"/root/score.jsp",
-			"/root/search.jsp", };
+            "/root/admin.jsp",
+            "/root/advanced.jsp",
+            "/root/basket.jsp",
+            "/root/contact.jsp",
+            "/root/footer.jsp",
+            "/root/header.jsp",
+            "/root/home.jsp",
+            "/root/init.jsp",
+            "/root/login.jsp",
+            "/root/logout.jsp",
+            "/root/password.jsp",
+            "/root/product.jsp",
+            "/root/register.jsp",
+            "/root/score.jsp",
+            "/root/search.jsp", };
 
-	@Test
-	public void testSize() {
-		JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
-				TestConstants.BODGEIT_SOURCE_LOCATION));
-		assertTrue("Size was " + mappings.generateEndpoints().size()
-				+ " but should have been " + 13, mappings.generateEndpoints()
-				.size() == 16);
-	}
+    @Test
+    public void testSize() {
+        JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
+                TestConstants.BODGEIT_SOURCE_LOCATION));
+        assertTrue("Size was " + mappings.generateEndpoints().size()
+                + " but should have been " + 13, mappings.generateEndpoints()
+                .size() == 16);
+    }
 
-	@Test
-	public void testKeys() {
-		JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
-				TestConstants.BODGEIT_SOURCE_LOCATION));
-		for (String page : pages) {
-			assertTrue("Endpoint for " + page
-					+ " shouldn't have been null but was.",
-					mappings.getEndpoints(page) != null);
-		}
-	}
+    @Test
+    public void testKeys() {
+        JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
+                TestConstants.BODGEIT_SOURCE_LOCATION));
+        for (String page : pages) {
+            assertTrue("Endpoint for " + page
+                    + " shouldn't have been null but was.",
+                    mappings.getEndpoints(page) != null);
+        }
+    }
 
-	@Nonnull
+    @Nonnull
     String[][] tests = { { "/root/advanced.jsp", "debug", "54" },
-			{ "/root/advanced.jsp", "q", "58" },
-			{ "/root/basket.jsp", "debug", "89" },
-			{ "/root/basket.jsp", "update", "173" },
-			{ "/root/basket.jsp", "productid", "174" },
-			{ "/root/basket.jsp", "quantity", "178" }, };
+            { "/root/advanced.jsp", "q", "58" },
+            { "/root/basket.jsp", "debug", "89" },
+            { "/root/basket.jsp", "update", "173" },
+            { "/root/basket.jsp", "productid", "174" },
+            { "/root/basket.jsp", "quantity", "178" }, };
 
-	@Test
-	public void testParameters() {
-		JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
-				TestConstants.BODGEIT_SOURCE_LOCATION));
-		for (String[] test : tests) {
-			JSPEndpoint endpoint = mappings.getEndpoints(test[0]).get(0);
-			int result = endpoint.getLineNumberForParameter(test[1]);
-			assertTrue("Line number for " + test[0] + ": " + test[1]
-					+ " should have been " + test[2] + ", but was " + result,
-					Integer.valueOf(test[2]) == result);
-		}
-	}
-	
-	@Test
-	public void testEndpointCSVCommas() {
-		JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
-				TestConstants.BODGEIT_SOURCE_LOCATION));
-		
-		for (Endpoint endpoint : mappings.generateEndpoints()) {
-			String csv = endpoint.getCSVLine();
-			String toString = endpoint.toString();
-			assertTrue("CSV was not equal to toString", csv.equals(toString));
-			assertTrue("length of csv sections != 3", csv.split(",").length == 3);
-		}
-	}
+    @Test
+    public void testParameters() {
+        JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
+                TestConstants.BODGEIT_SOURCE_LOCATION));
+        for (String[] test : tests) {
+            JSPEndpoint endpoint = mappings.getEndpoints(test[0]).get(0);
+            int result = endpoint.getLineNumberForParameter(test[1]);
+            assertTrue("Line number for " + test[0] + ": " + test[1]
+                    + " should have been " + test[2] + ", but was " + result,
+                    Integer.valueOf(test[2]) == result);
+        }
+    }
+
+    @Test
+    public void testEndpointCSVCommas() {
+        JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
+                TestConstants.BODGEIT_SOURCE_LOCATION));
+
+        for (Endpoint endpoint : mappings.generateEndpoints()) {
+            String csv = endpoint.getCSVLine();
+            String toString = endpoint.toString();
+            assertTrue("CSV was not equal to toString", csv.equals(toString));
+            assertTrue("length of csv sections != 3", csv.split(",").length == 3);
+        }
+    }
 }

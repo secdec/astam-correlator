@@ -32,21 +32,21 @@ import javax.annotation.Nullable;
 public interface EndpointQuery {
 
     @Nullable
-	String getDynamicPath();
+    String getDynamicPath();
 
     @Nullable
-	String getStaticPath();
+    String getStaticPath();
 
     @Nullable
-	String getParameter();
+    String getParameter();
 
     @Nullable
     String getHttpMethod();
 
     @Nullable
-	List<CodePoint> getCodePoints();
+    List<CodePoint> getCodePoints();
 
     @Nullable
     InformationSourceType getInformationSourceType();
-	
+
 }

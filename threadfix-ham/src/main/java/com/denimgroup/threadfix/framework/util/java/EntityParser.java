@@ -103,21 +103,21 @@ public class EntityParser implements EventBasedTokenizer {
             case PARAM_TYPE:
                 if (currentParamType != null && stringValue != null && stringValue.startsWith("get") &&
                         stringValue.length() > 3) { // this is to avoid errors with methods named "get"
-				    fieldMappings.add(new ModelField(currentParamType, stringValue, false));
-			    }
+                    fieldMappings.add(new ModelField(currentParamType, stringValue, false));
+                }
                 if (currentParamType != null && stringValue != null && !stringValue.startsWith("get")
                     && stringValue.length() > 0 && currentParamType.equals("String")) { // public String method()
                         publicMethods.add(stringValue);
                 }
-			    state = State.START;
-			    break;
-		}
-	}
+                state = State.START;
+                break;
+        }
+    }
 
-	@Nonnull
+    @Nonnull
     public Set<ModelField> getFieldMappings() {
-		return fieldMappings;
-	}
+        return fieldMappings;
+    }
 
     @Nonnull
     public List<String> getMethods() {
@@ -126,11 +126,11 @@ public class EntityParser implements EventBasedTokenizer {
 
     @Nullable
     public String getClassName() {
-		return className;
-	}
+        return className;
+    }
 
-	@Nullable
+    @Nullable
     public String getSuperClass() {
-		return superClass;
-	}
+        return superClass;
+    }
 }

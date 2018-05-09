@@ -37,31 +37,31 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.set;
 
 class JSPIncludeParser implements EventBasedTokenizer {
-	
-	@Nonnull
+
+    @Nonnull
     private State currentState = State.START;
-	@Nonnull
+    @Nonnull
     Set<File> returnFiles = set();
 
     @Nonnull
     final File file;
 
-	private enum State {
-		START, JSP_INCLUDE, PAGE, EQUALS, OPEN_ANGLE, PERCENT, ARROBA, FILE
-	}
-	
-	private static final Pattern slashPattern = Pattern.compile("[\\\\/]");
+    private enum State {
+        START, JSP_INCLUDE, PAGE, EQUALS, OPEN_ANGLE, PERCENT, ARROBA, FILE
+    }
 
-	JSPIncludeParser(@Nonnull File file) {
+    private static final Pattern slashPattern = Pattern.compile("[\\\\/]");
+
+    JSPIncludeParser(@Nonnull File file) {
         this.file = file;
-	}
-	
-	@Nonnull
+    }
+
+    @Nonnull
     public static Set<File> parse(@Nonnull File file) {
-		JSPIncludeParser parser = new JSPIncludeParser(file);
-		EventBasedTokenizerRunner.run(file, false, parser);
-		return parser.returnFiles;
-	}
+        JSPIncludeParser parser = new JSPIncludeParser(file);
+        EventBasedTokenizerRunner.run(file, false, parser);
+        return parser.returnFiles;
+    }
 
     @Override
     public boolean shouldContinue() {
@@ -69,69 +69,69 @@ class JSPIncludeParser implements EventBasedTokenizer {
     }
 
     @Override
-	public void processToken(int type, int lineNumber, @Nullable String stringValue) {
-		switch (currentState) {
-			case START:
-				if (stringValue != null && stringValue.equals("jsp:include")) {
-					currentState = State.JSP_INCLUDE;
-				} else if (type == OPEN_ANGLE_BRACKET) {
-					currentState = State.OPEN_ANGLE;
-				}
-				break;
-			case JSP_INCLUDE:
-				if (stringValue != null && stringValue.equals("page")) {
-					currentState = State.PAGE;
-				} else if (type == OPEN_ANGLE_BRACKET) {
-					// if we hit another start tag let's head back to the start
-					currentState = State.START;
-				}
-				break;
-			case PAGE:
-				if (type == EQUALS) {
-					currentState = State.EQUALS;
-				} else {
-					currentState = State.START;
-				}
-				break;
-			case EQUALS:
-				if (type == DOUBLE_QUOTE && stringValue != null) {
-					returnFiles.add(getRelativeFile(stringValue));
-				}
-				currentState = State.START;
-				break;
-			case OPEN_ANGLE:
-				if (stringValue != null && stringValue.equals("jsp:include")) {
-					currentState = State.JSP_INCLUDE;
-				} else if (type == PERCENT) {
-					currentState = State.PERCENT;
-				} else {
-					currentState = State.START;
-				}
-				break;
-			case PERCENT:
-				if (type == ARROBA) {
-					currentState = State.ARROBA;
-				} else {
-					currentState = State.START;
-				}
-				break;
-			case ARROBA:
-				if (stringValue != null && stringValue.equals("file")) {
-					currentState = State.PAGE;
-				} else if (type == OPEN_ANGLE_BRACKET) {
-					// if we hit another start tag let's head back to the start
-					currentState = State.START;
-				}
-				break;
-			case FILE:
-				if (type == EQUALS) {
-					currentState = State.EQUALS;
-				} else {
-					currentState = State.START;
-				}
-				break;
-		}
-	}
+    public void processToken(int type, int lineNumber, @Nullable String stringValue) {
+        switch (currentState) {
+            case START:
+                if (stringValue != null && stringValue.equals("jsp:include")) {
+                    currentState = State.JSP_INCLUDE;
+                } else if (type == OPEN_ANGLE_BRACKET) {
+                    currentState = State.OPEN_ANGLE;
+                }
+                break;
+            case JSP_INCLUDE:
+                if (stringValue != null && stringValue.equals("page")) {
+                    currentState = State.PAGE;
+                } else if (type == OPEN_ANGLE_BRACKET) {
+                    // if we hit another start tag let's head back to the start
+                    currentState = State.START;
+                }
+                break;
+            case PAGE:
+                if (type == EQUALS) {
+                    currentState = State.EQUALS;
+                } else {
+                    currentState = State.START;
+                }
+                break;
+            case EQUALS:
+                if (type == DOUBLE_QUOTE && stringValue != null) {
+                    returnFiles.add(getRelativeFile(stringValue));
+                }
+                currentState = State.START;
+                break;
+            case OPEN_ANGLE:
+                if (stringValue != null && stringValue.equals("jsp:include")) {
+                    currentState = State.JSP_INCLUDE;
+                } else if (type == PERCENT) {
+                    currentState = State.PERCENT;
+                } else {
+                    currentState = State.START;
+                }
+                break;
+            case PERCENT:
+                if (type == ARROBA) {
+                    currentState = State.ARROBA;
+                } else {
+                    currentState = State.START;
+                }
+                break;
+            case ARROBA:
+                if (stringValue != null && stringValue.equals("file")) {
+                    currentState = State.PAGE;
+                } else if (type == OPEN_ANGLE_BRACKET) {
+                    // if we hit another start tag let's head back to the start
+                    currentState = State.START;
+                }
+                break;
+            case FILE:
+                if (type == EQUALS) {
+                    currentState = State.EQUALS;
+                } else {
+                    currentState = State.START;
+                }
+                break;
+        }
+    }
 
     @Nonnull
     private File getRelativeFile(String sval) {

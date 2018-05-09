@@ -203,7 +203,7 @@ public class EditApplicationController {
         } else {
             application.setOrganization(organizationService.loadOrganization(application.getOrganization().getId()));
             applicationService.storeApplication(application, EventAction.APPLICATION_EDIT);
-//			applicationService.updateProjectRoot(application);
+//            applicationService.updateProjectRoot(application);
 
             String user = SecurityContextHolder.getContext().getAuthentication().getName();
 

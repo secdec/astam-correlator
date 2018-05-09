@@ -37,49 +37,49 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 public class JSPDataFlowParser implements ParameterParser {
-	
-	@Nullable
+
+    @Nullable
     private final JSPEndpointGenerator jspMappings;
 
     @Nonnull
-	private final SourceCodeAccessLevel sourceCodeAccessLevel;
-	
-	private static final Pattern REQUEST_GET_PARAM_STRING_ASSIGN =
-			Pattern.compile("^String [^=]+= .*request\\.getParameter\\(\"([^\"]+)\"\\)");
-	
-	public JSPDataFlowParser(@Nonnull ProjectConfig projectConfig) {
-		this.sourceCodeAccessLevel = projectConfig.getSourceCodeAccessLevel();
+    private final SourceCodeAccessLevel sourceCodeAccessLevel;
+
+    private static final Pattern REQUEST_GET_PARAM_STRING_ASSIGN =
+            Pattern.compile("^String [^=]+= .*request\\.getParameter\\(\"([^\"]+)\"\\)");
+
+    public JSPDataFlowParser(@Nonnull ProjectConfig projectConfig) {
+        this.sourceCodeAccessLevel = projectConfig.getSourceCodeAccessLevel();
 
         File rootFile = projectConfig.getRootFile();
-		if (rootFile != null) {
-			jspMappings = new JSPEndpointGenerator(rootFile);
-		} else {
-			jspMappings = null;
-		}
-	}
+        if (rootFile != null) {
+            jspMappings = new JSPEndpointGenerator(rootFile);
+        } else {
+            jspMappings = null;
+        }
+    }
 
-	@Override
-	public String parse(@Nonnull EndpointQuery query) {
-		String parameter = null;
-		
-		if (query.getCodePoints() != null) {
-			if (sourceCodeAccessLevel == SourceCodeAccessLevel.FULL) {
-				parameter = parseWithSource(query);
-			} else {
-				parameter = parseNoSource(query);
-			}
-		}
-		
-		if (parameter == null) {
-			parameter = query.getParameter();
-		}
-		
-		return parameter;
-	}
-	
-	@Nullable
+    @Override
+    public String parse(@Nonnull EndpointQuery query) {
+        String parameter = null;
+
+        if (query.getCodePoints() != null) {
+            if (sourceCodeAccessLevel == SourceCodeAccessLevel.FULL) {
+                parameter = parseWithSource(query);
+            } else {
+                parameter = parseNoSource(query);
+            }
+        }
+
+        if (parameter == null) {
+            parameter = query.getParameter();
+        }
+
+        return parameter;
+    }
+
+    @Nullable
     private String parseNoSource(@Nonnull EndpointQuery query) {
-		String parameter = null;
+        String parameter = null;
 
         List<CodePoint> codePoints = query.getCodePoints();
 
@@ -94,42 +94,42 @@ public class JSPDataFlowParser implements ParameterParser {
                 }
             }
         }
-	
-		return parameter;
-	}
-	
-	@Nullable
+
+        return parameter;
+    }
+
+    @Nullable
     private String parseWithSource(@Nonnull EndpointQuery query) {
-		String test = null;
-		
-		if (jspMappings == null) {
-			test = parseNoSource(query);
-		} else {
-			
-			String staticInformation = query.getStaticPath();
+        String test = null;
+
+        if (jspMappings == null) {
+            test = parseNoSource(query);
+        } else {
+
+            String staticInformation = query.getStaticPath();
             List<CodePoint> codePoints = query.getCodePoints();
-			
-			if (staticInformation == null && codePoints != null && codePoints.size() > 1) {
-				staticInformation = codePoints.get(0).getSourceFileName();
-			}
+
+            if (staticInformation == null && codePoints != null && codePoints.size() > 1) {
+                staticInformation = codePoints.get(0).getSourceFileName();
+            }
 
             List<JSPEndpoint> endpoints = jspMappings.getEndpoints(staticInformation);
-			if (endpoints != null && codePoints != null) {
-				for (JSPEndpoint endpoint : endpoints) {
-					test = endpoint.getParameterName(codePoints);
-					if (test != null) {
-						break;
-					}
-				}
-			}
-			
-			// if we didn't get a result, do the dumb regex parsing
-			if (test == null) {
-				test = parseNoSource(query);
-			}
-		}
-		
-		return test;
-	}
-	
+            if (endpoints != null && codePoints != null) {
+                for (JSPEndpoint endpoint : endpoints) {
+                    test = endpoint.getParameterName(codePoints);
+                    if (test != null) {
+                        break;
+                    }
+                }
+            }
+
+            // if we didn't get a result, do the dumb regex parsing
+            if (test == null) {
+                test = parseNoSource(query);
+            }
+        }
+
+        return test;
+    }
+
 }

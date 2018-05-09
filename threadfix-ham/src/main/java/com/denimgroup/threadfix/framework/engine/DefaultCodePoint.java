@@ -25,31 +25,31 @@ package com.denimgroup.threadfix.framework.engine;
 
 
 public class DefaultCodePoint implements CodePoint {
-	
-	private final String lineText, sourceFileName;
-	private final int lineNumber;
-	
-	public DefaultCodePoint(String sourceFileName, int lineNumber, String lineText) {
-		this.lineText = lineText;
-		this.sourceFileName = sourceFileName;
-		this.lineNumber = lineNumber;
-	}
 
-	@Override
-	public String getLineText() {
-		return lineText;
-	}
+    private final String lineText, sourceFileName;
+    private final int lineNumber;
 
-	@Override
-	public int getLineNumber() {
-		return lineNumber;
-	}
+    public DefaultCodePoint(String sourceFileName, int lineNumber, String lineText) {
+        this.lineText = lineText;
+        this.sourceFileName = sourceFileName;
+        this.lineNumber = lineNumber;
+    }
 
-	@Override
-	public String getSourceFileName() {
-		return sourceFileName;
-	}
+    @Override
+    public String getLineText() {
+        return lineText;
+    }
 
-	
-	
+    @Override
+    public int getLineNumber() {
+        return lineNumber;
+    }
+
+    @Override
+    public String getSourceFileName() {
+        return sourceFileName;
+    }
+
+
+
 }

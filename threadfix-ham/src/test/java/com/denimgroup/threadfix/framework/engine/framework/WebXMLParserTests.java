@@ -43,55 +43,55 @@ public class WebXMLParserTests {
 
     @Nullable
     ServletMappings vulnClinic = WebXMLParser.getServletMappings(new File(PETCLINIC_WEB_XML),
-    		new ProjectDirectory(new File(PETCLINIC_SOURCE_LOCATION)));
-	@Nullable
+            new ProjectDirectory(new File(PETCLINIC_SOURCE_LOCATION)));
+    @Nullable
     ServletMappings wavsep = WebXMLParser.getServletMappings(new File(WAVSEP_WEB_XML),
-    		new ProjectDirectory(new File(WAVSEP_SOURCE_LOCATION)));
-	@Nullable
+            new ProjectDirectory(new File(WAVSEP_SOURCE_LOCATION)));
+    @Nullable
     ServletMappings bodgeIt = WebXMLParser.getServletMappings(new File(BODGEIT_WEB_XML),
-    		new ProjectDirectory(new File(BODGEIT_SOURCE_LOCATION)));
-	
+            new ProjectDirectory(new File(BODGEIT_SOURCE_LOCATION)));
+
     ////////////////////////////////////////////////////////////////
     ///////////////////////////// Tests ////////////////////////////
     ////////////////////////////////////////////////////////////////
     
-	@Test
+    @Test
     public void testFindWebXML() {
-    	String[]
-    			sourceLocations = { PETCLINIC_SOURCE_LOCATION, WAVSEP_SOURCE_LOCATION, BODGEIT_SOURCE_LOCATION },
-    			webXMLLocations = { PETCLINIC_WEB_XML, WAVSEP_WEB_XML, BODGEIT_WEB_XML };
-    	
-    	for (int i = 0; i < sourceLocations.length; i++) {
-    		File projectDirectory = new File(sourceLocations[i]);
-    		assertTrue(projectDirectory.exists());
-    		
-    		File file = new ProjectDirectory(projectDirectory).findWebXML();
+        String[]
+                sourceLocations = { PETCLINIC_SOURCE_LOCATION, WAVSEP_SOURCE_LOCATION, BODGEIT_SOURCE_LOCATION },
+                webXMLLocations = { PETCLINIC_WEB_XML, WAVSEP_WEB_XML, BODGEIT_WEB_XML };
+
+        for (int i = 0; i < sourceLocations.length; i++) {
+            File projectDirectory = new File(sourceLocations[i]);
+            assertTrue(projectDirectory.exists());
+
+            File file = new ProjectDirectory(projectDirectory).findWebXML();
             assertTrue("File was null, check that " + projectDirectory + " is a valid directory.", file != null);
-    		assertTrue(file.getName().equals("web.xml"));
-    		
-    		assertTrue(file.getAbsolutePath() + " wasn't " + webXMLLocations[i],
+            assertTrue(file.getName().equals("web.xml"));
+
+            assertTrue(file.getAbsolutePath() + " wasn't " + webXMLLocations[i],
                     file.getAbsolutePath().equals(webXMLLocations[i]));
-    	}
+        }
     }
     
     // TODO improve these tests.
     @Test
     public void testWebXMLParsing() {
-    	assertTrue(vulnClinic.getClassMappings().size() == 2);
-    	assertTrue(vulnClinic.getServletMappings().size() == 2);
-    	
-    	assertTrue(wavsep.getClassMappings().size() == 0);
-    	assertTrue(wavsep.getServletMappings().size() == 0);
-    	
-    	assertTrue(bodgeIt.getClassMappings().size() == 0);
-    	assertTrue(bodgeIt.getServletMappings().size() == 1);
+        assertTrue(vulnClinic.getClassMappings().size() == 2);
+        assertTrue(vulnClinic.getServletMappings().size() == 2);
+
+        assertTrue(wavsep.getClassMappings().size() == 0);
+        assertTrue(wavsep.getServletMappings().size() == 0);
+
+        assertTrue(bodgeIt.getClassMappings().size() == 0);
+        assertTrue(bodgeIt.getServletMappings().size() == 1);
     }
     
     @Test
     public void testTypeGuessing() {
-    	assertTrue(vulnClinic.guessApplicationType() == FrameworkType.SPRING_MVC);
-    	assertTrue(wavsep.guessApplicationType() == FrameworkType.JSP);
-    	assertTrue(bodgeIt.guessApplicationType() == FrameworkType.JSP);
+        assertTrue(vulnClinic.guessApplicationType() == FrameworkType.SPRING_MVC);
+        assertTrue(wavsep.guessApplicationType() == FrameworkType.JSP);
+        assertTrue(bodgeIt.guessApplicationType() == FrameworkType.JSP);
     }
 
     @Test(expected=NullPointerException.class)
@@ -107,10 +107,10 @@ public class WebXMLParserTests {
 
     @Test
     public void testBadInput() {
-    	File doesntExist = new File("This/path/doesnt/exist");
+        File doesntExist = new File("This/path/doesnt/exist");
 
-    	assertTrue(new ProjectDirectory(doesntExist).findWebXML() == null);
-    	
-    	
+        assertTrue(new ProjectDirectory(doesntExist).findWebXML() == null);
+
+
     }
 }

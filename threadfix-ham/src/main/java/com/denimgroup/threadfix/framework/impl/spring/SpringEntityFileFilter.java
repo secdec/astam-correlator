@@ -39,16 +39,16 @@ import static com.denimgroup.threadfix.CollectionUtils.set;
  *
  */
 class SpringEntityFileFilter extends ClassAnnotationBasedFileFilter {
-	
-	private SpringEntityFileFilter(){}
-	
-	public static final SpringEntityFileFilter INSTANCE = new SpringEntityFileFilter();
-	
-	private static final Set<String> annotations = set("Entity", "MappedSuperclass");
-	
-	@Nonnull
+
+    private SpringEntityFileFilter(){}
+
+    public static final SpringEntityFileFilter INSTANCE = new SpringEntityFileFilter();
+
+    private static final Set<String> annotations = set("Entity", "MappedSuperclass");
+
+    @Nonnull
     @Override
-	protected Set<String> getClassAnnotations() {
-		return annotations;
-	}
+    protected Set<String> getClassAnnotations() {
+        return annotations;
+    }
 }

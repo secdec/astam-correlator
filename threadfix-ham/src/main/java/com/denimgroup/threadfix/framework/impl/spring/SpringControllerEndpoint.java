@@ -44,20 +44,20 @@ import java.util.regex.Pattern;
 import static com.denimgroup.threadfix.CollectionUtils.*;
 
 public class SpringControllerEndpoint extends AbstractEndpoint {
-	
-	public static final String GENERIC_INT_SEGMENT = "{id}";
-	private static final String requestMappingStart = "RequestMethod.";
-	
-	@Nonnull
-    private String rawFilePath, rawUrlPath;
-	Pattern rawUrlPathPattern;
-	@Nonnull
-    private Map<String, RouteParameter> parameters;
-	private int startLineNumber = -1, endLineNumber = -1;
 
-	private String method;
-	
-	@Nullable
+    public static final String GENERIC_INT_SEGMENT = "{id}";
+    private static final String requestMappingStart = "RequestMethod.";
+
+    @Nonnull
+    private String rawFilePath, rawUrlPath;
+    Pattern rawUrlPathPattern;
+    @Nonnull
+    private Map<String, RouteParameter> parameters;
+    private int startLineNumber = -1, endLineNumber = -1;
+
+    private String method;
+
+    @Nullable
     private String cleanedFilePath = null, cleanedUrlPath = null;
 
     private AuthenticationRequired authenticationRequired = AuthenticationRequired.UNKNOWN;
@@ -140,22 +140,22 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     }
 
     @Nonnull
-	private Set<String> getCleanedSet(@Nonnull Collection<String> methods) {
-		Set<String> returnSet = set();
-		for (String method : methods) {
-			if (method.startsWith(requestMappingStart)) {
-				returnSet.add(method.substring(requestMappingStart.length()));
-			} else {
-				returnSet.add(method);
-			}
-		}
-		
-		if (returnSet.isEmpty()) {
-			returnSet.add("GET");
-		}
-		
-		return returnSet;
-	}
+    private Set<String> getCleanedSet(@Nonnull Collection<String> methods) {
+        Set<String> returnSet = set();
+        for (String method : methods) {
+            if (method.startsWith(requestMappingStart)) {
+                returnSet.add(method.substring(requestMappingStart.length()));
+            } else {
+                returnSet.add(method);
+            }
+        }
+
+        if (returnSet.isEmpty()) {
+            returnSet.add("GET");
+        }
+
+        return returnSet;
+    }
 
     @Override
     public int compareRelevance(String endpoint) {
@@ -181,47 +181,47 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-	public Map<String, RouteParameter> getParameters() {
-		return parameters;
-	}
+    public Map<String, RouteParameter> getParameters() {
+        return parameters;
+    }
 
     @Nonnull
     public String getCleanedFilePath() {
-		if (cleanedFilePath == null && fileRoot != null &&
-				rawFilePath.contains(fileRoot)) {
-			cleanedFilePath = rawFilePath.substring(fileRoot.length());
-		}
+        if (cleanedFilePath == null && fileRoot != null &&
+                rawFilePath.contains(fileRoot)) {
+            cleanedFilePath = rawFilePath.substring(fileRoot.length());
+        }
 
         if (cleanedFilePath == null) {
             return rawFilePath;
         }
-		
-		return cleanedFilePath;
-	}
-	
-	public void setFileRoot(String fileRoot) {
-		this.fileRoot = fileRoot;
-	}
+
+        return cleanedFilePath;
+    }
+
+    public void setFileRoot(String fileRoot) {
+        this.fileRoot = fileRoot;
+    }
 
     public void setDataBinderParser(@Nullable SpringDataBinderParser dataBinderParser) {
         this.dataBinderParser = dataBinderParser;
     }
-	
-	@Nullable
+
+    @Nullable
     public static String cleanUrlPathStatic(@Nullable String rawUrlPath) {
-		if (rawUrlPath == null) {
-			return null;
-		} else {
-			return rawUrlPath
-					.replaceAll("/\\*/", "/" + GENERIC_INT_SEGMENT + "/")
-					.replaceAll("\\{[^\\}]+\\}", GENERIC_INT_SEGMENT);
-		}
-	}
-	
-	@Override
-	public boolean matchesLineNumber(int lineNumber) {
-		return lineNumber < endLineNumber && lineNumber > startLineNumber;
-	}
+        if (rawUrlPath == null) {
+            return null;
+        } else {
+            return rawUrlPath
+                    .replaceAll("/\\*/", "/" + GENERIC_INT_SEGMENT + "/")
+                    .replaceAll("\\{[^\\}]+\\}", GENERIC_INT_SEGMENT);
+        }
+    }
+
+    @Override
+    public boolean matchesLineNumber(int lineNumber) {
+        return lineNumber < endLineNumber && lineNumber > startLineNumber;
+    }
 
     @Nonnull
     @Override
@@ -233,33 +233,33 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-	public String toString() {
-		return "[" + getCleanedFilePath() +
-				":" + startLineNumber +
-				"-" + endLineNumber +
-				" -> " + getHttpMethod() +
-				" " + rawUrlPath +
-				" " + getParameters() +
-				"]";
-	}
+    public String toString() {
+        return "[" + getCleanedFilePath() +
+                ":" + startLineNumber +
+                "-" + endLineNumber +
+                " -> " + getHttpMethod() +
+                " " + rawUrlPath +
+                " " + getParameters() +
+                "]";
+    }
 
-	@Nonnull
+    @Nonnull
     @Override
-	public String getHttpMethod() {
-		return method;
-	}
+    public String getHttpMethod() {
+        return method;
+    }
 
-	@Nonnull
+    @Nonnull
     @Override
-	public String getUrlPath() {
-		//String path = getCleanedUrlPath();
+    public String getUrlPath() {
+        //String path = getCleanedUrlPath();
         String path = rawUrlPath;
         if (path != null) {
             return path;
         } else {
             return "";
         }
-	}
+    }
 
     @Nonnull
     @Override
@@ -280,14 +280,14 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 
     @Nonnull
     @Override
-	public String getFilePath() {
-		return getCleanedFilePath();
-	}
+    public String getFilePath() {
+        return getCleanedFilePath();
+    }
 
-	@Override
-	public int getStartingLineNumber() {
-		return startLineNumber;
-	}
+    @Override
+    public int getStartingLineNumber() {
+        return startLineNumber;
+    }
 
     @Override
     public int getEndingLineNumber() {
@@ -295,9 +295,9 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     }
 
     @Override
-	public int getLineNumberForParameter(String parameter) {
-		return startLineNumber;
-	}
+    public int getLineNumberForParameter(String parameter) {
+        return startLineNumber;
+    }
 
 
 

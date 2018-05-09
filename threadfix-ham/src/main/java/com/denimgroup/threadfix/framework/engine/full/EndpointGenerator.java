@@ -32,6 +32,6 @@ import java.util.List;
 public interface EndpointGenerator extends Iterable<Endpoint> {
 
     @Nonnull
-	List<Endpoint> generateEndpoints();
-	
+    List<Endpoint> generateEndpoints();
+
 }

@@ -35,19 +35,19 @@ import java.io.File;
 import static org.junit.Assert.assertTrue;
 
 public class EndpointDatabaseFactoryTests {
-	
-	int petclinicStaticCount = 5, petclinicDynamicCount = 11;
-	
-	@Test
-	public void testRootOnly() {
-		EndpointDatabase testDatabase = EndpointDatabaseFactory.getDatabase(new File(TestConstants.PETCLINIC_SOURCE_LOCATION));
+
+    int petclinicStaticCount = 5, petclinicDynamicCount = 11;
+
+    @Test
+    public void testRootOnly() {
+        EndpointDatabase testDatabase = EndpointDatabaseFactory.getDatabase(new File(TestConstants.PETCLINIC_SOURCE_LOCATION));
 
         assertTrue(testDatabase != null);
-		assertTrue(testDatabase.getFrameworkType() == FrameworkType.SPRING_MVC);
-		assertTrue(testDatabase.generateEndpoints().size() ==
-				new SpringControllerMappings(new File(TestConstants.PETCLINIC_SOURCE_LOCATION)).generateEndpoints().size());
-	}
-	
-	// TODO write more stuff here
+        assertTrue(testDatabase.getFrameworkType() == FrameworkType.SPRING_MVC);
+        assertTrue(testDatabase.generateEndpoints().size() ==
+                new SpringControllerMappings(new File(TestConstants.PETCLINIC_SOURCE_LOCATION)).generateEndpoints().size());
+    }
+
+    // TODO write more stuff here
 
 }

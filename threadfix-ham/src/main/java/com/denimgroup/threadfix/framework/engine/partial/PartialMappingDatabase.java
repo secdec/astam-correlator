@@ -31,12 +31,12 @@ import javax.annotation.Nullable;
 
 public interface PartialMappingDatabase {
 
-	void addMappings(@Nonnull Iterable<PartialMapping> mappings);
+    void addMappings(@Nonnull Iterable<PartialMapping> mappings);
 
     @Nullable
-	PartialMapping findBestMatch(PartialMapping mapping);
+    PartialMapping findBestMatch(PartialMapping mapping);
 
     @Nonnull
-	List<PartialMapping> findAllMatches(PartialMapping mapping);
-	
+    List<PartialMapping> findAllMatches(PartialMapping mapping);
+
 }

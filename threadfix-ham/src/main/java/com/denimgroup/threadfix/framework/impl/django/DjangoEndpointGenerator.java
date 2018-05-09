@@ -121,7 +121,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         //PythonDebugUtil.printDuplicateStatements(codebase);
 
 
-	    PythonDebugUtil.printFullTypeNames(codebase);
+        PythonDebugUtil.printFullTypeNames(codebase);
 
 
         debugLog("Preparing Python interpreter...");
@@ -274,11 +274,11 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 Map<String, RouteParameter> parameters = route.getParameters();
                 String relativeFilePath;
                 //      Endpoints that are handled by Django libraries will have an empty path, not much we
-	        //      can do about that
+                //      can do about that
                 if (filePath.isEmpty())
-                	relativeFilePath = filePath;
+                    relativeFilePath = filePath;
                 else
-	                relativeFilePath = FilePathUtils.getRelativePath(filePath, this.rootDirectory);
+                    relativeFilePath = FilePathUtils.getRelativePath(filePath, this.rootDirectory);
                 DjangoEndpoint primaryEndpoint = new DjangoEndpoint(relativeFilePath, urlPath, httpMethod, parameters, false);
                 primaryEndpoint.setLineNumbers(route.getStartLineNumber(), route.getEndLineNumber());
                 mappings.add(primaryEndpoint);

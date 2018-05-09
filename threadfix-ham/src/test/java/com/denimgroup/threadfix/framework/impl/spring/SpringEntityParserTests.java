@@ -35,44 +35,44 @@ import java.util.Set;
 import static org.junit.Assert.assertTrue;
 
 public class SpringEntityParserTests {
-	
-	@Nonnull
-    File testFile = new File(TestConstants.PETCLINIC_SOURCE_LOCATION +
-			TestConstants.SPRING_MODELS_PREFIX + TestConstants.SPRING_OWNER_MODEL);
 
-	@Nonnull
-	EntityParser parser = EntityParser.parse(testFile);
-	
-	@Test
-	public void testBasicFieldEquivalence() {
-		assertTrue("These should have been equal.",
-				new ModelField("String", "address").equals(new ModelField("String", "address"))
-				);
-	}
-	
-	@Test
-	public void testOwnerClassName() {
-		assertTrue("Wrong class name. Expected Owner, got " + parser.getClassName(),
-				"Owner".equals(parser.getClassName()));
-	}
-	
-	@Test
-	public void testOwnerExtends() {
-		assertTrue("Wrong superclass name. Expected Person, got " + parser.getSuperClass(),
-				"Person".equals(parser.getSuperClass()));
-	}
-	
-	@Test
-	public void testOwnerFields() {
-		Set<ModelField> fieldMappings = parser.getFieldMappings();
-		
-		assertTrue("Model missed the address field.",
-				fieldMappings.contains(new ModelField("String", "getAddress")));
-		assertTrue("Model missed the city field.",
-				fieldMappings.contains(new ModelField("String", "getCity")));
-		assertTrue("Model missed the telephone field.",
-				fieldMappings.contains(new ModelField("String", "getTelephone")));
-		assertTrue("Model missed the pet field.",
-				fieldMappings.contains(new ModelField("Pet", "getPet")));
-	}
+    @Nonnull
+    File testFile = new File(TestConstants.PETCLINIC_SOURCE_LOCATION +
+            TestConstants.SPRING_MODELS_PREFIX + TestConstants.SPRING_OWNER_MODEL);
+
+    @Nonnull
+    EntityParser parser = EntityParser.parse(testFile);
+
+    @Test
+    public void testBasicFieldEquivalence() {
+        assertTrue("These should have been equal.",
+                new ModelField("String", "address").equals(new ModelField("String", "address"))
+                );
+    }
+
+    @Test
+    public void testOwnerClassName() {
+        assertTrue("Wrong class name. Expected Owner, got " + parser.getClassName(),
+                "Owner".equals(parser.getClassName()));
+    }
+
+    @Test
+    public void testOwnerExtends() {
+        assertTrue("Wrong superclass name. Expected Person, got " + parser.getSuperClass(),
+                "Person".equals(parser.getSuperClass()));
+    }
+
+    @Test
+    public void testOwnerFields() {
+        Set<ModelField> fieldMappings = parser.getFieldMappings();
+
+        assertTrue("Model missed the address field.",
+                fieldMappings.contains(new ModelField("String", "getAddress")));
+        assertTrue("Model missed the city field.",
+                fieldMappings.contains(new ModelField("String", "getCity")));
+        assertTrue("Model missed the telephone field.",
+                fieldMappings.contains(new ModelField("String", "getTelephone")));
+        assertTrue("Model missed the pet field.",
+                fieldMappings.contains(new ModelField("Pet", "getPet")));
+    }
 }

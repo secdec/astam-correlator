@@ -38,60 +38,60 @@ import java.util.Set;
  *
  */
 public abstract class ClassAnnotationBasedFileFilter implements IOFileFilter {
-	
-	private final SanitizedLogger log = new SanitizedLogger("AnnotationBasedFileFilter");
-	
-	@Nonnull
+
+    private final SanitizedLogger log = new SanitizedLogger("AnnotationBasedFileFilter");
+
+    @Nonnull
     protected abstract Set<String> getClassAnnotations();
-	
-	@Override
-	public boolean accept(@Nullable File file) {
-		boolean returnValue = false;
-		boolean hasArroba = false;
-		
-		if (file != null && file.exists() && file.isFile() && file.getName().endsWith(".java")) {
-			Reader reader = null;
 
-			try {
+    @Override
+    public boolean accept(@Nullable File file) {
+        boolean returnValue = false;
+        boolean hasArroba = false;
 
-				reader = new InputStreamReader(new FileInputStream(file),"UTF-8");
+        if (file != null && file.exists() && file.isFile() && file.getName().endsWith(".java")) {
+            Reader reader = null;
 
-				StreamTokenizer tokenizer = new StreamTokenizer(reader);
-				tokenizer.slashSlashComments(true);
-				tokenizer.slashStarComments(true);
-				
-				while (tokenizer.nextToken() != StreamTokenizer.TT_EOF) {
-					if (hasArroba && tokenizer.sval != null && getClassAnnotations().contains(tokenizer.sval)) {
-						returnValue = true;
-						break;
-					} else if (tokenizer.sval != null && tokenizer.sval.equals("class")) {
-						// we've gone too far
-						break;
-					}
-					
-					hasArroba = tokenizer.ttype == '@';
-				}
-			} catch (IOException e) {
-				log.warn("Encountered IOException while tokenizing file.", e);
-			} finally {
-				if (reader != null) {
-					try {
-						reader.close();
-					} catch (IOException e) {
-						log.error("Encountered IOException while attempting to close file.", e);
-					}
-				}
-			}
-		}
-		
-		return returnValue;
-	}
+            try {
 
-	/**
-	 * This should just proxy to the other method
-	 */
-	@Override
-	public boolean accept(@Nonnull File file, String name) {
-		return accept(new File(file.getAbsolutePath() + File.pathSeparator + name));
-	}
+                reader = new InputStreamReader(new FileInputStream(file),"UTF-8");
+
+                StreamTokenizer tokenizer = new StreamTokenizer(reader);
+                tokenizer.slashSlashComments(true);
+                tokenizer.slashStarComments(true);
+
+                while (tokenizer.nextToken() != StreamTokenizer.TT_EOF) {
+                    if (hasArroba && tokenizer.sval != null && getClassAnnotations().contains(tokenizer.sval)) {
+                        returnValue = true;
+                        break;
+                    } else if (tokenizer.sval != null && tokenizer.sval.equals("class")) {
+                        // we've gone too far
+                        break;
+                    }
+
+                    hasArroba = tokenizer.ttype == '@';
+                }
+            } catch (IOException e) {
+                log.warn("Encountered IOException while tokenizing file.", e);
+            } finally {
+                if (reader != null) {
+                    try {
+                        reader.close();
+                    } catch (IOException e) {
+                        log.error("Encountered IOException while attempting to close file.", e);
+                    }
+                }
+            }
+        }
+
+        return returnValue;
+    }
+
+    /**
+     * This should just proxy to the other method
+     */
+    @Override
+    public boolean accept(@Nonnull File file, String name) {
+        return accept(new File(file.getAbsolutePath() + File.pathSeparator + name));
+    }
 }

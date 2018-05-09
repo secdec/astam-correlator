@@ -40,75 +40,75 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class StrutsDataFlowParser implements ParameterParser {
 
-	// So we only compile these patterns once
-	public static final Pattern
-		ENTITY_PAREN_PATTERN 	= Pattern.compile("\\(([^)]+)\\)");
+    // So we only compile these patterns once
+    public static final Pattern
+        ENTITY_PAREN_PATTERN     = Pattern.compile("\\(([^)]+)\\)");
 
-	@Nonnull
+    @Nonnull
     private final EntityMappings mappings;
 
-	public StrutsDataFlowParser(@Nonnull ProjectConfig projectConfig) {
-		EntityMappings mappings = null;
-		if (projectConfig.getRootFile() != null) {
-			mappings = new EntityMappings(projectConfig.getRootFile());
-		}
-		this.mappings = mappings;
-	}
-	@Override
-	public String parse(@Nonnull EndpointQuery query) {
-		String parameter = null;
-		
-		if (query.getCodePoints() != null && !query.getCodePoints().isEmpty()) {
-			List<String> lines = getLines(query.getCodePoints());
-			parameter = attemptModelParsingWithMappings(lines);
-		}
-		
-		if (parameter == null) {
-			parameter = query.getParameter();
-		}
-		
-		return parameter;
-	}
-	
-	@Nonnull
+    public StrutsDataFlowParser(@Nonnull ProjectConfig projectConfig) {
+        EntityMappings mappings = null;
+        if (projectConfig.getRootFile() != null) {
+            mappings = new EntityMappings(projectConfig.getRootFile());
+        }
+        this.mappings = mappings;
+    }
+    @Override
+    public String parse(@Nonnull EndpointQuery query) {
+        String parameter = null;
+
+        if (query.getCodePoints() != null && !query.getCodePoints().isEmpty()) {
+            List<String> lines = getLines(query.getCodePoints());
+            parameter = attemptModelParsingWithMappings(lines);
+        }
+
+        if (parameter == null) {
+            parameter = query.getParameter();
+        }
+
+        return parameter;
+    }
+
+    @Nonnull
     private List<String> getLines(@Nonnull List<CodePoint> codePoints) {
-		List<String> returnList = list();
-		
-		for (CodePoint element : codePoints) {
-			if (element != null && element.getLineText() != null) {
-				returnList.add(element.getLineText());
-			}
-		}
-		
-		return returnList;
-	}
+        List<String> returnList = list();
 
-	@Nullable
+        for (CodePoint element : codePoints) {
+            if (element != null && element.getLineText() != null) {
+                returnList.add(element.getLineText());
+            }
+        }
+
+        return returnList;
+    }
+
+    @Nullable
     private String attemptModelParsingWithMappings(@Nonnull List<String> lines) {
-		String result = null;
+        String result = null;
 
-		if (!lines.isEmpty()) {
-			String modelObject = getModelObject(lines.get(0));
-			String initialType = getModelObjectType(lines.get(0));
+        if (!lines.isEmpty()) {
+            String modelObject = getModelObject(lines.get(0));
+            String initialType = getModelObjectType(lines.get(0));
 
-			if (modelObject != null && initialType != null) {
+            if (modelObject != null && initialType != null) {
 
-				ModelField beanField = new ModelField(initialType, modelObject, false);
+                ModelField beanField = new ModelField(initialType, modelObject, false);
 
-				List<ModelField> fieldChain = list(beanField);
+                List<ModelField> fieldChain = list(beanField);
 
-				for (String elementText : lines) {
-					if (elementText != null) {
-						List<ModelField> beanFields = getParameterWithEntityData(elementText,
-								fieldChain.get(fieldChain.size() - 1));
+                for (String elementText : lines) {
+                    if (elementText != null) {
+                        List<ModelField> beanFields = getParameterWithEntityData(elementText,
+                                fieldChain.get(fieldChain.size() - 1));
 
-						if (beanFields.size() > 1) {
-							beanFields.remove(0);
-							fieldChain.addAll(beanFields);
-							beanField = fieldChain.get(fieldChain.size() - 1);
-						}
+                        if (beanFields.size() > 1) {
+                            beanFields.remove(0);
+                            fieldChain.addAll(beanFields);
+                            beanField = fieldChain.get(fieldChain.size() - 1);
+                        }
 
-						if (beanField.isPrimitiveType()) {
+                        if (beanField.isPrimitiveType()) {
                             break;
                         }
                     }
@@ -116,69 +116,69 @@ public class StrutsDataFlowParser implements ParameterParser {
 
                 result = buildStringFromFieldChain(fieldChain);
             }
-		}
-		
-		return result;
-	}
-	
-	@Nonnull
-    private String buildStringFromFieldChain(@Nonnull List<ModelField> fieldChain) {
-		StringBuilder parameterChainBuilder = new StringBuilder();
-		
-		if (fieldChain.size() > 0) {
-			for (ModelField field : fieldChain) {
-				parameterChainBuilder.append(field.getParameterKey()).append('.');
-			}
-			parameterChainBuilder.setLength(parameterChainBuilder.length() - 1);
-		}
-		
-		return parameterChainBuilder.toString();
-	}
+        }
 
-    @Nullable
-	private String getModelObject(String elementText) {
-		return getParameterFromString(elementText, false);
-	}
-
-	@Nullable
-	private String getModelObjectType(String elementText) {
-		return getParameterFromString(elementText, true);
-	}
-
-	private String getParameterFromString(String elementText, boolean type) {
-		// if type is true, return ObjectType, else return objectName;
-		String string = null;
-		String paramString = RegexUtils.getRegexResult(elementText, ENTITY_PAREN_PATTERN);
-		if (paramString == null)
-			return null;
-		paramString = paramString.trim();
-		if (!paramString.matches("\\w+\\s+\\w+"))
-			return null;
-//		String[] params = paramString.split(",");
-//		if (params.length < 1)
-//			return null;
-//		String[] model = params[0].trim().split("\\s+");
-		String[] model = paramString.split("\\s+");
-		if (model.length == 2)
-			if (type)
-				string = model[0];
-			else
-				string = model[1];
-		return string;
-	}
+        return result;
+    }
 
     @Nonnull
-	private List<ModelField> getParameterWithEntityData(String line, @Nonnull ModelField beanField) {
-		String methodCall = RegexUtils.getRegexResult(line, getPatternForString(beanField.getParameterKey()));
+    private String buildStringFromFieldChain(@Nonnull List<ModelField> fieldChain) {
+        StringBuilder parameterChainBuilder = new StringBuilder();
 
-		List<ModelField> returnField = list();
+        if (fieldChain.size() > 0) {
+            for (ModelField field : fieldChain) {
+                parameterChainBuilder.append(field.getParameterKey()).append('.');
+            }
+            parameterChainBuilder.setLength(parameterChainBuilder.length() - 1);
+        }
 
-		if (mappings != null && methodCall != null) {
-			returnField = mappings.getFieldsFromMethodCalls(methodCall, beanField);
-		}
-		
-		return returnField;
-	}
+        return parameterChainBuilder.toString();
+    }
+
+    @Nullable
+    private String getModelObject(String elementText) {
+        return getParameterFromString(elementText, false);
+    }
+
+    @Nullable
+    private String getModelObjectType(String elementText) {
+        return getParameterFromString(elementText, true);
+    }
+
+    private String getParameterFromString(String elementText, boolean type) {
+        // if type is true, return ObjectType, else return objectName;
+        String string = null;
+        String paramString = RegexUtils.getRegexResult(elementText, ENTITY_PAREN_PATTERN);
+        if (paramString == null)
+            return null;
+        paramString = paramString.trim();
+        if (!paramString.matches("\\w+\\s+\\w+"))
+            return null;
+//        String[] params = paramString.split(",");
+//        if (params.length < 1)
+//            return null;
+//        String[] model = params[0].trim().split("\\s+");
+        String[] model = paramString.split("\\s+");
+        if (model.length == 2)
+            if (type)
+                string = model[0];
+            else
+                string = model[1];
+        return string;
+    }
+
+    @Nonnull
+    private List<ModelField> getParameterWithEntityData(String line, @Nonnull ModelField beanField) {
+        String methodCall = RegexUtils.getRegexResult(line, getPatternForString(beanField.getParameterKey()));
+
+        List<ModelField> returnField = list();
+
+        if (mappings != null && methodCall != null) {
+            returnField = mappings.getFieldsFromMethodCalls(methodCall, beanField);
+        }
+
+        return returnField;
+    }
 
     // public for testing
     // TODO write more rigorous unit tests and shake out corner cases

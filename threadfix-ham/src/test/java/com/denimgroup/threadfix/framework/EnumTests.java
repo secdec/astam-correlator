@@ -33,46 +33,46 @@ import javax.annotation.Nonnull;
 import static org.junit.Assert.assertTrue;
 
 public class EnumTests {
-	
-	@Nonnull
-    private String upperAndUnderscore(@Nonnull String input) {
-		return input.toUpperCase().replace(' ', '_');
-	}
 
-	@Test
-	public void testFrameworkType() {
-		for (FrameworkType frameworkType : FrameworkType.values()) {
+    @Nonnull
+    private String upperAndUnderscore(@Nonnull String input) {
+        return input.toUpperCase().replace(' ', '_');
+    }
+
+    @Test
+    public void testFrameworkType() {
+        for (FrameworkType frameworkType : FrameworkType.values()) {
             String lookupString = frameworkType == FrameworkType.DOT_NET_MVC ?
                 "DOT_NET_MVC":
                 upperAndUnderscore(frameworkType.getDisplayName());
 
-			assertTrue("Enum lookup is broken for " + frameworkType,
+            assertTrue("Enum lookup is broken for " + frameworkType,
                     FrameworkType.getFrameworkType(lookupString) == frameworkType);
-		}
-	}
-	
-	@Test
-	public void testSourceCodeAccessLevel() {
-		for (SourceCodeAccessLevel sourceCodeAccessLevel : SourceCodeAccessLevel.values()) {
-			assertTrue("Enum lookup is broken", SourceCodeAccessLevel.getSourceCodeAccessLevel(upperAndUnderscore(sourceCodeAccessLevel.getDisplayName())) == sourceCodeAccessLevel);
-		}
-	}
-	
-	@Test
-	public void testInformationSourceType() {
-		assertTrue("There were other than 3 values for InformationSourceType", InformationSourceType.values().length == 3);
-	}
+        }
+    }
 
-	@Test
-	public void testSpringMVC() {
-		FrameworkType springMVC = FrameworkType.getFrameworkType("SPRING_MVC");
-		assert springMVC == FrameworkType.SPRING_MVC : "Got " + springMVC;
-	}
+    @Test
+    public void testSourceCodeAccessLevel() {
+        for (SourceCodeAccessLevel sourceCodeAccessLevel : SourceCodeAccessLevel.values()) {
+            assertTrue("Enum lookup is broken", SourceCodeAccessLevel.getSourceCodeAccessLevel(upperAndUnderscore(sourceCodeAccessLevel.getDisplayName())) == sourceCodeAccessLevel);
+        }
+    }
 
-	@Test
-	public void testSpringMVC2() {
-		FrameworkType springMVC = FrameworkType.getFrameworkType("SPRING MVC");
-		assert springMVC == FrameworkType.SPRING_MVC : "Got " + springMVC;
-	}
+    @Test
+    public void testInformationSourceType() {
+        assertTrue("There were other than 3 values for InformationSourceType", InformationSourceType.values().length == 3);
+    }
+
+    @Test
+    public void testSpringMVC() {
+        FrameworkType springMVC = FrameworkType.getFrameworkType("SPRING_MVC");
+        assert springMVC == FrameworkType.SPRING_MVC : "Got " + springMVC;
+    }
+
+    @Test
+    public void testSpringMVC2() {
+        FrameworkType springMVC = FrameworkType.getFrameworkType("SPRING MVC");
+        assert springMVC == FrameworkType.SPRING_MVC : "Got " + springMVC;
+    }
 
 }

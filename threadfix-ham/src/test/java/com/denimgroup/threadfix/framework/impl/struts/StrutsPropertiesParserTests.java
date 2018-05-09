@@ -33,18 +33,18 @@ import java.util.*;
  */
 public class StrutsPropertiesParserTests {
 
-	@Test
-	public void testStrutsPropertiesFile() {
+    @Test
+    public void testStrutsPropertiesFile() {
 
-		Properties strutsProperties
-				= StrutsPropertiesParser.getStrutsProperties( ResourceManager.getStrutsFile("struts.properties") );
+        Properties strutsProperties
+                = StrutsPropertiesParser.getStrutsProperties( ResourceManager.getStrutsFile("struts.properties") );
 
-		assert strutsProperties != null;
-		assert strutsProperties.getProperty("struts.action.extension").equals("rol");
-		assert strutsProperties.getProperty("struts.action.extension","default").equals("rol");
-		assert strutsProperties.getProperty("strutsActionExtension") == null;
-		assert strutsProperties.getProperty("strutsActionExtension","default").equals("default");
+        assert strutsProperties != null;
+        assert strutsProperties.getProperty("struts.action.extension").equals("rol");
+        assert strutsProperties.getProperty("struts.action.extension","default").equals("rol");
+        assert strutsProperties.getProperty("strutsActionExtension") == null;
+        assert strutsProperties.getProperty("strutsActionExtension","default").equals("default");
 
-	}
+    }
 
 }

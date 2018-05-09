@@ -34,14 +34,14 @@ import java.util.List;
 
 public class PartialMappingsDatabaseFactory {
 
-	private PartialMappingsDatabaseFactory() {}
-	
-	@Nullable
+    private PartialMappingsDatabaseFactory() {}
+
+    @Nullable
     public static PartialMappingDatabase getPartialMappingsDatabase(@Nonnull List<PartialMapping> seedMappings,
                                                                     @Nonnull FrameworkType frameworkType) {
-		PathCleaner cleaner = PathCleanerFactory.getPathCleaner(frameworkType, seedMappings);
-		
-		return new DefaultPartialMappingDatabase(seedMappings, cleaner);
-	}
-	
+        PathCleaner cleaner = PathCleanerFactory.getPathCleaner(frameworkType, seedMappings);
+
+        return new DefaultPartialMappingDatabase(seedMappings, cleaner);
+    }
+
 }

@@ -38,37 +38,37 @@ import static org.junit.Assert.assertTrue;
 
 public class FrameworkCalculatorTests {
 
-	static {
-		ConsoleAppender console = new ConsoleAppender(); //create appender
-		String pattern = "%d [%p|%c|%C{1}] %m%n";
-		console.setLayout(new PatternLayout(pattern));
-		console.setThreshold(Level.FATAL);
-		console.activateOptions();
-		Logger.getRootLogger().addAppender(console);
-	}
+    static {
+        ConsoleAppender console = new ConsoleAppender(); //create appender
+        String pattern = "%d [%p|%c|%C{1}] %m%n";
+        console.setLayout(new PatternLayout(pattern));
+        console.setThreshold(Level.FATAL);
+        console.activateOptions();
+        Logger.getRootLogger().addAppender(console);
+    }
 
-	@Test
-	public void bodgeitTest() {
-		FrameworkType type = FrameworkCalculator.getType(new File(TestConstants.BODGEIT_SOURCE_LOCATION));
-		assertTrue("Didn't find JSP, found " + type + ".", type == FrameworkType.JSP);
-	}
-	
-	@Test
-	public void wavsepTest() {
-		FrameworkType type = FrameworkCalculator.getType(new File(TestConstants.WAVSEP_SOURCE_LOCATION));
-		assertTrue("Didn't find JSP, found " + type + ".", type == FrameworkType.JSP);
-	}
+    @Test
+    public void bodgeitTest() {
+        FrameworkType type = FrameworkCalculator.getType(new File(TestConstants.BODGEIT_SOURCE_LOCATION));
+        assertTrue("Didn't find JSP, found " + type + ".", type == FrameworkType.JSP);
+    }
 
-	@Test
-	public void basicDotNetTest() {
-		FrameworkType type = FrameworkCalculator.getType(new File(TestConstants.DOT_NET_SAMPLE));
-		assertTrue("Didn't find DOT_NET_MVC, found " + type + ".", type == FrameworkType.DOT_NET_MVC);
-	}
+    @Test
+    public void wavsepTest() {
+        FrameworkType type = FrameworkCalculator.getType(new File(TestConstants.WAVSEP_SOURCE_LOCATION));
+        assertTrue("Didn't find JSP, found " + type + ".", type == FrameworkType.JSP);
+    }
 
-	@Test
-	public void basicWebFormsTest() {
-		FrameworkType type = FrameworkCalculator.getType(new File(TestConstants.WEB_FORMS_SAMPLE));
-		assertTrue("Didn't find DOT_NET_WEB_FORMS, found " + type + ".", type == FrameworkType.DOT_NET_WEB_FORMS);
-	}
+    @Test
+    public void basicDotNetTest() {
+        FrameworkType type = FrameworkCalculator.getType(new File(TestConstants.DOT_NET_SAMPLE));
+        assertTrue("Didn't find DOT_NET_MVC, found " + type + ".", type == FrameworkType.DOT_NET_MVC);
+    }
+
+    @Test
+    public void basicWebFormsTest() {
+        FrameworkType type = FrameworkCalculator.getType(new File(TestConstants.WEB_FORMS_SAMPLE));
+        assertTrue("Didn't find DOT_NET_WEB_FORMS, found " + type + ".", type == FrameworkType.DOT_NET_WEB_FORMS);
+    }
 
 }

@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
 class UrlPatternMapping {
 
     @Nonnull
-	private String servletName, urlPattern;
+    private String servletName, urlPattern;
 
     public UrlPatternMapping(@Nonnull String servletName, @Nonnull String urlPattern) {
         this.servletName = servletName.trim();
@@ -37,18 +37,18 @@ class UrlPatternMapping {
     }
 
     @Nonnull
-	public String getServletName() {
-		return servletName;
-	}
+    public String getServletName() {
+        return servletName;
+    }
 
     @Nonnull
-	public String getUrlPattern() {
-		return urlPattern;
-	}
+    public String getUrlPattern() {
+        return urlPattern;
+    }
 
-	@Nonnull
+    @Nonnull
     @Override
-	public String toString() {
-		return getServletName() + " -> " + getUrlPattern();
-	}
+    public String toString() {
+        return getServletName() + " -> " + getUrlPattern();
+    }
 }

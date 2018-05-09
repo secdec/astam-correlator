@@ -78,8 +78,8 @@ public class JavaAndJspFrameworkChecker extends FrameworkChecker {
         }
 
         // check for JSP
-	Collection<File> jspFiles = FileUtils.listFiles(directory.getDirectory(),
-		new FileExtensionFileFilter("jsp"), TrueFileFilter.INSTANCE);
+    Collection<File> jspFiles = FileUtils.listFiles(directory.getDirectory(),
+        new FileExtensionFileFilter("jsp"), TrueFileFilter.INSTANCE);
         if (frameworkType == FrameworkType.NONE && jspFiles.size() > 0) {
             frameworkType = FrameworkType.JSP;
         }

@@ -34,19 +34,19 @@ import java.util.Properties;
  * Created by sgerick on 11/13/2014.
  */
 public class StrutsPropertiesParser {
-	private static final SanitizedLogger log = new SanitizedLogger("FrameworkCalculator");
+    private static final SanitizedLogger log = new SanitizedLogger("FrameworkCalculator");
 
-	public static Properties getStrutsProperties(File f) {
-		Properties p = new Properties();
-		try {
-			if (f != null && f.exists()) {
-				p.load(new FileReader(f));
-			}
-		} catch (IOException ioe) {
-			log.error("IOException reading struts.properties", ioe);
-		}
-		return p;
-	}
+    public static Properties getStrutsProperties(File f) {
+        Properties p = new Properties();
+        try {
+            if (f != null && f.exists()) {
+                p.load(new FileReader(f));
+            }
+        } catch (IOException ioe) {
+            log.error("IOException reading struts.properties", ioe);
+        }
+        return p;
+    }
 
 
 }

@@ -29,16 +29,16 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import javax.annotation.Nonnull;
 
 class JSPFileFilter implements IOFileFilter {
-	
-	public static final JSPFileFilter INSTANCE = new JSPFileFilter();
-	private JSPFileFilter(){}
-	
-	@Override
-	public boolean accept(@Nonnull File file) {
-		return file.getName().contains(".jsp");
-	}
-	@Override
-	public boolean accept(File dir, @Nonnull String name) {
-		return name.contains(".jsp");
-	}
+
+    public static final JSPFileFilter INSTANCE = new JSPFileFilter();
+    private JSPFileFilter(){}
+
+    @Override
+    public boolean accept(@Nonnull File file) {
+        return file.getName().contains(".jsp");
+    }
+    @Override
+    public boolean accept(File dir, @Nonnull String name) {
+        return name.contains(".jsp");
+    }
 }

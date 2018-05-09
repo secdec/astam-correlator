@@ -33,58 +33,58 @@ import java.util.regex.Pattern;
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class RegexUtils {
-	
-	private RegexUtils(){}
-	
-	@Nullable
-    public static String getRegexResult(@Nullable String targetString, @Nullable String regex) {
-		if (targetString == null || targetString.isEmpty() || regex == null || regex.isEmpty()) {
-			return null;
-		}
 
-		Pattern pattern = Pattern.compile(regex);
-		
-		return getRegexResult(targetString, pattern);
-	}
-	
-	/**
-	 * For cases when it's better to store a pattern and skip compilation
-	 * @param targetString
-	 * @param pattern
-	 * @return
-	 */
-	@Nullable
+    private RegexUtils(){}
+
+    @Nullable
+    public static String getRegexResult(@Nullable String targetString, @Nullable String regex) {
+        if (targetString == null || targetString.isEmpty() || regex == null || regex.isEmpty()) {
+            return null;
+        }
+
+        Pattern pattern = Pattern.compile(regex);
+
+        return getRegexResult(targetString, pattern);
+    }
+
+    /**
+     * For cases when it's better to store a pattern and skip compilation
+     * @param targetString
+     * @param pattern
+     * @return
+     */
+    @Nullable
     public static String getRegexResult(@Nullable String targetString, @Nullable Pattern pattern) {
-		if (targetString == null || targetString.isEmpty() || pattern == null) {
-			return null;
-		}
-		
-		Matcher matcher = pattern.matcher(targetString);
+        if (targetString == null || targetString.isEmpty() || pattern == null) {
+            return null;
+        }
+
+        Matcher matcher = pattern.matcher(targetString);
 
         return matcher.find() ? matcher.group(1) : null;
-	}
-	
-	/**
-	 * For cases when it's better to store a pattern and skip compilation
-	 * @param targetString
-	 * @param pattern
-	 * @return
-	 */
-	@Nonnull
-    public static List<String> getRegexResults(@Nullable String targetString, @Nullable Pattern pattern) {
-		if (targetString == null || targetString.isEmpty() || pattern == null) {
-			return list();
-		}
-		
-		Matcher matcher = pattern.matcher(targetString);
+    }
 
-		List<String> resultsList = list();
-		
-		while (matcher.find()) {
-			resultsList.add(matcher.group(1));
-		}
-		
-		return resultsList;
-	}
+    /**
+     * For cases when it's better to store a pattern and skip compilation
+     * @param targetString
+     * @param pattern
+     * @return
+     */
+    @Nonnull
+    public static List<String> getRegexResults(@Nullable String targetString, @Nullable Pattern pattern) {
+        if (targetString == null || targetString.isEmpty() || pattern == null) {
+            return list();
+        }
+
+        Matcher matcher = pattern.matcher(targetString);
+
+        List<String> resultsList = list();
+
+        while (matcher.find()) {
+            resultsList.add(matcher.group(1));
+        }
+
+        return resultsList;
+    }
 
 }

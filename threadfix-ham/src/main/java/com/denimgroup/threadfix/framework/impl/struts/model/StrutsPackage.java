@@ -34,80 +34,80 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
  * Created by sgerick on 11/12/2014.
  */
 public class StrutsPackage {
-	private String name;
-	private String namespace;
-	private String pkgExtends;
-	private List<StrutsAction> actions = list();
-	private StrutsClass sourceClass;
+    private String name;
+    private String namespace;
+    private String pkgExtends;
+    private List<StrutsAction> actions = list();
+    private StrutsClass sourceClass;
 
-	public String getName() {
-		return name;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public String getNamespace() {
-		return namespace;
-	}
+    public String getNamespace() {
+        return namespace;
+    }
 
-	public void setNamespace(String namespace) {
-		this.namespace = namespace;
-	}
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
 
-	public String getPkgExtends() {
-		return pkgExtends;
-	}
+    public String getPkgExtends() {
+        return pkgExtends;
+    }
 
-	public void setPkgExtends(String pkgExtends) {
-		this.pkgExtends = pkgExtends;
-	}
+    public void setPkgExtends(String pkgExtends) {
+        this.pkgExtends = pkgExtends;
+    }
 
-	@Nonnull
-	public List<StrutsAction> getActions() {
-		return actions;
-	}
+    @Nonnull
+    public List<StrutsAction> getActions() {
+        return actions;
+    }
 
-	public void setActions(@Nonnull  List<StrutsAction> actions) {
-		this.actions = actions;
-	}
+    public void setActions(@Nonnull  List<StrutsAction> actions) {
+        this.actions = actions;
+    }
 
-	public void addAction(StrutsAction action) {
-		if (actions == null)
-			actions = list();
-		actions.add(action);
-	}
+    public void addAction(StrutsAction action) {
+        if (actions == null)
+            actions = list();
+        actions.add(action);
+    }
 
-	public StrutsClass getSourceClass() {
-		return sourceClass;
-	}
+    public StrutsClass getSourceClass() {
+        return sourceClass;
+    }
 
-	public void setSourceClass(StrutsClass sourceClass) {
-		this.sourceClass = sourceClass;
-	}
+    public void setSourceClass(StrutsClass sourceClass) {
+        this.sourceClass = sourceClass;
+    }
 
-	@Override
-	public String toString() {
-		if (name==null && namespace==null && pkgExtends==null)
-			return "null";
-		StringBuilder sb = new StringBuilder("<package");
-		if (name != null) {
-			sb.append(" name=\"");
-			sb.append( name );
-			sb.append("\"");
-		}
-		if (namespace != null) {
-			sb.append(" namespace=\"");
-			sb.append( namespace );
-			sb.append("\"");
-		}
-		if (pkgExtends != null) {
-			sb.append(" extends=\"");
-			sb.append( pkgExtends );
-			sb.append("\"");
-		}
-		sb.append(">");
-		return sb.toString();
-	}
+    @Override
+    public String toString() {
+        if (name==null && namespace==null && pkgExtends==null)
+            return "null";
+        StringBuilder sb = new StringBuilder("<package");
+        if (name != null) {
+            sb.append(" name=\"");
+            sb.append( name );
+            sb.append("\"");
+        }
+        if (namespace != null) {
+            sb.append(" namespace=\"");
+            sb.append( namespace );
+            sb.append("\"");
+        }
+        if (pkgExtends != null) {
+            sb.append(" extends=\"");
+            sb.append( pkgExtends );
+            sb.append("\"");
+        }
+        sb.append(">");
+        return sb.toString();
+    }
 }

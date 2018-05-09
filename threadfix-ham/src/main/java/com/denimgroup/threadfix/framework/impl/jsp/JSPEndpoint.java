@@ -48,132 +48,132 @@ import static com.denimgroup.threadfix.CollectionUtils.*;
 public class JSPEndpoint extends AbstractEndpoint {
 
     @Nonnull
-	private String dynamicPath, staticPath;
+    private String dynamicPath, staticPath;
 
     @Nonnull
-	private final Map<String, RouteParameter> parameters = map();
+    private final Map<String, RouteParameter> parameters = map();
     @Nonnull
-	private String method;
+    private String method;
 
     private int startLine = -1, endLine = -1;
 
-//	@Nonnull
+//    @Nonnull
 //    private final Map<String, Integer> paramToLineMap;
 
-//	@Nonnull
+//    @Nonnull
 //    private final Map<Integer, List<String>> parameterMap;
 
-	private JSPEndpoint() {
+    private JSPEndpoint() {
 
-	}
-	
-	public JSPEndpoint(@Nonnull String staticPath,
+    }
+
+    public JSPEndpoint(@Nonnull String staticPath,
                        @Nonnull String dynamicPath,
                        @Nonnull String method,
-			           @Nonnull Map<String, RouteParameter> parameterMap) {
+                       @Nonnull Map<String, RouteParameter> parameterMap) {
 
-		this.method = method;
-		this.staticPath = staticPath;
-		this.dynamicPath = dynamicPath;
-		this.parameters.putAll(parameterMap);
+        this.method = method;
+        this.staticPath = staticPath;
+        this.dynamicPath = dynamicPath;
+        this.parameters.putAll(parameterMap);
 
-		this.dynamicPath = this.dynamicPath.replaceAll("\\\\", "/");
+        this.dynamicPath = this.dynamicPath.replaceAll("\\\\", "/");
 
-//		for (List<String> lineParams : parameterMap.values()) {
-//			for (String param : lineParams) {
-//				parameters.put(param, RouteParameter.fromDataType(ParameterDataType.STRING));
-//			}
-//		}
-	}
+//        for (List<String> lineParams : parameterMap.values()) {
+//            for (String param : lineParams) {
+//                parameters.put(param, RouteParameter.fromDataType(ParameterDataType.STRING));
+//            }
+//        }
+    }
 
-	@Override
-	public int compareRelevance(String checkedPath) {
+    @Override
+    public int compareRelevance(String checkedPath) {
 
-		int relevance = super.compareRelevance(checkedPath);
+        int relevance = super.compareRelevance(checkedPath);
 
-		if (relevance > 0) {
-			return relevance;
-		} else {
-			relevance = 0;
-		}
+        if (relevance > 0) {
+            return relevance;
+        } else {
+            relevance = 0;
+        }
 
-		String[] pathParts = CodeParseUtil.trim(checkedPath, "/").split("/");
-		String[] endpointParts = CodeParseUtil.trim(dynamicPath, "/").split("/");
+        String[] pathParts = CodeParseUtil.trim(checkedPath, "/").split("/");
+        String[] endpointParts = CodeParseUtil.trim(dynamicPath, "/").split("/");
 
-		int numMatchedParts = 0;
+        int numMatchedParts = 0;
 
-		for (int i = 0; i < pathParts.length && i < endpointParts.length; i++) {
-			String currentPathPart = pathParts[i];
-			String currentEndpointPart = endpointParts[i];
-			String currentEndpointPartFormat;
+        for (int i = 0; i < pathParts.length && i < endpointParts.length; i++) {
+            String currentPathPart = pathParts[i];
+            String currentEndpointPart = endpointParts[i];
+            String currentEndpointPartFormat;
 
-			if (i == endpointParts.length - 1) {
-				currentEndpointPartFormat = currentEndpointPart.replace("*", ".*");
-			} else {
-				currentEndpointPartFormat = currentEndpointPart.replace("*", "[^/]*");
-			}
+            if (i == endpointParts.length - 1) {
+                currentEndpointPartFormat = currentEndpointPart.replace("*", ".*");
+            } else {
+                currentEndpointPartFormat = currentEndpointPart.replace("*", "[^/]*");
+            }
 
-			if (currentPathPart.equalsIgnoreCase(currentEndpointPart)) {
-				relevance += currentEndpointPart.length();
-				++numMatchedParts;
-			} else {
+            if (currentPathPart.equalsIgnoreCase(currentEndpointPart)) {
+                relevance += currentEndpointPart.length();
+                ++numMatchedParts;
+            } else {
 
-				Matcher partMatcher = Pattern.compile(currentEndpointPartFormat).matcher(currentPathPart);
-				if (!partMatcher.find()) {
-					return 0;
-				} else {
-					relevance += currentEndpointPart.length();
-					++numMatchedParts;
-				}
-			}
-		}
+                Matcher partMatcher = Pattern.compile(currentEndpointPartFormat).matcher(currentPathPart);
+                if (!partMatcher.find()) {
+                    return 0;
+                } else {
+                    relevance += currentEndpointPart.length();
+                    ++numMatchedParts;
+                }
+            }
+        }
 
-		return relevance + numMatchedParts * 100;
-	}
+        return relevance + numMatchedParts * 100;
+    }
 
-	@Override
-	public boolean isRelevant(String endpoint, EndpointRelevanceStrictness strictness) {
-		boolean isGenerallyRelevant = compareRelevance(endpoint) >= 0;
-		if (strictness == EndpointRelevanceStrictness.LOOSE) {
-			return isGenerallyRelevant;
-		} else if (!isGenerallyRelevant) {
-			return false;
-		}
+    @Override
+    public boolean isRelevant(String endpoint, EndpointRelevanceStrictness strictness) {
+        boolean isGenerallyRelevant = compareRelevance(endpoint) >= 0;
+        if (strictness == EndpointRelevanceStrictness.LOOSE) {
+            return isGenerallyRelevant;
+        } else if (!isGenerallyRelevant) {
+            return false;
+        }
 
-		String[] thisEndpointParts = StringUtils.split(CodeParseUtil.trim(dynamicPath, "/"), '/');
-		String[] endpointParts = StringUtils.split(CodeParseUtil.trim(endpoint, "/"), '/');
+        String[] thisEndpointParts = StringUtils.split(CodeParseUtil.trim(dynamicPath, "/"), '/');
+        String[] endpointParts = StringUtils.split(CodeParseUtil.trim(endpoint, "/"), '/');
 
-		if (thisEndpointParts.length != endpointParts.length) {
-			return false;
-		}
+        if (thisEndpointParts.length != endpointParts.length) {
+            return false;
+        }
 
-		for (int i = 0; i < thisEndpointParts.length; i++) {
-			String thisPart = thisEndpointParts[i];
-			String part = endpointParts[i];
+        for (int i = 0; i < thisEndpointParts.length; i++) {
+            String thisPart = thisEndpointParts[i];
+            String part = endpointParts[i];
 
-			if (!thisPart.equalsIgnoreCase(part) && !thisPart.contains("*")) {
-				return false;
-			}
-		}
+            if (!thisPart.equalsIgnoreCase(part) && !thisPart.contains("*")) {
+                return false;
+            }
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	//	@Nonnull
+    //    @Nonnull
 //    private Map<String, Integer> getParamToLineMap(
-//			Map<Integer, List<String>> parameterMap) {
-//		Map<String, Integer> paramMap = map();
+//            Map<Integer, List<String>> parameterMap) {
+//        Map<String, Integer> paramMap = map();
 //
-//		for (String parameter : parameters.keySet()) {
-//			paramMap.put(parameter, getFirstLineNumber(parameter, parameterMap));
-//		}
+//        for (String parameter : parameters.keySet()) {
+//            paramMap.put(parameter, getFirstLineNumber(parameter, parameterMap));
+//        }
 //
-//		return paramMap;
-//	}
-	
-//	private Integer getFirstLineNumber(@Nonnull String parameterName,
-//			@Nonnull Map<Integer, List<String>> parameterMap) {
-//		Integer returnValue = Integer.MAX_VALUE;
+//        return paramMap;
+//    }
+
+//    private Integer getFirstLineNumber(@Nonnull String parameterName,
+//            @Nonnull Map<Integer, List<String>> parameterMap) {
+//        Integer returnValue = Integer.MAX_VALUE;
 //
 //        for (Map.Entry<Integer, List<String>> entry : parameterMap.entrySet()) {
 //            if (entry.getKey() < returnValue &&
@@ -183,104 +183,104 @@ public class JSPEndpoint extends AbstractEndpoint {
 //            }
 //        }
 //
-//		if (returnValue == Integer.MAX_VALUE) {
-//			returnValue = 1; // This way even if no parameter is found a marker can be created for the file
-//		}
+//        if (returnValue == Integer.MAX_VALUE) {
+//            returnValue = 1; // This way even if no parameter is found a marker can be created for the file
+//        }
 //
-//		return returnValue;
-//	}
-	
-	// TODO improve
-	// TODO - Re-enable
+//        return returnValue;
+//    }
+
+    // TODO improve
+    // TODO - Re-enable
     @Nullable
     String getParameterName(@Nonnull Iterable<CodePoint> codePoints) {
-		return null;
-//		String parameter = null;
+        return null;
+//        String parameter = null;
 //
-//		for (CodePoint codePoint : codePoints) {
-//			List<String> possibleParameters = parameterMap.get(codePoint.getLineNumber());
+//        for (CodePoint codePoint : codePoints) {
+//            List<String> possibleParameters = parameterMap.get(codePoint.getLineNumber());
 //
-//			if (possibleParameters != null && possibleParameters.size() == 1) {
-//				parameter = possibleParameters.get(0);
-//				break;
-//			}
-//		}
+//            if (possibleParameters != null && possibleParameters.size() == 1) {
+//                parameter = possibleParameters.get(0);
+//                break;
+//            }
+//        }
 //
-//		return parameter;
-	}
+//        return parameter;
+    }
 
-	@Nonnull
+    @Nonnull
     @Override
-	public Map<String, RouteParameter> getParameters() {
-		return parameters;
-	}
+    public Map<String, RouteParameter> getParameters() {
+        return parameters;
+    }
 
-	@Nonnull
+    @Nonnull
     @Override
-	public String getUrlPath() {
-		return dynamicPath;
-	}
+    public String getUrlPath() {
+        return dynamicPath;
+    }
 
-	@Nonnull
-	@Override
-	public List<EndpointPathNode> getUrlPathNodes() {
-		List<EndpointPathNode> result = new ArrayList<EndpointPathNode>();
-
-		String[] pathParts = StringUtils.split(dynamicPath, '/');
-		for (String part : pathParts) {
-			if (part.contains("*")) {
-				result.add(new WildcardEndpointPathNode(part.replaceAll("\\*", ".*")));
-			} else {
-				result.add(new ExplicitEndpointPathNode(part));
-			}
-		}
-
-		return result;
-	}
-
-	@Nonnull
+    @Nonnull
     @Override
-	public String getHttpMethod() {
-		return method;
-	}
+    public List<EndpointPathNode> getUrlPathNodes() {
+        List<EndpointPathNode> result = new ArrayList<EndpointPathNode>();
 
-	@Override
-	public boolean matchesLineNumber(int lineNumber) {
-		return true; // JSPs aren't controller-based, so the whole page is the endpoint
-	}
+        String[] pathParts = StringUtils.split(dynamicPath, '/');
+        for (String part : pathParts) {
+            if (part.contains("*")) {
+                result.add(new WildcardEndpointPathNode(part.replaceAll("\\*", ".*")));
+            } else {
+                result.add(new ExplicitEndpointPathNode(part));
+            }
+        }
 
-	@Nonnull
+        return result;
+    }
+
+    @Nonnull
     @Override
-	public String getFilePath() {
-		return staticPath;
-	}
+    public String getHttpMethod() {
+        return method;
+    }
 
-	@Override
-	public int getStartingLineNumber() {
-		return startLine;
-	}
+    @Override
+    public boolean matchesLineNumber(int lineNumber) {
+        return true; // JSPs aren't controller-based, so the whole page is the endpoint
+    }
 
-	@Override
-	public int getEndingLineNumber() {
-		return endLine;
-	}
+    @Nonnull
+    @Override
+    public String getFilePath() {
+        return staticPath;
+    }
 
-	// TODO - Re-enable
-	@Override
-	public int getLineNumberForParameter(String parameter) {
-		return -1;
+    @Override
+    public int getStartingLineNumber() {
+        return startLine;
+    }
+
+    @Override
+    public int getEndingLineNumber() {
+        return endLine;
+    }
+
+    // TODO - Re-enable
+    @Override
+    public int getLineNumberForParameter(String parameter) {
+        return -1;
 //        Integer value = paramToLineMap.get(parameter);
 //        if (value == null) {
 //            return 0;
 //        } else {
-//		    return value;
+//            return value;
 //        }
-	}
+    }
 
-	public void setLines(int startLine, int endLine) {
-		this.startLine = startLine;
-		this.endLine = endLine;
-	}
+    public void setLines(int startLine, int endLine) {
+        this.startLine = startLine;
+        this.endLine = endLine;
+    }
 
 
     @Nonnull
