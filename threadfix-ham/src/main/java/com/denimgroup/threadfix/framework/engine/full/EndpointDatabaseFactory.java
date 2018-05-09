@@ -37,6 +37,7 @@ import com.denimgroup.threadfix.framework.impl.jsp.JSPEndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.rails.RailsEndpointMappings;
 import com.denimgroup.threadfix.framework.impl.spring.SpringControllerMappings;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpointMappings;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
@@ -52,6 +53,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.BufferedOutputStream;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 
 public class EndpointDatabaseFactory {
@@ -200,11 +202,22 @@ public class EndpointDatabaseFactory {
     {
         try
         {
+            // Create a sub-folder within the target to contain the files
+            String targetFolderName = null;
+            for (int i = 0; i < 1000; i++) {
+                targetFolderName = FilenameUtils.getBaseName(zipFile);
+                File asFile = new File(targetFolderName);
+                if (!asFile.exists()) {
+                    asFile.mkdir();
+                    break;
+                }
+            }
+
             int BUFFER = 2048;
             File file = new File(zipFile);
 
             ZipFile zip = new ZipFile(file);
-            String newPath = extractFolder;
+            String newPath = targetFolderName;
 
             new File(newPath).mkdir();
             Enumeration zipFileEntries = zip.entries();
