@@ -34,6 +34,7 @@ import com.denimgroup.threadfix.framework.engine.framework.FrameworkCalculator;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointSerialization;
+import com.denimgroup.threadfix.framework.engine.full.TemporaryExtractionLocation;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import org.apache.commons.io.FileUtils;
@@ -288,11 +289,20 @@ public class EndpointMain {
     private static List<Endpoint> listEndpoints(File rootFile) {
         List<Endpoint> endpoints = list();
 
-        if (framework == FrameworkType.DETECT) {
-            framework = FrameworkCalculator.getType(rootFile);
+        File sourceRootFile = rootFile;
+        TemporaryExtractionLocation zipExtractor = null;
+        if (TemporaryExtractionLocation.isArchive(rootFile.getAbsolutePath())) {
+            zipExtractor = new TemporaryExtractionLocation(rootFile.getAbsolutePath());
+            zipExtractor.extract();
+
+            sourceRootFile = zipExtractor.getOutputPath();
         }
 
-        EndpointDatabase database = EndpointDatabaseFactory.getDatabase(rootFile, framework);
+        if (framework == FrameworkType.DETECT) {
+            framework = FrameworkCalculator.getType(sourceRootFile);
+        }
+
+        EndpointDatabase database = EndpointDatabaseFactory.getDatabase(sourceRootFile, framework);
 
         if (database != null) {
             endpoints = database.generateEndpoints();
@@ -335,7 +345,7 @@ public class EndpointMain {
             }
         }
 
-        if (EndpointValidation.validateSerialization(framework, rootFile, endpoints)) {
+        if (EndpointValidation.validateSerialization(framework, sourceRootFile, endpoints)) {
             System.out.println("Successfully validated serialization for these endpoints");
         } else {
             System.out.println("Failed to validate serialization for at least one of these endpoints");
@@ -398,6 +408,10 @@ public class EndpointMain {
         System.out.println("- " + numHaveParamType + "/" + numParams + " have their parameter type");
         for (RouteParameterType paramType : typeOccurrences.keySet()) {
             System.out.println("--- " + paramType.name() + ": " + typeOccurrences.get(paramType));
+        }
+
+        if (zipExtractor != null) {
+            zipExtractor.release();
         }
 
         return endpoints;

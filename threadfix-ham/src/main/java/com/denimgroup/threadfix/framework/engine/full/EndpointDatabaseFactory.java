@@ -25,6 +25,7 @@
 package com.denimgroup.threadfix.framework.engine.full;
 
 import com.denimgroup.threadfix.data.enums.FrameworkType;
+import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.ProjectConfig;
 import com.denimgroup.threadfix.framework.engine.cleaner.PathCleaner;
 import com.denimgroup.threadfix.framework.engine.cleaner.PathCleanerFactory;
@@ -52,6 +53,8 @@ import java.io.BufferedInputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.BufferedOutputStream;
+
+import com.sun.xml.internal.ws.api.server.EndpointData;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -80,44 +83,24 @@ public class EndpointDatabaseFactory {
 
     @Nullable
     public static EndpointDatabase getDatabase(@Nonnull String rootFile) {
-        boolean fromZip = false;
-        String format = rootFile.substring(rootFile.lastIndexOf('.') + 1).trim();
-        if (!format.isEmpty())
-        {
-            if (format.equalsIgnoreCase("zip") || format.equalsIgnoreCase("war"))
-            {
-                String folderName;
-                fromZip = true;
-                String newSource = extractFolder(rootFile, javax.swing.filechooser.FileSystemView.getFileSystemView().getDefaultDirectory().getPath());
-                if(rootFile.contains("/"))
-                {
-                    folderName = rootFile.substring(rootFile.lastIndexOf('/') + 1).trim();
-                    newSource = newSource + "/";
-                }
-                else
-                {
-                    folderName = rootFile.substring(rootFile.lastIndexOf("\\") + 1).trim();
-                    newSource = newSource + "\\";
-                }
-                folderName = folderName.substring(0, folderName.lastIndexOf('.')).trim();
-                newSource = newSource+ folderName;
-                rootFile = newSource;
-            }
-        }
+
         File file = new File(rootFile);
 
         assert file.exists() : rootFile + " didn't exist.";
         assert file.isDirectory() : rootFile + " wasn't a directory.";
 
-        EndpointDatabase db = getDatabase(file);
-        try
-        {
-            if (fromZip)
-                FileUtils.deleteDirectory(new File(rootFile));
+        TemporaryExtractionLocation zipExtractor = null;
+        if (TemporaryExtractionLocation.isArchive(rootFile)) {
+            zipExtractor = new TemporaryExtractionLocation(rootFile);
+            zipExtractor.extract();
+
+            file = zipExtractor.getOutputPath();
         }
-        catch (Exception e)
-        {
-            log.warn("Unable to delete old extracted ZIP directory at: " + rootFile + "\n(" + e.toString() + ")");
+
+        EndpointDatabase db = getDatabase(file);
+
+        if (zipExtractor != null) {
+            zipExtractor.release();
         }
 
         return db;
@@ -126,15 +109,44 @@ public class EndpointDatabaseFactory {
 
     @Nullable
     public static EndpointDatabase getDatabase(@Nonnull File rootFile) {
+        TemporaryExtractionLocation zipExtractor = null;
+        if (TemporaryExtractionLocation.isArchive(rootFile.getAbsolutePath())) {
+            zipExtractor = new TemporaryExtractionLocation(rootFile.getAbsolutePath());
+            zipExtractor.extract();
+
+            rootFile = zipExtractor.getOutputPath();
+        }
+
         FrameworkType type = FrameworkCalculator.getType(rootFile);
-        return getDatabase(rootFile, type);
+        EndpointDatabase database = getDatabase(rootFile, type);
+
+        if (zipExtractor != null) {
+            zipExtractor.release();
+        }
+
+        return database;
     }
 
     @Nullable
     public static EndpointDatabase getDatabase(@Nonnull File rootFile, List<PartialMapping> partialMappings) {
+
+        TemporaryExtractionLocation zipExtractor = null;
+        if (TemporaryExtractionLocation.isArchive(rootFile.getAbsolutePath())) {
+            zipExtractor = new TemporaryExtractionLocation(rootFile.getAbsolutePath());
+            zipExtractor.extract();
+
+            rootFile = zipExtractor.getOutputPath();
+        }
+
         FrameworkType type = FrameworkCalculator.getType(rootFile);
 
-        return getDatabase(rootFile, type, partialMappings);
+        EndpointDatabase database = getDatabase(rootFile, type, partialMappings);
+
+        if (zipExtractor != null) {
+            zipExtractor.release();
+        }
+
+        return database;
     }
 
     @Nullable
@@ -159,6 +171,13 @@ public class EndpointDatabaseFactory {
                 " and path cleaner = " +
                 cleaner);
 
+        TemporaryExtractionLocation zipExtractor = null;
+        if (TemporaryExtractionLocation.isArchive(rootFile.getAbsolutePath())) {
+            zipExtractor = new TemporaryExtractionLocation(rootFile.getAbsolutePath());
+            zipExtractor.extract();
+
+            rootFile = zipExtractor.getOutputPath();
+        }
 
         EndpointGenerator generator = null;
 
@@ -185,89 +204,23 @@ public class EndpointDatabaseFactory {
             cleaner.setEndpointGenerator(generator);
         }
 
-        if (generator == null) {
-            return null;
-        } else {
-            return new GeneratorBasedEndpointDatabase(generator, cleaner, frameworkType);
+        EndpointDatabase database = null;
+
+        if (generator != null) {
+            database = new GeneratorBasedEndpointDatabase(generator, cleaner, frameworkType);
         }
+
+        if (zipExtractor != null) {
+            zipExtractor.release();
+        }
+
+        return database;
     }
 
     @Nullable
     public static EndpointDatabase getDatabase(@Nonnull EndpointGenerator generator,
                                                @Nonnull FrameworkType frameworkType, PathCleaner cleaner) {
         return new GeneratorBasedEndpointDatabase(generator, cleaner, frameworkType);
-    }
-
-    private static String extractFolder(String zipFile,String extractFolder)
-    {
-        try
-        {
-            // Create a sub-folder within the target to contain the files
-            String targetFolderName = null;
-            for (int i = 0; i < 1000; i++) {
-                targetFolderName = FilenameUtils.getBaseName(zipFile);
-                File asFile = new File(targetFolderName);
-                if (!asFile.exists()) {
-                    asFile.mkdir();
-                    break;
-                }
-            }
-
-            int BUFFER = 2048;
-            File file = new File(zipFile);
-
-            ZipFile zip = new ZipFile(file);
-            String newPath = targetFolderName;
-
-            new File(newPath).mkdir();
-            Enumeration zipFileEntries = zip.entries();
-
-            // Process each entry
-            while (zipFileEntries.hasMoreElements())
-            {
-                // grab a zip file entry
-                ZipEntry entry = (ZipEntry) zipFileEntries.nextElement();
-                String currentEntry = entry.getName();
-
-                File destFile = new File(newPath, currentEntry);
-                File destinationParent = destFile.getParentFile();
-
-                // create the parent directory structure if needed
-                destinationParent.mkdirs();
-
-                if (!entry.isDirectory())
-                {
-                    BufferedInputStream is = new BufferedInputStream(zip
-                            .getInputStream(entry));
-                    int currentByte;
-                    // establish buffer for writing file
-                    byte data[] = new byte[BUFFER];
-
-                    // write the current file to disk
-                    FileOutputStream fos = new FileOutputStream(destFile);
-                    BufferedOutputStream dest = new BufferedOutputStream(fos, BUFFER);
-
-                    // read and write until last byte is encountered
-                    while ((currentByte = is.read(data, 0, BUFFER)) != -1)
-                    {
-                        dest.write(data, 0, currentByte);
-                    }
-                    dest.flush();
-                    dest.close();
-                    is.close();
-                    fos.flush();
-                    fos.close();
-
-                }
-            }
-
-            return extractFolder;
-        }
-        catch (Exception e)
-        {
-            return null;
-        }
-
     }
 
 }
