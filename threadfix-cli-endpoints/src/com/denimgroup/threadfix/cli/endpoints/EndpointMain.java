@@ -37,6 +37,7 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointSerialization;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Level;
@@ -112,8 +113,8 @@ public class EndpointMain {
 
                             if (!asFile.exists()) {
                                 System.out.println("WARN - Unable to find input path '" + line + "' at line " + lineNo + " of " + pathListFile);
-                            } else if (!asFile.isDirectory()) {
-                                System.out.println("WARN - Input path '" + line + "' is not a directory, at line " + lineNo + " of " + pathListFile);
+                            } else if (!asFile.isDirectory() && !isZipFile(asFile.getAbsolutePath())) {
+                                System.out.println("WARN - Input path '" + line + "' is not a directory or ZIP, at line " + lineNo + " of " + pathListFile);
                             } else {
                                 EndpointJob newJob = new EndpointJob();
                                 newJob.frameworkType = frameworkType;
@@ -170,6 +171,13 @@ public class EndpointMain {
         } else {
             printError();
         }
+    }
+
+    private static boolean isZipFile(String filePath) {
+    	String ext = FilenameUtils.getExtension(filePath).toLowerCase();
+    	return
+	        ext.equals("zip") ||
+	        ext.equals("war");
     }
 
     private static boolean checkArguments(String[] args) {
