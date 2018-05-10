@@ -238,7 +238,8 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
     }
 
     private static String cleanViewParam(String param){
-        if(StringUtils.isBlank(param) || !param.contains("$")) return null;
+        if(StringUtils.isBlank(param)) return null;
+        if (!param.contains("$")) return param;
         return param.substring(param.lastIndexOf('$') + 1, param.length());
     }
 
