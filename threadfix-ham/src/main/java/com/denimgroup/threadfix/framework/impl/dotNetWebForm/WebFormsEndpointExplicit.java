@@ -50,6 +50,13 @@ public class WebFormsEndpointExplicit extends WebFormsEndpointBase {
     }
 
     @Override
+    public WebFormsEndpointBase duplicate() {
+        WebFormsEndpointExplicit result = new WebFormsEndpointExplicit();
+        copyPropertiesTo(result);
+        return result;
+    }
+
+    @Override
     protected String calculateUrlPath() {
         return super.calculateUrlPath();
     }

@@ -75,6 +75,27 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         defaultPages = collectDefaultPages(webConfig);
         collapseToEndpoints(aspxCsParsers, aspxParsers, rootDirectory);
 
+        //  There's currently no way to distinguish HTTP methods for each route, nor for
+        //  determining which parameters go to which HTTP method. For now, just make a copy
+        //  of each endpoint and set the copy to have a POST method.
+
+        //  Duplicate the array so we don't get modify-during-iteration errors
+        for (Endpoint endpoint : new ArrayList<Endpoint>(endpoints)) {
+            WebFormsEndpointBase formsEndpoint = (WebFormsEndpointBase)endpoint;
+            WebFormsEndpointBase duplicateEndpoint = formsEndpoint.duplicate();
+            duplicateEndpoint.setHttpMethod("POST");
+            endpoints.add(duplicateEndpoint);
+
+            //  Duplicate variants as well
+            for (Endpoint variant : new ArrayList<Endpoint>(endpoint.getVariants())) {
+                WebFormsEndpointBase formsVariant = (WebFormsEndpointBase)variant;
+                WebFormsEndpointBase duplicateVariant = formsVariant.duplicate();
+
+                duplicateVariant.setHttpMethod("POST");
+                duplicateEndpoint.addVariant(duplicateVariant);
+            }
+        }
+
         EndpointUtil.rectifyVariantHierarchy(endpoints);
     }
 

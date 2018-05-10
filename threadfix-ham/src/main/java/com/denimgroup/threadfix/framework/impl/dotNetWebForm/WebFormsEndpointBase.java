@@ -47,16 +47,16 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
     private static final SanitizedLogger LOG = new SanitizedLogger(WebFormsEndpointBase.class);
 
-    String       aspxFilePath;
-    String       aspxCsFilePath;
-    String       projectRoot;
-    String       aspxRoot;
-    String       urlPath;
-    String       filePath;
+    String      aspxFilePath;
+    String      aspxCsFilePath;
+    String      projectRoot;
+    String      aspxRoot;
+    String      urlPath;
+    String      filePath;
 
     Map<String, List<Integer>> map = map();
-    private String httpMethod;
-    private Map<String, RouteParameter> params = map();
+    protected String httpMethod;
+    protected Map<String, RouteParameter> params = map();
 
     protected WebFormsEndpointBase() {
 
@@ -235,6 +235,22 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
         return true;
 
+    }
+
+    public abstract WebFormsEndpointBase duplicate();
+
+    protected void copyPropertiesTo(WebFormsEndpointBase target) {
+        target.aspxFilePath = this.aspxFilePath;
+        target.aspxCsFilePath = this.aspxCsFilePath;
+        target.projectRoot = this.projectRoot;
+        target.aspxRoot = this.aspxRoot;
+        target.urlPath = this.urlPath;
+        target.filePath = this.filePath;
+
+        target.httpMethod = this.httpMethod;
+
+        target.params.putAll(this.params);
+        target.map.putAll(this.map);
     }
 
     private static String cleanViewParam(String param){

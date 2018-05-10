@@ -50,6 +50,13 @@ public class WebFormsEndpointExtensionless extends WebFormsEndpointBase {
     }
 
     @Override
+    public WebFormsEndpointBase duplicate() {
+        WebFormsEndpointExtensionless result = new WebFormsEndpointExtensionless();
+        copyPropertiesTo(result);
+        return result;
+    }
+
+    @Override
     protected String calculateUrlPath() {
         String relativePath = calculateRelativePath(aspxFilePath, aspxRoot);
         int extensionIndex = relativePath.lastIndexOf('.');

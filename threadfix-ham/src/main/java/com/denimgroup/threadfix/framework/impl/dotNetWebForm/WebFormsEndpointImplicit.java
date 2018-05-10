@@ -52,6 +52,13 @@ public class WebFormsEndpointImplicit extends WebFormsEndpointBase {
     }
 
     @Override
+    public WebFormsEndpointBase duplicate() {
+        WebFormsEndpointImplicit result = new WebFormsEndpointImplicit();
+        copyPropertiesTo(result);
+        return result;
+    }
+
+    @Override
     protected String calculateUrlPath() {
         String relativePath = calculateRelativePath(aspxFilePath, aspxRoot);
         int lastPathIndex = relativePath.lastIndexOf('/');

@@ -16,6 +16,11 @@ public class WebFormsEndpointMatchingTests {
             protected String calculateUrlPath() {
                 return finalPath;
             }
+
+            @Override
+            public WebFormsEndpointBase duplicate() {
+                return null;
+            }
         };
     }
 
