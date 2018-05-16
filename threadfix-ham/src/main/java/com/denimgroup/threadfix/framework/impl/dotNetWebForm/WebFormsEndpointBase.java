@@ -32,10 +32,12 @@ import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.*;
@@ -53,6 +55,9 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
     String      aspxRoot;
     String      urlPath;
     String      filePath;
+
+    int         startLine;
+    int         endLine;
 
     Map<String, List<Integer>> map = map();
     protected String httpMethod;
@@ -79,6 +84,17 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
         this.urlPath = this.urlPath.replaceAll("\\\\", "/");
 
         collectParameters(aspxParser, aspxCsParser);
+
+        try {
+            //  It's difficult to discern which lines correspond to which endpoints
+            //  (and endpoint responses can span multiple methods), giving
+            //  the whole line range of the file is the closest we can get right now
+            List<String> lines = FileUtils.readLines(aspxCsParser.file);
+            this.startLine = 1;
+            this.endLine = lines.size() + 1;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         setHttpMethod("GET");
     }
@@ -247,6 +263,9 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
         target.urlPath = this.urlPath;
         target.filePath = this.filePath;
 
+        target.startLine = this.startLine;
+        target.endLine = this.endLine;
+
         target.httpMethod = this.httpMethod;
 
         target.params.putAll(this.params);
@@ -306,12 +325,12 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
     @Override
     final public int getStartingLineNumber() {
-        return -1;
+        return this.startLine;
     }
 
     @Override
     public int getEndingLineNumber() {
-        return -1;
+        return this.endLine;
     }
 
     @Override
