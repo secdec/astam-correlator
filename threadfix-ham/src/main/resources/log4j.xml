@@ -44,11 +44,11 @@
     </logger>
 
     <logger name="com.denimgroup.threadfix">
-        <level value="DEBUG"/>
+        <level value="WARN"/>
     </logger>
 
     <root>
-        <level value="DEBUG"/>
+        <level value="WARN"/>
         <appender-ref ref="CONSOLE"/>
     </root>
 
