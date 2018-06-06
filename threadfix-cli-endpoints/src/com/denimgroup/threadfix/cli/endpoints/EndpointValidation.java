@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 public class EndpointValidation {
-    public static boolean validateSerialization(FrameworkType framework, File sourceCodeFolder, List<Endpoint> endpoints) {
+    public static boolean validateSerialization(File sourceCodeFolder, List<Endpoint> endpoints) {
         List<Endpoint> allEndpoints = EndpointUtil.flattenWithVariants(endpoints);
         for (Endpoint endpoint : allEndpoints) {
 
@@ -35,7 +35,7 @@ public class EndpointValidation {
             String serialized;
             Endpoint deserialized;
             try {
-                serialized = EndpointSerialization.serialize(framework, endpoint);
+                serialized = EndpointSerialization.serialize(endpoint);
             } catch (IOException e) {
                 System.out.println("Exception occurred while serializing: " + endpoint.toString());
                 e.printStackTrace();

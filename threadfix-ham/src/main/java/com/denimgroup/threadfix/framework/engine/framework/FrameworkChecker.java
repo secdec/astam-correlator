@@ -27,11 +27,24 @@ package com.denimgroup.threadfix.framework.engine.framework;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import javax.annotation.Nonnull;
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public abstract class FrameworkChecker {
 
     @Nonnull
     public abstract FrameworkType check(@Nonnull ProjectDirectory directory);
+
+    @Nonnull
+    public List<FrameworkType> checkForMany(@Nonnull ProjectDirectory directory) {
+        FrameworkType framework = check(directory);
+        if (framework != FrameworkType.NONE) {
+            return list(framework);
+        } else {
+            return list();
+        }
+    }
 
     @Override
     public int hashCode() {
