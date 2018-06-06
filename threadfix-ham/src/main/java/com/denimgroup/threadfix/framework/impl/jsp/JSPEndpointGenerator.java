@@ -96,13 +96,14 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                 }
             }
 
-            Collection<File> jspFiles = FileUtils.listFiles(
-                    jspRoot, JSPFileFilter.INSTANCE, NoDotDirectoryFileFilter.INSTANCE);
+            Collection<File> jspFiles = FileUtils.listFiles(jspRoot, JSPFileFilter.INSTANCE, NoDotDirectoryFileFilter.INSTANCE);
 
             LOG.info("Found " + jspFiles.size() + " JSP files.");
 
             for (File file : jspFiles) {
-                parseFile(file);
+                if (!file.getAbsolutePath().toLowerCase().contains("web-inf")) {
+                    parseFile(file);
+                }
             }
 
             Collection<File> jspAndHtmlFiles = FileUtils.listFiles(rootFile, new String[] { "jsp", "html" }, true);
