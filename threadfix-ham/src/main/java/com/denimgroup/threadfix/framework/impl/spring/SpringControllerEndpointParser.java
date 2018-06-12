@@ -415,26 +415,36 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 }
                 if (type == COMMA) {
                     annotationState = AnnotationState.REQUEST_MAPPING;
-                } else if (type != DOUBLE_QUOTE && type != EQUALS) {
-                    currentMapping += CodeParseUtil.buildTokenString(type, stringValue);
+                } else if (stringValue != null) {
+                    if (type != DOUBLE_QUOTE) {
+                        currentMapping += CodeParseUtil.buildTokenString(type, stringValue);
+                    } else {
+                        currentMapping += stringValue;
+                    }
                 }
                 break;
             case HEADERS:
                 // Not doing anything with this yet
                 if (type == COMMA) {
                     annotationState = AnnotationState.REQUEST_MAPPING;
+                } else if (type == CLOSE_PAREN) {
+                    annotationState = AnnotationState.ANNOTATION_END;
                 }
                 break;
             case PRODUCES:
                 // Not doing anything with this yet
                 if (type == COMMA) {
                     annotationState = AnnotationState.REQUEST_MAPPING;
+                } else if (type == CLOSE_PAREN) {
+                    annotationState = AnnotationState.ANNOTATION_END;
                 }
                 break;
             case CONSUMES:
                 // Not doing anything with this yet
                 if (type == COMMA) {
                     annotationState = AnnotationState.REQUEST_MAPPING;
+                } else if (type == CLOSE_PAREN) {
+                    annotationState = AnnotationState.ANNOTATION_END;
                 }
                 break;
             case ANNOTATION_END:

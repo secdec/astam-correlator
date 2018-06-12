@@ -95,7 +95,11 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         this.parameters = parameters;
         this.method = method;
 
-        this.rawUrlPathPattern = Pattern.compile(urlPath.replaceAll("\\{.+\\}", "[^\\/]+"));
+        this.rawUrlPathPattern = Pattern.compile(
+            urlPath
+                .replaceAll("\\{.+\\}", "[^\\/]+")
+                .replaceAll("\\*\\*", ".*")
+        );
     }
 
     /**
