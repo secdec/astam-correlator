@@ -28,6 +28,7 @@ package com.denimgroup.threadfix.framework.impl.spring;
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
@@ -90,7 +91,16 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             PRE_AUTHORIZE   = "PreAuthorize",
             BINDING_RESULT  = "BindingResult",
             CONTROLLER      = "RestController",
-            REST_CONTROLLER = "Controller";
+            REST_CONTROLLER = "Controller",
+            GET_MAPPING     = "GetMapping",
+            POST_MAPPING    = "PostMapping",
+            PUT_MAPPING     = "PutMapping",
+            DELETE_MAPPING  = "DeleteMapping",
+            PATCH_MAPPING   = "PatchMapping",
+            PATH            = "path",
+            HEADERS         = "headers",
+            CONSUMES        = "consumes",
+            PRODUCES        = "produces";
 
     @Nonnull
     private Phase           phase           = Phase.ANNOTATION;
@@ -106,7 +116,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
     }
 
     private enum AnnotationState {
-        START, ARROBA, REQUEST_MAPPING, VALUE, METHOD, METHOD_MULTI_VALUE, ANNOTATION_END, SECURITY_ANNOTATION
+        START, ARROBA, REQUEST_MAPPING, VALUE, METHOD, METHOD_MULTI_VALUE, ANNOTATION_END, SECURITY_ANNOTATION, PATH, HEADERS, CONSUMES, PRODUCES
     }
 
     private enum SignatureState {
@@ -312,6 +322,10 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             case ARROBA:
                 if (REQUEST_MAPPING.equals(stringValue)) {
                     annotationState = AnnotationState.REQUEST_MAPPING;
+                } else if (GET_MAPPING.equals(stringValue) || POST_MAPPING.equals(stringValue) || PUT_MAPPING.equals(stringValue) || DELETE_MAPPING.equals(stringValue) || PATCH_MAPPING.equals(stringValue)) {
+                    String method = stringValue.substring(0, stringValue.length() - "Mapping".length());
+                    methodMethods.add("RequestMethod." + method.toUpperCase());
+                    annotationState = AnnotationState.REQUEST_MAPPING;
                 } else if (PRE_AUTHORIZE.equals(stringValue)) {
                     annotationState = AnnotationState.SECURITY_ANNOTATION;
                 } else if (CONTROLLER.equals(stringValue) || REST_CONTROLLER.equals(stringValue)) {
@@ -336,6 +350,14 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 } else if (stringValue != null && stringValue.equals(CLASS)) {
                     inClass = true;
                     annotationState = AnnotationState.START;
+                } else if (stringValue != null && stringValue.equals(PATH)) {
+                    annotationState = AnnotationState.PATH;
+                } else if (stringValue != null && stringValue.equals(HEADERS)) {
+                    annotationState = AnnotationState.HEADERS;
+                } else if (stringValue != null && stringValue.equals(PRODUCES)) {
+                    annotationState = AnnotationState.PRODUCES;
+                } else if (stringValue != null && stringValue.equals(CONSUMES)) {
+                    annotationState = AnnotationState.CONSUMES;
                 } else if (afterOpenParen && type == DOUBLE_QUOTE) {
                     // If it immediately starts with a quoted value, use it
                     if (inClass) {
@@ -384,6 +406,34 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                         classMethods.add(stringValue);
                     }
                 } else if (type == CLOSE_CURLY) {
+                    annotationState = AnnotationState.REQUEST_MAPPING;
+                }
+                break;
+            case PATH:
+                if (currentMapping == null) {
+                    currentMapping = "";
+                }
+                if (type == COMMA) {
+                    annotationState = AnnotationState.REQUEST_MAPPING;
+                } else if (type != DOUBLE_QUOTE && type != EQUALS) {
+                    currentMapping += CodeParseUtil.buildTokenString(type, stringValue);
+                }
+                break;
+            case HEADERS:
+                // Not doing anything with this yet
+                if (type == COMMA) {
+                    annotationState = AnnotationState.REQUEST_MAPPING;
+                }
+                break;
+            case PRODUCES:
+                // Not doing anything with this yet
+                if (type == COMMA) {
+                    annotationState = AnnotationState.REQUEST_MAPPING;
+                }
+                break;
+            case CONSUMES:
+                // Not doing anything with this yet
+                if (type == COMMA) {
                     annotationState = AnnotationState.REQUEST_MAPPING;
                 }
                 break;
