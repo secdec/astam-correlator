@@ -36,6 +36,7 @@ import com.denimgroup.threadfix.framework.impl.django.python.schema.*;
 import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -54,7 +55,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
     private List<Endpoint> endpoints;
     private Map<String, List<DjangoRoute>> routeMap;
 
-    private File rootDirectory, rootUrlsFile;
+    private File rootDirectory, appRoot, rootUrlsFile;
     private List<File> possibleGuessedUrlFiles;
 
     private void debugLog(String msg) {
@@ -71,6 +72,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         long generationStartTime = System.currentTimeMillis();
 
         this.rootDirectory = rootDirectory.getAbsoluteFile();
+        this.appRoot = findAppRoot(this.rootDirectory).getAbsoluteFile();
 
         findRootUrlsFile();
         if (rootUrlsFile == null || !rootUrlsFile.exists()) {
@@ -84,7 +86,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         LOG.info("Parsing codebase for modules, classes, and functions...");
         long codeParseStartTime = System.currentTimeMillis();
-        PythonCodeCollection codebase = PythonSyntaxParser.run(rootDirectory);
+        PythonCodeCollection codebase = PythonSyntaxParser.run(appRoot);
         //PythonDebugUtil.printFullTypeNames(codebase);
         //PythonDebugUtil.printFullImports(codebase);
         long codeParseDuration = System.currentTimeMillis() - codeParseStartTime;
@@ -99,7 +101,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         debugLog("Initializing codebase before attaching Django APIs...");
         codebase.initialize();
 
-        DjangoProject project = DjangoProject.loadFrom(rootDirectory, codebase);
+        DjangoProject project = DjangoProject.loadFrom(appRoot, codebase);
         DjangoApiConfigurator djangoApis = new DjangoApiConfigurator(project);
 
         debugLog("Attaching known Django APIs");
@@ -147,7 +149,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         }
 
         if (rootUrlsFile != null && rootUrlsFile.exists()) {
-            routeMap = DjangoRouteParser.parse(rootDirectory.getAbsolutePath(), "", rootUrlsFile.getAbsolutePath(), codebase, interpreter, rootUrlsFile);
+            routeMap = DjangoRouteParser.parse(appRoot.getAbsolutePath(), "", rootUrlsFile.getAbsolutePath(), codebase, interpreter, rootUrlsFile);
         } else if (possibleGuessedUrlFiles != null && possibleGuessedUrlFiles.size() > 0) {
 
             debugLog("Found " + possibleGuessedUrlFiles.size() + " possible URL files:");
@@ -158,7 +160,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             routeMap = map();
             for (File guessedUrlsFile : possibleGuessedUrlFiles) {
                 Map<String, List<DjangoRoute>> guessedUrls = DjangoRouteParser.parse(
-                        rootDirectory.getAbsolutePath(),
+                        appRoot.getAbsolutePath(),
                         "",
                         guessedUrlsFile.getAbsolutePath(),
                         codebase,interpreter,
@@ -184,9 +186,18 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         for (Endpoint endpoint : this.endpoints) {
             DjangoEndpoint djangoEndpoint = (DjangoEndpoint)endpoint;
             String filePath = djangoEndpoint.getFilePath();
-            if (filePath.startsWith(rootDirectory.getAbsolutePath())) {
-                String relativePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+            if (filePath.startsWith(appRoot.getAbsolutePath())) {
+                String appRelativePath = FilePathUtils.getRelativePath(filePath, appRoot);
+                String absolutePath = PathUtil.combine(rootDirectory.getAbsolutePath(), appRelativePath);
+                String relativePath = FilePathUtils.getRelativePath(absolutePath, this.rootDirectory);
                 djangoEndpoint.setFilePath(relativePath);
+            } else if (!appRoot.getAbsolutePath().equals(rootDirectory.getAbsolutePath())) {
+                // App root will not match root directory if the django app is in a subdirectory; all endpoints
+                //  are generated relative to appRoot so that modules are generated correctly, but the resulting
+                //  file paths are relative to appRoot instead of root directory. Correct that here.
+                String appRelativePath = FilePathUtils.getRelativePath(this.rootDirectory, this.appRoot);
+                String newPath = PathUtil.combine(appRelativePath, filePath, true);
+                djangoEndpoint.setFilePath(newPath);
             }
         }
 
@@ -194,6 +205,28 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
         long generationDuration = System.currentTimeMillis() - generationStartTime;
         debugLog("Finished python endpoint generation in " + generationDuration + "ms");
+    }
+
+    private File findAppRoot(File baseDirectory) {
+        // Try to find by first folder containing manage.py or setup.py
+        Collection<File> pythonFiles = FileUtils.listFiles(baseDirectory, new String[] { "py" }, true);
+        String bestDirectory = null;
+        for (File file : pythonFiles) {
+            if (file.getName().toLowerCase().equals("manage.py") || file.getName().toLowerCase().equals("setup.py")) {
+                String parentFolderPath = file.getParentFile().getAbsolutePath();
+                if (bestDirectory == null) {
+                    bestDirectory = parentFolderPath;
+                } else if (bestDirectory.length() > parentFolderPath.length()) {
+                    bestDirectory = parentFolderPath;
+                }
+            }
+        }
+
+        if (bestDirectory != null) {
+            return new File(bestDirectory);
+        } else {
+            return baseDirectory;
+        }
     }
 
     private void findRootUrlsFile() {
