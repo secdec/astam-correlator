@@ -26,9 +26,12 @@ package com.denimgroup.threadfix.framework.impl.spring;
 
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import org.apache.commons.io.FileUtils;
+
 import javax.annotation.Nonnull;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.StreamTokenizer;
 
 public class SpringJavaConfigurationChecker {
@@ -45,6 +48,15 @@ public class SpringJavaConfigurationChecker {
         }
 
         return result;
+    }
+
+    public static boolean checkXmlFile(@Nonnull File file) {
+        try {
+            String contents = FileUtils.readFileToString(file);
+            return contents.toLowerCase().contains("springframework");
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     static class WebMvcChecker implements EventBasedTokenizer {
@@ -76,10 +88,13 @@ public class SpringJavaConfigurationChecker {
                     beforeClass = false;
                 } else if (stringValue.equals("WebMvcConfigurationSupport")) {
                     isWebMvcConfigurationSupportSubclass = hasExtends;
-
                 } else {
                 }
                 arroba = false;
+
+                if (isWebMvc()) {
+                    shouldContinue = false;
+                }
             } else if (type == ARROBA) {
                 arroba = true;
             } else if (type == OPEN_CURLY) {

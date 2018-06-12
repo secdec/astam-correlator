@@ -35,6 +35,7 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Collection;
+import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
@@ -88,6 +89,28 @@ public class FrameworkCalculator {
         log.info("Source tree framework type detection returned: " + frameworkType.getDisplayName());
 
         return frameworkType;
+    }
+
+    public static List<FrameworkType> getTypes(@Nonnull File rootFile) {
+        log.info("Attempting to guess Framework Type from source tree.");
+        log.info("File: " + rootFile);
+
+        List<FrameworkType> frameworkTypes = list();
+
+        if (rootFile.exists() && rootFile.isDirectory()) {
+            ProjectDirectory projectDirectory = new ProjectDirectory(rootFile);
+
+            for (FrameworkChecker checker : INSTANCE.frameworkCheckers) {
+                Collection<FrameworkType> discoveredTypes = checker.checkForMany(projectDirectory);
+                frameworkTypes.addAll(discoveredTypes);
+            }
+        } else {
+            log.warn("Invalid directory passed to FrameworkCalculator.getType(File): " + rootFile);
+        }
+
+        log.info("Source tree framework type detection returned " + frameworkTypes.size() + " frameworks");
+
+        return frameworkTypes;
     }
 
 }

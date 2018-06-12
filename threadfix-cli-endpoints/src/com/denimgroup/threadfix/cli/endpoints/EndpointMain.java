@@ -33,10 +33,8 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.framework.FrameworkCalculator;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
-import com.denimgroup.threadfix.framework.engine.full.EndpointSerialization;
 import com.denimgroup.threadfix.framework.engine.full.TemporaryExtractionLocation;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
-import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,8 +46,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.Dictionary;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -58,7 +55,7 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.data.interfaces.Endpoint.PrintFormat.JSON;
 
 public class EndpointMain {
-    private static final String FRAMEWORK_COMMAND = "-framework=";
+    private static final String FRAMEWORK_COMMAND = "-defaultFramework=";
     enum Logging {
         ON, OFF
     }
@@ -67,7 +64,7 @@ public class EndpointMain {
 
     static Logging logging = Logging.OFF;
     static Endpoint.PrintFormat printFormat = Endpoint.PrintFormat.DYNAMIC;
-    static FrameworkType framework = FrameworkType.DETECT;
+    static FrameworkType defaultFramework = FrameworkType.DETECT;
     static boolean simplePrint = false;
     static String pathListFile = null;
 
@@ -97,17 +94,13 @@ public class EndpointMain {
                             isLongComment = false;
                         } else if (!line.startsWith("#") && !line.isEmpty() && !isLongComment) {
 
+                            List<FrameworkType> compositeFrameworkTypes = list();
                             FrameworkType frameworkType = FrameworkType.DETECT;
                             File asFile;
                             if (line.contains(":") && !(new File(line)).exists()) {
                                 String[] parts = StringUtils.split(line, ":", 2);
                                 frameworkType = FrameworkType.getFrameworkType(parts[0].trim());
                                 asFile = new File(parts[1].trim());
-
-                                if (frameworkType == FrameworkType.NONE || frameworkType == FrameworkType.DETECT) {
-                                    System.out.println("WARN: Couldn't parse framework type: '" + frameworkType + "', for '" + asFile.getName() + "' using DETECT");
-                                    frameworkType = FrameworkType.DETECT;
-                                }
                             } else {
                                 asFile = new File(line);
                             }
@@ -117,8 +110,19 @@ public class EndpointMain {
                             } else if (!asFile.isDirectory() && !isZipFile(asFile.getAbsolutePath())) {
                                 System.out.println("WARN - Input path '" + line + "' is not a directory or ZIP, at line " + lineNo + " of " + pathListFile);
                             } else {
+                                if (frameworkType == FrameworkType.NONE) {
+                                    System.out.println("WARN: Couldn't parse framework type: '" + frameworkType + "', for '" + asFile.getName() + "' using DETECT");
+                                }
+
+                                if (frameworkType == FrameworkType.DETECT) {
+                                    compositeFrameworkTypes = FrameworkCalculator.getTypes(asFile);
+                                }
+
                                 EndpointJob newJob = new EndpointJob();
-                                newJob.frameworkType = frameworkType;
+                                if (compositeFrameworkTypes.isEmpty()) {
+                                    compositeFrameworkTypes.add(frameworkType);
+                                }
+                                newJob.frameworkTypes = compositeFrameworkTypes;
                                 newJob.sourceCodePath = asFile;
                                 requestedTargets.add(newJob);
                             }
@@ -129,17 +133,16 @@ public class EndpointMain {
                     numProjects = requestedTargets.size();
 
                     boolean isFirst = true;
-                    FrameworkType baseType = framework;
                     for (EndpointJob job : requestedTargets) {
                         if (isFirst) {
                             System.out.println(PRINTLN_SEPARATOR);
                             isFirst = false;
                         }
-                        System.out.println("Beginning endpoint detection for '" + job.sourceCodePath.getAbsolutePath() + "'");
-                        framework = job.frameworkType;
-                        System.out.println("Using framework=" + framework);
-                        List<Endpoint> generatedEndpoints = listEndpoints(job.sourceCodePath);
-                        framework = baseType;
+                        System.out.println("Beginning endpoint detection for '" + job.sourceCodePath.getAbsolutePath() + "' with " + job.frameworkTypes.size() + " framework types");
+                        for (FrameworkType subType : job.frameworkTypes) {
+                            System.out.println("Using framework=" + subType);
+                        }
+                        List<Endpoint> generatedEndpoints = listEndpoints(job.sourceCodePath, job.frameworkTypes);
                         System.out.println("Finished endpoint detection for '" + job.sourceCodePath.getAbsolutePath() + "'");
                         System.out.println(PRINTLN_SEPARATOR);
 
@@ -154,9 +157,18 @@ public class EndpointMain {
                     printError();
                 }
             } else {
-	        ++numProjects;
+    	        ++numProjects;
 
-                if (!listEndpoints(new File(args[0])).isEmpty()) {
+    	        File rootFolder = new File(args[0]);
+
+    	        List<FrameworkType> compositeFrameworkTypes = list();
+    	        if (defaultFramework == FrameworkType.DETECT) {
+    	            compositeFrameworkTypes.addAll(FrameworkCalculator.getTypes(rootFolder));
+                } else {
+    	            compositeFrameworkTypes.add(defaultFramework);
+                }
+
+                if (!listEndpoints(rootFolder, list(defaultFramework)).isEmpty()) {
                     ++numProjectsWithEndpoints;
                 }
             }
@@ -206,7 +218,7 @@ public class EndpointMain {
                 } else if (arg.contains(FRAMEWORK_COMMAND)) {
                     String frameworkName = arg.substring(arg.indexOf(
                             FRAMEWORK_COMMAND) + FRAMEWORK_COMMAND.length(), arg.length());
-                    framework = FrameworkType.getFrameworkType(frameworkName);
+                    defaultFramework = FrameworkType.getFrameworkType(frameworkName);
                 } else if (arg.equals("-simple")) {
                     simplePrint = true;
                 } else if (arg.startsWith("-path-list-file=")) {
@@ -286,7 +298,7 @@ public class EndpointMain {
         return numPrinted;
     }
 
-    private static List<Endpoint> listEndpoints(File rootFile) {
+    private static List<Endpoint> listEndpoints(File rootFile, Collection<FrameworkType> frameworkTypes) {
         List<Endpoint> endpoints = list();
 
         File sourceRootFile = rootFile;
@@ -298,14 +310,18 @@ public class EndpointMain {
             sourceRootFile = zipExtractor.getOutputPath();
         }
 
-        if (framework == FrameworkType.DETECT) {
-            framework = FrameworkCalculator.getType(sourceRootFile);
+        List<EndpointDatabase> databases = list();
+        for (FrameworkType frameworkType : frameworkTypes) {
+            EndpointDatabase database = EndpointDatabaseFactory.getDatabase(sourceRootFile, frameworkType);
+            if (database != null) {
+                databases.add(database);
+            } else {
+                System.out.println("Warning: EndpointDatabaseFactory.getDatabase returned null for framework type " + frameworkType);
+            }
         }
 
-        EndpointDatabase database = EndpointDatabaseFactory.getDatabase(sourceRootFile, framework);
-
-        if (database != null) {
-            endpoints = database.generateEndpoints();
+        for (EndpointDatabase db : databases) {
+            endpoints.addAll(db.generateEndpoints());
         }
 
         //Collections.sort(endpoints);
@@ -345,7 +361,7 @@ public class EndpointMain {
             }
         }
 
-        if (EndpointValidation.validateSerialization(framework, sourceRootFile, endpoints)) {
+        if (EndpointValidation.validateSerialization(sourceRootFile, endpoints)) {
             System.out.println("Successfully validated serialization for these endpoints");
         } else {
             System.out.println("Failed to validate serialization for at least one of these endpoints");

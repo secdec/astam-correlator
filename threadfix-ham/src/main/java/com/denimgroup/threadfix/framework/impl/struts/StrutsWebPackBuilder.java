@@ -57,7 +57,6 @@ public class StrutsWebPackBuilder {
             for (String reservedName : RESERVED_FILE_NAMES) {
                 if (relativePath.contains(reservedName)) {
                     parse = false;
-                    break;
                 }
             }
 
