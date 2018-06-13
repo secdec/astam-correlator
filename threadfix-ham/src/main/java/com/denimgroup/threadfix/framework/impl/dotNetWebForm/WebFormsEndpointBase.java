@@ -85,16 +85,12 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
         collectParameters(aspxParser, aspxCsParser);
 
-        try {
-            //  It's difficult to discern which lines correspond to which endpoints
-            //  (and endpoint responses can span multiple methods), giving
-            //  the whole line range of the file is the closest we can get right now
-            List<String> lines = FileUtils.readLines(aspxCsParser.file);
-            this.startLine = 1;
-            this.endLine = lines.size() + 1;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        //  It's difficult to discern which lines correspond to which endpoints
+        //  (and endpoint responses can span multiple methods), giving
+        //  the whole line range of the file is the closest we can get right now
+        int numLines = CodeParseUtil.countLines(aspxCsParser.file.getAbsolutePath());
+        this.startLine = 1;
+        this.endLine = numLines;
 
         setHttpMethod("GET");
     }

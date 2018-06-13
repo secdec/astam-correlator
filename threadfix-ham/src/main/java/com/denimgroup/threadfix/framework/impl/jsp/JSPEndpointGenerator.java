@@ -303,12 +303,8 @@ public class JSPEndpointGenerator implements EndpointGenerator {
             }
 
             if (file.exists() && !lineCounts.containsKey(filePath)) {
-                try {
-                    Collection<String> fileLines = FileUtils.readLines(file);
-                    lineCounts.put(filePath, fileLines.size());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            	int numLines = CodeParseUtil.countLines(file.getAbsolutePath());
+            	lineCounts.put(filePath, numLines);
             }
         }
 
