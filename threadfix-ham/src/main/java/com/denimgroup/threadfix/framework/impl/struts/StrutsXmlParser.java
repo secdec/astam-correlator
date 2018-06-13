@@ -242,7 +242,7 @@ public class StrutsXmlParser {
             String fileName = extractFileName(path);
             File configFile = getConfigFile(fileName, configFiles);
             if (configFile != null) {
-                StrutsXmlParser strutsXmlParser = new StrutsXmlParser();
+                StrutsXmlParser strutsXmlParser = new StrutsXmlParser(configFiles);
                 return strutsXmlParser.parse(configFile);
             } else {
                 return null;

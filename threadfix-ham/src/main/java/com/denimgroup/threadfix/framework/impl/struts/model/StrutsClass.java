@@ -28,6 +28,7 @@ import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.List;
@@ -50,6 +51,10 @@ public class StrutsClass {
 
     public StrutsClass(String className, String sourceFile) {
         this.className = className;
+
+        if (sourceFile != null) {
+        	sourceFile = StringUtils.replaceChars(sourceFile, '\\', '/');
+        }
         this.sourceFilePath = sourceFile;
     }
 

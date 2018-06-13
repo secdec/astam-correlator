@@ -26,7 +26,7 @@ package com.denimgroup.threadfix.framework.impl.struts.mappers;
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
@@ -68,11 +68,9 @@ public class DefaultActionMapper implements ActionMapper {
                 StrutsEndpoint endpoint = new StrutsEndpoint(endpointPath, PathUtil.combine(namespace, file), "GET", params);
                 endpoint.setDisplayFilePath(fullPath);
 
-                try {
-                    int numLines = FileUtils.readLines(new File(fullPath)).size();
-                    endpoint.setLineNumbers(1, numLines + 1);
-                } catch (IOException e) {
-                    e.printStackTrace();
+                int numLines = CodeParseUtil.countLines(fullPath);
+                if (numLines > 0) {
+                	endpoint.setLineNumbers(1, numLines);
                 }
                 endpoints.add(endpoint);
             }
@@ -87,12 +85,7 @@ public class DefaultActionMapper implements ActionMapper {
                     continue;
                 }
 
-                int numLines = -1;
-                try {
-                    numLines = FileUtils.readLines(new File(fullPath)).size();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+                int numLines = CodeParseUtil.countLines(fullPath);
 
                 endpoint = new StrutsEndpoint(endpointPath, namespace, "GET", params);
                 endpoint.setDisplayFilePath(fullPath);
@@ -243,6 +236,12 @@ public class DefaultActionMapper implements ActionMapper {
                         if (primaryResult != null) {
                             newEndpoint.setDisplayFilePath(PathUtil.combine(project.getWebPath(), primaryResult.getValue()));
                         }
+                        if (newEndpoint.getDisplayFilePath() != null && newEndpoint.getStartingLineNumber() < 0 && newEndpoint.getEndingLineNumber() < 0) {
+                        	int lineCount = CodeParseUtil.countLines(newEndpoint.getDisplayFilePath());
+                        	if (lineCount > 0) {
+                        		newEndpoint.setLineNumbers(1, lineCount);
+	                        }
+                        }
                         endpoints.add(newEndpoint);
                     }
                 }
@@ -257,10 +256,9 @@ public class DefaultActionMapper implements ActionMapper {
                             if (primaryWebPack.contains(filePath)) {
                                 String fullContentPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), filePath);
                                 StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(fullContentPath, project), basePath, "GET", new HashMap<String, RouteParameter>());
-                                try {
-                                    newEndpoint.setLineNumbers(1, FileUtils.readLines(new File(fullContentPath)).size());
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                                int numLines = CodeParseUtil.countLines(fullContentPath);
+                                if (numLines > 0) {
+                                	newEndpoint.setLineNumbers(1, numLines);
                                 }
                                 newEndpoint.setDisplayFilePath(fullContentPath);
                                 endpoints.add(newEndpoint);

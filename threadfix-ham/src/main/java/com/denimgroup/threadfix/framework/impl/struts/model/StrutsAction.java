@@ -25,6 +25,8 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.struts.model;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +53,8 @@ public class StrutsAction {
         this.name = name;
         this.method = method;
         this.actClass = actClass;
-        this.actClassLocation = actClassLocation;
+
+        setActClassLocation(actClassLocation);
     }
 
     public String getName() {
@@ -83,6 +86,9 @@ public class StrutsAction {
     }
 
     public void setActClassLocation(String newActClassLocation) {
+    	if (newActClassLocation != null) {
+    		newActClassLocation = StringUtils.replaceChars(newActClassLocation, '\\', '/');
+	    }
         actClassLocation = newActClassLocation;
     }
 

@@ -23,6 +23,10 @@
 
 package com.denimgroup.threadfix.framework.util;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -128,5 +132,24 @@ public class CodeParseUtil {
         }
 
         return splitString.toArray(new String[splitString.size()]);
+    }
+
+    public static int countLines(String filePath) {
+    	int numLines = 0;
+
+	    FileReader reader = null;
+	    try {
+		    reader = new FileReader(filePath);
+		    int c;
+		    while ((c = reader.read()) >= 0) {
+			    if (c == '\n') ++numLines;
+		    }
+	    } catch (FileNotFoundException e) {
+	    	return 0;
+	    } catch (IOException e) {
+	    	return 0;
+	    }
+
+	    return numLines + 1;
     }
 }
