@@ -52,7 +52,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
 
     @Nonnull
     Set<SpringControllerEndpoint> endpoints = new TreeSet<SpringControllerEndpoint>();
-    private int startLineNumber = 0, curlyBraceCount = 0, openParenCount = 0;
+    private int startLineNumber = -1, curlyBraceCount = 0, openParenCount = 0;
     private boolean inClass = false, afterOpenParen = false;
     boolean hasControllerAnnotation = false;
 
@@ -160,8 +160,15 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
         return !inClass || hasControllerAnnotation;
     }
 
+    int lastLine = -1;
+
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
+
+        if (lineNumber != lastLine) {
+            lastLine = lineNumber;
+        }
+
         switch (phase) {
             case ANNOTATION: parseAnnotation(type, lineNumber, stringValue); break;
             case SIGNATURE:  parseSignature(type, stringValue);              break;
@@ -343,6 +350,10 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 }
                 break;
             case REQUEST_MAPPING:
+                if (startLineNumber < 0) {
+                    startLineNumber = lineNumber;
+                }
+
                 if (stringValue != null && stringValue.equals(VALUE)) {
                     annotationState = AnnotationState.VALUE;
                 } else if (stringValue != null && stringValue.equals(METHOD)) {
@@ -362,7 +373,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                     // If it immediately starts with a quoted value, use it
                     if (inClass) {
                         currentMapping = stringValue;
-                        startLineNumber = lineNumber;
                         annotationState = AnnotationState.ANNOTATION_END;
                     } else {
                         classEndpoint = stringValue;
@@ -412,6 +422,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             case PATH:
                 if (currentMapping == null) {
                     currentMapping = "";
+                    startLineNumber = lineNumber;
                 }
                 if (type == COMMA) {
                     annotationState = AnnotationState.REQUEST_MAPPING;
