@@ -371,11 +371,17 @@ public class JSPServletParser {
 
             int currentMethodBraceLevel = scopeTracker.getNumOpenBrace();
             boolean enteredMethodBody = false;
+            boolean isAbstract = false;
             while (currentMethodBraceLevel != scopeTracker.getNumOpenBrace() || !enteredMethodBody) {
                 if (currentMethodBraceLevel != scopeTracker.getNumOpenBrace()) {
                     enteredMethodBody = true;
                 }
                 char c = fileContents.charAt(currentScanningIndex++);
+                if (c == ';' && !enteredMethodBody) {
+                    // must be an abstract method
+                    isAbstract = true;
+                    break;
+                }
                 if (c == '\n') {
                     ++lineNo;
                 }
@@ -390,13 +396,14 @@ public class JSPServletParser {
 
             methodEndLine = lineNo;
 
-            JSPServletMethodMap newMap = new JSPServletMethodMap();
-            newMap.methodName = methodName;
-            newMap.startLine = methodStartLine;
-            newMap.endLine = methodEndLine;
+            if (!isAbstract) {
+                JSPServletMethodMap newMap = new JSPServletMethodMap();
+                newMap.methodName = methodName;
+                newMap.startLine = methodStartLine;
+                newMap.endLine = methodEndLine;
 
-            result.add(newMap);
-
+                result.add(newMap);
+            }
         }
 
         return result;
