@@ -146,7 +146,7 @@ public class DefaultActionMapper implements ActionMapper {
                 if (classLocation != null)
                     classLocation = classLocation.replace('\\', '/');
 
-                StrutsClass classForAction = project.findClassByFileLocation(classLocation);
+                StrutsClass classForAction = project.getCodebase().findClassByFileLocation(classLocation);
                 Set<ModelField> fieldMappings = set();
                 if (classForAction != null) {
                     if (!classForAction.getBaseTypes().contains("ActionSupport") && !classForAction.getName().equals("JSPServlet")) {

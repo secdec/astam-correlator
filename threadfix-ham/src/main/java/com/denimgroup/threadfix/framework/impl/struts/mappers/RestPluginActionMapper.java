@@ -101,7 +101,7 @@ public class RestPluginActionMapper implements ActionMapper {
 
                 StrutsClass actionClass = null;
                 if (action.getActClassLocation() != null && sourceClass == null) {
-                    actionClass = project.findClassByFileLocation(action.getActClassLocation());
+                    actionClass = project.getCodebase().findClassByFileLocation(action.getActClassLocation());
                     if (actionClass != null) {
                         boolean isSupported = false;
                         for (String baseType : actionClass.getBaseTypes()) {

@@ -36,10 +36,7 @@ import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapperFactor
 import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPluginDetector;
-import com.denimgroup.threadfix.framework.util.CodeParseUtil;
-import com.denimgroup.threadfix.framework.util.EndpointUtil;
-import com.denimgroup.threadfix.framework.util.ParameterMerger;
-import com.denimgroup.threadfix.framework.util.PathUtil;
+import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
@@ -62,12 +59,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
     private final String STRUTS_CONFIG_NAME = "struts.xml";
     private final String STRUTS_PROPERTIES_NAME = "struts.properties";
 
-    private File rootDirectory;
-    private Collection<File> javaFiles;
     private List<StrutsPackage> strutsPackages;
-    private EntityMappings entityMappings;
     private List<Endpoint> endpoints;
-    private StrutsConfigurationProperties configurationProperties;
     private ActionMapper actionMapper;
 
     private String[] acceptedWebFileTypes = new String[] {
@@ -84,132 +77,144 @@ public class StrutsEndpointMappings implements EndpointGenerator {
     };
 
     public StrutsEndpointMappings(@Nonnull File rootDirectory) {
-        this.rootDirectory = rootDirectory;
-//        urlToControllerMethodsMap = map();
-        List<File> strutsConfigFiles = list();
-        List<File> strutsPropertiesFiles = list();
 
-        entityMappings = new EntityMappings(rootDirectory);
-
-        if (rootDirectory.exists()) {
-            javaFiles = FileUtils.listFiles(rootDirectory,
-                    new FileExtensionFileFilter("java"), TrueFileFilter.TRUE);
-        } else {
-            javaFiles = Collections.emptyList();
-        }
-
-        String[] configExtensions = {"xml", "properties"};
-        Collection configFiles = FileUtils.listFiles(rootDirectory, configExtensions, true);
-
-        for (Object configFile : configFiles) {
-            File file = (File) configFile;
-            if (file.getName().equals(STRUTS_CONFIG_NAME) || (file.getName().contains("struts") && file.getName().endsWith("xml")))
-                strutsConfigFiles.add(file);
-            if (file.getName().equals(STRUTS_PROPERTIES_NAME))
-                strutsPropertiesFiles.add(file);
-        }
-
-        //  In the case of Ant projects, properties may be contained in the project file
-        if (strutsPropertiesFiles.size() == 0) {
-            //  We'd prefer to have the proper "struts.properties" file; in absence of that, we'll
-            //  take what we can get
-            for (Object configFile : configFiles) {
-                File file = (File) configFile;
-                if (!file.getName().endsWith(".properties")) {
-                    continue;
-                }
-
-                strutsPropertiesFiles.add(file);
-            }
-        }
+        StrutsProjectDetector detector = new StrutsProjectDetector();
+        log.debug("Detecting project folders");
+        Collection<String> projectFolders = detector.findProjectPaths(rootDirectory);
+        log.debug("Detected " + projectFolders.size() + " projects");
 
         Collection<File> javaFiles = FileUtils.listFiles(rootDirectory, new String[] { "java" }, true);
         Collection<StrutsClass> discoveredClasses = list();
         for (File javaFile : javaFiles) {
+            if (javaFile.getAbsolutePath().toLowerCase().contains("test")) {
+                continue;
+            }
+
             StrutsClass parsedClass = new StrutsClassParser(javaFile).getResultClass();
             if (parsedClass != null) {
                 discoveredClasses.add(parsedClass);
             }
         }
 
-        configurationProperties = new StrutsConfigurationProperties();
-        for (File cfgFile : strutsConfigFiles)
-            configurationProperties.loadFromStrutsXml(cfgFile);
-        for (File propsFile : strutsPropertiesFiles)
-            configurationProperties.loadFromStrutsProperties(propsFile);
+        StrutsCodebase codebase = new StrutsCodebase();
+        codebase.addClasses(discoveredClasses);
+        expandClassBaseTypes(codebase);
+
+        this.endpoints = list();
 
 
-        strutsPackages = list();
-        for (File cfgFile : strutsConfigFiles) {
-            StrutsXmlParser strutsXmlParser = new StrutsXmlParser(configFiles);
-            strutsPackages.addAll(strutsXmlParser.parse(cfgFile));
-        }
+        for (String projectFolderPath : projectFolders) {
 
-        StrutsProject project = new StrutsProject(rootDirectory.getAbsolutePath());
-        project.setConfiguration(configurationProperties);
+            log.debug("Processing project at: " + projectFolderPath);
 
-        //  Add default action mappers
+            List<File> strutsConfigFiles = list();
+            List<File> strutsPropertiesFiles = list();
 
-        project.addPackages(strutsPackages);
-        project.addClasses(discoveredClasses);
+            StrutsConfigurationProperties configurationProperties;
 
-        expandClassBaseTypes(project);
+            File projectFolder = new File(projectFolderPath);
+            String[] configExtensions = {"xml", "properties"};
+            Collection configFiles = FileUtils.listFiles(projectFolder, configExtensions, true);
 
-        for (StrutsPackage strutsPackage : strutsPackages) {
-            project.addActions(strutsPackage.getActions());
-        }
-
-        for (StrutsAction action : project.getActions()) {
-            if (action.getActClass() == null) {
-                continue;
+            for (Object configFile : configFiles) {
+                File file = (File) configFile;
+                if (file.getName().equals(STRUTS_CONFIG_NAME) || (file.getName().contains("struts") && file.getName().endsWith("xml")))
+                    strutsConfigFiles.add(file);
+                if (file.getName().equals(STRUTS_PROPERTIES_NAME))
+                    strutsPropertiesFiles.add(file);
             }
-            StrutsClass classForAction = project.findClassByName(action.getActClass());
-            if (classForAction != null) {
-                action.setActClassLocation(classForAction.getSourceFile());
-            }
-        }
 
-        StrutsPluginDetector pluginDetector = new StrutsPluginDetector();
-        for (StrutsPlugin plugin : pluginDetector.detectPlugins(rootDirectory)) {
-            log.info("Detected struts plugin: " + plugin);
-            project.addPlugin(plugin);
-        }
+            //  In the case of Ant projects, properties may be contained in the project file
+            if (strutsPropertiesFiles.size() == 0) {
+                //  We'd prefer to have the proper "struts.properties" file; in absence of that, we'll
+                //  take what we can get
+                for (Object configFile : configFiles) {
+                    File file = (File) configFile;
+                    if (!file.getName().endsWith(".properties")) {
+                        continue;
+                    }
 
-        File webXmlFile = StrutsWebXmlParser.findWebXml(rootDirectory);
-
-        if (webXmlFile != null) {
-            StrutsWebXmlParser webXmlParser = new StrutsWebXmlParser(webXmlFile);
-            project.setWebPath(webXmlParser.getPrimaryWebContentPath());
-            project.setWebInfPath(webXmlParser.getWebInfFolderPath());
-
-            StrutsWebPackBuilder webPackBuilder = new StrutsWebPackBuilder();
-            webPackBuilder.acceptFileType(acceptedWebFileTypes);
-
-            File webContentRoot = new File(webXmlParser.getPrimaryWebContentPath());
-            if (!webContentRoot.isDirectory()) {
-                log.warn("Found a web.xml but the content root did not exist!");
-            } else {
-                StrutsWebPack primaryWebPack = webPackBuilder.generate(webContentRoot);
-                for (String welcomeFile : webXmlParser.getWelcomeFiles()) {
-                    primaryWebPack.addWelcomeFile(welcomeFile);
+                    strutsPropertiesFiles.add(file);
                 }
-                project.addWebPack(primaryWebPack);
             }
-        } else {
-            log.warn("Couldn't find web.xml file, won't generate JSP web-packs");
+
+            configurationProperties = new StrutsConfigurationProperties();
+            for (File cfgFile : strutsConfigFiles)
+                configurationProperties.loadFromStrutsXml(cfgFile);
+            for (File propsFile : strutsPropertiesFiles)
+                configurationProperties.loadFromStrutsProperties(propsFile);
+
+
+            strutsPackages = list();
+            for (File cfgFile : strutsConfigFiles) {
+                StrutsXmlParser strutsXmlParser = new StrutsXmlParser(configFiles);
+                strutsPackages.addAll(strutsXmlParser.parse(cfgFile));
+            }
+
+            StrutsProject project = new StrutsProject(projectFolderPath);
+            project.setConfiguration(configurationProperties);
+
+            //  Add default action mappers
+
+            project.addPackages(strutsPackages);
+            project.setCodebase(codebase);
+
+            for (StrutsPackage strutsPackage : strutsPackages) {
+                project.addActions(strutsPackage.getActions());
+            }
+
+            for (StrutsAction action : project.getActions()) {
+                if (action.getActClass() == null) {
+                    continue;
+                }
+                StrutsClass classForAction = codebase.findClassByName(action.getActClass());
+                if (classForAction != null) {
+                    action.setActClassLocation(classForAction.getSourceFile());
+                }
+            }
+
+            StrutsPluginDetector pluginDetector = new StrutsPluginDetector();
+            for (StrutsPlugin plugin : pluginDetector.detectPlugins(projectFolder)) {
+                log.info("Detected struts plugin: " + plugin);
+                project.addPlugin(plugin);
+            }
+
+            File webXmlFile = StrutsWebXmlParser.findWebXml(projectFolder);
+
+            if (webXmlFile != null) {
+                StrutsWebXmlParser webXmlParser = new StrutsWebXmlParser(webXmlFile);
+                project.setWebPath(webXmlParser.getPrimaryWebContentPath());
+                project.setWebInfPath(webXmlParser.getWebInfFolderPath());
+
+                StrutsWebPackBuilder webPackBuilder = new StrutsWebPackBuilder();
+                webPackBuilder.acceptFileType(acceptedWebFileTypes);
+
+                File webContentRoot = new File(webXmlParser.getPrimaryWebContentPath());
+                if (!webContentRoot.isDirectory()) {
+                    log.warn("Found a web.xml but the content root did not exist!");
+                } else {
+                    StrutsWebPack primaryWebPack = webPackBuilder.generate(webContentRoot);
+                    for (String welcomeFile : webXmlParser.getWelcomeFiles()) {
+                        primaryWebPack.addWelcomeFile(welcomeFile);
+                    }
+                    project.addWebPack(primaryWebPack);
+                }
+            } else {
+                log.warn("Couldn't find web.xml file, won't generate JSP web-packs");
+            }
+
+            ActionMapperFactory mapperFactory = new ActionMapperFactory(configurationProperties);
+            this.actionMapper = mapperFactory.detectMapper(project);
+
+            for (StrutsPlugin plugin : project.getPlugins()) {
+                log.debug("Applying Struts plugin " + plugin.getClass().getSimpleName());
+                plugin.apply(project);
+            }
+
+            generateMaps(project, this.endpoints, rootDirectory);
+            resolveDuplicateEndpoints();
+            addFileParameters(endpoints, project);
         }
-
-        ActionMapperFactory mapperFactory = new ActionMapperFactory(configurationProperties);
-        this.actionMapper = mapperFactory.detectMapper(project);
-
-        for (StrutsPlugin plugin : project.getPlugins()) {
-            log.debug("Applying Struts plugin " + plugin.getClass().getSimpleName());
-            plugin.apply(project);
-        }
-
-        generateMaps(project);
-
-        resolveDuplicateEndpoints();
 
         // Assign parametric route parameters
         Pattern routeParameterPattern = Pattern.compile("\\{(\\w+)[^\\}]*\\}");
@@ -248,7 +253,6 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             remappedEndpoint.getParameters().putAll(endpointParameters);
         }
 
-        addFileParameters(endpoints, project);
         autoGroupVariants(endpoints);
         EndpointUtil.rectifyVariantHierarchy(endpoints);
 
@@ -260,7 +264,6 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 }
             }
         }
-
     }
 
     private void autoGroupVariants(List<Endpoint> endpoints) {
@@ -317,7 +320,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         endpoints.removeAll(variantEndpoints);
     }
 
-    private void generateMaps(StrutsProject project) {
+    private void generateMaps(StrutsProject project, Collection<Endpoint> endpoints, File rootDirectory) {
 
         StrutsPageParameterDetector parameterDetector = new StrutsPageParameterDetector();
         List<StrutsDetectedParameter> inferredParameters = list();
@@ -328,10 +331,10 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             inferredParameters.addAll(parameterDetector.parseStrutsFormsParameters(file));
         }
 
-        endpoints = list();
-        endpoints.addAll(actionMapper.generateEndpoints(project, project.getPackages(), ""));
+        List<Endpoint> newEndpoints = list();
+        newEndpoints.addAll(actionMapper.generateEndpoints(project, project.getPackages(), ""));
 
-        expandModelFieldParameters(endpoints, project.classes);
+        expandModelFieldParameters(newEndpoints, project.getCodebase().classes);
 
         // Modify inferred parameters to point to the proper endpoint
         for (StrutsDetectedParameter param : inferredParameters) {
@@ -342,7 +345,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
             String sourceFile = param.sourceFile;
             StrutsEndpoint servingEndpoint = null;
-            for (Endpoint endpoint : endpoints) {
+            for (Endpoint endpoint : newEndpoints) {
                 StrutsEndpoint strutsEndpoint = (StrutsEndpoint)endpoint;
                 String resultFilePath = strutsEndpoint.getDisplayFilePath();
                 String fullResultFilePath = PathUtil.combine(project.getWebPath(), resultFilePath);
@@ -363,7 +366,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
         // Add inferred parameters to endpoints
         for (StrutsDetectedParameter inferred : inferredParameters) {
-            List<Endpoint> relevantEndpoints = findEndpointsForUrl(inferred.targetEndpoint, endpoints);
+            List<Endpoint> relevantEndpoints = findEndpointsForUrl(inferred.targetEndpoint, newEndpoints);
 
             //  Generate new endpoints if an HTTP request method was detected for an endpoint, but no version
             //  of that endpoint has that HTTP method
@@ -386,7 +389,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                     supportedMethods.add(inferredQueryMethod);
 
                     Endpoint endpoint = null;
-                    for (Endpoint e : endpoints) {
+                    for (Endpoint e : newEndpoints) {
                         if (e.getUrlPath().equalsIgnoreCase(endpointUrl)) {
                             endpoint = e;
                             break;
@@ -402,7 +405,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                     newEndpoint.setDisplayFilePath(baseEndpoint.getDisplayFilePath());
                     newEndpoint.setLineNumbers(baseEndpoint.getStartingLineNumber(), baseEndpoint.getEndingLineNumber());
                     relevantEndpoints.add(newEndpoint);
-                    endpoints.add(newEndpoint);
+                    newEndpoints.add(newEndpoint);
                 }
             }
 
@@ -436,7 +439,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
 
         // Cull parameters by whether their symbol was referenced
-        for (Endpoint endpoint : endpoints) {
+        for (Endpoint endpoint : newEndpoints) {
             List<String> culledParameters = list();
             StrutsEndpoint strutsEndpoint = (StrutsEndpoint)endpoint;
             String fullPath = PathUtil.combine(project.getRootDirectory() , endpoint.getFilePath());
@@ -446,7 +449,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                     continue;
                 }
 
-                StrutsMethod sourceMethod = project.findMethodByCodeLines(fullPath, endpoint.getStartingLineNumber());
+                StrutsMethod sourceMethod = project.getCodebase().findMethodByCodeLines(fullPath, endpoint.getStartingLineNumber());
                 if (sourceMethod == null) {
                     continue;
                 }
@@ -472,9 +475,9 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
 
         // Resolve parameter data types
-        for (Endpoint endpoint : endpoints) {
+        for (Endpoint endpoint : newEndpoints) {
             String fullFilePath = PathUtil.combine(project.getRootDirectory(), endpoint.getFilePath());
-            StrutsClass classForEndpoint = project.findClassByFileLocation(fullFilePath);
+            StrutsClass classForEndpoint = project.getCodebase().findClassByFileLocation(fullFilePath);
             if (classForEndpoint == null) {
                 continue;
             }
@@ -496,7 +499,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                         break;
                     }
 
-                    currentModelClass = project.findClassByName(currentField.getType());
+                    currentModelClass = project.getCodebase().findClassByName(currentField.getType());
                 }
 
                 if (currentField != null) {
@@ -504,6 +507,34 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 }
             }
         }
+
+        // Make file paths relative to primary root folder for sub-projects
+        String projectRelativeFilePath = FilePathUtils.getRelativePath(project.getRootDirectory(), rootDirectory);
+        for (Endpoint endpoint : newEndpoints) {
+            StrutsEndpoint strutsEndpoint = (StrutsEndpoint)endpoint;
+
+            String filePath = strutsEndpoint.getFilePath();
+            if (new File(filePath).isAbsolute()) {
+                filePath = FilePathUtils.getRelativePath(filePath, project.getRootDirectory());
+            }
+            String fullFilePath = PathUtil.combine(projectRelativeFilePath, filePath, true);
+            strutsEndpoint.setFilePath(fullFilePath);
+
+            String displayFilePath = strutsEndpoint.getDisplayFilePath();
+            if (displayFilePath != null) {
+                String fullDisplayFilePath;
+
+                if (new File(displayFilePath).isAbsolute()) {
+                    fullDisplayFilePath = FilePathUtils.getRelativePath(displayFilePath, rootDirectory.getAbsolutePath().replace('\\', '/'));
+                } else {
+                    fullDisplayFilePath = PathUtil.combine(projectRelativeFilePath, displayFilePath, true);
+                }
+
+                strutsEndpoint.setDisplayFilePath(fullDisplayFilePath);
+            }
+        }
+
+        endpoints.addAll(newEndpoints);
     }
 
     private void addFileParameters(Collection<Endpoint> endpoints, StrutsProject project) {
@@ -525,7 +556,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 continue;
             }
 
-            StrutsMethod sourceMethod = project.findMethodByCodeLines(endpoint.getFilePath(), endpoint.getStartingLineNumber());
+            StrutsMethod sourceMethod = project.getCodebase().findMethodByCodeLines(endpoint.getFilePath(), endpoint.getStartingLineNumber());
             if (sourceMethod == null) {
                 continue;
             }
@@ -600,8 +631,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
     }
 
     //  Import super-base types from base types
-    private void expandClassBaseTypes(StrutsProject project) {
-        for (StrutsClass strutsClass : project.getClasses()) {
+    private void expandClassBaseTypes(StrutsCodebase codebase) {
+        for (StrutsClass strutsClass : codebase.getClasses()) {
             List<String> checkedBaseTypes = list();
             Queue<String> pendingBaseTypes = new LinkedList<String>();
             pendingBaseTypes.addAll(strutsClass.getBaseTypes());
@@ -611,7 +642,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                     continue;
                 }
 
-                StrutsClass baseClass = project.findClassByName(baseType);
+                StrutsClass baseClass = codebase.findClassByName(baseType);
                 if (baseClass != null) {
                     pendingBaseTypes.addAll(baseClass.getBaseTypes());
                     //  Copy array to avoid concurrent modification

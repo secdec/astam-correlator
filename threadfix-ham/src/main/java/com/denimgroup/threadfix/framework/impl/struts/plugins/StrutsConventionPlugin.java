@@ -54,6 +54,11 @@ public class StrutsConventionPlugin implements StrutsPlugin {
             resultsPath = PathUtil.combine(project.getWebPath(), resultsPath);
         }
 
+        // If '/' is provided as the results path, assume it's relative to the project root directory
+        if (resultsPath.replace('\\', '/').equals("/")) {
+            resultsPath = project.getRootDirectory();
+        }
+
         String[] actionSuffixes = getActionSuffixes(project);
 
         //  Should limit this based on whether the class inherits the necessary types, but since
@@ -62,6 +67,9 @@ public class StrutsConventionPlugin implements StrutsPlugin {
         for (StrutsClass strutsClass : project.getClasses()) {
 
             String rootNamespacePath = buildNamespace("/", strutsClass, project);
+            if (rootNamespacePath == null) {
+                continue;
+            }
 
             String className = strutsClass.getName();
             boolean hasSuffix = false;
@@ -244,13 +252,29 @@ public class StrutsConventionPlugin implements StrutsPlugin {
         return builder.toString();
     }
 
+
+
+    private Map<String, List<String>> cachedFileChildren = map();
     private File findBestFile(File directory, String baseName) {
 
         if (!directory.exists() || !directory.isDirectory()) {
             return null;
         }
 
-        for (File file : FileUtils.listFiles(directory, null, true)) {
+        List<String> children;
+        if (cachedFileChildren.containsKey(directory.getAbsolutePath())) {
+            children = cachedFileChildren.get(directory.getAbsolutePath());
+        } else {
+            children = list();
+            Collection<File> discoveredChildren = FileUtils.listFiles(directory, null, true);
+            for (File child : discoveredChildren) {
+                children.add(child.getAbsolutePath());
+            }
+            cachedFileChildren.put(directory.getAbsolutePath(), children);
+        }
+
+        for (String filePath : children) {
+            File file = new File(filePath);
             String name = FilenameUtils.removeExtension(file.getName());
             if (name.equalsIgnoreCase(baseName)) {
                 return file;

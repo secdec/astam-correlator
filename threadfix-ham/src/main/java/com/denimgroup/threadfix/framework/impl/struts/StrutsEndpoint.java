@@ -140,6 +140,10 @@ public class StrutsEndpoint extends AbstractEndpoint {
         return result;
     }
 
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
     @Nonnull
     @Override
     public String getFilePath() {

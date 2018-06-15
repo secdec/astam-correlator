@@ -37,19 +37,38 @@ public class StrutsProject {
 
     List<StrutsPackage> packages = list();
     List<StrutsAction> actions = list();
-    List<StrutsClass> classes = list();
     String webPath = null;
     String webInfPath = null;
     StrutsConfigurationProperties config;
     List<StrutsPlugin> plugins = list();
     List<StrutsWebPack> webPacks = list();
     String rootDirectory = null;
+    StrutsCodebase codebase = null;
 
 
     public StrutsProject(String rootDirectory) {
         this.rootDirectory = rootDirectory;
     }
 
+    public void setCodebase(StrutsCodebase codebase) {
+        this.codebase = codebase;
+    }
+
+    public StrutsCodebase getCodebase() {
+        return this.codebase;
+    }
+
+    public Collection<StrutsClass> getClasses() {
+        List<StrutsClass> result = list();
+        Collection<StrutsClass> allClasses = this.codebase.getClasses();
+        for (StrutsClass cls : allClasses) {
+            if (cls.getSourceFile().startsWith(this.rootDirectory)) {
+                result.add(cls);
+            }
+        }
+
+        return result;
+    }
 
     public void addPackages(Collection<StrutsPackage> packages) {
         this.packages.addAll(packages);
@@ -57,10 +76,6 @@ public class StrutsProject {
 
     public void addActions(Collection<StrutsAction> actions) {
         this.actions.addAll(actions);
-    }
-
-    public void addClasses(Collection<StrutsClass> classes) {
-        this.classes.addAll(classes);
     }
 
     public void setWebPath(String webPath) {
@@ -92,10 +107,6 @@ public class StrutsProject {
 
     public Collection<StrutsAction> getActions() {
         return this.actions;
-    }
-
-    public Collection<StrutsClass> getClasses() {
-        return this.classes;
     }
 
     public String getWebPath() {
@@ -169,41 +180,6 @@ public class StrutsProject {
             relativePath = "/" + relativePath;
         }
         return relativePath;
-    }
-
-
-
-    public StrutsClass findClassByFileLocation(String fileLocation) {
-        for (StrutsClass strutsClass : classes) {
-            if (strutsClass.getSourceFile().equalsIgnoreCase(fileLocation)) {
-                return strutsClass;
-            }
-        }
-        return null;
-    }
-
-
-    public StrutsClass findClassByName(String className) {
-        for (StrutsClass strutsClass : classes) {
-            if (strutsClass.getName().equalsIgnoreCase(className) ||
-                    (strutsClass.getPackage() + "." + strutsClass.getName()).equalsIgnoreCase(className)) {
-                return strutsClass;
-            }
-        }
-        return null;
-    }
-
-    public StrutsMethod findMethodByCodeLines(String sourceFile, int lineNumber) {
-        StrutsClass strutsClass = findClassByFileLocation(sourceFile);
-        if (strutsClass != null) {
-            for (StrutsMethod method : strutsClass.getMethods()) {
-                if (method.getStartLine() <= lineNumber && method.getEndLine() >= lineNumber) {
-                    return method;
-                }
-            }
-        }
-
-        return null;
     }
 
 
