@@ -67,6 +67,11 @@ public class PythonCodeCollection {
                             baseScope = baseScope.findParent(PythonModule.class);
                         }
 
+                        if (baseScope == null) {
+                            log("Unable to resolve import path: " + importPath + "; for file: " + statement.getSourceCodePath() + "; skipping");
+                            continue;
+                        }
+
                         String basePath = baseScope.getFullName();
                         importPath = basePath + "." + importPath;
                     } else {

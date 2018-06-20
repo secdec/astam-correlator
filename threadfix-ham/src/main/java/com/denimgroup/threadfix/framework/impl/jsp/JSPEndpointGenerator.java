@@ -400,7 +400,8 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                 case MAP_JSP_SERVLET:
                     JSPWebXmlJspServlet jspServlet = mapping.getMappedJspServlet();
                     String absolutePath = jspServlet.getFilePath();
-                    if (!new File(absolutePath).isAbsolute()) {
+                    File absolutePathFile = new File(absolutePath);
+                    if (!absolutePathFile.isAbsolute() || !absolutePathFile.exists()) {
                         absolutePath = PathUtil.combine(jspRoot.getAbsolutePath(), jspServlet.getFilePath());
                     }
                     filePath = getRelativePath(absolutePath);
