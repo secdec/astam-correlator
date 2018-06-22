@@ -40,7 +40,7 @@ import static com.denimgroup.threadfix.CollectionUtils.set;
  */
 public class AspxCsParser implements EventBasedTokenizer {
 
-    public static final SanitizedLogger LOG = new SanitizedLogger(AspxParser.class);
+    public static final SanitizedLogger LOG = new SanitizedLogger(AspxCsParser.class);
 
     public final File file;
     public final String aspName;

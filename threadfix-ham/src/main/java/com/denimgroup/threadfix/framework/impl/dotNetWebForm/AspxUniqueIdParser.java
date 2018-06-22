@@ -26,9 +26,11 @@ package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
@@ -62,8 +64,15 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
     }
 
     private static AspxUniqueIdParser runTokenizer(File file, AspxUniqueIdParser parser) {
-        EventBasedTokenizerRunner.run(file, false, parser);
-        return parser;
+        try {
+            //  Replace '\' with '\\' since backslashes are to be parsed as non-escaped
+            String contents = FileUtils.readFileToString(file).replaceAll("\\\\", "\\\\\\\\");
+            EventBasedTokenizerRunner.runString(contents, new AsxxTokenizerConfigurator(), parser);
+            return parser;
+        } catch (IOException e) {
+            LOG.warn("IOException while parsing unique IDs in ASPX " + file.getAbsolutePath() + "\n" + e);
+            return null;
+        }
     }
 
     final String name;
@@ -209,6 +218,12 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
     private void saveControlData() {
         if (allControlMap != null) {
             AscxFile ascxFile = allControlMap.get(currentTagName);
+            if (ascxFile == null && currentSrc != null) {
+                String srcName = currentSrc.replace('\\', '/');
+                if (srcName.contains("/")) srcName = srcName.substring(srcName.lastIndexOf('/') + 1);
+                if (srcName.contains(".")) srcName = srcName.substring(0, srcName.indexOf('.'));
+                ascxFile = allControlMap.get(srcName);
+            }
             if (ascxFile != null) {
                 includedControlMap.put(currentTagPrefix + ":" + currentTagName, ascxFile);
             } else {

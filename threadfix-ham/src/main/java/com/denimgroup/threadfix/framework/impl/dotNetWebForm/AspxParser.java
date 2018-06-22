@@ -26,9 +26,11 @@ package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -47,9 +49,16 @@ public class AspxParser implements EventBasedTokenizer {
 
     @Nonnull
     public static AspxParser parse(@Nonnull File file) {
-        AspxParser parser = new AspxParser(file);
-        EventBasedTokenizerRunner.run(file, parser);
-        return parser;
+        try {
+            AspxParser parser = new AspxParser(file);
+            //  Replace '\' with '\\' since backslashes are to be parsed as non-escaped
+            String contents = FileUtils.readFileToString(file).replaceAll("\\\\", "\\\\");
+            EventBasedTokenizerRunner.runString(contents, new AsxxTokenizerConfigurator(), parser);
+            return parser;
+        } catch (IOException e) {
+            LOG.warn("IOException while parsing unique IDs in ASPX " + file.getAbsolutePath() + "\n" + e);
+            return null;
+        }
     }
 
     AspxParser(File file) {
