@@ -30,6 +30,7 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
+import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.w3c.dom.Node;
@@ -56,24 +57,36 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
  */
 public class WebFormsEndpointGenerator implements EndpointGenerator {
 
+    private static SanitizedLogger LOG = new SanitizedLogger(WebFormsEndpointGenerator.class);
+
     private List<Endpoint> endpoints = list();
-    private List<String> defaultPages;
 
     public WebFormsEndpointGenerator(@Nonnull File rootDirectory) {
         if (!rootDirectory.exists() || !rootDirectory.isDirectory()) {
             throw new IllegalArgumentException("Invalid directory passed to WebFormsEndpointGenerator: " + rootDirectory);
         }
 
-        File webConfig = getWebConfigFile(rootDirectory);
+        LOG.debug("Detecting projects in " + rootDirectory.getAbsolutePath());
+        List<File> projectDirectories = findProjectDirectories(rootDirectory);
+        LOG.debug("Detected " + projectDirectories.size() + " projects");
 
-        Map<String, AscxFile> map = AscxFileMappingsFileParser.getMap(rootDirectory);
-        Map<String, AspxParser> masterFileMap = MasterPageParser.getMasterFileMap(rootDirectory, map);
+        Map<String, AscxFile> ascxFiles = map();
 
-        List<AspxParser> aspxParsers = getAspxParsers(rootDirectory, map, masterFileMap);
-        List<AspxCsParser> aspxCsParsers = getAspxCsParsers(rootDirectory);
+        // Collect ASCX controls across all projects
+        for (File projectDirectory : projectDirectories) {
+            ascxFiles.putAll(AscxFileMappingsFileParser.getMap(projectDirectory));
+        }
 
-        defaultPages = collectDefaultPages(webConfig);
-        collapseToEndpoints(aspxCsParsers, aspxParsers, rootDirectory);
+        for (File projectDirectory : projectDirectories) {
+            File webConfig = getWebConfigFile(projectDirectory);
+            Map<String, AspxParser> masterFileMap = MasterPageParser.getMasterFileMap(projectDirectory, ascxFiles);
+
+            List<AspxParser> aspxParsers = getAspxParsers(projectDirectory, ascxFiles, masterFileMap);
+            List<AspxCsParser> aspxCsParsers = getAspxCsParsers(projectDirectory);
+
+            List<String> defaultPages = collectDefaultPages(webConfig);
+            collapseToEndpoints(aspxCsParsers, aspxParsers, rootDirectory, projectDirectory, defaultPages);
+        }
 
         //  There's currently no way to distinguish HTTP methods for each route, nor for
         //  determining which parameters go to which HTTP method. For now, just make a copy
@@ -97,6 +110,18 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         }
 
         EndpointUtil.rectifyVariantHierarchy(endpoints);
+    }
+
+    private List<File> findProjectDirectories(File rootDirectory) {
+        Collection<File> csprojFiles = FileUtils.listFiles(rootDirectory, new String[] { "csproj" }, true);
+        List<File> result = list();
+        for (File csproj : csprojFiles) {
+            File folder = csproj.getParentFile();
+            if (!FileUtils.listFiles(folder, new String[] { "aspx", "ascx", "asax" }, true).isEmpty()) {
+                result.add(folder);
+            }
+        }
+        return result;
     }
 
     private File getWebConfigFile(File rootDirectory) {
@@ -260,11 +285,13 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
 
     void collapseToEndpoints(Collection<AspxCsParser> csParsers,
                              Collection<AspxParser> aspxParsers,
-                             File rootDirectory) {
+                             File solutionDirectory,
+                             File projectDirectory,
+                             List<String> defaultPages) {
         Map<String, AspxParser> aspxParserMap = map();
         Map<String, AspxCsParser> aspxCsParserMap = map();
 
-        File aspxRootDirectory = getAspxRoot(rootDirectory);
+        File aspxRootDirectory = getAspxRoot(projectDirectory);
 
         for (AspxCsParser csParser : csParsers) {
             aspxCsParserMap.put(csParser.aspName, csParser);
@@ -287,14 +314,14 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
                 continue;
             }
 
-            WebFormsEndpointExplicit primaryEndpoint = new WebFormsEndpointExplicit(rootDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser);
+            WebFormsEndpointExplicit primaryEndpoint = new WebFormsEndpointExplicit(solutionDirectory, projectDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser);
             endpoints.add(primaryEndpoint);
 
-            primaryEndpoint.addVariant(new WebFormsEndpointExtensionless(rootDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser));
+            primaryEndpoint.addVariant(new WebFormsEndpointExtensionless(solutionDirectory, projectDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser));
 
             for (String defaultPageName : defaultPages) {
                 if (defaultPageName.equalsIgnoreCase(entry.getKey())) {
-                    primaryEndpoint.addVariant(new WebFormsEndpointImplicit(rootDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser));
+                    primaryEndpoint.addVariant(new WebFormsEndpointImplicit(solutionDirectory, projectDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser));
                     break;
                 }
             }
