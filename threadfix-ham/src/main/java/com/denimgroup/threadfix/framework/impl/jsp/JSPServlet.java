@@ -38,6 +38,8 @@ public class JSPServlet {
 
     private Map<String, List<RouteParameter>> methodParameters = map();
     private Map<Integer, List<RouteParameter>> parameterLineMap = map();
+    private Map<String, Integer> methodStartLines = map();
+    private Map<String, Integer> methodEndLines = map();
 
     public JSPServlet(String packageName, String className, String filePath) {
         this.packageName = packageName;
@@ -69,11 +71,34 @@ public class JSPServlet {
         currentParams.add(parameter);
     }
 
-    public void addHttpMethod(String httpMethod) {
-        if (!methodParameters.containsKey(httpMethod.toUpperCase())) {
+    public void addHttpMethod(String httpMethod, int startLine, int endLine) {
+    	String upperHttpMethod = httpMethod.toUpperCase();
+    	if (!methodStartLines.containsKey(upperHttpMethod)) {
+    		methodStartLines.put(upperHttpMethod, startLine);
+    		methodEndLines.put(upperHttpMethod, endLine);
+	    }
+        if (!methodParameters.containsKey(upperHttpMethod)) {
             methodParameters.put(httpMethod.toUpperCase(), new ArrayList<RouteParameter>());
         }
     }
+
+    public int getStartLine(String httpMethod) {
+    	String upperHttpMethod = httpMethod.toUpperCase();
+    	if (methodStartLines.containsKey(upperHttpMethod)) {
+    		return methodStartLines.get(upperHttpMethod);
+	    } else {
+    		return -1;
+	    }
+    }
+
+	public int getEndLine(String httpMethod) {
+		String upperHttpMethod = httpMethod.toUpperCase();
+		if (methodEndLines.containsKey(upperHttpMethod)) {
+			return methodEndLines.get(upperHttpMethod);
+		} else {
+			return -1;
+		}
+	}
 
     public String getFilePath() {
         return filePath;

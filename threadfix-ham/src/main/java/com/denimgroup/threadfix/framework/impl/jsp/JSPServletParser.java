@@ -117,6 +117,8 @@ public class JSPServletParser {
             }
 
             Map<String, List<RouteParameter>> methodMappedParameters = map();
+            Map<String, Integer> methodStartLines = map();
+            Map<String, Integer> methodEndLines = map();
 
             for (JSPServletMethodMap methodMap : servletQueryMethods) {
                 int startLine = methodMap.startLine;
@@ -135,6 +137,9 @@ public class JSPServletParser {
                 }
                 String httpMethod = method.replace("do", "").toUpperCase();
                 methodMappedParameters.put(httpMethod, relevantParameters);
+
+                methodStartLines.put(httpMethod, methodMap.startLine);
+                methodEndLines.put(httpMethod, methodMap.endLine);
             }
 
             JSPServlet newServlet = new JSPServlet(packageName, servletName, file.getAbsolutePath(), queryParameters);
@@ -142,7 +147,7 @@ public class JSPServletParser {
                 newServlet.addEndpoint(annotation);
             }
             for (String httpMethod : methodMappedParameters.keySet()) {
-                newServlet.addHttpMethod(httpMethod);
+            	newServlet.addHttpMethod(httpMethod, methodStartLines.get(httpMethod), methodEndLines.get(httpMethod));
                 for (RouteParameter param : methodMappedParameters.get(httpMethod)) {
                     newServlet.addParameter(httpMethod, param);
                 }
