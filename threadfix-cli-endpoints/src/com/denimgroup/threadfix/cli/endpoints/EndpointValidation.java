@@ -1,5 +1,6 @@
 package com.denimgroup.threadfix.cli.endpoints;
 
+import com.denimgroup.threadfix.data.entities.EndpointStructure;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
@@ -125,8 +126,15 @@ public class EndpointValidation {
                     }
                 }
             }
-
         }
+
+        try {
+	        EndpointStructure testStructure = new EndpointStructure();
+	        testStructure.acceptAllEndpoints(endpoints);
+        } catch (Exception e) {
+        	System.out.println("Failed to validate endpoint structure generation due to an exception: \n" + e);
+        }
+
         return true;
     }
 }

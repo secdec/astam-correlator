@@ -451,6 +451,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
             parameterName = null;
             commaCount = 0;
             currentPhase = Phase.IN_CLASS;
+            currentMapRouteState = MapRouteState.START;
         }
 
     }

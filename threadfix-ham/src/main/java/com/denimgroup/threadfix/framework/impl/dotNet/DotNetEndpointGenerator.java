@@ -40,10 +40,7 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetPathCleaner.cleanStringFromCode;
@@ -94,8 +91,12 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 
             for (Map.Entry<String, RouteParameter> mergedParameter : mergedEndpointParameters.entrySet()) {
                 String paramName = mergedParameter.getKey();
-                RouteParameter mergedParam = mergedParameter.getValue();
+                //  Known parametric endpoints take precedence over any merging recommendations
+	            if (currentParameters.get(paramName).getParamType() == RouteParameterType.PARAMETRIC_ENDPOINT) {
+	            	continue;
+	            }
 
+                RouteParameter mergedParam = mergedParameter.getValue();
                 currentParameters.put(paramName, mergedParam);
             }
         }
@@ -111,6 +112,8 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
             return; // can't do anything without routes
         }
 
+        List<DotNetRouteMappings.MapRoute> visitedRoutes = list();
+
         for (DotNetControllerMappings mappings : dotNetControllerMappings) {
             if (mappings.getControllerName() == null) {
                 LOG.debug("Controller Name was null. Skipping to the next.");
@@ -120,8 +123,12 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 
             DotNetRouteMappings.MapRoute mapRoute = dotNetRouteMappings.getMatchingMapRoute(mappings.hasAreaName(), mappings.getControllerName());
 
-            if (mapRoute == null)
+            if (mapRoute == null ||  mapRoute.url == null || mapRoute.url.equals(""))
                 continue;
+
+            if (!visitedRoutes.contains(mapRoute)) {
+            	visitedRoutes.add(mapRoute);
+            }
 
             for (Action action : mappings.getActions()) {
                 if (action == null) {
@@ -184,6 +191,52 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 endpoints.add(new DotNetEndpoint(result, filePath, action));
             }
         }
+
+        //  Add routes that only have default controllers specified (which wouldn't have been
+	    //  enumerated in the previous loop)
+        List<DotNetRouteMappings.MapRoute> unvisitedRoutes = new ArrayList<DotNetRouteMappings.MapRoute>(dotNetRouteMappings.routes);
+        unvisitedRoutes.removeAll(visitedRoutes);
+        for (DotNetRouteMappings.MapRoute route : unvisitedRoutes) {
+        	if (route.defaultRoute == null) {
+        		continue;
+	        }
+
+	        DotNetRouteMappings.ConcreteRoute defaultRoute = route.defaultRoute;
+        	String result = route.url;
+        	if (!result.startsWith("/")) {
+        		result = "/" + result;
+	        }
+
+	        DotNetControllerMappings controllerMappings = null;
+        	Action action = null;
+        	for (DotNetControllerMappings mappings : dotNetControllerMappings) {
+        		if (controllerMappings != null) {
+        			break;
+		        }
+
+        		if (mappings.getControllerName() != null && mappings.getControllerName().equals(defaultRoute.controller)) {
+        			for (Action controllerAction : mappings.getActions()) {
+        				if (controllerAction.name.equals(defaultRoute.action)) {
+					        controllerMappings = mappings;
+					        action = controllerAction;
+					        break;
+				        }
+			        }
+		        }
+	        }
+
+	        if (controllerMappings == null || action == null) {
+        		continue;
+	        }
+
+	        String filePath = controllerMappings.getFilePath();
+        	if (filePath.startsWith(rootDirectory.getAbsolutePath())) {
+        		filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+	        }
+
+	        endpoints.add(new DotNetEndpoint(result, filePath, action));
+        }
+
     }
 
     private void expandParameters(Action action) {

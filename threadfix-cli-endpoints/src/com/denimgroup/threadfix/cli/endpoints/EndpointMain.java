@@ -74,6 +74,7 @@ public class EndpointMain {
     public static void main(String[] args) {
         if (checkArguments(args)) {
             resetLoggingConfiguration();
+            List<String> projectsMissingEndpoints = list();
             int numProjectsWithEndpoints = 0;
             int numProjects = 0;
 
@@ -148,6 +149,8 @@ public class EndpointMain {
 
                         if (!generatedEndpoints.isEmpty()) {
                             ++numProjectsWithEndpoints;
+                        } else {
+                        	projectsMissingEndpoints.add(job.sourceCodePath.getAbsolutePath());
                         }
                     }
 
@@ -170,6 +173,8 @@ public class EndpointMain {
 
                 if (!listEndpoints(rootFolder, list(defaultFramework)).isEmpty()) {
                     ++numProjectsWithEndpoints;
+                } else {
+    	        	projectsMissingEndpoints.add(rootFolder.getAbsolutePath());
                 }
             }
 
@@ -177,6 +182,12 @@ public class EndpointMain {
             System.out.println("Generated " + totalDetectedEndpoints + " total endpoints");
             System.out.println("Generated " + totalDetectedParameters + " total parameters");
             System.out.println(numProjectsWithEndpoints + "/" + numProjects + " projects had endpoints generated");
+            if (!projectsMissingEndpoints.isEmpty()) {
+            	System.out.println("The following projects were missing endpoints:");
+            	for (String path : projectsMissingEndpoints) {
+            		System.out.println("--- " + path);
+	            }
+            }
 
             if (printFormat != JSON) {
                 System.out.println("To enable logging include the -debug argument");
