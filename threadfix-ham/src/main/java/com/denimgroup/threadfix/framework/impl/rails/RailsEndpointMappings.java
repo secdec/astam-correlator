@@ -54,21 +54,23 @@ public class RailsEndpointMappings implements EndpointGenerator {
     List<RailsController> railsControllers;
 
     private File rootDirectory;
+    private File projectRootDirectory;
 
     public RailsEndpointMappings(@Nonnull File rootDirectory) {
         if (!rootDirectory.exists() || !rootDirectory.isDirectory()) {
             LOG.error("Root file not found or is not directory. Exiting.");
             return;
         }
-        File routesFile = new File(rootDirectory, "/config/routes.rb");
-        if (!routesFile.exists()) {
-            LOG.error("File /config/routes.rb not found. Exiting.");
+        File routesFile = findRoutesFile(rootDirectory);
+        if (routesFile == null) {
+            LOG.error("Couldn't find a suitable 'routes.rb' file. Exiting.");
             return;
         }
 
         this.rootDirectory = rootDirectory;
+        this.projectRootDirectory = routesFile.getParentFile().getParentFile(); // parent1=config, parent2=projectdir
 
-        railsControllers = (List<RailsController>) RailsControllerParser.parse(rootDirectory);
+        railsControllers = (List<RailsController>) RailsControllerParser.parse(projectRootDirectory);
 
         List<RailsRouter> routers = list();
         File gemFile = findGemFile(rootDirectory);
@@ -104,6 +106,22 @@ public class RailsEndpointMappings implements EndpointGenerator {
         }
 
         EndpointUtil.rectifyVariantHierarchy(endpoints);
+    }
+
+    private File findRoutesFile(File rootDirectory) {
+    	Collection<File> rbFiles = FileUtils.listFiles(rootDirectory, new String[] { "rb" }, true);
+    	File bestRoutesFile = null;
+    	for (File rbFile : rbFiles) {
+    		if (rbFile.getAbsolutePath().toLowerCase().replace('\\', '/').endsWith("config/routes.rb")) {
+    			if (bestRoutesFile == null) {
+    				bestRoutesFile = rbFile;
+			    } else if (rbFile.getAbsolutePath().length() < bestRoutesFile.getAbsolutePath().length()) {
+    				bestRoutesFile = rbFile;
+			    }
+		    }
+	    }
+
+    	return bestRoutesFile;
     }
 
     private String formatRouteModuleName(String fullName) {
