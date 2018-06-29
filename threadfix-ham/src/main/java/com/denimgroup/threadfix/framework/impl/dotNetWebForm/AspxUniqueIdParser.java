@@ -25,6 +25,7 @@ package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 
@@ -219,7 +220,7 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
         if (allControlMap != null) {
             AscxFile ascxFile = allControlMap.get(currentTagName);
             if (ascxFile == null && currentSrc != null) {
-                String srcName = currentSrc.replace('\\', '/');
+                String srcName = FilePathUtils.normalizePath(currentSrc);
                 if (srcName.contains("/")) srcName = srcName.substring(srcName.lastIndexOf('/') + 1);
                 if (srcName.contains(".")) srcName = srcName.substring(0, srcName.indexOf('.'));
                 ascxFile = allControlMap.get(srcName);

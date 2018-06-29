@@ -112,7 +112,7 @@ public class RailsEndpointMappings implements EndpointGenerator {
     	Collection<File> rbFiles = FileUtils.listFiles(rootDirectory, new String[] { "rb" }, true);
     	File bestRoutesFile = null;
     	for (File rbFile : rbFiles) {
-    		if (rbFile.getAbsolutePath().toLowerCase().replace('\\', '/').endsWith("config/routes.rb")) {
+    		if (FilePathUtils.normalizePath(rbFile.getAbsolutePath().toLowerCase()).endsWith("config/routes.rb")) {
     			if (bestRoutesFile == null) {
     				bestRoutesFile = rbFile;
 			    } else if (rbFile.getAbsolutePath().length() < bestRoutesFile.getAbsolutePath().length()) {

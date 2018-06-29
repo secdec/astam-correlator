@@ -144,7 +144,7 @@ public class DefaultActionMapper implements ActionMapper {
 
                 String classLocation = strutsAction.getActClassLocation();
                 if (classLocation != null)
-                    classLocation = classLocation.replace('\\', '/');
+                    classLocation = FilePathUtils.normalizePath(classLocation);
 
                 StrutsClass classForAction = project.getCodebase().findClassByFileLocation(classLocation);
                 Set<ModelField> fieldMappings = set();
@@ -276,8 +276,11 @@ public class DefaultActionMapper implements ActionMapper {
         if (path == null) {
             path = "";
         }
-        if (project.getRootDirectory() != null && path.startsWith(project.getRootDirectory().replace('\\', '/'))) {
-            return FilePathUtils.getRelativePath(path, project.getRootDirectory().replace('\\', '/'));
+        String rootDirectory = project.getRootDirectory();
+        if (rootDirectory != null) rootDirectory = FilePathUtils.normalizePath(rootDirectory);
+
+        if (rootDirectory != null && path.startsWith(rootDirectory)) {
+            return FilePathUtils.getRelativePath(path, rootDirectory);
         } else {
             return path;
         }

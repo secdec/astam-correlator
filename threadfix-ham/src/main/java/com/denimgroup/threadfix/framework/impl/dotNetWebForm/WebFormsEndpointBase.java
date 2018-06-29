@@ -31,6 +31,7 @@ import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -74,11 +75,11 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
                     aspxParser.aspName + " and " + aspxCsParser.aspName);
         }
 
-        this.aspxFilePath = aspxParser.file.getAbsolutePath().replace('\\', '/');
-        this.aspxCsFilePath = aspxCsParser.file.getAbsolutePath().replace('\\', '/');
-        this.projectRoot = projectRoot.getAbsolutePath().replace('\\', '/');
-        this.solutionRoot = solutionRoot.getAbsolutePath().replace('\\', '/');
-        this.aspxRoot = aspxRoot.getAbsolutePath().replace('\\', '/');
+        this.aspxFilePath = FilePathUtils.normalizePath(aspxParser.file.getAbsolutePath());
+        this.aspxCsFilePath = FilePathUtils.normalizePath(aspxCsParser.file.getAbsolutePath());
+        this.projectRoot = FilePathUtils.normalizePath(projectRoot.getAbsolutePath());
+        this.solutionRoot = FilePathUtils.normalizePath(solutionRoot.getAbsolutePath());
+        this.aspxRoot = FilePathUtils.normalizePath(aspxRoot.getAbsolutePath());
 
         this.urlPath = calculateUrlPath();
         this.filePath = calculateFilePath();
