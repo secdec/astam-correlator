@@ -100,7 +100,22 @@ public class RailsEndpointMappings implements EndpointGenerator {
                     controllerPath = FilePathUtils.getRelativePath(controllerPath, rootDirectory);
                 }
 
+	            int startLine = -1, endLine = -1;
+
+                if (controller != null) {
+	                RailsControllerMethod responseMethod = controller.getMethod(route.getControllerMethod());
+	                if (responseMethod != null) {
+		                startLine = responseMethod.getStartLine();
+		                endLine = responseMethod.getEndLine();
+	                } else {
+	                	LOG.debug("Couldn't find rails controller method " + controller.getControllerName() + "::" + route.getControllerMethod());
+	                	continue;
+	                }
+                }
+
                 RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethod(), new HashMap<String, RouteParameter>());
+                endpoint.setLineNumbers(startLine, endLine);
+
                 endpoints.add(endpoint);
             }
         }
@@ -204,11 +219,22 @@ public class RailsEndpointMappings implements EndpointGenerator {
                     if (controllerModule != null) {
                         controllerModule = formatRouteModuleName(controllerModule);
                     }
+
                     if (currentName.equalsIgnoreCase(targetName) && modulePath.equalsIgnoreCase(controllerModule)) {
                         return railsController;
                     }
-                } else if (currentName.equalsIgnoreCase(targetName)) {
+                } else if (currentName.equalsIgnoreCase(targetName) || railsController.getControllerField().equalsIgnoreCase(targetName)) {
                     return railsController;
+                } else if (rr.getUrl().contains("/")) {
+                	String urlName = rr.getUrl().replaceAll("/", "::");
+                	int baseLength = urlName.indexOf(rr.getController()) + rr.getController().length();
+
+                	if (urlName.contains(rr.getController()) && urlName.length() >= urlName.substring(0, baseLength).length()) {
+		                urlName = urlName.substring(0, baseLength);
+		                if (currentName.equalsIgnoreCase(urlName)) {
+			                return railsController;
+		                }
+	                }
                 }
             }
         }

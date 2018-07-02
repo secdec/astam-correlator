@@ -88,6 +88,20 @@ public class RailsController {
         this.controllerMethods.add(controllerMethod);
     }
 
+    public RailsControllerMethod getMethod(String name) {
+    	if (controllerMethods == null) {
+    		return null;
+	    }
+
+    	for (RailsControllerMethod method : controllerMethods) {
+    		if (method.getMethodName().equals(name)) {
+    			return method;
+		    }
+	    }
+
+	    return null;
+    }
+
     public Map<String, ParameterDataType> getParameters() {
         Map<String, ParameterDataType> p = map();
         for (RailsControllerMethod rcm : controllerMethods) {
@@ -96,4 +110,26 @@ public class RailsController {
         }
         return p;
     }
+
+	@Override
+	public String toString() {
+    	StringBuilder sb = new StringBuilder();
+    	if (moduleName != null) {
+    		sb.append(moduleName);
+	    }
+	    sb.append("::");
+    	if (controllerName != null) {
+    		sb.append(controllerName);
+	    } else {
+    		sb.append("[null-controller]");
+	    }
+	    sb.append(" (");
+    	if (controllerMethods != null) {
+    		sb.append(controllerMethods.size());
+	    } else {
+    		sb.append("no");
+	    }
+	    sb.append(" methods)");
+		return sb.toString();
+	}
 }

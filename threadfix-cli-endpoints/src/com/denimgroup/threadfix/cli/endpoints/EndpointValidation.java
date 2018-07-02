@@ -25,7 +25,7 @@ public class EndpointValidation {
             if (endpoint.getFilePath().isEmpty()) {
             	System.out.println("Got an empty file path for: " + endpoint.toString());
             }
-            else {
+            else if (!endpoint.getFilePath().contains("(lib)")) {
 	            File fullPath = new File(sourceCodeFolder, endpoint.getFilePath());
 	            if (!fullPath.exists()) {
 		            System.out.println("The source code path '" + fullPath.getAbsolutePath() + "' does not exist for: " + endpoint.toString());

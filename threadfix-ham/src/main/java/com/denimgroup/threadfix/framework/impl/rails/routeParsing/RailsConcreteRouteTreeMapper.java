@@ -89,14 +89,14 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
                 //  Routes declare their controllers but some route entries declare multiple routes
                 //  that may have different controllers. These controllers will be set manually
                 //  within the returned path.
-                route.setController(httpMethod.getControllerName());
+                route.setController(httpMethod.getControllerName(), httpMethod.getAction());
             } else {
-                route.setController(controllerName);
+                route.setController(controllerName, httpMethod.getAction());
             }
 
             if (mergeModulesIntoControllers) {
                 String modulePath = entry.getModule();
-                route.setController(PathUtil.combine(modulePath, route.getController(), false));
+                route.setController(PathUtil.combine(modulePath, route.getController(), false), httpMethod.getAction());
             }
 
             mappedRoutes.add(route);

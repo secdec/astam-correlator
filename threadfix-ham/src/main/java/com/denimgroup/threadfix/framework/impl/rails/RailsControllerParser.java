@@ -67,6 +67,8 @@ public class RailsControllerParser implements EventBasedTokenizer {
     private RailsController currentRailsController;
     private RailsControllerMethod currentCtrlMethod;
     private String currentParamName;
+    private RubyScopeTracker scopeTracker = new RubyScopeTracker();
+    private int methodStartScopeDepth = -1;
 
     private ControllerState currentCtrlState = ControllerState.INIT;
 
@@ -94,17 +96,16 @@ public class RailsControllerParser implements EventBasedTokenizer {
             parser.currentRailsController = null;
             parser.currentCtrlMethod = null;
             parser.currentParamName = null;
+            parser.scopeTracker = new RubyScopeTracker();
 
-            EventBasedTokenizerRunner.runRails(rubyFile, false, false, parser);
+            EventBasedTokenizerRunner.runRails(rubyFile, false, true, parser);
 
             if (parser.currentRailsController != null
                     && parser.currentCtrlMethod != null
                     && parser.currentCtrlMethod.getMethodName() != null) {
                 parser.currentRailsController.addControllerMethod(parser.currentCtrlMethod);
             }
-            if (parser.currentRailsController != null
-                    && parser.currentRailsController.getControllerMethods() != null
-                    && parser.currentRailsController.getControllerMethods().size() > 0) {
+            if (parser.currentRailsController != null) {
                 parser.currentRailsController.setControllerFile(rubyFile);
                 parser.railsControllers.add(parser.currentRailsController);
             }
@@ -147,6 +148,19 @@ public class RailsControllerParser implements EventBasedTokenizer {
         if (tokenQueue.size() > 10)
             tokenQueue.remove();
 
+	    scopeTracker.accept(stringValue, type, lineNumber);
+
+	    if (scopeTracker.getScopeDepth() < methodStartScopeDepth) {
+		    currentCtrlMethod.setEndLine(lineNumber);
+		    currentRailsController.addControllerMethod(currentCtrlMethod);
+		    currentCtrlMethod = null;
+		    methodStartScopeDepth = -1;
+	    }
+
+	    if (scopeTracker.isInComment()) {
+	    	return;
+	    }
+
         switch (currentCtrlState) {
             case CLASS:
                 processClass(type, stringValue, charValue);
@@ -161,8 +175,6 @@ public class RailsControllerParser implements EventBasedTokenizer {
                 processModule(type, stringValue, charValue);
                 break;
         }
-
-
 
 
         if (stringValue != null) {
@@ -180,16 +192,11 @@ public class RailsControllerParser implements EventBasedTokenizer {
                 }
             } else if (s.equals("def")) {
                 currentCtrlState = ControllerState.METHOD;
-                if (currentCtrlMethod == null)
-                    currentCtrlMethod = new RailsControllerMethod();
-                else {
-                    currentRailsController.addControllerMethod(currentCtrlMethod);
-                    currentCtrlMethod = new RailsControllerMethod();
-                }
-
+                methodStartScopeDepth = scopeTracker.getScopeDepth();
+	            currentCtrlMethod = new RailsControllerMethod();
+	            currentCtrlMethod.setStartLine(lineNumber);
             } else if (s.equals("params")) {
                 currentCtrlState = ControllerState.PARAMS;
-
             }
         }
     }

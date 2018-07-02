@@ -37,6 +37,7 @@ public class RailsRoute {
     private String url;
     private String httpMethod;
     private String controller;
+    private String controllerMethod;
 
     public RailsRoute() {
     }
@@ -58,16 +59,40 @@ public class RailsRoute {
         return httpMethod;
     }
 
+	public void setController(String controller, String controllerMethod) {
+		this.controller = controller;
+		this.controllerMethod = controllerMethod;
+	}
+
     public String getController() {
         return controller;
     }
 
-    public void setController(String controller) {
-        this.controller = controller;
-    }
+	public String getControllerMethod() {
+		return controllerMethod;
+	}
 
-    @Override
+	@Override
     public String toString() {
-        return url + " (" + controller + ")";
+    	StringBuilder sb = new StringBuilder();
+    	if (url != null) {
+		    sb.append(url);
+	    } else {
+    		sb.append("[null-url]");
+	    }
+    	sb.append(" (");
+    	if (controller != null) {
+    		sb.append(controller);
+	    } else {
+    		sb.append("[null-controller]");
+	    }
+	    sb.append("::");
+    	if (controllerMethod != null) {
+    		sb.append(controllerMethod);
+	    } else {
+    		sb.append("[null-method]");
+	    }
+	    sb.append(")");
+        return sb.toString();
     }
 }
