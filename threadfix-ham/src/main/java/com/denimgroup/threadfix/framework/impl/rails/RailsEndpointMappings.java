@@ -26,6 +26,8 @@
 package com.denimgroup.threadfix.framework.impl.rails;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
@@ -102,18 +104,39 @@ public class RailsEndpointMappings implements EndpointGenerator {
 
 	            int startLine = -1, endLine = -1;
 
-                if (controller != null) {
+	            Map<String, ParameterDataType> rawParams = map();
+	            if (controller != null) {
 	                RailsControllerMethod responseMethod = controller.getMethod(route.getControllerMethod());
 	                if (responseMethod != null) {
 		                startLine = responseMethod.getStartLine();
 		                endLine = responseMethod.getEndLine();
+		                rawParams = responseMethod.getMethodParams();
 	                } else {
 	                	LOG.debug("Couldn't find rails controller method " + controller.getControllerName() + "::" + route.getControllerMethod());
 	                	continue;
 	                }
                 }
 
-                RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethod(), new HashMap<String, RouteParameter>());
+                Map<String, RouteParameter> params = map();
+	            if (rawParams != null) {
+		            for (Map.Entry<String, ParameterDataType> kvp : rawParams.entrySet()) {
+			            RouteParameter newParam = new RouteParameter(kvp.getKey());
+			            ParameterDataType dataType = kvp.getValue();
+			            newParam.setDataType(dataType.getDisplayName());
+
+			            if (route.getUrl().contains(kvp.getKey())) {
+				            newParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+			            } else if (route.getHttpMethod().equalsIgnoreCase("GET")) {
+				            newParam.setParamType(RouteParameterType.QUERY_STRING);
+			            } else {
+				            newParam.setParamType(RouteParameterType.FORM_DATA);
+			            }
+
+			            params.put(kvp.getKey(), newParam);
+		            }
+	            }
+
+                RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethod(), params);
                 endpoint.setLineNumbers(startLine, endLine);
 
                 endpoints.add(endpoint);
