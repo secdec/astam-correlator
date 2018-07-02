@@ -46,13 +46,14 @@ public class RailsFrameworkChecker extends FrameworkChecker {
 
     private static final SanitizedLogger LOG = new SanitizedLogger(RailsFrameworkChecker.class);
 
-    private boolean routesFound = false;
     private static final String ROUTES_RB = "routes.rb";
     private static final String ROUTE_DIR = "config";
 
     @Nonnull
     @Override
     public FrameworkType check(@Nonnull ProjectDirectory directory) {
+
+	    boolean routesFound = false;
 
         Collection<File> rbFiles = FileUtils.listFiles(directory.getDirectory(),
                 new FileExtensionFileFilter("rb"), TrueFileFilter.TRUE);
