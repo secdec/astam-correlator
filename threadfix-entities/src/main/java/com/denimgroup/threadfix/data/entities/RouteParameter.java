@@ -66,7 +66,7 @@ public class RouteParameter {
     }
 
     public boolean isArrayType() {
-        return dataTypeSource.contains("[]");
+        return dataTypeSource != null && dataTypeSource.contains("[]");
     }
 
     public String getName() {

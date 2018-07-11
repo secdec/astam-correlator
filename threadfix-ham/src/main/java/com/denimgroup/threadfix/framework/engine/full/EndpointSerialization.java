@@ -20,8 +20,14 @@ import com.denimgroup.threadfix.framework.impl.spring.SpringControllerEndpoint;
 import com.denimgroup.threadfix.framework.impl.spring.SpringControllerEndpointSerializer;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpointSerializer;
+import org.codehaus.jackson.map.type.TypeFactory;
+import org.codehaus.jackson.type.TypeReference;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 
 public class EndpointSerialization {
 
@@ -58,6 +64,25 @@ public class EndpointSerialization {
         return DefaultMapper.writeValueAsString(endpointWrapper);
     }
 
+    public static String serializeAll(Collection<Endpoint> endpoints) throws IOException {
+        //  Manually construct a JSON array of the endpoints
+        List<EndpointSerializationWrapper> wrappers = new ArrayList<EndpointSerializationWrapper>(endpoints.size());
+        for (Endpoint endpoint : endpoints) {
+            EndpointSerializationWrapper wrapper = new EndpointSerializationWrapper();
+            wrapper.endpointFrameworkType = getEndpointFrameworkType(endpoint);
+
+            EndpointSerializer serializer = getSerializer(wrapper.endpointFrameworkType);
+            if (serializer == null) {
+                continue;
+            }
+
+            wrapper.serializedEndpoint = serializer.serialize(endpoint);
+            wrappers.add(wrapper);
+        }
+
+        return DefaultMapper.writeValueAsString(wrappers);
+    }
+
     public static Endpoint deserialize(String serializedEndpoint) throws IOException {
         EndpointSerializationWrapper endpointWrapper = DefaultMapper.readValue(serializedEndpoint, EndpointSerializationWrapper.class);
 
@@ -67,6 +92,22 @@ public class EndpointSerialization {
         }
 
         return serializer.deserialize(endpointWrapper.serializedEndpoint);
+    }
+
+    public static Endpoint[] deserializeAll(String serializedEndpoints) throws IOException {
+        EndpointSerializationWrapper[] endpointWrappers = DefaultMapper.readValue(serializedEndpoints, TypeFactory.defaultInstance().constructArrayType(EndpointSerializationWrapper.class));
+
+        Endpoint[] result = new Endpoint[endpointWrappers.length];
+        for (int i = 0; i < endpointWrappers.length; i++) {
+            EndpointSerializer serializer = getSerializer(endpointWrappers[i].endpointFrameworkType);
+            if (serializer == null) {
+                continue;
+            }
+            Endpoint endpoint = serializer.deserialize(endpointWrappers[i].serializedEndpoint);
+            result[i] = endpoint;
+        }
+
+        return result;
     }
 
     public static FrameworkType getEndpointFrameworkType(Endpoint endpoint) {
