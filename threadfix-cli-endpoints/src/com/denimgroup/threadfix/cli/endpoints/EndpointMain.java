@@ -69,6 +69,7 @@ public class EndpointMain {
     static FrameworkType defaultFramework = FrameworkType.DETECT;
     static boolean simplePrint = false;
     static String pathListFile = null;
+    static String outputFilePath = null;
 
     static int totalDetectedEndpoints = 0;
     static int totalDetectedParameters = 0;
@@ -87,6 +88,10 @@ public class EndpointMain {
             int numProjects = 0;
 
             List<Endpoint> allEndpoints = list();
+
+            if (outputFilePath != null && !(printFormat == SIMPLE_JSON || printFormat == FULL_JSON)) {
+                System.out.println("An output file path was specified but neither -json nor -simple-json flags were set, output file path will be ignored");
+            }
 
             if (pathListFile != null) {
                 println("Loading path list file at '" + pathListFile + "'");
@@ -159,8 +164,7 @@ public class EndpointMain {
 
                         if (!generatedEndpoints.isEmpty()) {
                             ++numProjectsWithEndpoints;
-                        } else {
-                        	projectsMissingEndpoints.add(job.sourceCodePath.getAbsolutePath());
+
                             if (printFormat == SIMPLE_JSON || printFormat == FULL_JSON) {
                                 allEndpoints.addAll(generatedEndpoints);
                             } else {
@@ -169,6 +173,8 @@ public class EndpointMain {
                                     printEndpointWithVariants(i++, 0, endpoint);
                                 }
                             }
+                        } else {
+                            projectsMissingEndpoints.add(job.sourceCodePath.getAbsolutePath());
                         }
                     }
 
@@ -212,6 +218,10 @@ public class EndpointMain {
                     try {
                         String s = new ObjectMapper().writeValueAsString(infos);
                         System.out.println(s);
+
+                        if (outputFilePath != null) {
+                            FileUtils.writeStringToFile(new File(outputFilePath), s);
+                        }
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -219,6 +229,10 @@ public class EndpointMain {
                     try {
                         String s = EndpointSerialization.serializeAll(allEndpoints);
                         System.out.println(s);
+
+                        if (outputFilePath != null) {
+                            FileUtils.writeStringToFile(new File(outputFilePath), s);
+                        }
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
@@ -233,14 +247,14 @@ public class EndpointMain {
 
 
 
-            System.out.println("-- DONE --");
-            System.out.println("Generated " + totalDetectedEndpoints + " total endpoints");
-            System.out.println("Generated " + totalDetectedParameters + " total parameters");
-            System.out.println(numProjectsWithEndpoints + "/" + numProjects + " projects had endpoints generated");
+            println("-- DONE --");
+            println("Generated " + totalDetectedEndpoints + " total endpoints");
+            println("Generated " + totalDetectedParameters + " total parameters");
+            println(numProjectsWithEndpoints + "/" + numProjects + " projects had endpoints generated");
             if (!projectsMissingEndpoints.isEmpty()) {
-                System.out.println("The following projects were missing endpoints:");
+                println("The following projects were missing endpoints:");
                 for (String path : projectsMissingEndpoints) {
-                    System.out.println("--- " + path);
+                    println("--- " + path);
                 }
             }
 
@@ -289,6 +303,16 @@ public class EndpointMain {
                     defaultFramework = FrameworkType.getFrameworkType(frameworkName);
                 } else if (arg.equals("-simple")) {
                     simplePrint = true;
+                } else if (arg.startsWith("-output-file=")) {
+                    String[] parts = arg.split("=");
+                    String path = parts[1];
+                    File outputFile = new File(path);
+                    File parentDirectory = outputFile.getParentFile();
+                    if (parentDirectory.isDirectory()) {
+                        parentDirectory.mkdirs();
+                    }
+                    outputFilePath = outputFile.getAbsolutePath();
+                    println("Writing output to file at: \"" + outputFilePath + "\"");
                 } else if (arg.startsWith("-path-list-file=")) {
                     String[] parts = arg.split("=");
                     String path = parts[1];
@@ -319,7 +343,7 @@ public class EndpointMain {
     }
 
     static void printError() {
-        println("The first argument should be a valid file path to scan. Other flags supported: -lint, -debug, -simple-json, -json, -path-list-file, -simple");
+        println("The first argument should be a valid file path to scan. Other flags supported: -lint, -debug, -simple-json, -json, -path-list-file=..., -output-file=..., -simple");
     }
 
     private static int printEndpointWithVariants(int i, int currentDepth, Endpoint endpoint) {
