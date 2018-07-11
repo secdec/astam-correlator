@@ -33,6 +33,7 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.framework.FrameworkCalculator;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
+import com.denimgroup.threadfix.framework.engine.full.EndpointSerialization;
 import com.denimgroup.threadfix.framework.engine.full.TemporaryExtractionLocation;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import org.apache.commons.io.FileUtils;
@@ -52,7 +53,8 @@ import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
-import static com.denimgroup.threadfix.data.interfaces.Endpoint.PrintFormat.JSON;
+import static com.denimgroup.threadfix.data.interfaces.Endpoint.PrintFormat.FULL_JSON;
+import static com.denimgroup.threadfix.data.interfaces.Endpoint.PrintFormat.SIMPLE_JSON;
 
 public class EndpointMain {
     private static final String FRAMEWORK_COMMAND = "-defaultFramework=";
@@ -71,6 +73,12 @@ public class EndpointMain {
     static int totalDetectedEndpoints = 0;
     static int totalDetectedParameters = 0;
 
+    private static void println(String line) {
+        if (printFormat != SIMPLE_JSON && printFormat != FULL_JSON) {
+            System.out.println(line);
+        }
+    }
+
     public static void main(String[] args) {
         if (checkArguments(args)) {
             resetLoggingConfiguration();
@@ -78,8 +86,10 @@ public class EndpointMain {
             int numProjectsWithEndpoints = 0;
             int numProjects = 0;
 
+            List<Endpoint> allEndpoints = list();
+
             if (pathListFile != null) {
-                System.out.println("Loading path list file at '" + pathListFile + "'");
+                println("Loading path list file at '" + pathListFile + "'");
                 List<String> fileContents;
                 boolean isLongComment = false;
 
@@ -107,12 +117,12 @@ public class EndpointMain {
                             }
 
                             if (!asFile.exists()) {
-                                System.out.println("WARN - Unable to find input path '" + line + "' at line " + lineNo + " of " + pathListFile);
+                                println("WARN - Unable to find input path '" + line + "' at line " + lineNo + " of " + pathListFile);
                             } else if (!asFile.isDirectory() && !isZipFile(asFile.getAbsolutePath())) {
-                                System.out.println("WARN - Input path '" + line + "' is not a directory or ZIP, at line " + lineNo + " of " + pathListFile);
+                                println("WARN - Input path '" + line + "' is not a directory or ZIP, at line " + lineNo + " of " + pathListFile);
                             } else {
                                 if (frameworkType == FrameworkType.NONE) {
-                                    System.out.println("WARN: Couldn't parse framework type: '" + frameworkType + "', for '" + asFile.getName() + "' using DETECT");
+                                    println("WARN: Couldn't parse framework type: '" + frameworkType + "', for '" + asFile.getName() + "' using DETECT");
                                 }
 
                                 if (frameworkType == FrameworkType.DETECT) {
@@ -136,27 +146,35 @@ public class EndpointMain {
                     boolean isFirst = true;
                     for (EndpointJob job : requestedTargets) {
                         if (isFirst) {
-                            System.out.println(PRINTLN_SEPARATOR);
+                            println(PRINTLN_SEPARATOR);
                             isFirst = false;
                         }
-                        System.out.println("Beginning endpoint detection for '" + job.sourceCodePath.getAbsolutePath() + "' with " + job.frameworkTypes.size() + " framework types");
+                        println("Beginning endpoint detection for '" + job.sourceCodePath.getAbsolutePath() + "' with " + job.frameworkTypes.size() + " framework types");
                         for (FrameworkType subType : job.frameworkTypes) {
-                            System.out.println("Using framework=" + subType);
+                            println("Using framework=" + subType);
                         }
                         List<Endpoint> generatedEndpoints = listEndpoints(job.sourceCodePath, job.frameworkTypes);
-                        System.out.println("Finished endpoint detection for '" + job.sourceCodePath.getAbsolutePath() + "'");
-                        System.out.println(PRINTLN_SEPARATOR);
+                        println("Finished endpoint detection for '" + job.sourceCodePath.getAbsolutePath() + "'");
+                        println(PRINTLN_SEPARATOR);
 
                         if (!generatedEndpoints.isEmpty()) {
                             ++numProjectsWithEndpoints;
                         } else {
                         	projectsMissingEndpoints.add(job.sourceCodePath.getAbsolutePath());
+                            if (printFormat == SIMPLE_JSON || printFormat == FULL_JSON) {
+                                allEndpoints.addAll(generatedEndpoints);
+                            } else {
+                                int i = 0;
+                                for (Endpoint endpoint : generatedEndpoints) {
+                                    printEndpointWithVariants(i++, 0, endpoint);
+                                }
+                            }
                         }
                     }
 
                 } catch (IOException e) {
                     e.printStackTrace();
-                    System.out.println("Unable to read path-list at " + pathListFile);
+                    println("Unable to read path-list at " + pathListFile);
                     printError();
                 }
             } else {
@@ -171,26 +189,63 @@ public class EndpointMain {
     	            compositeFrameworkTypes.add(defaultFramework);
                 }
 
-                if (!listEndpoints(rootFolder, list(defaultFramework)).isEmpty()) {
+                Collection<Endpoint> newEndpoints = listEndpoints(rootFolder, list(defaultFramework));
+                if (!newEndpoints.isEmpty()) {
                     ++numProjectsWithEndpoints;
+                    if (printFormat == SIMPLE_JSON || printFormat == FULL_JSON) {
+                        allEndpoints.addAll(newEndpoints);
+                    } else {
+                        int i = 0;
+                        for (Endpoint endpoint : newEndpoints) {
+                            printEndpointWithVariants(i++, 0, endpoint);
+                        }
+                    }
                 } else {
-    	        	projectsMissingEndpoints.add(rootFolder.getAbsolutePath());
+                    projectsMissingEndpoints.add(rootFolder.getAbsolutePath());
                 }
             }
+
+            if (!simplePrint) {
+                if (printFormat == SIMPLE_JSON) {
+                    Endpoint.Info[] infos = getEndpointInfo(allEndpoints);
+
+                    try {
+                        String s = new ObjectMapper().writeValueAsString(infos);
+                        System.out.println(s);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else if (printFormat == FULL_JSON) {
+                    try {
+                        String s = EndpointSerialization.serializeAll(allEndpoints);
+                        System.out.println(s);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                } else {
+                    int i = 0;
+                    for (Endpoint endpoint : allEndpoints) {
+                        //println(endpoint.getCSVLine(printFormat));
+                        i += printEndpointWithVariants(i, 0, endpoint);
+                    }
+                }
+            }
+
+
 
             System.out.println("-- DONE --");
             System.out.println("Generated " + totalDetectedEndpoints + " total endpoints");
             System.out.println("Generated " + totalDetectedParameters + " total parameters");
             System.out.println(numProjectsWithEndpoints + "/" + numProjects + " projects had endpoints generated");
             if (!projectsMissingEndpoints.isEmpty()) {
-            	System.out.println("The following projects were missing endpoints:");
-            	for (String path : projectsMissingEndpoints) {
-            		System.out.println("--- " + path);
-	            }
+                System.out.println("The following projects were missing endpoints:");
+                for (String path : projectsMissingEndpoints) {
+                    System.out.println("--- " + path);
+                }
             }
 
-            if (printFormat != JSON) {
-                System.out.println("To enable logging include the -debug argument");
+            if (printFormat != SIMPLE_JSON && printFormat != FULL_JSON) {
+                println("To enable logging include the -debug argument");
             }
         } else {
             printError();
@@ -225,7 +280,9 @@ public class EndpointMain {
                 } else if (arg.equals("-lint")) {
                     printFormat = Endpoint.PrintFormat.LINT;
                 } else if (arg.equals("-json")) {
-                    printFormat = JSON;
+                    printFormat = FULL_JSON;
+                } else if (arg.equals("-simple-json")) {
+                    printFormat = SIMPLE_JSON;
                 } else if (arg.contains(FRAMEWORK_COMMAND)) {
                     String frameworkName = arg.substring(arg.indexOf(
                             FRAMEWORK_COMMAND) + FRAMEWORK_COMMAND.length(), arg.length());
@@ -236,7 +293,7 @@ public class EndpointMain {
                     String[] parts = arg.split("=");
                     String path = parts[1];
                     if (path == null || path.isEmpty()) {
-                        System.out.println("Invalid -path-list-file argument, value is empty");
+                        println("Invalid -path-list-file argument, value is empty");
                         continue;
                     }
                     if (path.startsWith("\"") || path.startsWith("'")) {
@@ -247,7 +304,7 @@ public class EndpointMain {
                     }
                     pathListFile = path;
                 } else {
-                    System.out.println("Received unsupported option " + arg + ", valid arguments are -lint, -debug, -json, -path-list-file, and -simple");
+                    println("Received unsupported option " + arg + ", valid arguments are -lint, -debug, -simple-json, -json, -path-list-file, and -simple");
                     return false;
                 }
             }
@@ -255,14 +312,14 @@ public class EndpointMain {
             return true;
 
         } else {
-            System.out.println("Please enter a valid file path as the first parameter.");
+            println("Please enter a valid file path as the first parameter.");
         }
 
         return false;
     }
 
     static void printError() {
-        System.out.println("The first argument should be a valid file path to scan. Other flags supported: -lint, -debug, -json, -path-list-file, -simple");
+        println("The first argument should be a valid file path to scan. Other flags supported: -lint, -debug, -simple-json, -json, -path-list-file, -simple");
     }
 
     private static int printEndpointWithVariants(int i, int currentDepth, Endpoint endpoint) {
@@ -300,7 +357,7 @@ public class EndpointMain {
         line.append(endpoint.getEndingLineNumber());
         line.append("')");
 
-        System.out.println(line.toString());
+        println(line.toString());
 
         for (Endpoint variant : endpoint.getVariants()) {
             numPrinted += printEndpointWithVariants(i + numPrinted, currentDepth + 1, variant);
@@ -321,13 +378,17 @@ public class EndpointMain {
             sourceRootFile = zipExtractor.getOutputPath();
         }
 
+        if (frameworkTypes.size() == 1 && frameworkTypes.iterator().next() == FrameworkType.DETECT) {
+            frameworkTypes.addAll(FrameworkCalculator.getTypes(rootFile));
+        }
+
         List<EndpointDatabase> databases = list();
         for (FrameworkType frameworkType : frameworkTypes) {
             EndpointDatabase database = EndpointDatabaseFactory.getDatabase(sourceRootFile, frameworkType);
             if (database != null) {
                 databases.add(database);
             } else {
-                System.out.println("Warning: EndpointDatabaseFactory.getDatabase returned null for framework type " + frameworkType);
+                println("EndpointDatabaseFactory.getDatabase returned null for framework type " + frameworkType);
             }
         }
 
@@ -335,47 +396,26 @@ public class EndpointMain {
             endpoints.addAll(db.generateEndpoints());
         }
 
-        //Collections.sort(endpoints);
-
         int numPrimaryEndpoints = endpoints.size();
         int numEndpoints = EndpointUtil.flattenWithVariants(endpoints).size();
 
         totalDetectedEndpoints += numEndpoints;
 
         if (endpoints.isEmpty()) {
-            System.out.println("No endpoints were found.");
+            println("No endpoints were found.");
 
         } else {
-            System.out.println("Generated " + numPrimaryEndpoints +
+            println("Generated " + numPrimaryEndpoints +
                                 " distinct endpoints with " +
                                 (numEndpoints - numPrimaryEndpoints) +
                                 " variants for a total of " + numEndpoints +
                                 " endpoints");
-
-            if (!simplePrint) {
-                if (printFormat == JSON) {
-                    Endpoint.Info[] infos = getEndpointInfo(endpoints);
-
-                    try {
-                        String s = new ObjectMapper().writeValueAsString(infos);
-                        System.out.println(s);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                } else {
-                    int i = 0;
-                    for (Endpoint endpoint : endpoints) {
-                        //System.out.println(endpoint.getCSVLine(printFormat));
-                        i += printEndpointWithVariants(i, 0, endpoint);
-                    }
-                }
-            }
         }
 
         if (EndpointValidation.validateSerialization(sourceRootFile, endpoints)) {
-            System.out.println("Successfully validated serialization for these endpoints");
+            println("Successfully validated serialization for these endpoints");
         } else {
-            System.out.println("Failed to validate serialization for at least one of these endpoints");
+            println("Failed to validate serialization for at least one of these endpoints");
         }
 
         int numMissingStartLine = 0;
@@ -393,9 +433,9 @@ public class EndpointMain {
             }
         }
 
-        System.out.println(numMissingStartLine + " endpoints were missing code start line");
-        System.out.println(numMissingEndLine + " endpoints were missing code end line");
-        System.out.println(numSameLineRange + " endpoints had the same code start and end line");
+        println(numMissingStartLine + " endpoints were missing code start line");
+        println(numMissingEndLine + " endpoints were missing code end line");
+        println(numSameLineRange + " endpoints had the same code start and end line");
 
         List<RouteParameter> detectedParameters = list();
         for (Endpoint endpoint : endpoints) {
@@ -404,7 +444,7 @@ public class EndpointMain {
 
         totalDetectedParameters += detectedParameters.size();
 
-        System.out.println("Generated " + detectedParameters.size() + " parameters");
+        println("Generated " + detectedParameters.size() + " parameters");
 
         Map<RouteParameterType, Integer> typeOccurrences = map();
         int numHaveDataType = 0;
@@ -430,11 +470,11 @@ public class EndpointMain {
         }
 
         int numParams = detectedParameters.size();
-        System.out.println("- " + numHaveDataType + "/" + numParams + " have their data type");
-        System.out.println("- " + numHaveAcceptedValues + "/" + numParams + " have a list of accepted values");
-        System.out.println("- " + numHaveParamType + "/" + numParams + " have their parameter type");
+        println("- " + numHaveDataType + "/" + numParams + " have their data type");
+        println("- " + numHaveAcceptedValues + "/" + numParams + " have a list of accepted values");
+        println("- " + numHaveParamType + "/" + numParams + " have their parameter type");
         for (RouteParameterType paramType : typeOccurrences.keySet()) {
-            System.out.println("--- " + paramType.name() + ": " + typeOccurrences.get(paramType));
+            println("--- " + paramType.name() + ": " + typeOccurrences.get(paramType));
         }
 
         if (zipExtractor != null) {

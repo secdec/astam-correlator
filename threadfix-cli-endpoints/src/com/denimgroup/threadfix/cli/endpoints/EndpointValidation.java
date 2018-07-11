@@ -6,6 +6,7 @@ import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointSerialization;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
+import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,22 +14,39 @@ import java.util.List;
 import java.util.Map;
 
 public class EndpointValidation {
+
+    private static Logger logger = Logger.getLogger(EndpointValidation.class);
+
     public static boolean validateSerialization(File sourceCodeFolder, List<Endpoint> endpoints) {
         List<Endpoint> allEndpoints = EndpointUtil.flattenWithVariants(endpoints);
+
+        try {
+            String serializedCollection = EndpointSerialization.serializeAll(allEndpoints);
+            Endpoint[] deserializedCollection = EndpointSerialization.deserializeAll(serializedCollection);
+            if (deserializedCollection.length != allEndpoints.size()) {
+                logger.warn("Collection serialization did not match the original input");
+                return false;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            logger.warn("Exception thrown during collection serialization");
+            return false;
+        }
+
         for (Endpoint endpoint : allEndpoints) {
 
             if (endpoint.getFilePath().startsWith(sourceCodeFolder.getAbsolutePath().replace('\\', '/'))) {
-                System.out.println("Got an absolute file path when a relative path was expected instead, for: " + endpoint.toString());
+                logger.warn("Got an absolute file path when a relative path was expected instead, for: " + endpoint.toString());
                 return false;
             }
 
             if (endpoint.getFilePath().isEmpty()) {
-            	System.out.println("Got an empty file path for: " + endpoint.toString());
+                logger.warn("Got an empty file path for: " + endpoint.toString());
             }
             else if (!endpoint.getFilePath().contains("(lib)")) {
 	            File fullPath = new File(sourceCodeFolder, endpoint.getFilePath());
 	            if (!fullPath.exists()) {
-		            System.out.println("The source code path '" + fullPath.getAbsolutePath() + "' does not exist for: " + endpoint.toString());
+                    logger.warn("The source code path '" + fullPath.getAbsolutePath() + "' does not exist for: " + endpoint.toString());
 		            return false;
 	            }
             }
@@ -38,7 +56,7 @@ public class EndpointValidation {
             try {
                 serialized = EndpointSerialization.serialize(endpoint);
             } catch (IOException e) {
-                System.out.println("Exception occurred while serializing: " + endpoint.toString());
+                logger.warn("Exception occurred while serializing: " + endpoint.toString());
                 e.printStackTrace();
                 return false;
             }
@@ -46,38 +64,38 @@ public class EndpointValidation {
             try {
                 deserialized = EndpointSerialization.deserialize(serialized);
             } catch (IOException e) {
-                System.out.println("Exception occurred while deserializing: " + endpoint.toString());
+                logger.warn("Exception occurred while deserializing: " + endpoint.toString());
                 e.printStackTrace();
                 return false;
             }
 
             if (deserialized == null) {
-                System.out.println("Failed to validate serialization due to NULL DESERIALIZED ENDPOINT on " + endpoint.toString());
+                logger.warn("Failed to validate serialization due to NULL DESERIALIZED ENDPOINT on " + endpoint.toString());
                 return false;
             }
 
             if (!endpoint.getClass().equals(deserialized.getClass())) {
-                System.out.println("Failed to validate serialization due to MISMATCHED ENDPOINT DATATYPES on " + endpoint.toString());
+                logger.warn("Failed to validate serialization due to MISMATCHED ENDPOINT DATATYPES on " + endpoint.toString());
                 return false;
             }
 
             if (!deserialized.getUrlPath().equals(endpoint.getUrlPath())) {
-                System.out.println("Failed to validate serialization due to mismatched URL paths on " + endpoint.toString());
+                logger.warn("Failed to validate serialization due to mismatched URL paths on " + endpoint.toString());
                 return false;
             }
 
             if (!deserialized.getFilePath().equals(endpoint.getFilePath())) {
-                System.out.println("Failed to validate serialization due to mismatched FILE paths on " + endpoint.toString());
+                logger.warn("Failed to validate serialization due to mismatched FILE paths on " + endpoint.toString());
                 return false;
             }
 
             if (deserialized.getParameters().size() != endpoint.getParameters().size()) {
-                System.out.println("Failed to validate serialization due to mismatched PARAMETER COUNTS on " + endpoint.toString());
+                logger.warn("Failed to validate serialization due to mismatched PARAMETER COUNTS on " + endpoint.toString());
                 return false;
             }
 
             if (!deserialized.getHttpMethod().equals(endpoint.getHttpMethod())) {
-                System.out.println("Failed to validate serialization due to mismatched HTTP METHOD on " + endpoint.toString());
+                logger.warn("Failed to validate serialization due to mismatched HTTP METHOD on " + endpoint.toString());
                 return false;
             }
 
@@ -87,7 +105,7 @@ public class EndpointValidation {
             if (!endpointParams.keySet().containsAll(deserializedParams.keySet()) ||
                     !deserializedParams.keySet().containsAll(endpointParams.keySet())) {
 
-                System.out.println("Failed to validate serialization due to mismatched PARAMETER NAMES on " + endpoint.toString());
+                logger.warn("Failed to validate serialization due to mismatched PARAMETER NAMES on " + endpoint.toString());
                 return false;
             }
 
@@ -96,32 +114,32 @@ public class EndpointValidation {
                 RouteParameter deserializedParam = deserializedParams.get(param);
 
                 if (endpointParam.getParamType() != deserializedParam.getParamType()) {
-                    System.out.println("Failed to validate serialization due to mismatched PARAM TYPE on " + endpoint.toString());
+                    logger.warn("Failed to validate serialization due to mismatched PARAM TYPE on " + endpoint.toString());
                     return false;
                 }
 
                 if ((endpointParam.getDataTypeSource() == null) != (deserializedParam.getDataTypeSource() == null)) {
-                    System.out.println("Failed to validate serialization due to mismatched PARAM DATA TYPE on " + endpoint.toString());
+                    logger.warn("Failed to validate serialization due to mismatched PARAM DATA TYPE on " + endpoint.toString());
                     return false;
                 }
 
                 if (endpointParam.getDataTypeSource() != null && !endpointParam.getDataTypeSource().equals(deserializedParam.getDataTypeSource())) {
-                    System.out.println("Failed to validate serialization due to mismatched PARAM DATA TYPE on " + endpoint.toString());
+                    logger.warn("Failed to validate serialization due to mismatched PARAM DATA TYPE on " + endpoint.toString());
                     return false;
                 }
 
                 if (!endpointParam.getName().equals(deserializedParam.getName())) {
-                    System.out.println("Failed to validate serialization due to mismatched PARAM NAME on " + endpoint.toString());
+                    logger.warn("Failed to validate serialization due to mismatched PARAM NAME on " + endpoint.toString());
                     return false;
                 }
 
                 if ((endpointParam.getAcceptedValues() == null) != (deserializedParam.getAcceptedValues() == null)) {
-                    System.out.println("Failed to validate serialization due to mismatched ACCEPTED PARAM VALUES on " + endpoint.toString());
+                    logger.warn("Failed to validate serialization due to mismatched ACCEPTED PARAM VALUES on " + endpoint.toString());
                     return false;
                 } else if (endpointParam.getAcceptedValues() != null) {
                     if (!endpointParam.getAcceptedValues().containsAll(deserializedParam.getAcceptedValues()) ||
                             !deserializedParam.getAcceptedValues().containsAll(endpointParam.getAcceptedValues())) {
-                        System.out.println("Failed to validate serialization due to mismatched ACCEPTED PARAM VALUES on " + endpoint.toString());
+                        logger.warn("Failed to validate serialization due to mismatched ACCEPTED PARAM VALUES on " + endpoint.toString());
                         return false;
                     }
                 }
