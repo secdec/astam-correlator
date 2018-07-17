@@ -28,7 +28,6 @@
         <module>threadfix-service-interfaces</module>
         <module>threadfix-offline</module>
         <!--<module>threadfix-sonar-plugin</module>-->
-        <module>threadfix-cli-endpoints</module>
         <module>threadfix-cli-importers</module>
         <module>threadfix-data-migration</module>
         <module>threadfix-astam</module>
