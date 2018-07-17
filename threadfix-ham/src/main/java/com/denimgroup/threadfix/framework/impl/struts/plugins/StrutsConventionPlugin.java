@@ -25,6 +25,7 @@ package com.denimgroup.threadfix.framework.impl.struts.plugins;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.framework.impl.struts.model.annotations.*;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsProject;
 import com.denimgroup.threadfix.framework.impl.struts.model.*;
@@ -55,7 +56,7 @@ public class StrutsConventionPlugin implements StrutsPlugin {
         }
 
         // If '/' is provided as the results path, assume it's relative to the project root directory
-        if (resultsPath.replace('\\', '/').equals("/")) {
+        if (FilePathUtils.normalizePath(resultsPath).equals("/")) {
             resultsPath = project.getRootDirectory();
         }
 

@@ -69,7 +69,7 @@ public interface Endpoint extends Comparable<Endpoint> {
     boolean isPrimaryVariant();
 
     enum PrintFormat {
-        DYNAMIC, STATIC, LINT, JSON
+        DYNAMIC, STATIC, LINT, SIMPLE_JSON, FULL_JSON
     }
 
     @Nonnull

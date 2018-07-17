@@ -37,6 +37,7 @@ public class DotNetRouteMappings {
 
     List<MapRoute> routes = list();
 
+
     public DotNetRouteMappings() {}
 
     static class ConcreteRoute {
@@ -105,7 +106,7 @@ public class DotNetRouteMappings {
             if(hasAreaInMappings && (route.url.contains("area") || "areaRoute".equalsIgnoreCase(route.name))){
                 mapRoute = route;
                 break;
-            } else if(!hasAreaInMappings && (route.url.contains(controllerName) || !route.url.contains("area"))){
+            } else if(!hasAreaInMappings && route.url.contains(controllerName) && !route.url.contains("area")){
                 mapRoute = route;
                 break;
             } else if(!hasAreaInMappings && ("default".equalsIgnoreCase(route.name))){
@@ -114,7 +115,16 @@ public class DotNetRouteMappings {
             }
         }
 
-       return mapRoute == null ? routes.get(0) : mapRoute;
+        if (mapRoute == null) {
+        	for (MapRoute route : routes) {
+        		if (route.url.contains("{controller}") && route.url.contains("{action}")) {
+        			mapRoute = route;
+        			break;
+		        }
+	        }
+        }
+
+        return mapRoute;
     }
 
 }

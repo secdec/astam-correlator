@@ -45,8 +45,8 @@ public class WebFormsEndpointExplicit extends WebFormsEndpointBase {
 
     }
 
-    public WebFormsEndpointExplicit(File projectRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
-        super(projectRoot, aspxRoot, aspxParser, aspxCsParser);
+    public WebFormsEndpointExplicit(File solutionRoot, File projectRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
+        super(solutionRoot, projectRoot, aspxRoot, aspxParser, aspxCsParser);
     }
 
     @Override

@@ -27,6 +27,7 @@ package com.denimgroup.threadfix.framework.engine.cleaner;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.engine.partial.PartialMapping;
 import com.denimgroup.threadfix.framework.util.CommonPathFinder;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -94,7 +95,7 @@ public class DefaultPathCleaner implements PathCleaner {
         }
 
         if (cleanedPath.contains("\\")) {
-            cleanedPath = cleanedPath.replace('\\', '/');
+            cleanedPath = FilePathUtils.normalizePath(cleanedPath);
         }
 
         if (cleanedPath.indexOf("/") != 0) {

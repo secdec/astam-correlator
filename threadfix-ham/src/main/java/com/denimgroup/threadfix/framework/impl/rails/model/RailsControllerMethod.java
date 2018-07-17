@@ -35,6 +35,7 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 public class RailsControllerMethod {
     private String methodName;
     private Map<String, ParameterDataType> methodParams;
+    private int startLine, endLine;
 
     public String getMethodName() {
         return methodName;
@@ -56,4 +57,19 @@ public class RailsControllerMethod {
         this.methodParams.put(methodParam, dataType);
     }
 
+	public void setStartLine(int startLine) {
+		this.startLine = startLine;
+	}
+
+	public void setEndLine(int endLine) {
+		this.endLine = endLine;
+	}
+
+	public int getStartLine() {
+		return startLine;
+	}
+
+	public int getEndLine() {
+		return endLine;
+	}
 }

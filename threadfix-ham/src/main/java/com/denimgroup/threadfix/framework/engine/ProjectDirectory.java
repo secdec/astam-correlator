@@ -261,7 +261,7 @@ public class ProjectDirectory {
             returnString = findFilePath(pathSegments[pathSegments.length - 1], pathSegments);
 
             if (returnString != null) {
-                returnString = returnString.replace('\\', '/');
+                returnString = FilePathUtils.normalizePath(returnString);
             }
         }
 
@@ -281,7 +281,7 @@ public class ProjectDirectory {
             returnString = findFilePath(pathSegments[pathSegments.length - 1], pathSegments);
 
             if (returnString != null) {
-                returnString = returnString.replace('\\', '/');
+                returnString = FilePathUtils.normalizePath(returnString);
             }
         }
 

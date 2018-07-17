@@ -292,7 +292,6 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 
     void applyLineNumbers(Collection<Endpoint> endpoints) {
         Collection<Endpoint> allEndpoints = EndpointUtil.flattenWithVariants(endpoints);
-        Map<String, Integer> lineCounts = map();
 
         for (Endpoint endpoint : allEndpoints) {
             String filePath = endpoint.getFilePath();
@@ -302,24 +301,20 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                 file = new File(filePath);
             }
 
-            if (file.exists() && !lineCounts.containsKey(filePath)) {
-            	int numLines = CodeParseUtil.countLines(file.getAbsolutePath());
-            	lineCounts.put(filePath, numLines);
-            }
-        }
-
-        for (Endpoint endpoint : allEndpoints) {
-            JSPEndpoint jspEndpoint = (JSPEndpoint)endpoint;
-            String filePath = jspEndpoint.getFilePath();
-            File file = new File(filePath);
-            if (!file.isAbsolute() || !file.exists()) {
-                filePath = PathUtil.combine(projectRoot.getAbsolutePath(), filePath);
+            if (!file.exists()) {
+            	continue;
             }
 
-            if (lineCounts.containsKey(filePath)) {
-                int lineCount = lineCounts.get(filePath);
-                jspEndpoint.setLines(1, lineCount + 1);
+            if (endpoint.getStartingLineNumber() > 0 && endpoint.getEndingLineNumber() > 0) {
+            	continue;
             }
+
+	        JSPEndpoint jspEndpoint = (JSPEndpoint) endpoint;
+
+	        if (filePath.endsWith(".jsp")) {
+		        int numLines = CodeParseUtil.countLines(file.getAbsolutePath());
+		        jspEndpoint.setLines(1, numLines + 1);
+	        }
         }
     }
 
@@ -358,7 +353,10 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                     for (RouteParameter param : params) {
                         paramMap.put(param.getName(), param);
                     }
+                    int startLine = servlet.getStartLine(method);
+                    int endLine = servlet.getEndLine(method);
                     JSPEndpoint newEndpoint = new JSPEndpoint(relativeFilePath, endpointPath, method, paramMap);
+                    newEndpoint.setLines(startLine, endLine);
                     endpoints.add(newEndpoint);
                     addToEndpointMap(relativeFilePath, newEndpoint);
                 }
@@ -373,6 +371,8 @@ public class JSPEndpointGenerator implements EndpointGenerator {
             String filePath = null;
             Map<String, Map<String, RouteParameter>> methodParameters = null;
             Collection<String> supportedMethods = null;
+            Map<String, Integer> methodStartLines = map();
+            Map<String, Integer> methodEndLines = map();
 
             switch (mapping.getMappingType()) {
                 case MAP_CLASS_SERVLET:
@@ -389,6 +389,8 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                     supportedMethods = servlet.getHttpMethods();
 
                     for (String method : supportedMethods) {
+                    	methodStartLines.put(method, servlet.getStartLine(method));
+                    	methodEndLines.put(method, servlet.getEndLine(method));
                         Map<String, RouteParameter> currentMap = map();
                         for (RouteParameter param : servlet.getMethodParameters(method)) {
                             currentMap.put(param.getName(), param);
@@ -422,6 +424,9 @@ public class JSPEndpointGenerator implements EndpointGenerator {
             for (String pattern : urlPatterns) {
                 for (String httpMethod : supportedMethods) {
                     JSPEndpoint newEndpoint = new JSPEndpoint(filePath, pattern, httpMethod, methodParameters.get(httpMethod));
+                    if (methodStartLines.containsKey(httpMethod) && methodEndLines.containsKey(httpMethod)) {
+                    	newEndpoint.setLines(methodStartLines.get(httpMethod), methodEndLines.get(httpMethod));
+                    }
                     if (!primaryMethodEndpoints.containsKey(httpMethod)) {
                         endpoints.add(newEndpoint);
                         primaryMethodEndpoints.put(httpMethod, newEndpoint);

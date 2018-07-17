@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -81,7 +82,7 @@ public class DjangoEndpoint extends AbstractEndpoint {
                           Map<String, RouteParameter> parameters,
                           boolean isInternationalized) {
 
-        this.filePath = filePath.replace('\\', '/');
+        this.filePath = FilePathUtils.normalizePath(filePath);
         this.urlPath = urlPath;
         this.httpMethod = httpMethod;
         if (parameters != null)

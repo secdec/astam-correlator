@@ -52,6 +52,8 @@ public class RailsEndpoint extends AbstractEndpoint {
     private String urlPath;
     private Pattern urlPattern;
 
+    int startLine, endLine;
+
     private String httpMethod;
     private Map<String, RouteParameter> parameters;
 
@@ -162,12 +164,12 @@ public class RailsEndpoint extends AbstractEndpoint {
 
     @Override
     public int getStartingLineNumber() {
-        return -1;
+        return startLine;
     }
 
     @Override
     public int getEndingLineNumber() {
-        return -1;
+        return endLine;
     }
 
     @Override
@@ -178,5 +180,10 @@ public class RailsEndpoint extends AbstractEndpoint {
     @Override
     public boolean matchesLineNumber(int lineNumber) {
         return true;
+    }
+
+    public void setLineNumbers(int startLine, int endLine) {
+    	this.startLine = startLine;
+    	this.endLine = endLine;
     }
 }

@@ -27,6 +27,7 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.entities.WildcardEndpointPathNode;
 import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
@@ -42,6 +43,7 @@ import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 /**
  * Created by mac on 6/11/14.
@@ -51,6 +53,7 @@ public class DotNetEndpoint extends AbstractEndpoint {
     @Nonnull String path;
     @Nonnull String filePath;
     @Nonnull Action action;
+    @Nonnull Map<String, RouteParameter> routeParameters;
 
     Pattern pathPattern;
     String forcedMethod = null;
@@ -68,6 +71,18 @@ public class DotNetEndpoint extends AbstractEndpoint {
         this.filePath = filePath;
         this.action = action;
         this.pathPattern = Pattern.compile(path.replaceAll("\\{.+\\}", "[^\\/]+"));
+
+        this.routeParameters = map();
+        for (Map.Entry<String, RouteParameter> param : action.parameters.entrySet()) {
+        	if (path.contains("{" + param.getKey() + "}")) {
+        		RouteParameter parametric = new RouteParameter(param.getKey());
+        		parametric.setDataType(param.getValue().getDataTypeSource());
+        		parametric.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+        		routeParameters.put(param.getKey(), parametric);
+	        } else {
+        		routeParameters.put(param.getKey(), param.getValue());
+	        }
+        }
     }
 
     @Override
@@ -105,7 +120,7 @@ public class DotNetEndpoint extends AbstractEndpoint {
     @Nonnull
     @Override
     public Map<String, RouteParameter> getParameters() {
-        return action.parameters;
+        return routeParameters;
     }
 
     @Nonnull
@@ -130,12 +145,14 @@ public class DotNetEndpoint extends AbstractEndpoint {
     @Override
     public List<EndpointPathNode> getUrlPathNodes() {
 
+    	String replaceParamsPattern = "\\{(\\w+)\\}";
         List<EndpointPathNode> result = new ArrayList<EndpointPathNode>();
 
         String[] pathParts = StringUtils.split(path, '/');
         for (String part : pathParts) {
             if (part.contains("{")) {
-                result.add(new WildcardEndpointPathNode(null));
+            	String wildcardPart = part.replaceAll(replaceParamsPattern, "\\.*");
+            	result.add(new WildcardEndpointPathNode(wildcardPart));
             } else {
                 result.add(new ExplicitEndpointPathNode(part));
             }

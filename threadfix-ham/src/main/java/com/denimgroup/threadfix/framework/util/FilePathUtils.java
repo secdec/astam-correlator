@@ -33,6 +33,11 @@ public class FilePathUtils {
 
     private FilePathUtils(){}
 
+    @Nonnull
+    public static String normalizePath(@Nonnull String filePath) {
+    	return filePath.replace('\\', '/');
+    }
+
     @Nullable
     public static String getRelativePath(@Nullable File projectFile, @Nullable File rootFile) {
         String returnPath = null;
@@ -72,9 +77,8 @@ public class FilePathUtils {
 
         if (string != null && projectRoot != null &&
                 string.startsWith(projectRoot)) {
-            returnPath = string
-                    .substring(projectRoot.length())
-                    .replace('\\', '/');
+            returnPath = string.substring(projectRoot.length());
+            returnPath = normalizePath(returnPath);
         }
 
         return returnPath;

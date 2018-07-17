@@ -175,6 +175,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
 
         switch (currentClassBodyState) {
             case START:
+            	currentParenCount = -1;
                 if (isClassDecoratorKeyword(stringValue))
                     currentClassBodyState = ClassBodyState.METHOD_ACCESS_DECLARATION;
                 break;
@@ -451,6 +452,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
             parameterName = null;
             commaCount = 0;
             currentPhase = Phase.IN_CLASS;
+            currentMapRouteState = MapRouteState.START;
         }
 
     }

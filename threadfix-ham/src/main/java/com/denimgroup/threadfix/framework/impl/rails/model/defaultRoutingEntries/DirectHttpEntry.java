@@ -79,6 +79,7 @@ public class DirectHttpEntry extends AbstractRailsRoutingEntry {
         value = stripColons(value);
         if (name == null) {
             mappedEndpoint = value;
+            actionName = value;
         } else if (name.equalsIgnoreCase("to")) {
             String[] controllerParts = value.split("#");
             if (controllerParts.length == 1) {

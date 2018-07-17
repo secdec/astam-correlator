@@ -31,6 +31,7 @@ import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,6 +53,7 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
     String      aspxFilePath;
     String      aspxCsFilePath;
     String      projectRoot;
+    String      solutionRoot;
     String      aspxRoot;
     String      urlPath;
     String      filePath;
@@ -67,16 +69,17 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
     }
 
-    public WebFormsEndpointBase(File projectRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
+    public WebFormsEndpointBase(File solutionRoot, File projectRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
         if (!checkArguments(aspxParser.aspName, aspxCsParser.aspName)) {
             throw new IllegalArgumentException("Invalid aspx mappings pairs passed to WebFormsEndpointBase constructor: " +
                     aspxParser.aspName + " and " + aspxCsParser.aspName);
         }
 
-        this.aspxFilePath = aspxParser.file.getAbsolutePath().replace('\\', '/');
-        this.aspxCsFilePath = aspxCsParser.file.getAbsolutePath().replace('\\', '/');
-        this.projectRoot = projectRoot.getAbsolutePath().replace('\\', '/');
-        this.aspxRoot = aspxRoot.getAbsolutePath().replace('\\', '/');
+        this.aspxFilePath = FilePathUtils.normalizePath(aspxParser.file.getAbsolutePath());
+        this.aspxCsFilePath = FilePathUtils.normalizePath(aspxCsParser.file.getAbsolutePath());
+        this.projectRoot = FilePathUtils.normalizePath(projectRoot.getAbsolutePath());
+        this.solutionRoot = FilePathUtils.normalizePath(solutionRoot.getAbsolutePath());
+        this.aspxRoot = FilePathUtils.normalizePath(aspxRoot.getAbsolutePath());
 
         this.urlPath = calculateUrlPath();
         this.filePath = calculateFilePath();
@@ -113,7 +116,7 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
     }
 
     private String calculateFilePath() {
-        return calculateRelativePath(this.aspxCsFilePath, this.projectRoot);
+        return calculateRelativePath(this.aspxCsFilePath, this.solutionRoot);
     }
 
     protected String calculateUrlPath() {

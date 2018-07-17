@@ -45,8 +45,8 @@ public class WebFormsEndpointExtensionless extends WebFormsEndpointBase {
 
     }
 
-    public WebFormsEndpointExtensionless(File projectRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
-        super(projectRoot, aspxRoot, aspxParser, aspxCsParser);
+    public WebFormsEndpointExtensionless(File solutionRoot, File projectRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
+        super(solutionRoot, projectRoot, aspxRoot, aspxParser, aspxCsParser);
     }
 
     @Override

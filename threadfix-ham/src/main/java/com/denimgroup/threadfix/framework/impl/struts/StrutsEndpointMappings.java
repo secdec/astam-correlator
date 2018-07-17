@@ -525,7 +525,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 String fullDisplayFilePath;
 
                 if (new File(displayFilePath).isAbsolute()) {
-                    fullDisplayFilePath = FilePathUtils.getRelativePath(displayFilePath, rootDirectory.getAbsolutePath().replace('\\', '/'));
+                    fullDisplayFilePath = FilePathUtils.getRelativePath(displayFilePath, FilePathUtils.normalizePath(rootDirectory.getAbsolutePath()));
                 } else {
                     fullDisplayFilePath = PathUtil.combine(projectRelativeFilePath, displayFilePath, true);
                 }

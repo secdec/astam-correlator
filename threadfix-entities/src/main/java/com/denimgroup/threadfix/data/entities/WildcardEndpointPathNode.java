@@ -3,31 +3,28 @@ package com.denimgroup.threadfix.data.entities;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 
 import javax.annotation.Nonnull;
+import java.util.regex.Pattern;
 
 public class WildcardEndpointPathNode implements EndpointPathNode {
 
-    private String wildcardPattern;
+    private Pattern wildcardPattern;
 
     public WildcardEndpointPathNode(String pattern) {
-        this.wildcardPattern = pattern;
+    	if (pattern == null) {
+    		this.wildcardPattern = Pattern.compile(".*");
+	    } else {
+		    this.wildcardPattern = Pattern.compile(pattern);
+	    }
     }
 
     @Override
     public boolean matches(@Nonnull String pathPart) {
-        return true;
+        return wildcardPattern.matcher(pathPart).matches();
     }
 
     @Override
     public boolean matches(@Nonnull EndpointPathNode node) {
-        return node instanceof WildcardEndpointPathNode;
-    }
-
-    public boolean hasPattern() {
-        return wildcardPattern != null;
-    }
-
-    public String getPattern() {
-        return wildcardPattern;
+        return node instanceof WildcardEndpointPathNode && ((WildcardEndpointPathNode) node).wildcardPattern.equals(this.wildcardPattern);
     }
 
     @Override
