@@ -41,6 +41,7 @@ public class DotNetControllerMappings {
     private String       areaName = null;
     private String       controllerName = null;
     private List<Action> actions        = list();
+    private String       namespace = null;
 
     public String getFilePath() {
         return filePath;
@@ -56,6 +57,14 @@ public class DotNetControllerMappings {
     public String getControllerName() {
         assert controllerName != null : "You have attempted to access the controller name without setting it.";
         return controllerName;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
+    public String getNamespace() {
+        return namespace;
     }
 
     public void setAreaName(@Nonnull String areaName) {

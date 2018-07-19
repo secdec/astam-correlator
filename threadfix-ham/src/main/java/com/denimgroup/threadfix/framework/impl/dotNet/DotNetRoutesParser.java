@@ -31,7 +31,9 @@ import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.List;
 
+import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.*;
 
 /**
@@ -250,11 +252,13 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
             currentDefaultAction = null,
             parameterName = null,
             parameterValue = null;
+    List<String> currentNamespaces = list();
     // TODO split this up
     enum MapRouteState { // these states are to be used with the IN_MAP_ROUTE_METHOD Phase
         START, URL, URL_COLON, NAME, NAME_COLON, DEFAULTS,
         DEFAULTS_COLON, DEFAULTS_NEW, DEFAULTS_OBJECT, DEFAULTS_AREA, DEFAULTS_AREA_EQUALS, DEFAULTS_CONTROLLER, DEFAULTS_CONTROLLER_EQUALS,
-        DEFAULTS_ACTION, DEFAULTS_ACTION_EQUALS, DEFAULTS_PARAM, DEFAULTS_PARAM_EQUALS, TEMPLATE, TEMPLATE_COLON
+        DEFAULTS_ACTION, DEFAULTS_ACTION_EQUALS, DEFAULTS_PARAM, DEFAULTS_PARAM_EQUALS, TEMPLATE, TEMPLATE_COLON,
+        NAMESPACES_NEW, NAMESPACES_COLON
     }
 
     int commaCount = 0;
@@ -289,6 +293,8 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                     }
                 } else if (NEW.equals(stringValue) && commaCount == 2) {
                     currentMapRouteState = MapRouteState.DEFAULTS_NEW;
+                } else if (NEW.equals(stringValue) && commaCount > 2) {
+                    currentMapRouteState = MapRouteState.NAMESPACES_NEW;
                 } else if (TEMPLATE.equals(stringValue)) {
                     currentMapRouteState = MapRouteState.TEMPLATE;
                 } else if ((TEMPLATE + ":").equals(stringValue)){
@@ -440,12 +446,20 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 currentMapRouteState = MapRouteState.START;
                 break;
 
+            case NAMESPACES_NEW:
+                if (type != '{' && type != ',' && type != '}' && type == '"' && stringValue != null) {
+                    currentNamespaces.add(stringValue);
+                } else if (type == '}') {
+                    currentMapRouteState = MapRouteState.START;
+                }
+                break;
+
         }
 
         if (parenCount == currentParenCount) {
             log("Paren count: " + parenCount);
             log("Paren current: " + currentParenCount);
-            mappings.addRoute(currentName, currentUrl, currentDefaultArea, currentDefaultController, currentDefaultAction, parameterName);
+            mappings.addRoute(currentName, currentUrl, currentDefaultArea, currentDefaultController, currentDefaultAction, parameterName, currentNamespaces);
             currentDefaultAction = null;
             currentDefaultController = null;
             currentDefaultArea = null;
@@ -453,6 +467,7 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
             commaCount = 0;
             currentPhase = Phase.IN_CLASS;
             currentMapRouteState = MapRouteState.START;
+            currentNamespaces = list();
         }
 
     }

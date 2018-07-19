@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -101,6 +102,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     Set<RouteParameter> parametersWithTypes = set();
     int lastLineNumber = -1;
     String possibleParamType = null;
+    String currentNamespace = null;
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
@@ -149,6 +151,12 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                     currentState = State.PUBLIC;
                 }else if( type == '['){
                     currentState = State.OPEN_BRACKET;
+                }else {
+                    if (currentNamespace == null) {
+                        currentNamespace = "";
+                    }
+                    if (currentCurlyBrace == 0)
+                        currentNamespace += CodeParseUtil.buildTokenString(type, stringValue);
                 }
                 break;
             case OPEN_BRACKET:
@@ -178,6 +186,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                     String controllerName = stringValue.substring(0, stringValue.indexOf("Controller"));
                     LOG.debug("Got Controller name " + controllerName);
                     mappings.setControllerName(controllerName);
+                    mappings.setNamespace(currentNamespace);
                 }
 
                 currentState = State.TYPE_SIGNATURE;
@@ -284,11 +293,21 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                     }
                     break;
                 case STRING:
+                    boolean addAttribute = false;
                     if (type == ']') {
+                        currentAttributeState = AttributeState.START;
+                        addAttribute = true;
+                    }
+
+                    if (type == ',') {
+                        addAttribute = true;
+                        currentAttributeState = AttributeState.OPEN_BRACKET;
+                    }
+
+                    if (addAttribute) {
                         LOG.debug("Adding " + lastAttribute);
                         currentAttributes.add(lastAttribute);
                     }
-                    currentAttributeState = AttributeState.START;
                     break;
             }
         }
