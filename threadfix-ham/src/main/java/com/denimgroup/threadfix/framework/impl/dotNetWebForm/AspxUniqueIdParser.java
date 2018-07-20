@@ -28,6 +28,7 @@ import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -129,12 +130,12 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
                 currentPageState = type == '@' ? PageState.ARROBA : PageState.START;
                 break;
             case ARROBA:
-                currentPageState = type == -3 && "Page".equals(stringValue) ? PageState.PAGE : PageState.START;
+                currentPageState = type == -3 && "Page".equalsIgnoreCase(stringValue) ? PageState.PAGE : PageState.START;
                 break;
             case PAGE:
                 if (type == '>') {
                     currentPageState = PageState.DONE;
-                } else if ("MasterPageFile".equals(stringValue)) {
+                } else if ("MasterPageFile".equalsIgnoreCase(stringValue)) {
                     currentPageState = PageState.MASTER_PAGE_FILE;
                 }
                 break;
@@ -179,11 +180,11 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
                 if (type == '>') {
                     saveControlData();
                     currentState = State.START;
-                } else if ("Src".equals(stringValue)) {
+                } else if ("Src".equalsIgnoreCase(stringValue)) {
                     currentState = State.SRC;
-                } else if ("TagPrefix".equals(stringValue)) {
+                } else if ("TagPrefix".equalsIgnoreCase(stringValue)) {
                     currentState = State.TAG_PREFIX;
-                } else if ("TagName".equals(stringValue)) {
+                } else if ("TagName".equalsIgnoreCase(stringValue)) {
                     currentState = State.TAG_NAME;
                 }
                 break;
@@ -199,7 +200,7 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
                 break;
             case TAG_PREFIX:
                 if (type == '"') {
-                    currentTagPrefix = stringValue;
+                    currentTagPrefix = stringValue.toLowerCase();
                 }
                 if (type != '=') {
                     currentState = State.REGISTER;
@@ -207,7 +208,7 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
                 break;
             case TAG_NAME:
                 if (type == '"') {
-                    currentTagName = stringValue;
+                    currentTagName = stringValue.toLowerCase();
                 }
                 if (type != '=') {
                     currentState = State.REGISTER;
@@ -220,18 +221,22 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
         if (allControlMap != null) {
             AscxFile ascxFile = allControlMap.get(currentTagName);
             if (ascxFile == null && currentSrc != null) {
+                ascxFile = allControlMap.get(FilenameUtils.getBaseName(currentSrc).toLowerCase());
+            }
+            if (ascxFile == null && currentSrc != null) {
                 String srcName = FilePathUtils.normalizePath(currentSrc);
                 if (srcName.contains("/")) srcName = srcName.substring(srcName.lastIndexOf('/') + 1);
                 if (srcName.contains(".")) srcName = srcName.substring(0, srcName.indexOf('.'));
                 ascxFile = allControlMap.get(srcName);
             }
             if (ascxFile != null) {
+                //  For directly registered controls
                 includedControlMap.put(currentTagPrefix + ":" + currentTagName, ascxFile);
             } else {
-                LOG.error("Unable to load control " + currentTagName + ".");
+                LOG.warn("Unable to load control " + currentTagName + ".");
             }
         } else {
-            LOG.error("Got data for a control but wasn't passed any control definitions.");
+            LOG.warn("Got data for a control but wasn't passed any control definitions.");
         }
 
         currentTagName = null;
@@ -256,18 +261,20 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
                 currentControlState = type == '<' ? ControlState.LEFT_ANGLE : ControlState.START;
                 break;
             case LEFT_ANGLE:
+                String[] splitValue = stringValue == null ? null : stringValue.split(":");
                 if (includedControlMap.containsKey(stringValue)) {
                     currentFile = includedControlMap.get(stringValue);
                     currentControlTagName = stringValue;
-                    LOG.info("Got control from file " + currentFile.name);
+                    LOG.debug("Got control from file " + currentFile.name);
                     currentControlState = ControlState.NAME;
+
                 } else {
                     currentControlState = ControlState.START;
                 }
                 break;
             case NAME:
                 // -3 is the "token" code
-                if (type == -3 && "ID".equals(stringValue)) {
+                if (type == -3 && "ID".equalsIgnoreCase(stringValue)) {
                     currentControlState = ControlState.ID;
                 }
                 break;
@@ -346,10 +353,10 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
             gotIdAttribute = false;
         }
 
-        if ("asp:Content".equals(lastName)) {
-            gotIdAttribute = gotIdAttribute || (needsId && stringValue != null && stringValue.equals("ContentPlaceHolderID"));
+        if ("asp:Content".equalsIgnoreCase(lastName)) {
+            gotIdAttribute = gotIdAttribute || (needsId && stringValue != null && stringValue.equalsIgnoreCase("ContentPlaceHolderID"));
         } else {
-            gotIdAttribute = gotIdAttribute || (needsId && stringValue != null && stringValue.equals("ID"));
+            gotIdAttribute = gotIdAttribute || (needsId && stringValue != null && stringValue.equalsIgnoreCase("ID"));
         }
 
         if (type == '>' && lastName != null) { // we only want to do this if we're in an asp:* tag

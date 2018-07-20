@@ -25,7 +25,6 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
-import com.denimgroup.threadfix.data.entities.Document;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
@@ -84,8 +83,9 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
             List<AspxParser> aspxParsers = getAspxParsers(projectDirectory, ascxFiles, masterFileMap);
             List<AspxCsParser> aspxCsParsers = getAspxCsParsers(projectDirectory);
 
+            WebFormsSitemapParser sitemap = findSiteMap(projectDirectory);
             List<String> defaultPages = collectDefaultPages(webConfig);
-            collapseToEndpoints(aspxCsParsers, aspxParsers, rootDirectory, projectDirectory, defaultPages);
+            collapseToEndpoints(aspxCsParsers, aspxParsers, rootDirectory, projectDirectory, defaultPages, sitemap);
         }
 
         //  There's currently no way to distinguish HTTP methods for each route, nor for
@@ -113,15 +113,34 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
     }
 
     private List<File> findProjectDirectories(File rootDirectory) {
-        Collection<File> csprojFiles = FileUtils.listFiles(rootDirectory, new String[] { "csproj" }, true);
-        List<File> result = list();
-        for (File csproj : csprojFiles) {
-            File folder = csproj.getParentFile();
-            if (!FileUtils.listFiles(folder, new String[] { "aspx", "ascx", "asax" }, true).isEmpty()) {
-                result.add(folder);
+        Collection<File> projectFiles = FileUtils.listFiles(rootDirectory, new String[] { "csproj", "sitemap", "config" }, true);
+        List<File> possibleResults = list();
+        for (File proj : projectFiles) {
+            File folder = proj.getParentFile();
+            if (!possibleResults.contains(folder) && !FileUtils.listFiles(folder, new String[] { "aspx", "ascx", "asax" }, true).isEmpty()) {
+                possibleResults.add(folder);
             }
         }
-        return result;
+        //  Remove project locations that are sub-folders of another
+        List<File> filteredResults = list();
+        for (File current : possibleResults) {
+        	String currentPath = current.getAbsolutePath();
+        	boolean include = true;
+            for (File check : possibleResults) {
+            	if (check.equals(current)) {
+            		continue;
+	            }
+            	String checkPath = check.getAbsolutePath();
+                if (currentPath.startsWith(checkPath)) {
+                	include = false;
+                	break;
+                }
+            }
+            if (include) {
+            	filteredResults.add(current);
+            }
+        }
+        return filteredResults;
     }
 
     private File getWebConfigFile(File rootDirectory) {
@@ -144,7 +163,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
 
     private List<AspxCsParser> getAspxCsParsers(File rootDirectory) {
         Collection aspxCsFiles = FileUtils.listFiles(rootDirectory,
-                new FileExtensionFileFilter(".cs"), TrueFileFilter.INSTANCE);
+                new FileExtensionFileFilter(".aspx.cs"), TrueFileFilter.INSTANCE);
 
         List<AspxCsParser> aspxCsParsers = list();
 
@@ -219,7 +238,6 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
             return result;
         }
 
-        Node documentNode = documentNodes.item(0);
         NodeList fileNodes;
 
         XPath xPath = XPathFactory.newInstance().newXPath();
@@ -259,6 +277,19 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         return result;
     }
 
+    WebFormsSitemapParser findSiteMap(File rootDirectory) {
+        for (File sitemapFile : FileUtils.listFiles(rootDirectory, new String[] { "sitemap" }, false)) {
+            if (sitemapFile.getName().equalsIgnoreCase("web")) {
+                try {
+                    return new WebFormsSitemapParser(sitemapFile);
+                } catch (Exception ignored) {
+                    return null;
+                }
+            }
+        }
+        return null;
+    }
+
     File getAspxRoot(File rootDirectory) {
         Collection aspxCsFiles = FileUtils.listFiles(rootDirectory,
                 new FileExtensionFileFilter(".config"), TrueFileFilter.INSTANCE);
@@ -287,7 +318,12 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
                              Collection<AspxParser> aspxParsers,
                              File solutionDirectory,
                              File projectDirectory,
-                             List<String> defaultPages) {
+                             List<String> defaultPages,
+                             WebFormsSitemapParser sitemap) {
+
+        //  TODO - Make use of sitemap when available
+        //  Need some way to restructure aspx/cs parsers if an endpoint path needs to be corrected
+
         Map<String, AspxParser> aspxParserMap = map();
         Map<String, AspxCsParser> aspxCsParserMap = map();
 

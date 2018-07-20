@@ -54,7 +54,7 @@ public class AscxFileMappingsFileParser {
             if (aspxFile instanceof File) {
 
                 File file = (File) aspxFile;
-                String name = file.getName();
+                String name = file.getName().toLowerCase(); // Normalize all names to lower-case since element name is case-insensitive
                 String key = name.contains(".") ? name.substring(0, name.indexOf('.')) : name;
                 map.put(key, new AscxFile(file));
             }
