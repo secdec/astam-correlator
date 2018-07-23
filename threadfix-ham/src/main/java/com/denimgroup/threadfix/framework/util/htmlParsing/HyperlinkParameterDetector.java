@@ -294,7 +294,7 @@ public class HyperlinkParameterDetector {
                     List<String> acceptedValues = param.acceptedValues;
                     if (method == null) {
                         if (rootElement.getDefaultRequestType() == null) {
-                            LOG.warn("No explicit HTTP method was assigned for parameter '" + name + "' and the parent element does not have a default request method, GET will be assumed");
+                            LOG.debug("No explicit HTTP method was assigned for parameter '" + name + "' and the parent element does not have a default request method, GET will be assumed");
                             method = "GET";
                         } else {
                             method = rootElement.getDefaultRequestType();
