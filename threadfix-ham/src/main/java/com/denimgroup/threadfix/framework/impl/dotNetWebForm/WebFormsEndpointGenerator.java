@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
@@ -121,26 +122,8 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
                 possibleResults.add(folder);
             }
         }
-        //  Remove project locations that are sub-folders of another
-        List<File> filteredResults = list();
-        for (File current : possibleResults) {
-        	String currentPath = current.getAbsolutePath();
-        	boolean include = true;
-            for (File check : possibleResults) {
-            	if (check.equals(current)) {
-            		continue;
-	            }
-            	String checkPath = check.getAbsolutePath();
-                if (currentPath.startsWith(checkPath)) {
-                	include = false;
-                	break;
-                }
-            }
-            if (include) {
-            	filteredResults.add(current);
-            }
-        }
-        return filteredResults;
+
+        return FilePathUtils.findRootFolders(possibleResults);
     }
 
     private File getWebConfigFile(File rootDirectory) {
