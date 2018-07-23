@@ -28,6 +28,7 @@ package com.denimgroup.threadfix.framework.util;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -93,7 +94,7 @@ public class FilePathUtils {
     }
 
     //  Filters all folders that are contained within another
-    public static List<File> findRootFolders(@Nonnull List<File> folders) {
+    public static List<File> findRootFolders(@Nonnull Collection<File> folders) {
         //  Remove project locations that are sub-folders of another
         List<File> filteredResults = list();
         for (File current : folders) {
