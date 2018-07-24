@@ -297,9 +297,12 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         List<Endpoint> mappings = list();
         for (List<DjangoRoute> routeSet : routeMap.values()) {
 
+            //  Duplicate routes can occur if a test suite is included that references production routes
+            List<DjangoRoute> distinctRoutes = getDistinctRoutes(routeSet);
+
             inferHttpMethodsBySourceCode(codebase, routeSet);
 
-            for (DjangoRoute route : routeSet) {
+            for (DjangoRoute route : distinctRoutes) {
                 String urlPath = route.getUrl();
                 String filePath = route.getViewPath();
 
@@ -321,6 +324,26 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             }
         }
         return mappings;
+    }
+
+    private List<DjangoRoute> getDistinctRoutes(Collection<DjangoRoute> routes) {
+        List<DjangoRoute> distinct = list();
+
+        for (DjangoRoute current : routes) {
+            boolean exists = false;
+            for (DjangoRoute existing : distinct) {
+                if (current != existing && current.equals(existing)) {
+                    exists = true;
+                    break;
+                }
+            }
+
+            if (!exists) {
+                distinct.add(current);
+            }
+        }
+
+        return distinct;
     }
 
     private List<File> findUrlsByFileName() {

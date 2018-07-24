@@ -84,4 +84,53 @@ public class DjangoRoute {
     public void addParameter(String parameter, RouteParameter dataType) {
         parameters.put(parameter, dataType);
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!obj.getClass().equals(DjangoRoute.class)) {
+            return false;
+        }
+
+        DjangoRoute other = (DjangoRoute)obj;
+
+        return
+            this.viewPath.equals(other.viewPath) &&
+            this.url.equals(other.url) &&
+            this.startLineNumber == other.startLineNumber &&
+            this.endLineNumber == other.endLineNumber &&
+            (this.httpMethod == null) == (other.httpMethod == null) &&
+            (this.httpMethod == null || this.httpMethod.equals(other.httpMethod)) &&
+            parametersMatch(this.parameters, other.parameters);
+    }
+
+    private static boolean parametersMatch(Map<String, RouteParameter> a, Map<String, RouteParameter> b) {
+        if (
+            !a.keySet().containsAll(b.keySet()) ||
+            !b.keySet().containsAll(a.keySet())
+        ) {
+            return false;
+        }
+
+        for (String paramName : a.keySet()) {
+            RouteParameter aParam = a.get(paramName);
+            RouteParameter bParam = b.get(paramName);
+
+            if (aParam.getParamType() != bParam.getParamType()) {
+                return false;
+            } else if (!aParam.getDataType().equals(bParam.getDataType())) {
+                return false;
+            } else if ((aParam.getAcceptedValues() == null) != (bParam.getAcceptedValues() == null)) {
+                return false;
+            } else if (aParam.getAcceptedValues() != null) {
+                if (
+                    !aParam.getAcceptedValues().containsAll(bParam.getAcceptedValues()) ||
+                    !bParam.getAcceptedValues().containsAll(aParam.getAcceptedValues())
+                ) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
 }
