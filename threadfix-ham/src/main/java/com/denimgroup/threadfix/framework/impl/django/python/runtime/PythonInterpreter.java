@@ -191,7 +191,7 @@ public class PythonInterpreter {
 
         int currentStackDepth = executionContext.getStackDepth();
         if (currentStackDepth >= getMaxStackDepth()) {
-            LOG.warn("Execution context stack size '" + currentStackDepth +
+            LOG.debug("Execution context stack size '" + currentStackDepth +
                     "' exceeded the maximum support size '" + getMaxStackDepth() +
                     "', prematurely terminating current expression: " +
                     expression.toString());
