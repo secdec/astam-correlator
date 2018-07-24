@@ -7,12 +7,15 @@ import java.util.regex.Pattern;
 
 public class WildcardEndpointPathNode implements EndpointPathNode {
 
+    private static Pattern namedGroupPattern = Pattern.compile("\\(\\?P\\<\\w+\\>");
+
     private Pattern wildcardPattern;
 
     public WildcardEndpointPathNode(String pattern) {
     	if (pattern == null) {
     		this.wildcardPattern = Pattern.compile(".*");
 	    } else {
+    	    pattern = namedGroupPattern.matcher(pattern).replaceAll("(");
 		    this.wildcardPattern = Pattern.compile(pattern);
 	    }
     }
