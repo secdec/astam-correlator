@@ -37,7 +37,7 @@ public class MasterPageParserTests {
     @Test
     public void testBasic() {
         Map<String, AspxParser> masterFileMap =
-                MasterPageParser.getMasterFileMap(new File(TestConstants.WEB_FORMS_MODIFIED));
+                MasterPageParser.getMasterFileMap(new File(TestConstants.WEB_FORMS_CONTOSO));
 
         assert masterFileMap.containsKey("Site.Master") :
                 "Didn't contain Site.Master : " + masterFileMap;

@@ -45,10 +45,10 @@ public class WebFormsEndpointExplicitGeneratorTests {
 
     @Test
     public void testBasic() {
-        EndpointGenerator endpointGenerator = new WebFormsEndpointGenerator(new File(TestConstants.WEB_FORMS_SAMPLE));
+        EndpointGenerator endpointGenerator = new WebFormsEndpointGenerator(new File(TestConstants.WEB_FORMS_CONTOSO));
 
         List<Endpoint> endpoints = endpointGenerator.generateEndpoints();
-        assert !endpoints.isEmpty() : "Got empty endpoints for " + TestConstants.WEB_FORMS_SAMPLE;
+        assert !endpoints.isEmpty() : "Got empty endpoints for " + TestConstants.WEB_FORMS_CONTOSO;
 
         Map<String, RouteParameter> parameters = endpoints.get(0).getParameters();
         assert parameters.keySet().contains("newitem") :

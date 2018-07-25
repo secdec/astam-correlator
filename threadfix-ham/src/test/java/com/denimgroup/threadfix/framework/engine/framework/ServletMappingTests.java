@@ -27,12 +27,14 @@ package com.denimgroup.threadfix.framework.engine.framework;
 import com.denimgroup.threadfix.framework.TestConstants;
 import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import com.denimgroup.threadfix.framework.impl.spring.SpringServletConfigurationChecker;
+import com.sun.javaws.exceptions.InvalidArgumentException;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -158,19 +160,19 @@ public class ServletMappingTests {
     }
 
     @SuppressWarnings("null")
-    @Test(expected=NullPointerException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testUrlPatternMappingNullArgs() {
         new UrlPatternMapping(null, null);
     }
 
     @SuppressWarnings("null")
-    @Test(expected=NullPointerException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testClassMappingNullArgs() {
         new ClassMapping(null, null, null, null);
     }
 
     @SuppressWarnings("null")
-    @Test(expected=NullPointerException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testServletMappingNulls() {
         new ServletMappings(null, null, null, null);
     }
@@ -180,7 +182,7 @@ public class ServletMappingTests {
     ////////////////////////////////////////////////////////////////
 
     private ServletMappings getTestMappings() throws IOException {
-        return new ServletMappings(sampleServletMappings, sampleServlets, new ProjectDirectory(File.createTempFile("test", "test")), null);
+        return new ServletMappings(sampleServletMappings, sampleServlets, new ProjectDirectory(File.createTempFile("test", "test")), new HashMap<String, String>());
     }
 
     @Nonnull

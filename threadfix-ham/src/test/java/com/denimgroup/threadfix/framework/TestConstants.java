@@ -43,8 +43,9 @@ public class TestConstants {
 
     // TODO move relevant files to the src/test/resources folder and use that
     public static final String
-        ROLLER_FOLDER_NAME = "roller-weblogger-5.1.1-source",
-        PETCLINIC_FOLDER_NAME = "petclinic",
+        //ROLLER_FOLDER_NAME = "roller-weblogger-5.1.1-source",
+        ROLLER_FOLDER_NAME = "roller-roller_5.1.1",
+        PETCLINIC_FOLDER_NAME = "spring-petclinic-master",
         WAVSEP_FOLDER_NAME = "wavsep",
         BODGEIT_FOLDER_NAME = "bodgeit",
         ROLLER_SOURCE_LOCATION = testRoot + ROLLER_FOLDER_NAME,
@@ -58,10 +59,7 @@ public class TestConstants {
         WAVSEP_WEB_XML = WAVSEP_SOURCE_LOCATION + "/trunk/WebContent/WEB-INF/web.xml",
         BODGEIT_WEB_XML = BODGEIT_JSP_ROOT + "/WEB-INF/web.xml",
         WEB_FORMS_ROOT = testRoot + "ASP.NET",
-        WEB_FORMS_SAMPLE = WEB_FORMS_ROOT + "/Add new DropDownList option",
         WEB_FORMS_CONTOSO = WEB_FORMS_ROOT + "/ASP.NET Web Forms Application Using Entity Framework 4.0 Database First",
-        WEB_FORMS_MODIFIED = WEB_FORMS_ROOT + "/webforms",
-        WEB_FORMS_DROP_DOWN = WEB_FORMS_ROOT + "/Add new DropDownList option",
         RISK_E_UTILITY = WEB_FORMS_ROOT + "/riskE",
         WEBGOAT_DOT_NET = WEB_FORMS_ROOT + "/webgoat.net",
         DOT_NET_ROOT = testRoot + "/ASP.NET MVC",

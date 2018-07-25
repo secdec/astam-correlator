@@ -153,7 +153,7 @@ public class SpringControllerMappingsTests {
         assertTrue(mappings.getEndpointsFromUrl(null).isEmpty());
     }
 
-    @Test(expected= NullPointerException.class)
+    @Test(expected= IllegalArgumentException.class)
     public void testNullConstructorArgument() {
         new SpringControllerMappings(null);
     }

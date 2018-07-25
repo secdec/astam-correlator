@@ -41,8 +41,8 @@ public class ProjectDirectoryTests {
     @Test
     public void testMultipleMatchResolution() {
         String[][] tests = {
-            { "/mysql/initDB.sql", "/src/main/resources/db/mysql/initDB.sql" },
-            { "/hsqldb/initDB.sql", "/src/main/resources/db/hsqldb/initDB.sql" },
+            { "/mysql/data.sql", "/src/main/resources/db/mysql/data.sql" },
+            { "/hsqldb/data.sql", "/src/main/resources/db/hsqldb/data.sql" },
         };
 
         for (String[] test : tests) {
@@ -60,9 +60,9 @@ public class ProjectDirectoryTests {
         Object[][] tests = {
                 { "po*.xml", 1 },
                 { "*Entity.java", 2 },
-                { "ClinicService*.java", 5},
-                { "*Controller*", 5 },
-                { "A*st*act*li*icSe*ice*t*ava", 1 }
+                { "owner*.html", 2},
+                { "*Controller*", 11 },
+                { "P*tCl*icAp*t*va", 1 }
             };
 
         for (Object[] test : tests) {
@@ -76,9 +76,9 @@ public class ProjectDirectoryTests {
     @Test
     public void testCanonicalRoot() {
         String[][] tests = {
-                { "/User/test/scratch/some/directory/petclinic/src/main/resources/db/mysql/initDB.sql", "/src/main/resources/db/mysql/initDB.sql" },
+                { "/User/test/scratch/some/directory/petclinic/src/main/resources/db/mysql/data.sql", "/src/main/resources/db/mysql/data.sql" },
                 { "/User/test/scratch/some/directory/petclinic/pom.xml", "/pom.xml" },
-                { "/User/test/scratch/some/directory/petclinic/src/main/resources/ehcache.xml", "/src/main/resources/ehcache.xml" },
+                { "/User/test/scratch/some/directory/petclinic/src/main/resources/application.properties", "/src/main/resources/application.properties" },
         };
 
         String root = "/User/test/scratch/some/directory/";

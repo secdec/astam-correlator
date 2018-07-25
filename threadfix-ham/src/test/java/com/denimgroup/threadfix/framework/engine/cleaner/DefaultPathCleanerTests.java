@@ -104,14 +104,14 @@ public class DefaultPathCleanerTests {
         }
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testGiveStaticNullArgument() {
         String staticRoot = "/root", dynamicRoot = "/bodgeit";
         PathCleaner cleaner = new DefaultPathCleaner(staticRoot, dynamicRoot);
         cleaner.cleanStaticPath(null);
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testGiveDynamicNullArgument() {
         String staticRoot = "/root", dynamicRoot = "/bodgeit";
         PathCleaner cleaner = new DefaultPathCleaner(staticRoot, dynamicRoot);
