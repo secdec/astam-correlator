@@ -43,6 +43,9 @@ public class RailsRoute {
     }
 
     public RailsRoute(String url, String method) {
+        if (!url.startsWith("/") && !url.isEmpty()) {
+            url = "/" + url;
+        }
         this.setUrl(url);
         this.httpMethod = method;
     }

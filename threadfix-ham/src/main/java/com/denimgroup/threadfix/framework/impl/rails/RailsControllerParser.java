@@ -25,6 +25,8 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsController;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsControllerMethod;
@@ -42,6 +44,7 @@ import java.io.StreamTokenizer;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
 /**
  * Created by sgerick on 4/23/2015.
@@ -49,6 +52,16 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 public class RailsControllerParser implements EventBasedTokenizer {
 
     private static final SanitizedLogger LOG = new SanitizedLogger("RailsParser");
+
+    private static final Map<String, RouteParameterType> RAILS_PARAM_TYPES = map(
+        "params", RouteParameterType.QUERY_STRING, // parameters will be in 'params' regardless of whether its a query string or form data
+        "path_parameters", RouteParameterType.PARAMETRIC_ENDPOINT,
+        "query_parameters", RouteParameterType.QUERY_STRING,
+        "GET", RouteParameterType.QUERY_STRING,
+        "request_parameters", RouteParameterType.FORM_DATA,
+        "POST", RouteParameterType.FORM_DATA,
+        "session", RouteParameterType.SESSION
+    );
 
     private enum ControllerState {
         INIT, MODULE, CLASS, METHOD, PARAMS
@@ -69,6 +82,7 @@ public class RailsControllerParser implements EventBasedTokenizer {
     private String currentParamName;
     private RubyScopeTracker scopeTracker = new RubyScopeTracker();
     private int methodStartScopeDepth = -1;
+    private RouteParameterType currentParameterType = RouteParameterType.UNKNOWN;
 
     private ControllerState currentCtrlState = ControllerState.INIT;
 
@@ -195,8 +209,9 @@ public class RailsControllerParser implements EventBasedTokenizer {
                 methodStartScopeDepth = scopeTracker.getScopeDepth();
 	            currentCtrlMethod = new RailsControllerMethod();
 	            currentCtrlMethod.setStartLine(lineNumber);
-            } else if (s.equals("params")) {
+            } else if (RAILS_PARAM_TYPES.containsKey(s)) {
                 currentCtrlState = ControllerState.PARAMS;
+                currentParameterType = RAILS_PARAM_TYPES.get(s);
             }
         }
     }
@@ -258,7 +273,12 @@ public class RailsControllerParser implements EventBasedTokenizer {
                     String param = stringValue.concat(".").concat(p.getKey());
                     if (currentCtrlMethod.getMethodParams() == null
                             || !currentCtrlMethod.getMethodParams().keySet().contains(param)) {
-                        currentCtrlMethod.addMethodParam(param, findTypeFromMatch(param));
+                        RouteParameter newParameter = new RouteParameter(param);
+                        newParameter.setDataType(findTypeFromMatch(param).getDisplayName());
+                        newParameter.setParamType(currentParameterType);
+                        currentCtrlMethod.addMethodParam(param, newParameter);
+
+                        currentParameterType = RouteParameterType.UNKNOWN;
                     }
                 }
                 return;
@@ -266,7 +286,12 @@ public class RailsControllerParser implements EventBasedTokenizer {
         }
         if (currentCtrlMethod != null && (currentCtrlMethod.getMethodParams() == null
                 || !currentCtrlMethod.getMethodParams().keySet().contains(stringValue))) {
-            currentCtrlMethod.addMethodParam(stringValue, findTypeFromMatch(stringValue));
+            RouteParameter newParameter = new RouteParameter(stringValue);
+            newParameter.setDataType(findTypeFromMatch(stringValue).getDisplayName());
+            newParameter.setParamType(currentParameterType);
+            currentCtrlMethod.addMethodParam(stringValue, newParameter);
+
+            currentParameterType = RouteParameterType.UNKNOWN;
         }
     }
 

@@ -33,6 +33,7 @@ import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -97,8 +98,8 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     String lastAttribute;
     int   currentCurlyBrace = 0, currentParen = 0, classBraceLevel = 0,
             methodBraceLevel = 0, storedParen = 0, methodLineNumber = 0;
-    boolean shouldContinue = true;
-    String  lastString     = null, methodName = null, twoStringsAgo = null;
+    boolean shouldContinue = true, wasDefaultValue = false;
+    String  lastString     = null, methodName = null, twoStringsAgo = null, threeStringsAgo = null;
     Set<RouteParameter> parametersWithTypes = set();
     int lastLineNumber = -1;
     String possibleParamType = null;
@@ -116,6 +117,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
         processRequestDataReads(type, stringValue);
 
         if (stringValue != null) {
+            threeStringsAgo = twoStringsAgo;
             twoStringsAgo = lastString;
             lastString = stringValue;
         }
@@ -231,15 +233,36 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 if (stringValue == null) {
                     if (type == ',' || type == ')' && lastString != null) {
                         if (isValidParameterName(lastString)) {
-                            RouteParameter param = new RouteParameter(lastString);
-                            param.setDataType(twoStringsAgo);
+                            String name, dataType;
+                            if (wasDefaultValue) {
+                                name = twoStringsAgo;
+                                dataType = threeStringsAgo;
+                            } else {
+                                name = lastString;
+                                dataType = twoStringsAgo;
+                            }
+
+                            RouteParameter param = new RouteParameter(name);
+                            param.setDataType(dataType);
                             parametersWithTypes.add(param);
                         }
                         if (twoStringsAgo.equals("Include")) {
                             currentState = State.AFTER_BIND_INCLUDE;
                         }
+
+                        wasDefaultValue = false;
                     } else if (type == '=' && !"Include".equals(lastString)) {
                         currentState = State.DEFAULT_VALUE;
+                    }
+                } else if (lastString != null && lastString.equals("Include")) {
+                    String paramNames = CodeParseUtil.trim(stringValue, "\"");
+                    String[] paramNameParts = StringUtils.split(paramNames, ',');
+
+                    for (String paramName : paramNameParts) {
+                        paramName = paramName.trim();
+                        RouteParameter param = new RouteParameter(paramName);
+                        param.setParamType(RouteParameterType.FORM_DATA);
+                        parametersWithTypes.add(param);
                     }
                 }
 
@@ -249,6 +272,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 }
                 break;
             case DEFAULT_VALUE:
+                wasDefaultValue = true;
                 if (stringValue != null) {
                     currentState = State.IN_ACTION_SIGNATURE;
                 }

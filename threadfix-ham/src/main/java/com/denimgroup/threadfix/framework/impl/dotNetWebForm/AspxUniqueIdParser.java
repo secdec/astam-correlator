@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
+import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
@@ -38,6 +39,7 @@ import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.CollectionUtils.set;
+import static com.denimgroup.threadfix.framework.util.CollectionUtils.stringMap;
 
 /**
  * Created by mac on 10/20/14.
@@ -53,7 +55,7 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
 
     String masterPage = null;
 
-    private Map<String, AscxFile> allControlMap;
+    private CaseInsensitiveStringMap<AscxFile> allControlMap;
 
     @Nonnull
     public static AspxUniqueIdParser parse(@Nonnull File file) {
@@ -61,7 +63,7 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
     }
 
     @Nonnull
-    public static AspxUniqueIdParser parse(@Nonnull File file, Map<String, AscxFile> controlMap) {
+    public static AspxUniqueIdParser parse(@Nonnull File file, CaseInsensitiveStringMap<AscxFile> controlMap) {
         return runTokenizer(file, new AspxUniqueIdParser(file, controlMap));
     }
 
@@ -87,7 +89,7 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
     }
 
 
-    AspxUniqueIdParser(File file, Map<String, AscxFile> controlMap) {
+    AspxUniqueIdParser(File file, CaseInsensitiveStringMap<AscxFile> controlMap) {
         assert file.exists() : "File didn't exist.";
         assert file.isFile() : "File was not a valid file.";
         LOG.debug("Parsing controller mappings for " + file.getAbsolutePath());
@@ -160,7 +162,7 @@ public class AspxUniqueIdParser implements EventBasedTokenizer {
     }
     State currentState = State.START;
     String currentSrc, currentTagPrefix, currentTagName;
-    Map<String, AscxFile> includedControlMap = map();
+    CaseInsensitiveStringMap<AscxFile> includedControlMap = stringMap();
 
     private void processRequires(int type, String stringValue) {
         switch (currentState) {

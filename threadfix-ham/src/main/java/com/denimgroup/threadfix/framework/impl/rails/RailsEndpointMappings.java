@@ -104,7 +104,7 @@ public class RailsEndpointMappings implements EndpointGenerator {
 
 	            int startLine = -1, endLine = -1;
 
-	            Map<String, ParameterDataType> rawParams = map();
+	            Map<String, RouteParameter> rawParams = map();
 	            if (controller != null) {
 	                RailsControllerMethod responseMethod = controller.getMethod(route.getControllerMethod());
 	                if (responseMethod != null) {
@@ -119,18 +119,18 @@ public class RailsEndpointMappings implements EndpointGenerator {
 
                 Map<String, RouteParameter> params = map();
 	            if (rawParams != null) {
-		            for (Map.Entry<String, ParameterDataType> kvp : rawParams.entrySet()) {
-			            RouteParameter newParam = new RouteParameter(kvp.getKey());
-			            ParameterDataType dataType = kvp.getValue();
-			            newParam.setDataType(dataType.getDisplayName());
+		            for (Map.Entry<String, RouteParameter> kvp : rawParams.entrySet()) {
+			            RouteParameter newParam = kvp.getValue();
 
-			            if (route.getUrl().contains(kvp.getKey())) {
-				            newParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
-			            } else if (route.getHttpMethod().equalsIgnoreCase("GET")) {
-				            newParam.setParamType(RouteParameterType.QUERY_STRING);
-			            } else {
-				            newParam.setParamType(RouteParameterType.FORM_DATA);
-			            }
+			            if (newParam.getParamType() == RouteParameterType.UNKNOWN) {
+                            if (route.getUrl().contains(kvp.getKey())) {
+                                newParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+                            } else if (route.getHttpMethod().equalsIgnoreCase("GET")) {
+                                newParam.setParamType(RouteParameterType.QUERY_STRING);
+                            } else {
+                                newParam.setParamType(RouteParameterType.FORM_DATA);
+                            }
+                        }
 
 			            params.put(kvp.getKey(), newParam);
 		            }

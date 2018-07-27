@@ -130,6 +130,16 @@ public class DotNetEndpoint extends AbstractEndpoint {
             return forcedMethod;
         } else if (action.getMethods().size() > 0) {
             return action.getMethods().get(0);
+        } else if (action.name.equalsIgnoreCase("get")) {
+            return "GET";
+        } else if (action.name.equalsIgnoreCase("post")) {
+            return "POST";
+        } else if (action.name.equalsIgnoreCase("put")) {
+            return "PUT";
+        } else if (action.name.equalsIgnoreCase("patch")) {
+            return "PATCH";
+        } else if (action.name.equalsIgnoreCase("delete")) {
+            return "DELETE";
         } else {
             return "GET";
         }

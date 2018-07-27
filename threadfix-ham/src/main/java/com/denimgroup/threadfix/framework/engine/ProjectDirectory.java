@@ -300,7 +300,11 @@ public class ProjectDirectory {
             filePath = file.getAbsolutePath().substring(directory.getAbsolutePath().length());
         }
 
-        return filePath;
+        if (filePath != null) {
+            return FilePathUtils.normalizePath(filePath);
+        } else {
+            return null;
+        }
     }
 
     @Nullable
@@ -334,7 +338,11 @@ public class ProjectDirectory {
             }
         }
 
-        return returnOption;
+        if (returnOption != null) {
+            return FilePathUtils.normalizePath(returnOption);
+        } else {
+            return null;
+        }
     }
 
     // split along / or \ or just return the whole path

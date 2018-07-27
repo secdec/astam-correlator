@@ -37,12 +37,10 @@ public class DotNetDetectionTests {
             "ASP.NET MVC 5 Demo Authentication App with Facebook and Google",
             "ASP.NET MVC Application Using Entity Framework Code First",
             "ASP.NET MVC DataView sample (CSASPNETMVCDataView)",
-            "Architecting Web application using ASP.NET MVC5%2c Web API2 and Knockoutjs",
-            "CRUD Grid Using AngularJS%2c WebAPI%2c Entity Framework (EF)%2c Bootstrap",
+            "Architecting Web application using ASP.NET MVC5 Web API2 and Knockoutjs",
             "Chat Web Application in Real Time using ASP.Net MVC and SignalR",
             "Creating Single Page Application using Hot Towel Template",
             "How to create a site with AJAX enabled in MVC framework",
-            "MVC 4 %2b Knockout CRUD Operations",
             "Magazine management website - An ASP.NET MVC 4 Sample",
             "RESTful API using Web API - Tutorial",
     };

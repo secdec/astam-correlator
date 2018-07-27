@@ -1,9 +1,12 @@
 package com.denimgroup.threadfix.framework.impl.rails;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -39,32 +42,31 @@ public class RailsModelParserTest {
         assert(f.isDirectory());
 
         System.err.println("parsing "+f.getAbsolutePath() );
-        Map modelMap = RailsModelParser.parse(f);
-        System.err.println( System.lineSeparator() + "Parse done." + System.lineSeparator());
+        Map<String, Map<String, ParameterDataType>> modelMap = RailsModelParser.parse(f);
+        System.err.println( "\n" + "Parse done." + "\n");
         compareModels(RAILSGOAT_MODELS, modelMap);
 
     }
 
-    private void compareModels(String[][] testModels, Map modelMap) {
+    private void compareModels(String[][] testModels, Map<String, Map<String, ParameterDataType>> modelMap) {
         for (String[] testModel : testModels) {
             String testModelName = testModel[0];
             assertTrue(testModelName + " not found in returned modelMap.",
                     modelMap.containsKey(testModelName));
 
-            List<String> modelParams = (List<String>) modelMap.get(testModelName);
+            Map<String, ParameterDataType> modelParams = modelMap.get(testModelName);
             List<String> testParams = new ArrayList<String>(testModel.length - 1);
-            for (int i=1; i < testModel.length; i++) {
-                testParams.add(testModel[i]);
-            }
+            testParams.addAll(Arrays.asList(testModel).subList(1, testModel.length));
+
             assertTrue("Non-equal number of params in model " + testModelName
                             + ". Expected: " + testParams.size()
                             + ", Returned: " + modelParams.size(),
                     modelParams.size() == testParams.size());
 
-            if (!modelParams.containsAll(testParams)) {
+            if (!modelParams.keySet().containsAll(testParams)) {
                 for (String param : testParams) {
                     assertTrue(param + " not found as param in " + testModelName,
-                            modelParams.contains(param));
+                            modelParams.containsKey(param));
                 }
             }
 

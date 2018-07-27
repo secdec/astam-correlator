@@ -49,10 +49,6 @@ public class WebFormsEndpointExplicitGeneratorTests {
 
         List<Endpoint> endpoints = endpointGenerator.generateEndpoints();
         assert !endpoints.isEmpty() : "Got empty endpoints for " + TestConstants.WEB_FORMS_CONTOSO;
-
-        Map<String, RouteParameter> parameters = endpoints.get(0).getParameters();
-        assert parameters.keySet().contains("newitem") :
-            "Parameters didn't contain newitem: " + parameters;
     }
 
     @Test
@@ -74,7 +70,6 @@ public class WebFormsEndpointExplicitGeneratorTests {
     }
 
     @Test
-    @Ignore // this works locally but breaks in our CI
     public void testAtLeastOneEndpointPerProject() {
         for (File file : getSampleProjects()) {
             WebFormsEndpointGenerator endpointGenerator = new WebFormsEndpointGenerator(file);

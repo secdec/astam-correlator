@@ -57,7 +57,7 @@ public class RailsModelParser implements EventBasedTokenizer {
 
     private ModelState currentModelState = ModelState.INIT;
 
-    public static Map parse(@Nonnull File rootFile) {
+    public static Map<String, Map<String, ParameterDataType>> parse(@Nonnull File rootFile) {
         if (!rootFile.exists() || !rootFile.isDirectory()) {
             LOG.error("Root file not found or is not directory. Exiting.");
             return null;
@@ -68,7 +68,7 @@ public class RailsModelParser implements EventBasedTokenizer {
             return null;
         }
         String[] rubyExtension  = new String[] { "rb" };
-        Collection<File> rubyFiles = (Collection<File>) FileUtils.listFiles(modelDir, rubyExtension, true);
+        Collection<File> rubyFiles = FileUtils.listFiles(modelDir, rubyExtension, true);
 
         RailsModelParser parser = new RailsModelParser();
         for (File rubyFile : rubyFiles) {

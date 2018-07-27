@@ -25,6 +25,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails.model;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 
 import java.io.File;
@@ -102,8 +103,8 @@ public class RailsController {
 	    return null;
     }
 
-    public Map<String, ParameterDataType> getParameters() {
-        Map<String, ParameterDataType> p = map();
+    public Map<String, RouteParameter> getParameters() {
+        Map<String, RouteParameter> p = map();
         for (RailsControllerMethod rcm : controllerMethods) {
             if (rcm.getMethodParams() != null)
                 p.putAll(rcm.getMethodParams());

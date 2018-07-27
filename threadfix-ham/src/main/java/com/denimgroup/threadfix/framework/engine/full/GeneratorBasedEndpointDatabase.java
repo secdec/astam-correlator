@@ -25,6 +25,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.engine.full;
 
+import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.enums.InformationSourceType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
@@ -166,6 +167,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
         if (!useStatic && query.getDynamicPath() != null) {
             String cleaned = pathCleaner.cleanDynamicPath(query.getDynamicPath());
             resultSets.add(getValueOrEmptySet(cleaned, dynamicMap));
+            resultSets.addAll(list(findEligibleEndpoints(cleaned)));
         }
 
         if (useStatic && query.getStaticPath() != null) {
@@ -184,7 +186,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
         if (resultSets.size() > 0) {
             for (Set<Endpoint> endpoints : resultSets) {
-                if (endpoints != null) {
+                if (endpoints != null && !endpoints.isEmpty()) {
 
                     if (!assignedInitial) {
                         resultingSet = endpoints;
@@ -220,8 +222,6 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
         if (useStatic && !fromCodePoints.isEmpty() && resultingSet.isEmpty()) {
             resultingSet.addAll(fromCodePoints);
         }
-
-        resultingSet.addAll(findEligibleEndpoints(pathCleaner.cleanDynamicPath(query.getDynamicPath())));
 
         return resultingSet;
     }
@@ -298,7 +298,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
     private Set<Endpoint> findEligibleEndpoints(String endpointPath) {
         Set<Endpoint> result = set();
         for (Endpoint endpoint : endpoints) {
-            if (endpoint.compareRelevance(endpointPath) > 0) {
+            if (endpoint.isRelevant(endpointPath, EndpointRelevanceStrictness.STRICT)) {
                 result.add(endpoint);
             }
         }

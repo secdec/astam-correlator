@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
+import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 
@@ -32,6 +33,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.framework.util.CollectionUtils.stringMap;
 
 /**
  * Created by mac on 10/24/14.
@@ -40,7 +42,7 @@ public class AscxFileMappingsFileParser {
 
     private AscxFileMappingsFileParser(){}
 
-    public static Map<String, AscxFile> getMap(File rootDirectory) {
+    public static CaseInsensitiveStringMap<AscxFile> getMap(File rootDirectory) {
         if (!rootDirectory.exists() || !rootDirectory.isDirectory()) {
             throw new IllegalArgumentException("Invalid directory passed to WebFormsEndpointGenerator: " + rootDirectory);
         }
@@ -48,7 +50,7 @@ public class AscxFileMappingsFileParser {
         Collection ascxFiles = FileUtils.listFiles(rootDirectory,
                 new FileExtensionFileFilter("ascx"), TrueFileFilter.INSTANCE);
 
-        Map<String, AscxFile> map = map();
+        CaseInsensitiveStringMap<AscxFile> map = stringMap();
 
         for (Object aspxFile : ascxFiles) {
             if (aspxFile instanceof File) {

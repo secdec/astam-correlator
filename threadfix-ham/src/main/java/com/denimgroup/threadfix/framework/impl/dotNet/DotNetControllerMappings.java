@@ -102,8 +102,18 @@ public class DotNetControllerMappings {
         String allCapsMethod = method.toUpperCase();
 
         for (Action action : actions) {
-            if (action.name.equals(actionName) && action.getMethods().equals(allCapsMethod)) {
+            if (action.name.equalsIgnoreCase(actionName) && (action.getMethods().contains(allCapsMethod) || action.name.equalsIgnoreCase(method))) {
                 return action;
+            }
+        }
+
+        //  No directly-matching action found; if method is GET, match against first non-decorated action with the given name
+        //  since HTTP method is implicitly GET
+        if (method.equals("GET")) {
+            for (Action action : actions) {
+                if (action.name.equalsIgnoreCase(actionName) && action.getMethods().isEmpty()) {
+                    return action;
+                }
             }
         }
 

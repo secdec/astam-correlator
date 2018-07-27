@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
+import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
 import org.junit.Test;
 
 import java.io.File;
@@ -30,6 +31,7 @@ import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.framework.ResourceManager.getDotNetWebFormsFile;
+import static com.denimgroup.threadfix.framework.util.CollectionUtils.stringMap;
 
 /**
  * Created by mac on 10/22/14.
@@ -41,11 +43,11 @@ public class AscxParserTests {
         File aspxFile = getDotNetWebFormsFile("StudentsAddWithControl.aspx");
         File controlFile = getDotNetWebFormsFile("WebUserControl1.ascx");
 
-        Map<String, AscxFile> controlMap = map("WebUserControl1", new AscxFile(controlFile));
+        CaseInsensitiveStringMap<AscxFile> controlMap = stringMap("WebUserControl1", new AscxFile(controlFile));
 
         AspxUniqueIdParser parser = AspxUniqueIdParser.parse(aspxFile, controlMap);
 
-        assert parser.includedControlMap.containsKey("custom:WebUserControl1") :
+        assert parser.includedControlMap.containsKey("custom:webusercontrol1") :
             "tagNameMap didn't contain custom:WebUserControl1: " + parser.includedControlMap;
     }
 

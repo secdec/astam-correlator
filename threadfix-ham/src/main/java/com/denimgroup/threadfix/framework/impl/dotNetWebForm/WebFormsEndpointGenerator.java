@@ -28,6 +28,7 @@ package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
+import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -51,6 +52,7 @@ import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.framework.util.CollectionUtils.stringMap;
 
 /**
  * Created by mac on 9/4/14.
@@ -70,7 +72,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         List<File> projectDirectories = findProjectDirectories(rootDirectory);
         LOG.debug("Detected " + projectDirectories.size() + " projects");
 
-        Map<String, AscxFile> ascxFiles = map();
+        CaseInsensitiveStringMap<AscxFile> ascxFiles = stringMap();
 
         // Collect ASCX controls across all projects
         for (File projectDirectory : projectDirectories) {
@@ -79,7 +81,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
 
         for (File projectDirectory : projectDirectories) {
             File webConfig = getWebConfigFile(projectDirectory);
-            Map<String, AspxParser> masterFileMap = MasterPageParser.getMasterFileMap(projectDirectory, ascxFiles);
+            CaseInsensitiveStringMap<AspxParser> masterFileMap = MasterPageParser.getMasterFileMap(projectDirectory, ascxFiles);
 
             List<AspxParser> aspxParsers = getAspxParsers(projectDirectory, ascxFiles, masterFileMap);
             List<AspxCsParser> aspxCsParsers = getAspxCsParsers(projectDirectory);
@@ -160,8 +162,8 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
     }
 
     private List<AspxParser> getAspxParsers(File rootDirectory,
-                                            Map<String, AscxFile> map,
-                                            Map<String, AspxParser> masterFileMap) {
+                                            CaseInsensitiveStringMap<AscxFile> map,
+                                            CaseInsensitiveStringMap<AspxParser> masterFileMap) {
         Collection aspxFiles = FileUtils.listFiles(rootDirectory,
                 new FileExtensionFileFilter("aspx"), TrueFileFilter.INSTANCE);
 

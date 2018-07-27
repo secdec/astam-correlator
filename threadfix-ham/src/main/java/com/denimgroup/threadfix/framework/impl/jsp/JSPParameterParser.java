@@ -77,39 +77,31 @@ public class JSPParameterParser implements EventBasedTokenizer {
     }
 
     @Nonnull
-    public static Map<String, RouteParameter> parse(File file) {
+    public static Map<Integer, List<RouteParameter>> parse(File file) {
         JSPParameterParser parser = new JSPParameterParser();
         EventBasedTokenizerRunner.run(file, false, parser);
         return parser.buildParametersMap();
     }
 
     @Nonnull
-    Map<String, RouteParameter> buildParametersMap() {
-//        Map<Integer, List<String>> lineNumToParamMap = map();
-//
-//        for (String key : parameterToLineNumbersMap.keySet()) {
-//            List<Integer> lineNumbers = parameterToLineNumbersMap.get(key);
-//
-//            for (Integer lineNumber : lineNumbers) {
-//                if (!lineNumToParamMap.containsKey(lineNumber)) {
-//                    lineNumToParamMap.put(lineNumber, new ArrayList<String>());
-//                }
-//                lineNumToParamMap.get(lineNumber).add(key);
-//            }
-//        }
-//
-//        return lineNumToParamMap;
+    Map<Integer, List<RouteParameter>> buildParametersMap() {
+        Map<Integer, List<RouteParameter>> lineNumToParamMap = map();
 
-        Map<String, RouteParameter> result = map();
-        //    All variables captured are from getParameter calls, which are populated via FORM data
         for (String key : parameterToLineNumbersMap.keySet()) {
-            RouteParameter newParam = new RouteParameter(key);
-            newParam.setParamType(RouteParameterType.FORM_DATA);
-            newParam.setDataType("String");
-            result.put(key, newParam);
+            List<Integer> lineNumbers = parameterToLineNumbersMap.get(key);
+
+            for (Integer lineNumber : lineNumbers) {
+                if (!lineNumToParamMap.containsKey(lineNumber)) {
+                    lineNumToParamMap.put(lineNumber, new ArrayList<RouteParameter>());
+                }
+                RouteParameter param = new RouteParameter(key);
+                param.setParamType(RouteParameterType.FORM_DATA);
+                param.setDataType("String");
+                lineNumToParamMap.get(lineNumber).add(param);
+            }
         }
 
-        return result;
+        return lineNumToParamMap;
     }
 
     @Override

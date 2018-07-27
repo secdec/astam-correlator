@@ -132,15 +132,20 @@ public class JSPServlet {
         return methodParameters.get(httpMethod.toUpperCase());
     }
 
-    public Map<Integer, List<String>> getParameterLineMap() {
-        Map<Integer, List<String>> simpleParameterMap = map();
-        for (int line : parameterLineMap.keySet()) {
-            List<String> lineParameterNames = list();
-            for (RouteParameter param : parameterLineMap.get(line)) {
-                lineParameterNames.add(param.getName());
+    public Map<Integer, List<RouteParameter>> getParameterLineMap() {
+        return this.parameterLineMap;
+    }
+
+    public Map<Integer, List<RouteParameter>> getParameterLineMap(String httpMethod) {
+        int startLine = getStartLine(httpMethod);
+        int endLine = getEndLine(httpMethod);
+
+        Map<Integer, List<RouteParameter>> result = map();
+        for (Map.Entry<Integer, List<RouteParameter>> lineEntry : this.parameterLineMap.entrySet()) {
+            if (lineEntry.getKey() >= startLine && lineEntry.getKey() <= endLine) {
+                result.put(lineEntry.getKey(), lineEntry.getValue());
             }
-            simpleParameterMap.put(line, lineParameterNames);
         }
-        return simpleParameterMap;
+        return result;
     }
 }

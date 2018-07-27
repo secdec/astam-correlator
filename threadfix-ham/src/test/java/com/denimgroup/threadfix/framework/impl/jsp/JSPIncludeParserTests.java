@@ -26,14 +26,17 @@ package com.denimgroup.threadfix.framework.impl.jsp;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.TestConstants;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
+import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.set;
 import static com.denimgroup.threadfix.CollectionUtils.setFrom;
 import static org.junit.Assert.assertTrue;
@@ -43,11 +46,11 @@ public class JSPIncludeParserTests {
 
     @Test
     public void testPercentArrobaFormat() {
-        String file = TestConstants.WAVSEP_SOURCE_LOCATION + "/trunk/WebContent/active/LFI-Detection-Evaluation-GET-404Error/Case49-LFI-ContextStream-FilenameContext-UnixTraversalValidation-OSPath-DefaultFullInput-SlashPathReq-Read.jsp";
+        String file = TestConstants.WAVSEP_SOURCE_LOCATION + "/WebContent/active/LFI/LFI-Detection-Evaluation-GET-404Error/Case49-LFI-ContextStream-FilenameContext-UnixTraversalValidation-OSPath-DefaultFullInput-SlashPathReq-Read.jsp";
 
         String[] files = {
-                TestConstants.WAVSEP_SOURCE_LOCATION + "/trunk/WebContent/active/LFI-Detection-Evaluation-GET-404Error/inclusion-logic.jsp",
-                TestConstants.WAVSEP_SOURCE_LOCATION + "/trunk/WebContent/active/LFI-Detection-Evaluation-GET-404Error/include.jsp"
+                TestConstants.WAVSEP_SOURCE_LOCATION + "/WebContent/active/LFI/LFI-Detection-Evaluation-GET-404Error/inclusion-logic.jsp",
+                TestConstants.WAVSEP_SOURCE_LOCATION + "/WebContent/active/LFI/LFI-Detection-Evaluation-GET-404Error/include.jsp"
         };
 
         Set<File> includedFiles = JSPIncludeParser.parse(new File(file));
@@ -60,8 +63,9 @@ public class JSPIncludeParserTests {
         String file = TestConstants.BODGEIT_SOURCE_LOCATION + "/root/basket.jsp";
 
         String[] files = {
-                TestConstants.BODGEIT_SOURCE_LOCATION + "/root/header.jsp",
-                TestConstants.BODGEIT_SOURCE_LOCATION + "/root/footer.jsp",
+            TestConstants.BODGEIT_SOURCE_LOCATION + "/root/header.jsp",
+            TestConstants.BODGEIT_SOURCE_LOCATION + "/root/footer.jsp",
+            TestConstants.BODGEIT_SOURCE_LOCATION + "/root/dbconnection.jspf"
         };
 
         Set<File> includedFiles = JSPIncludeParser.parse(new File(file));
@@ -74,10 +78,16 @@ public class JSPIncludeParserTests {
     public void testParameters() {
         EndpointGenerator generator = new JSPEndpointGenerator(new File(TestConstants.BODGEIT_SOURCE_LOCATION));
 
+        List<String> ignoredFiles = list(
+            "/root/footer.jsp",
+            "/root/init.jsp",
+            "/root/dbconnection.jspf"
+        );
+
         for (Endpoint endpoint : generator) {
 
             // footer.jsp and init.jsp don't have debug, but all the others should.
-            if (!endpoint.getFilePath().equals("/root/footer.jsp") && !endpoint.getFilePath().equals("/root/init.jsp"))
+            if (!ignoredFiles.contains(endpoint.getFilePath()))
                 assertTrue("Endpoint " + endpoint.getFilePath() + " didn't have the debug parameter",
                     endpoint.getParameters().keySet().contains("debug"));
         }
@@ -93,7 +103,7 @@ public class JSPIncludeParserTests {
         Set<String> expectedCopy = setFrom(expected);
 
         for (File file : results) {
-            resultsCopy.add(file.getAbsolutePath());
+            resultsCopy.add(FilePathUtils.normalizePath(file.getAbsolutePath()));
         }
 
         expectedCopy.removeAll(resultsCopy);

@@ -83,6 +83,9 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                 JSPServletParser servletParser = new JSPServletParser(projectFolder);
 
                 String jspRootString = CommonPathFinder.findOrParseProjectRootFromDirectory(projectFolder, "jsp");
+                if (jspRootString != null) {
+                    jspRootString = FilePathUtils.normalizePath(jspRootString);
+                }
 
                 LOG.info("Calculated JSP root to be: " + jspRootString);
 
@@ -357,14 +360,9 @@ public class JSPEndpointGenerator implements EndpointGenerator {
             Set<String> servletMethods = servlet.getHttpMethods();
             for (String endpointPath : servlet.getAnnotatedEndpoints()) {
                 for (String method : servletMethods) {
-                    List<RouteParameter> params = servlet.getMethodParameters(method);
-                    Map<String, RouteParameter> paramMap = map();
-                    for (RouteParameter param : params) {
-                        paramMap.put(param.getName(), param);
-                    }
                     int startLine = servlet.getStartLine(method);
                     int endLine = servlet.getEndLine(method);
-                    JSPEndpoint newEndpoint = new JSPEndpoint(relativeFilePath, endpointPath, method, paramMap);
+                    JSPEndpoint newEndpoint = new JSPEndpoint(relativeFilePath, endpointPath, method, servlet.getParameterLineMap());
                     newEndpoint.setLines(startLine, endLine);
                     endpoints.add(newEndpoint);
                     addToEndpointMap(relativeFilePath, newEndpoint);
@@ -378,7 +376,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
         for (JSPWebXmlServletMapping mapping : xmlConfiguration.getAllServletMappings()) {
             List<String> urlPatterns = mapping.getUrlPatterns();
             String filePath = null;
-            Map<String, Map<String, RouteParameter>> methodParameters = null;
+            Map<String, Map<Integer, List<RouteParameter>>> methodParameters = null;
             Collection<String> supportedMethods = null;
             Map<String, Integer> methodStartLines = map();
             Map<String, Integer> methodEndLines = map();
@@ -398,13 +396,13 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                     supportedMethods = servlet.getHttpMethods();
 
                     for (String method : supportedMethods) {
-                    	methodStartLines.put(method, servlet.getStartLine(method));
-                    	methodEndLines.put(method, servlet.getEndLine(method));
-                        Map<String, RouteParameter> currentMap = map();
-                        for (RouteParameter param : servlet.getMethodParameters(method)) {
-                            currentMap.put(param.getName(), param);
-                        }
-                        methodParameters.put(method, currentMap);
+                        int startLine = servlet.getStartLine(method);
+                        int endLine = servlet.getEndLine(method);
+
+                    	methodStartLines.put(method, startLine);
+                    	methodEndLines.put(method, endLine);
+
+                        methodParameters.put(method, servlet.getParameterLineMap(method));
                     }
                     break;
 
@@ -416,7 +414,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                         absolutePath = PathUtil.combine(jspRoot.getAbsolutePath(), jspServlet.getFilePath());
                     }
                     filePath = getRelativePath(absolutePath);
-                    Map<String, RouteParameter> jspParameters = JSPParameterParser.parse(new File(absolutePath));
+                    Map<Integer, List<RouteParameter>> jspParameters = JSPParameterParser.parse(new File(absolutePath));
                     methodParameters = map();
                     supportedMethods = list("GET", "POST"); // Can't determine whether GET or POST is required, emit both
                     for (String method : supportedMethods) {
@@ -498,7 +496,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
         }
     }
 
-    void createEndpoint(List<Endpoint> targetEndpoints, File jspRoot, String staticPath, File file, Map<String, RouteParameter> parserResults) {
+    void createEndpoint(List<Endpoint> targetEndpoints, File jspRoot, String staticPath, File file, Map<Integer, List<RouteParameter>> parserResults) {
         staticPath = getInputOrEmptyString(staticPath);
         String endpointPath = getInputOrEmptyString(FilePathUtils.getRelativePath(file, jspRoot));
 

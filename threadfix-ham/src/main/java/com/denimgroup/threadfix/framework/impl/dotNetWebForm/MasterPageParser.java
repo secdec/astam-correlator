@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
+import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 
@@ -32,6 +33,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.framework.util.CollectionUtils.stringMap;
 
 /**
  * Created by mac on 10/27/14.
@@ -40,19 +42,19 @@ public class MasterPageParser {
 
     private MasterPageParser(){}
 
-    public static Map<String, AspxParser> getMasterFileMap(File rootDirectory) {
-        Map<String, AscxFile> map = AscxFileMappingsFileParser.getMap(rootDirectory);
+    public static CaseInsensitiveStringMap<AspxParser> getMasterFileMap(File rootDirectory) {
+        CaseInsensitiveStringMap<AscxFile> map = AscxFileMappingsFileParser.getMap(rootDirectory);
         return getMasterFileMap(rootDirectory, map);
     }
 
-    public static Map<String, AspxParser> getMasterFileMap(File rootDirectory, Map<String, AscxFile> ascxFileMap) {
+    public static CaseInsensitiveStringMap<AspxParser> getMasterFileMap(File rootDirectory, CaseInsensitiveStringMap<AscxFile> ascxFileMap) {
         if (rootDirectory == null) {
             throw new IllegalArgumentException("Can't pass null argument to getMasterFileMap()");
         } else if (!rootDirectory.isDirectory()) {
             throw new IllegalArgumentException("Can't pass a non-directory file argument to getMasterFileMap()");
         }
 
-        Map<String, AspxParser> parserMap = map();
+        CaseInsensitiveStringMap<AspxParser> parserMap = stringMap();
 
         Collection masterFiles = FileUtils.listFiles(rootDirectory,
                 new FileExtensionFileFilter("Master"), TrueFileFilter.INSTANCE);

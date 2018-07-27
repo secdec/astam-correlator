@@ -190,7 +190,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 LOG.debug("Got result " + result);
 
                 String filePath = mappings.getFilePath();
-                if (filePath.startsWith(rootDirectory.getAbsolutePath())) {
+                if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
                     filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
                 }
 

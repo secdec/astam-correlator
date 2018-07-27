@@ -27,11 +27,14 @@ import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import com.denimgroup.threadfix.framework.engine.framework.FrameworkChecker;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
+import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
+import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.util.Collection;
 
 /**
@@ -44,21 +47,37 @@ public class DotNetFrameworkChecker extends FrameworkChecker {
     @Nonnull
     @Override
     public FrameworkType check(@Nonnull ProjectDirectory directory) {
-        Collection csFiles = FileUtils.listFiles(directory.getDirectory(),
-                new FileExtensionFileFilter("cs"), TrueFileFilter.INSTANCE);
 
-        LOG.info("Got " + csFiles.size() + " .cs files from the directory.");
-        
-        Collection routeConfig = FileUtils.listFiles(directory.getDirectory(),
-                new FileExtensionFileFilter("Controller.cs"), TrueFileFilter.INSTANCE);
+        Collection<File> configFiles = FileUtils.listFiles(directory.getDirectory(), new String[] { "config", "csproj" }, true);
 
-        LOG.info("Got " + routeConfig.size() + " Controller files from the directory.");
+        MvcNamespaceParser parser = new MvcNamespaceParser();
+        for (File configFile : configFiles) {
+            EventBasedTokenizerRunner.run(configFile, parser);
+            if (parser.isMvc) {
+                break;
+            }
+        }
 
-        FrameworkType type = csFiles.isEmpty() || routeConfig.isEmpty() ?
-                FrameworkType.NONE :
-                FrameworkType.DOT_NET_MVC;
+        return parser.isMvc ? FrameworkType.DOT_NET_MVC : FrameworkType.NONE;
+    }
 
-        return type;
+    static class MvcNamespaceParser implements EventBasedTokenizer {
+
+        private static String MVC_NAMESPACE = "System.Web.Mvc";
+
+        boolean isMvc = false;
+
+        @Override
+        public boolean shouldContinue() {
+            return !isMvc;
+        }
+
+        @Override
+        public void processToken(int type, int lineNumber, String stringValue) {
+            if (stringValue != null && stringValue.contains(MVC_NAMESPACE)) {
+                isMvc = true;
+            }
+        }
     }
 
 }
