@@ -122,19 +122,20 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
         Endpoint bestEndpoint = null;
         int bestEndpointRelevance = -1;
 
-        if (query.getDynamicPath() == null) {
-            return null;
-        }
-        String dynamicPath = pathCleaner.cleanDynamicPath(query.getDynamicPath());
-
         Set<Endpoint> endpoints = findAllMatches(query);
 
-        for (Endpoint currentEndpoint : endpoints) {
-            int relevance = currentEndpoint.compareRelevance(dynamicPath);
-            if (relevance > bestEndpointRelevance) {
-                bestEndpoint = currentEndpoint;
-                bestEndpointRelevance = relevance;
+        if (query.getDynamicPath() != null) {
+            String dynamicPath = pathCleaner.cleanDynamicPath(query.getDynamicPath());
+            for (Endpoint currentEndpoint : endpoints) {
+                int relevance = currentEndpoint.compareRelevance(dynamicPath);
+                if (relevance > bestEndpointRelevance && currentEndpoint.isRelevant(dynamicPath, EndpointRelevanceStrictness.STRICT)) {
+                    bestEndpoint = currentEndpoint;
+                    bestEndpointRelevance = relevance;
+                }
             }
+        } else if (!endpoints.isEmpty()) {
+            bestEndpoint = endpoints.iterator().next();
+            bestEndpointRelevance = 1;
         }
 
         if (bestEndpointRelevance > 0) {

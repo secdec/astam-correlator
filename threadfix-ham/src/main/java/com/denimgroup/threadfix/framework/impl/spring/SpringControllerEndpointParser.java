@@ -171,7 +171,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
 
         switch (phase) {
             case ANNOTATION: parseAnnotation(type, lineNumber, stringValue); break;
-            case SIGNATURE:  parseSignature(type, stringValue);              break;
+            case SIGNATURE:  parseSignature(type, lineNumber, stringValue);  break;
             case METHOD:     parseMethod(type, lineNumber);                  break;
         }
 
@@ -186,11 +186,14 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
         signatureState = state;
     }
 
-    private void parseSignature(int type, @Nullable String stringValue) {
+    private void parseSignature(int type, int lineNumber, @Nullable String stringValue) {
 
         if (openParenCount == 0 && type == OPEN_CURLY) {
             curlyBraceCount = 1;
             phase = Phase.METHOD;
+            if (startLineNumber < 0) {
+                startLineNumber = lineNumber;
+            }
         }
 
         switch (signatureState) {
@@ -350,10 +353,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 }
                 break;
             case REQUEST_MAPPING:
-                if (startLineNumber < 0) {
-                    startLineNumber = lineNumber;
-                }
-
                 if (stringValue != null && stringValue.equals(VALUE)) {
                     annotationState = AnnotationState.VALUE;
                 } else if (stringValue != null && stringValue.equals(METHOD)) {
@@ -389,7 +388,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 if (stringValue != null) {
                     if (inClass) {
                         currentMapping = stringValue;
-                        startLineNumber = lineNumber;
                     } else {
                         classEndpoint = stringValue;
                     }
@@ -422,7 +420,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             case PATH:
                 if (currentMapping == null) {
                     currentMapping = "";
-                    startLineNumber = lineNumber;
                 }
                 if (type == COMMA) {
                     annotationState = AnnotationState.REQUEST_MAPPING;
