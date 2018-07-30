@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -75,10 +76,10 @@ public class DirectHttpEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
-        value = stripColons(value);
+    public void onParameter(String name, RouteParameterValueType nameType, String value, RouteParameterValueType parameterType) {
+        value = CodeParseUtil.trim(value, ":");
         if (name == null) {
-            mappedEndpoint = value;
+            mappedEndpoint = RailsEndpointUtil.cleanEndpointParameters(value, parameterType);
             actionName = value;
         } else if (name.equalsIgnoreCase("to")) {
             String[] controllerParts = value.split("#");
@@ -105,13 +106,17 @@ public class DirectHttpEntry extends AbstractRailsRoutingEntry {
         } else {
             if (mappedEndpoint == null) {
                 //  Assume syntax '/endpoint' => 'controller#method' or '/endpoint' => 'method'
-                mappedEndpoint = name;
+
+                mappedEndpoint = RailsEndpointUtil.cleanEndpointParameters(name, nameType);
                 String[] controllerParts = value.split("#");
                 if (controllerParts.length == 1) {
                     actionName = controllerParts[0];
                 } else if (controllerParts.length == 2) {
                     controller = controllerParts[0];
                     actionName = controllerParts[1];
+                } else if (controllerParts.length > 2) {
+                    controller = controllerParts[0];
+                    actionName = value.substring(value.indexOf('#') + 1);
                 }
             }
         }

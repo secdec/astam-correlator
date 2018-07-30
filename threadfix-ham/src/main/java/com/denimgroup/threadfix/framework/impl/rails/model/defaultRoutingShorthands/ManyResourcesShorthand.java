@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorth
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
 import com.denimgroup.threadfix.framework.impl.rails.model.RouteShorthand;
+import com.denimgroup.threadfix.framework.impl.rails.model.RoutingParameterType;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries.ResourcesEntry;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries.ScopeEntry;
 import com.denimgroup.threadfix.framework.impl.rails.routeParsing.RailsConcreteRoutingTree;
@@ -44,7 +45,8 @@ public class ManyResourcesShorthand implements RouteShorthand {
             ResourcesEntry newEntry = new ResourcesEntry();
             //  Many-resource shorthands can only declare routes, doesn't allow
             //      customization of resource routes
-            newEntry.onParameter(null, symbol, RouteParameterValueType.SYMBOL);
+            newEntry.onParameter(null, RouteParameterValueType.UNKNOWN, symbol, RouteParameterValueType.SYMBOL);
+            newEntry.setLineNumber(entry.getLineNumber());
             resultContainer.addChildEntry(newEntry);
         }
 

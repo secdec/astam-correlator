@@ -38,7 +38,7 @@ public class CollectionEntry extends AbstractRailsRoutingEntry {
 
     @Override
     public String getPrimaryPath() {
-        return null;
+        return getParent() == null ? null : getParent().getPrimaryPath();
     }
 
     @Override

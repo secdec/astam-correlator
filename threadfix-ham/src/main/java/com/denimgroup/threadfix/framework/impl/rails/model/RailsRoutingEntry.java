@@ -38,7 +38,7 @@ public interface RailsRoutingEntry {
     int getLineNumber();
 
     void onToken(int type, int lineNumber, String stringValue);
-    void onParameter(String name, String value, RouteParameterValueType parameterType);
+    void onParameter(String name, RouteParameterValueType nameType, String value, RouteParameterValueType parameterType);
     void onInitializerParameter(String name, String value, RouteParameterValueType parameterType);
 
     void onBegin(String identifier);

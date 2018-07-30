@@ -25,6 +25,7 @@ package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntrie
 
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.ConcernsParameterShorthand;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import javax.annotation.Nonnull;
@@ -46,15 +47,15 @@ public class ResourceEntry extends AbstractRailsRoutingEntry implements Concerna
     List<PathHttpMethod> supportedPaths = list(
             new PathHttpMethod("new", "GET", "new", null),
             new PathHttpMethod("", "POST", "create", null),
-            new PathHttpMethod(":id", "GET", "show", null),
-            new PathHttpMethod(":id/edit", "GET", "edit", null),
-            new PathHttpMethod(":id", "PATCH", "update", null),
-            new PathHttpMethod(":id", "PUT", "update", null),
-            new PathHttpMethod(":id", "DELETE", "destroy", null)
+            new PathHttpMethod("", "GET", "show", null),
+            new PathHttpMethod("edit", "GET", "edit", null),
+            new PathHttpMethod("", "PATCH", "update", null),
+            new PathHttpMethod("", "PUT", "update", null),
+            new PathHttpMethod("", "DELETE", "destroy", null)
             );
 
     @Override
-    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
+    public void onParameter(String name, RouteParameterValueType nameType, String value, RouteParameterValueType parameterType) {
         if (!hasController) {
             if (parameterType == RouteParameterValueType.SYMBOL) {
                 controller = value;
@@ -69,7 +70,7 @@ public class ResourceEntry extends AbstractRailsRoutingEntry implements Concerna
                 value = value.substring(1, value.length() - 1);
             String[] concernNames = value.split(",");
             for (String concernName : concernNames) {
-                concerns.add(stripColons(concernName));
+                concerns.add(CodeParseUtil.trim(concernName, ":"));
             }
         } else if (name.equalsIgnoreCase("controller")) {
             controller = value;
@@ -91,12 +92,12 @@ public class ResourceEntry extends AbstractRailsRoutingEntry implements Concerna
             } else {
                 allowedPaths.add(value);
             }
+            CodeParseUtil.trim(allowedPaths, ":");
             for (int i = 0; i < supportedPaths.size(); i++) {
                 PathHttpMethod httpPath = supportedPaths.get(i);
                 if (!allowedPaths.contains(httpPath.getAction())) {
                     supportedPaths.remove(httpPath);
                     --i;
-                    break;
                 }
             }
         } else if (name.equalsIgnoreCase("except")) {
@@ -107,6 +108,7 @@ public class ResourceEntry extends AbstractRailsRoutingEntry implements Concerna
             } else {
                 removedPaths.add(value);
             }
+            CodeParseUtil.trim(removedPaths, ":");
             for (int i = 0; i < supportedPaths.size(); i++) {
                 PathHttpMethod httpPath = supportedPaths.get(i);
                 if (removedPaths.contains(httpPath.getAction())) {

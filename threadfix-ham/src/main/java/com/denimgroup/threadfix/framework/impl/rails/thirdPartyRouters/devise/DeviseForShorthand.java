@@ -176,8 +176,9 @@ public class DeviseForShorthand implements RouteShorthand {
         for (PathHttpMethod path : allRoutes) {
             DirectHttpEntry newEntry = new DirectHttpEntry();
             newEntry.onBegin(path.getMethod());
-            newEntry.onParameter(null, path.getPath(), RouteParameterValueType.STRING_LITERAL);
-            newEntry.onParameter("to", path.getControllerName() + "#" + path.getAction(), RouteParameterValueType.HASH);
+            newEntry.onParameter(null, RouteParameterValueType.UNKNOWN, path.getPath(), RouteParameterValueType.STRING_LITERAL);
+            //  TODO - Shouldn't be "UNKNOWN" type
+            newEntry.onParameter("to", RouteParameterValueType.UNKNOWN, path.getControllerName() + "#" + path.getAction(), RouteParameterValueType.HASH);
             newEntry.onEnd();
             container.addChildEntry(newEntry);
         }

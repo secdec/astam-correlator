@@ -134,6 +134,10 @@ public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
                 case INITIALIZER_PARAMETERS:
                     processInitializerParametersPhase(type, lineNumber, stringValue);
                     break;
+
+	            case INITIALIZER_PARAMETERS_SEARCH_IDENTIFIER:
+	            	processInitializerParametersSearchIdentifierPhase(type, lineNumber, stringValue);
+	            	break;
             }
         }
 
@@ -157,7 +161,7 @@ public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
         return numOpenBrace == 0 && numOpenParen == 0 && numOpenBracket == 0;
     }
 
-    enum ParsePhase { START_RENDER, SEARCH_IDENTIFIER, PARAMETERS, INITIALIZER_PARAMETERS }
+    enum ParsePhase { START_RENDER, SEARCH_IDENTIFIER, PARAMETERS, INITIALIZER_PARAMETERS, INITIALIZER_PARAMETERS_SEARCH_IDENTIFIER }
     ParsePhase parsePhase = ParsePhase.START_RENDER;
 
     void processStartRenderPhase(int type, int lineNumber, String stringValue) {
@@ -190,9 +194,9 @@ public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
     RouteParameterValueType detectParameterValueType(String paramValue) {
         if (paramValue.startsWith(":")) {
             return RouteParameterValueType.SYMBOL;
-        } else if (paramValue.startsWith("':")) {
+        } else if (paramValue.startsWith("':") || paramValue.startsWith("\":")) {
             return RouteParameterValueType.SYMBOL_STRING_LITERAL;
-        } else if (paramValue.startsWith("'")) {
+        } else if (paramValue.startsWith("'") || paramValue.startsWith("\"")) {
             return RouteParameterValueType.STRING_LITERAL;
         } else if (paramValue.startsWith("[")) {
             return RouteParameterValueType.ARRAY;
@@ -203,8 +207,8 @@ public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
         }
     }
 
-    RoutingParameterType detectParameterLabelType(String label) {
-        if (label.startsWith(":") || label.endsWith(":") || wasHashParameter) {
+    RoutingParameterType detectParameterType(String label) {
+        if ((label.startsWith(":") || label.endsWith(":")) && wasHashParameter) {
             return RoutingParameterType.HASH;
         } else {
             return RoutingParameterType.IMPLICIT_PARAMETER;
@@ -216,39 +220,18 @@ public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
             return null;
         }
 
-        if (string.startsWith("'")) {
-            string = string.substring(1);
-        }
-        if (string.endsWith("'")) {
-            string = string.substring(0, string.length() - 1);
-        }
-        if (string.startsWith("\"")) {
-        	string = string.substring(1);
-        }
-        if (string.endsWith("\"")) {
-        	string = string.substring(0, string.length() - 1);
-        }
-        if (string.startsWith(":")) {
-            string = string.substring(1);
-        }
-        if (string.endsWith(":")) {
-            string = string.substring(0, string.length() - 1);
-        }
-        if (string.startsWith("=>")) {
-            string = string.substring(2, string.length());
-        }
-
-        return string;
+        return CodeParseUtil.trim(string, "'", "\"", ":", "[", "]", "=>");
     }
 
     RailsAbstractParameter makeParameter(String parameterLabel, String parameterValue) {
 
         RailsAbstractParameter parameter = new RailsAbstractParameter();
         RouteParameterValueType parameterType = detectParameterValueType(parameterValue);
-        parameter.setParameterType(parameterType);
+        parameter.setValueType(parameterType);
 
         if (parameterLabel != null) {
-            parameter.setLabelType(detectParameterLabelType(parameterLabel));
+            parameter.setParameterType(detectParameterType(parameterLabel));
+            parameter.setLabelType(detectParameterValueType(parameterLabel));
         }
 
         parameter.setValue(cleanParameterString(parameterValue));
@@ -267,7 +250,11 @@ public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
             return;
         }
 
-        spansNextLine = ((type == '\n' && lastType == ',') || !isEntryScope());
+        spansNextLine =
+		        (type == '\n' && (lastType == ',' || (currentDescriptor.getIdentifier().equals(lastString) && lastType < 0)))
+				|| !isEntryScope()
+				|| (parameterLabel != null && parameterLabel.endsWith(":") && workingLine.isEmpty())
+                || lastType == '(';
 
         boolean isDoStatement = (stringValue != null && stringValue.equalsIgnoreCase("do") && isEntryScope());
 
@@ -301,15 +288,15 @@ public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
             return;
         }
 
-        if ((type == ',' || (stringValue != null && lastString.endsWith(":"))) && isEntryScope()) {
-            if (workingLine.length() == 0) {
+        if ((type == ',' || (stringValue != null && !spansNextLine && lastString.endsWith(":")) || type == StreamTokenizer.TT_NUMBER) && isEntryScope()) {
+            if (workingLine.length() == 0 && type != StreamTokenizer.TT_NUMBER) {
                 workingLine = parameterLabel;
                 parameterLabel = null;
             }
 
             if (workingLine != null && workingLine.endsWith(":") && stringValue != null) {
                 parameterLabel = workingLine;
-                workingLine = stringValue;
+                workingLine = CodeParseUtil.buildTokenString(type, stringValue);
             }
 
             if (workingLine != null) {
@@ -321,12 +308,12 @@ public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
             workingLine = "";
         } else {
             if (stringValue != null && parameterLabel == null) {
-                parameterLabel = stringValue;
+                parameterLabel = CodeParseUtil.buildTokenString(type, stringValue);
             }
             else {
                 if (stringValue != null && isEntryScope() && stringValue.equalsIgnoreCase("do")) {
                     wasRouteScope = true;
-                } else {
+                } else if (type != '\n') {
                     workingLine += CodeParseUtil.buildTokenString(type, stringValue);
                 }
             }
@@ -343,9 +330,35 @@ public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
     void processInitializerParametersPhase(int type, int line, String stringValue) {
         if (isEntryScope()) { // Will occur exactly on the last closing paren ')'
             parsePhase = ParsePhase.PARAMETERS;
+            return;
         }
 
-        // TODO
+        //  Treat this as a multi-line entry statement for now
+	    //  Simulate parameter processing in entry scope
+	    numOpenParen--;
+        processParametersPhase(type, line, stringValue);
+        numOpenParen++;
 
+        //  If SEARCH_IDENTIFIER is set while in INITIALIZER_PARAMETERS, the state will return to PARAMETERS
+	    //  before the INITIALIZER_PARAMETERS block has ended; simulate SEARCH_IDENTIFIER and go back to
+	    //  INITIALIZER_PARAMETERS afterwards
+        if (parsePhase == ParsePhase.SEARCH_IDENTIFIER) {
+        	parsePhase = ParsePhase.INITIALIZER_PARAMETERS_SEARCH_IDENTIFIER;
+        }
     }
+
+	void processInitializerParametersSearchIdentifierPhase(int type, int lineNumber, String stringValue) {
+    	if (isEntryScope()) {
+    		parsePhase = ParsePhase.SEARCH_IDENTIFIER;
+    		return;
+	    }
+
+    	numOpenParen--;
+    	processSearchIdentifierPhase(type, lineNumber, stringValue);
+    	numOpenParen++;
+
+    	if (parsePhase == ParsePhase.PARAMETERS) {
+    		parsePhase = ParsePhase.INITIALIZER_PARAMETERS;
+	    }
+	}
 }

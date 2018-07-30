@@ -18,7 +18,9 @@
 //     Portions created by Denim Group, Ltd. are Copyright (C)
 //     Denim Group, Ltd. All Rights Reserved.
 //
-//     Contributor(s): Denim Group, Ltd.
+//     Contributor(s):
+//              Denim Group, Ltd.
+//              Secure Decisions, a division of Applied Visions, Inc
 //
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails;
@@ -124,7 +126,8 @@ public class RailsModelParser implements EventBasedTokenizer {
             } else if (s.equals("attr_accessor")) {
                 currentModelState = ModelState.ATTR_ACCESSOR;
 
-            } else if (s.equals("validates")){
+            } else if (s.equals("validates") || s.equals("validates_presence_of")){
+                isBasicValidates = s.equals("validates");
                 currentModelState = ModelState.VALIDATES;
             }
         }
@@ -166,6 +169,7 @@ public class RailsModelParser implements EventBasedTokenizer {
     private String fieldName = null;
     private String oneStringAgo = null;
     private int oneTypeAgo;
+    private boolean isBasicValidates = false;
 
     private void processValidation(int type, String stringValue, String charValue){
 
@@ -186,9 +190,15 @@ public class RailsModelParser implements EventBasedTokenizer {
             case FIELD:
                 if(type == StreamTokenizer.TT_WORD && NUMERICALITY.equals(stringValue)) {
                     currValidationState = ValidationState.NUMERICALITY;
-                } else if ((type == StreamTokenizer.TT_WORD && VALIDATES.equals(stringValue))){
-                currValidationState = ValidationState.END;
-            }
+                } else if (type != StreamTokenizer.TT_WORD) {
+                    if (!isBasicValidates && (type == ',' || type == '\n')) {
+                        modelAttributes.put(fieldName, STRING);
+                        currValidationState = ValidationState.START;
+                    } else {
+                        modelAttributes.put(fieldName, STRING);
+                        currValidationState = ValidationState.END;
+                    }
+                }
 
                 break;
             case NUMERICALITY:

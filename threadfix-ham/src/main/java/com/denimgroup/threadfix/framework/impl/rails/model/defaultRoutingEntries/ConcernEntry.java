@@ -23,10 +23,7 @@
 
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
-import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
-import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
+import com.denimgroup.threadfix.framework.impl.rails.model.*;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -68,8 +65,8 @@ public class ConcernEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
-        super.onParameter(name, value, parameterType);
+    public void onParameter(String name, RouteParameterValueType nameType, String value, RouteParameterValueType parameterType) {
+        super.onParameter(name, nameType, value, parameterType);
         if (name == null) {
             idSymbol = value;
         }

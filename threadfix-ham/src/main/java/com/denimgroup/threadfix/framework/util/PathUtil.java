@@ -51,7 +51,7 @@ public class PathUtil {
         StringBuilder result = new StringBuilder();
         result.append(begin);
 
-        if (!end.startsWith("/")) {
+        if (!end.startsWith("/") && !end.isEmpty()) {
             result.append('/');
         }
 

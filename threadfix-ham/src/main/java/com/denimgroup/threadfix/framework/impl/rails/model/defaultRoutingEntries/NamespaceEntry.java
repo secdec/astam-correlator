@@ -23,10 +23,7 @@
 
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
-import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
-import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
+import com.denimgroup.threadfix.framework.impl.rails.model.*;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -43,7 +40,7 @@ public class NamespaceEntry extends AbstractRailsRoutingEntry {
     String moduleName = null;
 
     @Override
-    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
+    public void onParameter(String name, RouteParameterValueType nameType, String value, RouteParameterValueType parameterType) {
         if (name == null) {
             path = value;
             moduleName = value;
