@@ -511,21 +511,11 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
 
         String primaryMethod = null;
         SpringControllerEndpoint primaryEndpoint = null;
-        if (methodMethods.size() > 0) {
-            primaryMethod = methodMethods.get(0).replace("RequestMethod.", "");
-            primaryEndpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
-                    primaryMethod,
-                    currentParameters,
-                    startLineNumber,
-                    endLineNumber,
-                    currentModelObject);
-            endpoints.add(primaryEndpoint);
-        }
 
         for (String method : methodMethods) {
             method = method.replace("RequestMethod.", "");
-            if (primaryMethod.equals(method)) {
-                continue;
+            if (primaryMethod == null) {
+                primaryMethod = method;
             }
 
             SpringControllerEndpoint endpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
@@ -534,6 +524,11 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                     startLineNumber,
                     endLineNumber,
                     currentModelObject);
+
+            if (primaryEndpoint == null) {
+                primaryEndpoint = endpoint;
+                endpoints.add(primaryEndpoint);
+            }
 
             if (entityMappings != null) {
                 endpoint.expandParameters(entityMappings, null);
@@ -549,7 +544,9 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 endpoint.setAuthorizationString(currentAuthString);
             }
 
-            primaryEndpoint.addVariant(endpoint);
+            if (primaryEndpoint != endpoint) {
+                primaryEndpoint.addVariant(endpoint);
+            }
         }
 
         currentMapping = null;
