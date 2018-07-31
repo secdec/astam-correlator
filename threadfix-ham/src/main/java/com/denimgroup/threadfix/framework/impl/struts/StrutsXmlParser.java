@@ -80,11 +80,6 @@ public class StrutsXmlParser {
             if (strutsPackage.getNamespace() == null) {
                 strutsPackage.setNamespace("/");
             }
-            for (StrutsAction action : strutsPackage.getActions()) {
-                if (action.getMethod() == null) {
-                    action.setMethod("execute");
-                }
-            }
         }
 
         return packages;

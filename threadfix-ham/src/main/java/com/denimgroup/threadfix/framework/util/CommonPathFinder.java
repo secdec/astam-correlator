@@ -189,6 +189,7 @@ public class CommonPathFinder {
             }
         }
 
+        response = PathUtil.normalizeSeparator(response);
         return response;
     }
 

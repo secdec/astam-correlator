@@ -31,6 +31,7 @@ import com.denimgroup.threadfix.data.enums.InformationSourceType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.CodePoint;
 import com.denimgroup.threadfix.framework.engine.cleaner.PathCleaner;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,6 +44,9 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
     @Nonnull
     private final List<Endpoint> endpoints;
+
+    @Nonnull
+    private final List<Endpoint> flattenedEndpoints;
 
     @Nonnull
     private final PathCleaner pathCleaner;
@@ -65,6 +69,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
         log.info("Using generic EndpointGenerator-based translator.");
 
         endpoints = endpointGenerator.generateEndpoints();
+        flattenedEndpoints = EndpointUtil.flattenWithVariants(endpoints);
 
         log.info("Found ".concat(String.valueOf(endpoints.size())).concat(" endpoints:"));
         for (int i = 0; i < endpoints.size(); i++) {
@@ -84,7 +89,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
     private void buildMappings() {
         log.info("Building mappings.");
-        for (Endpoint endpoint : endpoints) {
+        for (Endpoint endpoint : flattenedEndpoints) {
             addToMap(dynamicMap, endpoint.getUrlPath(), endpoint);
             addToMap(staticMap, endpoint.getFilePath(), endpoint);
 
@@ -298,7 +303,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
     private Set<Endpoint> findEligibleEndpoints(String endpointPath) {
         Set<Endpoint> result = set();
-        for (Endpoint endpoint : endpoints) {
+        for (Endpoint endpoint : flattenedEndpoints) {
             if (endpoint.isRelevant(endpointPath, EndpointRelevanceStrictness.STRICT)) {
                 result.add(endpoint);
             }
