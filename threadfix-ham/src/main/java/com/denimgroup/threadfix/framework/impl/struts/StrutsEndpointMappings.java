@@ -332,7 +332,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
         addEndpointParametersFromClasses(project, newEndpoints);
 
-        expandModelFieldParameters(newEndpoints, project.getCodebase().classes);
+        expandModelFieldParameters(newEndpoints, project.getCodebase());
 
         // Modify inferred parameters to point to the proper endpoint
         for (StrutsDetectedParameter param : inferredParameters) {
@@ -569,17 +569,17 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
     }
 
-    private void expandModelFieldParameters(Collection<Endpoint> endpoints, Collection<StrutsClass> parsedClasses) {
+    private void expandModelFieldParameters(Collection<Endpoint> endpoints, StrutsCodebase codebase) {
         for (Endpoint endpoint : endpoints) {
             Collection<String> paramNames = new ArrayList<String>(endpoint.getParameters().keySet());
             for (String paramName : paramNames) {
                 RouteParameter param = endpoint.getParameters().get(paramName);
-                StrutsClass modelType = findClassByName(parsedClasses, cleanArrayName(param.getDataTypeSource()));
+                StrutsClass modelType = codebase.findClassByName(cleanArrayName(param.getDataTypeSource()));
                 if (modelType == null) {
                     continue;
                 }
 
-                List<RouteParameter> effectiveParameters = expandModelToParameters(modelType, parsedClasses, new Stack<StrutsClass>(), paramName);
+                List<RouteParameter> effectiveParameters = expandModelToParameters(modelType, codebase, new Stack<StrutsClass>(), paramName);
                 Map<String, RouteParameter> namedParameters = map();
                 for (RouteParameter modelParam : effectiveParameters) {
                     namedParameters.put(modelParam.getName(), modelParam);
@@ -590,7 +590,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         }
     }
 
-    private List<RouteParameter> expandModelToParameters(StrutsClass modelType, Collection<StrutsClass> referenceClasses, @Nonnull Stack<StrutsClass> previousModels, String namePrefix) {
+    private List<RouteParameter> expandModelToParameters(StrutsClass modelType, StrutsCodebase codebase, @Nonnull Stack<StrutsClass> previousModels, String namePrefix) {
 
         if (namePrefix == null) {
             namePrefix = "";
@@ -606,7 +606,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         Set<ModelField> modelFields = modelType.getProperties();
         for (ModelField field : modelFields) {
             String dataType = field.getType();
-            StrutsClass fieldModelType = findClassByName(referenceClasses, cleanArrayName(dataType));
+            StrutsClass fieldModelType = codebase.findClassByName(cleanArrayName(dataType));
             if (fieldModelType == null) {
                 String paramName = field.getParameterKey();
                 if (!namePrefix.isEmpty()) {
@@ -623,7 +623,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                 } else {
                     subParamsPrefix = namePrefix + "." + field.getParameterKey();
                 }
-                List<RouteParameter> modelSubParameters = expandModelToParameters(fieldModelType, referenceClasses, previousModels, subParamsPrefix);
+                List<RouteParameter> modelSubParameters = expandModelToParameters(fieldModelType, codebase, previousModels, subParamsPrefix);
                 result.addAll(modelSubParameters);
             }
         }
@@ -710,15 +710,6 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         paramName = StringUtils.replace(paramName, "[", "");
         paramName = StringUtils.replace(paramName, "]", "");
         return paramName;
-    }
-
-    private StrutsClass findClassByName(Collection<StrutsClass> classes, String name) {
-        for (StrutsClass strutsClass : classes) {
-            if (strutsClass.getName().equalsIgnoreCase(name)) {
-                return strutsClass;
-            }
-        }
-        return null;
     }
 
     private List<Endpoint> findEndpointsForUrl(String url, Collection<Endpoint> endpoints) {
