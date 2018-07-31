@@ -45,7 +45,7 @@ public class EntityParser implements EventBasedTokenizer {
     private List<String> publicMethods = list();
 
     @Nullable
-    private String          className     = null, superClass = null, currentParamType = null;
+    private String className = null, superClass = null, currentParamType = null;
 
     @Nonnull
     public static EntityParser parse(@Nonnull File file) {
@@ -133,4 +133,19 @@ public class EntityParser implements EventBasedTokenizer {
     public String getSuperClass() {
         return superClass;
     }
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("class ");
+		sb.append(className);
+		sb.append(" : ");
+		sb.append(superClass);
+		sb.append(" with ");
+		sb.append(fieldMappings.size());
+		sb.append(" fields");
+
+		return sb.toString();
+	}
 }
