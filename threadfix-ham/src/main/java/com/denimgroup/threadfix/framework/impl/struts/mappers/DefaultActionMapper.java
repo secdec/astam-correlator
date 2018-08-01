@@ -181,7 +181,7 @@ public class DefaultActionMapper implements ActionMapper {
                             String methodPath = path;
                             parameters = map();
 
-                            if (strutsAction.getMethod().startsWith("{")) {
+                            if (strutsAction.getMethod() != null && strutsAction.getMethod().startsWith("{")) {
                                 String wildcardIndexText = strutsAction.getMethod().substring(1, strutsAction.getMethod().length() - 1);
                                 int index;
                                 try {
