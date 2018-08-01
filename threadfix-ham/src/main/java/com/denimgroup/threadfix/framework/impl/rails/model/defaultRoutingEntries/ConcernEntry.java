@@ -36,6 +36,8 @@ public class ConcernEntry extends AbstractRailsRoutingEntry {
 
     String idSymbol = null;
 
+
+
     @Override
     public Collection<PathHttpMethod> getPaths() {
         return null;
@@ -75,6 +77,12 @@ public class ConcernEntry extends AbstractRailsRoutingEntry {
     @Override
     public String getPrimaryPath() {
         return null;
+    }
+
+    @Override
+    public boolean canGenerateEndpoints() {
+        //  Concern declaration is just a template and doesn't make any endpoints on its own
+        return false;
     }
 
     @Override

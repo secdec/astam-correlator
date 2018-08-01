@@ -31,6 +31,7 @@ import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -206,7 +207,7 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
 
     @Override
     public Collection<String> getConcerns() {
-        return null;
+        return concerns;
     }
 
     @Override
@@ -224,7 +225,7 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
     public RailsRoutingEntry cloneEntry() {
         ResourcesEntry clone = new ResourcesEntry();
         clone.concerns.addAll(concerns);
-        clone.supportedPaths.addAll(supportedPaths);
+        clone.supportedPaths = new ArrayList<PathHttpMethod>(supportedPaths);
         clone.basePath = basePath;
         clone.dataSourceSymbol = dataSourceSymbol;
         cloneChildrenInto(clone);

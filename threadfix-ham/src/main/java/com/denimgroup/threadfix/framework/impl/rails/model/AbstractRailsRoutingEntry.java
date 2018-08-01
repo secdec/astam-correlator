@@ -63,6 +63,11 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
     }
 
     @Override
+    public boolean canGenerateEndpoints() {
+        return parentEntry == null || parentEntry.canGenerateEndpoints();
+    }
+
+    @Override
     public void setLineNumber(int codeLine) {
         lineNumber = codeLine;
     }

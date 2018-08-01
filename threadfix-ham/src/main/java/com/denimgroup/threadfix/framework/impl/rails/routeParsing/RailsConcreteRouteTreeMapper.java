@@ -69,6 +69,10 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
             return;
         }
 
+        if (!entry.canGenerateEndpoints()) {
+            return;
+        }
+
         if (entry.getPrimaryPath() == null && (entry.getPaths() == null || entry.getPaths().size() == 0)) {
             return;
         }

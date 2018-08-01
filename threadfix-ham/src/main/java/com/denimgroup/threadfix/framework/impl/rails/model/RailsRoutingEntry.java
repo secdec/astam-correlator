@@ -44,6 +44,12 @@ public interface RailsRoutingEntry {
     void onBegin(String identifier);
     void onEnd();
 
+
+    /**
+     * @return Whether or not this entry, and all of its sub-entries should be used while generating endpoints.
+     */
+    boolean canGenerateEndpoints();
+
     /**
      * @return The main path for this entry that will host its endpoints and be the base endpoint for its children.
      */
