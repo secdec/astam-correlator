@@ -19,6 +19,20 @@ The following frameworks are supported by the Correlator route detection process
 - Spring MVC
 - JSP
 
+# Referencing the Endpoint Detection HAM Module
+The ASTAM Correlator HAM module for endpoint detection has been published to Maven. You can add it as a dependency by adding this to your `pom.xml`:
+
+    <dependency>
+        <groupId>com.github.secdec.astam-correlator</groupId>
+        <artifactId>threadfix-entities</artifactId>
+        <version>1.2.16</version>
+    </dependency>
+    <dependency>
+        <groupId>com.github.secdec.astam-correlator</groupId>
+        <artifactId>threadfix-ham</artifactId>
+        <version>1.2.16</version>
+    </dependency>
+
 # Documentation
 
 Instructions for the usage and installation of the ASTAM Correlator can be found in this project's [Wiki](https://github.com/secdec/astam-correlator/wiki).
