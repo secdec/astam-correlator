@@ -93,6 +93,9 @@ public class HyperlinkParameterDetector {
             newElement.setElementType(htmlNode.nodeName().toLowerCase());
 
             for (Attribute attr : htmlNode.attributes()) {
+                if (attr.getValue() == null)
+                    continue;
+
                 newElement.addAttribute(CodeParseUtil.trim(attr.getKey(), quoteTrimTokens, 1).toLowerCase(), CodeParseUtil.trim(attr.getValue(), quoteTrimTokens, 1));
             }
 
