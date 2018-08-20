@@ -27,7 +27,6 @@ package com.denimgroup.threadfix.framework.engine.framework;
 import com.denimgroup.threadfix.framework.TestConstants;
 import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import com.denimgroup.threadfix.framework.impl.spring.SpringServletConfigurationChecker;
-import com.sun.javaws.exceptions.InvalidArgumentException;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
