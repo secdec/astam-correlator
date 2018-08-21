@@ -27,10 +27,8 @@ package com.denimgroup.threadfix.framework.impl.spring;
 
 import com.denimgroup.threadfix.data.entities.*;
 import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
-import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.RegexUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import org.apache.commons.lang3.StringUtils;
@@ -49,8 +47,8 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     private static final String requestMappingStart = "RequestMethod.";
 
     @Nonnull
-    private String rawFilePath, rawUrlPath;
-    Pattern rawUrlPathPattern;
+    private String filePath, urlPath;
+    Pattern urlPathPattern;
     @Nonnull
     private Map<String, RouteParameter> parameters;
     private int startLineNumber = -1, endLineNumber = -1;
@@ -83,22 +81,26 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
                                     int endLineNumber,
                                     @Nullable ModelField modelObject) {
 
-        this.rawFilePath = filePath;
-        this.rawUrlPath = urlPath;
+        this.filePath = filePath;
+        this.urlPath = urlPath;
         this.startLineNumber = startLineNumber;
         this.endLineNumber = endLineNumber;
 
-        this.rawUrlPath = this.rawUrlPath.replaceAll("\\\\", "/");
+        this.urlPath = this.urlPath
+            .replaceAll("\\\\", "/")
+            .replaceAll("\\.html", "");
 
         this.modelObject = modelObject;
 
         this.parameters = parameters;
         this.method = method;
 
-        this.rawUrlPathPattern = Pattern.compile(
+        this.urlPathPattern = Pattern.compile(
             urlPath
-                .replaceAll("\\{.+\\}", "[^\\/]+")
+                .replaceAll("\\{[^\\}]+\\}", "[^\\/]+")
+                .replaceAll("\\.", "\\\\.")
                 .replaceAll("\\*\\*", ".*")
+                .replaceAll("([^\\.])\\*", "$1.*")
         );
     }
 
@@ -135,10 +137,25 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
             }
         }
 
+        //  Apply whitelist/blacklist
+        //  Automatically allow any embedded endpoint parameters
+
         if (disallowedParams != null) {
+            disallowedParams = new HashSet<String>(disallowedParams);
+            for (RouteParameter param : parameters.values()) {
+                if (param.getParamType() == RouteParameterType.PARAMETRIC_ENDPOINT && disallowedParams.contains(param.getName())) {
+                    disallowedParams.remove(param.getName());
+                }
+            }
             parameters.keySet().removeAll(disallowedParams);
         }
         if (allowedParams != null) {
+            allowedParams = new HashSet<String>(allowedParams);
+            for (RouteParameter param : parameters.values()) {
+                if (param.getParamType() == RouteParameterType.PARAMETRIC_ENDPOINT && !allowedParams.contains(param.getName())) {
+                    allowedParams.add(param.getName());
+                }
+            }
             parameters.keySet().retainAll(allowedParams);
         }
     }
@@ -165,8 +182,8 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     public int compareRelevance(String endpoint) {
         if (getUrlPath().equalsIgnoreCase(endpoint)) {
             return 100;
-        } else if (rawUrlPathPattern.matcher(endpoint).find()) {
-            return rawUrlPath.length();
+        } else if (urlPathPattern.matcher(endpoint).find()) {
+            return urlPath.length();
         } else {
             return -1;
         }
@@ -177,9 +194,9 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         if (getUrlPath().equalsIgnoreCase(endpoint)) {
             return true;
         } else if (strictness == EndpointRelevanceStrictness.LOOSE) {
-            return rawUrlPathPattern.matcher(endpoint).find();
+            return urlPathPattern.matcher(endpoint).find();
         } else {
-            return endpoint.replaceFirst(rawUrlPathPattern.pattern(), "").length() == 0;
+            return endpoint.replaceFirst(urlPathPattern.pattern(), "").length() == 0;
         }
     }
 
@@ -192,12 +209,12 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     @Nonnull
     public String getCleanedFilePath() {
         if (cleanedFilePath == null && fileRoot != null &&
-                rawFilePath.contains(fileRoot)) {
-            cleanedFilePath = rawFilePath.substring(fileRoot.length());
+                filePath.contains(fileRoot)) {
+            cleanedFilePath = filePath.substring(fileRoot.length());
         }
 
         if (cleanedFilePath == null) {
-            return rawFilePath;
+            return filePath;
         }
 
         return cleanedFilePath;
@@ -224,7 +241,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
 
     @Override
     public boolean matchesLineNumber(int lineNumber) {
-        return lineNumber < endLineNumber && lineNumber > startLineNumber;
+        return lineNumber <= endLineNumber && lineNumber >= startLineNumber;
     }
 
     @Nonnull
@@ -242,7 +259,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
                 ":" + startLineNumber +
                 "-" + endLineNumber +
                 " -> " + getHttpMethod() +
-                " " + rawUrlPath +
+                " " + urlPath +
                 " " + getParameters() +
                 "]";
     }
@@ -257,7 +274,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     @Override
     public String getUrlPath() {
         //String path = getCleanedUrlPath();
-        String path = rawUrlPath;
+        String path = urlPath;
         if (path != null) {
             return path;
         } else {

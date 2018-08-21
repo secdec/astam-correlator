@@ -63,7 +63,10 @@ public class EntityMappings {
 
             for (File file : modelFiles) {
                 if (file != null && file.exists() && file.isFile()) {
-                    entityParsers.add(EntityParser.parse(file));
+                	EntityParser parser = EntityParser.parse(file);
+                	if (parser.getClassName() != null || parser.getSuperClass() != null || !parser.getFieldMappings().isEmpty() || !parser.getMethods().isEmpty()) {
+		                entityParsers.add(parser);
+	                }
                 }
             }
 

@@ -30,6 +30,7 @@ import com.denimgroup.threadfix.framework.engine.framework.FrameworkCalculator;
 import org.junit.Test;
 
 import java.io.File;
+import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
@@ -46,13 +47,8 @@ public class SpringDetectionTests {
     }
 
     @Test
-    public void testMvcExamplesConfig() {
-        testTypeDetection(TestConstants.getFolderName("spring-mvc-examples"));
-    }
-
-    @Test
     public void testMvcShowcaseConfig() {
-        testTypeDetection(TestConstants.getFolderName("spring-mvc-showcase"));
+        testTypeDetection(TestConstants.getFolderName("spring-mvc-showcase-master"));
     }
 
     @Test
@@ -62,34 +58,18 @@ public class SpringDetectionTests {
 
     public static final String[] ALL_SPRING_APPS = {
             "atmosphere-spring-mvc",
-            "blog",
-            "BookExchange",
             "classifiedsMVC",
-            "CRM_Demo",
             "denarius",
-            "documentmanager",
             "dogphone-spring-mongo",
-            "EchoWeb",
             "exhubs",
-            "mvc-calculator",
-            "MvcXmlFree",
-            "spring-guestbook",
             "spring-mvc-ajax",
             "spring-mvc-chat",
-            "spring-mvc-examples",
             "spring-mvc-movies",
-            "spring-mvc-scribe-experiment",
-            "spring-mvc-showcase",
-            "spring-mvc-with-no-xml-experiment",
-            "spring-wiki",
-            "spring3-mvc-cities",
+            "spring-mvc-showcase-master",
             "SpringUserAuthSample",
-            "stonewall",
-            "ticketline-spring",
-            "Timeline",
-            "todomvc",
+            "springmvc-todomvc",
             "WebCalculator",
-            "woofer" };
+    };
 
     @Test
     public void testTheOtherWebapps() {
@@ -99,8 +79,8 @@ public class SpringDetectionTests {
     }
 
     void testTypeDetection(String location) {
-        FrameworkType type = FrameworkCalculator.getType(new File(location));
-        assertTrue("Didn't find Spring in " + location + ". Got: " + type, type == FrameworkType.SPRING_MVC);
+        List<FrameworkType> types = FrameworkCalculator.getTypes(new File(location));
+        assertTrue("Didn't find Spring in " + location + ". Got: " + types, types.contains(FrameworkType.SPRING_MVC));
     }
 
 }

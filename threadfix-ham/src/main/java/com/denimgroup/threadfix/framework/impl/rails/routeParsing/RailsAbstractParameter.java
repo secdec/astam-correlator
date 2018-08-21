@@ -28,24 +28,32 @@ import com.denimgroup.threadfix.framework.impl.rails.model.RoutingParameterType;
 
 public class RailsAbstractParameter {
 
-    RoutingParameterType labelType;
-    RouteParameterValueType parameterType;
+    RoutingParameterType parameterType;
+    RouteParameterValueType labelType, valueType;
     String name, value;
 
-    public void setLabelType(RoutingParameterType identifierType) {
-        this.labelType = identifierType;
+    public void setLabelType(RouteParameterValueType labelType) {
+        this.labelType = labelType;
     }
 
-    public RoutingParameterType getLabelType() {
+    public RouteParameterValueType getLabelType() {
         return labelType;
     }
 
-    public void setParameterType(RouteParameterValueType parameterType) {
-        this.parameterType = parameterType;
+    public void setParameterType(RoutingParameterType identifierType) {
+        this.parameterType = identifierType;
     }
 
-    public RouteParameterValueType getParameterType() {
+    public RoutingParameterType getParameterType() {
         return parameterType;
+    }
+
+    public void setValueType(RouteParameterValueType parameterType) {
+        this.valueType = parameterType;
+    }
+
+    public RouteParameterValueType getValueType() {
+        return valueType;
     }
 
     public void setLabel(String name) {

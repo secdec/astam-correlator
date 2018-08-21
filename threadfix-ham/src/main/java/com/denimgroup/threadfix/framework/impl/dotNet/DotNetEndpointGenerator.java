@@ -37,6 +37,7 @@ import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.ParameterMerger;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -121,7 +122,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 continue;
             }
 
-            DotNetRouteMappings.MapRoute mapRoute = dotNetRouteMappings.getMatchingMapRoute(mappings.hasAreaName(), mappings.getControllerName());
+            DotNetRouteMappings.MapRoute mapRoute = dotNetRouteMappings.getMatchingMapRoute(mappings.hasAreaName(), mappings.getControllerName(), mappings.getNamespace());
 
             if (mapRoute == null ||  mapRoute.url == null || mapRoute.url.equals(""))
                 continue;
@@ -138,6 +139,10 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 }
 
                 String pattern = mapRoute.url;
+                //  If a specific action was set for this route, only create endpoints when we get to that action
+                if (!pattern.contains("{action}") && mapRoute.defaultRoute != null && !action.name.equals(mapRoute.defaultRoute.action)) {
+                    continue;
+                }
 
                 LOG.debug("Substituting patterns from route " + action + " into template " + pattern);
 
@@ -185,9 +190,10 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 LOG.debug("Got result " + result);
 
                 String filePath = mappings.getFilePath();
-                if (filePath.startsWith(rootDirectory.getAbsolutePath())) {
+                if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
                     filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
                 }
+
                 endpoints.add(new DotNetEndpoint(result, filePath, action));
             }
         }
@@ -228,6 +234,9 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 	        if (controllerMappings == null || action == null) {
         		continue;
 	        }
+
+	        result = result.replaceAll("\\{controller\\}", controllerMappings.getControllerName());
+        	result = result.replaceAll("\\{action\\}", action.name);
 
 	        String filePath = controllerMappings.getFilePath();
         	if (filePath.startsWith(rootDirectory.getAbsolutePath())) {

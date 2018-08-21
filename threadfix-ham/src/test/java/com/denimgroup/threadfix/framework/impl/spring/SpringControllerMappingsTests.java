@@ -51,13 +51,13 @@ public class SpringControllerMappingsTests {
         File file = new File(TestConstants.PETCLINIC_SOURCE_LOCATION);
         SpringControllerMappings mappings = new SpringControllerMappings(file);
 
-        String controllersPrefix = "/src/main/java/org/springframework/samples/petclinic/web/";
-        String[] controllerNames = { "CrashController.java", "OwnerController.java", "PetController.java",
-            "VetController.java", "VisitController.java"
+        String controllersPrefix = "/src/main/java/org/springframework/samples/petclinic/";
+        String[] controllerNames = { "system/CrashController.java", "owner/OwnerController.java", "owner/PetController.java",
+            "vet/VetController.java", "owner/VisitController.java"
         };
 
         int[][] controllerIndexAndEndpointCount = {
-            { 0, 1 }, { 1, 7 }, { 2, 4 }, { 3, 1 }, { 4, 3 }
+            { 0, 1 }, { 1, 7 }, { 2, 4 }, { 3, 2 }, { 4, 2 }
         };
 
         for (String controller : controllerNames) {
@@ -82,23 +82,21 @@ public class SpringControllerMappingsTests {
 
         String[][] singleEndpoints = {
             { "/owners/find", TestConstants.SPRING_OWNER_CONTROLLER },
-            { "/owners/{id}", TestConstants.SPRING_OWNER_CONTROLLER },
+            { "/owners/{ownerId}", TestConstants.SPRING_OWNER_CONTROLLER },
             { "/owners", TestConstants.SPRING_OWNER_CONTROLLER },
-            { "/owners/{id}/pets/{id}/visits", TestConstants.SPRING_VISIT_CONTROLLER },
             { "/vets", TestConstants.SPRING_VET_CONTROLLER },
             { "/oups", TestConstants.SPRING_CRASH_CONTROLLER },
         };
 
         String[][] doubleEndpoints = {
             { "/owners/new", TestConstants.SPRING_OWNER_CONTROLLER },
-            { "/owners/{id}/edit", TestConstants.SPRING_OWNER_CONTROLLER },
-            { "/owners/{id}/pets/new", TestConstants.SPRING_PET_CONTROLLER },
-            { "/owners/{id}/pets/{id}/edit", TestConstants.SPRING_PET_CONTROLLER },
-            { "/owners/{id}/pets/{id}/visits/new", TestConstants.SPRING_VISIT_CONTROLLER },
+            { "/owners/{ownerId}/edit", TestConstants.SPRING_OWNER_CONTROLLER },
+            { "/owners/{ownerId}/pets/new", TestConstants.SPRING_PET_CONTROLLER },
+            { "/owners/{ownerId}/pets/{petId}/edit", TestConstants.SPRING_PET_CONTROLLER },
         };
 
         for (String[] singleEndpoint : singleEndpoints) {
-            assertTrue(singleEndpoint + " should have had one endpoint, but had " +
+            assertTrue(singleEndpoint[0] + " should have had one endpoint, but had " +
                     mappings.getEndpointsFromUrl(singleEndpoint[0]).size(),
                     mappings.getEndpointsFromUrl(singleEndpoint[0]).size() == 1);
 
@@ -110,7 +108,7 @@ public class SpringControllerMappingsTests {
         }
 
         for (String[] doubleEndpoint : doubleEndpoints) {
-            assertTrue(doubleEndpoint + " should have had two endpoints, but had " +
+            assertTrue(doubleEndpoint[0] + " should have had two endpoints, but had " +
                     mappings.getEndpointsFromUrl(doubleEndpoint[0]).size(),
                     mappings.getEndpointsFromUrl(doubleEndpoint[0]).size() == 2);
 
@@ -153,7 +151,7 @@ public class SpringControllerMappingsTests {
         assertTrue(mappings.getEndpointsFromUrl(null).isEmpty());
     }
 
-    @Test(expected= NullPointerException.class)
+    @Test(expected= IllegalArgumentException.class)
     public void testNullConstructorArgument() {
         new SpringControllerMappings(null);
     }

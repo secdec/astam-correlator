@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.rails.model;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 
 import java.util.Map;
@@ -34,7 +35,7 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 */
 public class RailsControllerMethod {
     private String methodName;
-    private Map<String, ParameterDataType> methodParams;
+    private Map<String, RouteParameter> methodParams;
     private int startLine, endLine;
 
     public String getMethodName() {
@@ -45,16 +46,16 @@ public class RailsControllerMethod {
         this.methodName = methodName;
     }
 
-    public Map<String, ParameterDataType> getMethodParams() {
+    public Map<String, RouteParameter> getMethodParams() {
         return methodParams;
     }
 
-    public void addMethodParam(String methodParam, ParameterDataType dataType) {
-        if (methodParam == null) return;
+    public void addMethodParam(String paramName, RouteParameter parameter) {
+        if (paramName == null) return;
 
         if (this.methodParams == null)
             this.methodParams = map();
-        this.methodParams.put(methodParam, dataType);
+        this.methodParams.put(paramName, parameter);
     }
 
 	public void setStartLine(int startLine) {

@@ -40,7 +40,13 @@ public class StrutsEndpointMappingsTests {
 
     private String[][] TEST_DATA = {
 
-            {"/app/src/main/java/org/apache/roller/weblogger/ui/struts2/core/Setup.java",
+        /*
+         * NOTE - Testing here is incomplete; there are various methods in Roller actions ie `Setup.java`
+         * that have methods not being mapped to actions, ie `save()`. These are likely meant to be mapped,
+         * but there's nothing obvious in any interceptors or XML mappings that would indicate this.
+         */
+
+        {"/app/src/main/java/org/apache/roller/weblogger/ui/struts2/core/Setup.java",
                     "/roller-ui/setup.rol", "POST",
                     "frontpageBlog", "aggregated", "userCount", "blogCount"},
 
@@ -203,7 +209,6 @@ public class StrutsEndpointMappingsTests {
     @Test
     public void testRollerFrameworkType() {
         File rootFile = new File(TestConstants.ROLLER_SOURCE_LOCATION);
-        StrutsEndpointMappings mappings = new StrutsEndpointMappings(rootFile);
 
         // test with EndpointDatabaseFactory finding the FrameworkType
         EndpointDatabase database = EndpointDatabaseFactory.getDatabase(rootFile);
@@ -214,7 +219,6 @@ public class StrutsEndpointMappingsTests {
     @Test
     public void testRegisterUrl() {
         File rootFile = new File(TestConstants.ROLLER_SOURCE_LOCATION);
-        StrutsEndpointMappings mappings = new StrutsEndpointMappings(rootFile);
         EndpointDatabase database = EndpointDatabaseFactory.getDatabase(rootFile);
 
         EndpointQueryBuilder epqBuilder = EndpointQueryBuilder.start();
@@ -255,7 +259,7 @@ public class StrutsEndpointMappingsTests {
 
     private void test(EndpointDatabase database, String fileName, String url, String method, String[] parameters) {
 
-        EndpointQuery endpointQuery = EndpointQueryBuilder.start().setDynamicPath(url).generateQuery();
+        EndpointQuery endpointQuery = EndpointQueryBuilder.start().setDynamicPath(url).setHttpMethod(method).generateQuery();
 
         Endpoint bestMatch = database.findBestMatch(endpointQuery);
 

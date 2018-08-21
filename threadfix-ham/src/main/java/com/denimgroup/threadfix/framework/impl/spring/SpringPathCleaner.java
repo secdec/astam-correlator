@@ -85,8 +85,7 @@ public class SpringPathCleaner implements PathCleaner {
                 .replaceAll("\\.html", "")
                 .replaceAll("/[0-9]+$", "/" + GENERIC_INT_SEGMENT)
                 .replaceAll("/\\*/", "/" + GENERIC_INT_SEGMENT + "/")
-                .replaceAll("/$", "")
-                .replaceAll("\\{[^\\}]+\\}", GENERIC_INT_SEGMENT);
+                .replaceAll("/$", "");
 
         return escaped;
     }

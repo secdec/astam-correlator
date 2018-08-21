@@ -62,7 +62,7 @@ public class SpringEntityMappingsTests {
 
         assertTrue(petFields.getField("id").getType().equals("Integer"));
         assertTrue(petFields.getField("name").getType().equals("String"));
-        assertTrue(petFields.getField("birthDate").getType().equals("DateTime"));
+        assertTrue(petFields.getField("birthDate").getType().equals("Date"));
         assertTrue(petFields.getField("type.name").getType().equals("String"));
 
     }

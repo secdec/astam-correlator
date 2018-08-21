@@ -289,7 +289,7 @@ public class SpringParameterParsingTests {
         assertTrue("Parameter was " + result + " instead of owner.lastName", "owner.lastName".equals(result));
     }
 
-    @Test(expected= NullPointerException.class)
+    @Test(expected= IllegalArgumentException.class)
     public void testNullConstructorArg() {
         parser.parse(null);
     }

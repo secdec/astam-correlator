@@ -51,8 +51,8 @@ public class FrameworkCalculator {
     static {
         // TODO detect language first and use that to narrow down the frameworks
         register(new JavaAndJspFrameworkChecker());
-        register(new WebFormsFrameworkChecker());
         register(new DotNetFrameworkChecker());
+        register(new WebFormsFrameworkChecker());
         register(new RailsFrameworkChecker());
         register(new DjangoFrameworkChecker());
     }

@@ -28,6 +28,10 @@ package com.denimgroup.threadfix.framework.util;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
+import java.util.Collection;
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class FilePathUtils {
 
@@ -87,6 +91,30 @@ public class FilePathUtils {
     @Nonnull
     public static String getFolder(@Nonnull File file) {
         return file.getAbsoluteFile().getParentFile().getAbsolutePath();
+    }
+
+    //  Filters all folders that are contained within another
+    public static List<File> findRootFolders(@Nonnull Collection<File> folders) {
+        //  Remove project locations that are sub-folders of another
+        List<File> filteredResults = list();
+        for (File current : folders) {
+            String currentPath = current.getAbsolutePath();
+            boolean include = true;
+            for (File check : folders) {
+                if (check.equals(current)) {
+                    continue;
+                }
+                String checkPath = check.getAbsolutePath();
+                if (currentPath.startsWith(checkPath)) {
+                    include = false;
+                    break;
+                }
+            }
+            if (include) {
+                filteredResults.add(current);
+            }
+        }
+        return filteredResults;
     }
 
 }

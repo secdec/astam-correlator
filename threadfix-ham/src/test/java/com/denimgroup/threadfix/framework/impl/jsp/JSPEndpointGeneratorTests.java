@@ -56,9 +56,12 @@ public class JSPEndpointGeneratorTests {
     public void testSize() {
         JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
                 TestConstants.BODGEIT_SOURCE_LOCATION));
+
+        int numExpected = 20;
+
         assertTrue("Size was " + mappings.generateEndpoints().size()
-                + " but should have been " + 13, mappings.generateEndpoints()
-                .size() == 16);
+                + " but should have been " + numExpected, mappings.generateEndpoints()
+                .size() == numExpected);
     }
 
     @Test
@@ -73,12 +76,12 @@ public class JSPEndpointGeneratorTests {
     }
 
     @Nonnull
-    String[][] tests = { { "/root/advanced.jsp", "debug", "54" },
-            { "/root/advanced.jsp", "q", "58" },
-            { "/root/basket.jsp", "debug", "89" },
-            { "/root/basket.jsp", "update", "173" },
-            { "/root/basket.jsp", "productid", "174" },
-            { "/root/basket.jsp", "quantity", "178" }, };
+    String[][] tests = {
+        { "/root/basket.jsp", "debug", "63" },
+        { "/root/basket.jsp", "update", "147" },
+        { "/root/basket.jsp", "productid", "148" },
+        { "/root/basket.jsp", "quantity", "160" },
+    };
 
     @Test
     public void testParameters() {

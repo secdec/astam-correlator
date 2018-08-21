@@ -78,7 +78,7 @@ public class JspEndpointDatabaseTests {
     }
 
     @Nonnull
-    String dynamicRoot = "/bodgeit/", staticRoot = "/root/";
+    String dynamicRoot = "/", staticRoot = "/root/";
 
     @Nonnull
     String[] pages = {

@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
+import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import java.util.List;
@@ -30,6 +31,7 @@ import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.framework.util.CollectionUtils.stringMap;
 
 /**
  * Created by mac on 10/20/14.
@@ -38,7 +40,7 @@ class AspxControlStack {
 
     private static final SanitizedLogger LOG = new SanitizedLogger(AspxControlStack.class);
 
-    Map<String, Integer> idMap    = map(); // this helps us generate
+    Map<String, Integer> idMap    = stringMap(); // this helps us generate
     List<AspxControl>    controls = list(new AspxControl("RootElement", generateIdFromCurrentStack(0)));
 
     void add(AspxControl control) {

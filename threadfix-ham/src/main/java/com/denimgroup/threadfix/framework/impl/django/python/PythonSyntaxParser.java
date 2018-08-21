@@ -117,6 +117,8 @@ public class PythonSyntaxParser implements EventBasedTokenizer {
             }
         }
 
+        executor.shutdown();
+
         log("Parsing tasks completed, reconstructing module hierarchy...");
 
         // Reconstruct directory-based hierarchy first

@@ -41,6 +41,7 @@ public class DotNetControllerMappings {
     private String       areaName = null;
     private String       controllerName = null;
     private List<Action> actions        = list();
+    private String       namespace = null;
 
     public String getFilePath() {
         return filePath;
@@ -56,6 +57,14 @@ public class DotNetControllerMappings {
     public String getControllerName() {
         assert controllerName != null : "You have attempted to access the controller name without setting it.";
         return controllerName;
+    }
+
+    public void setNamespace(String namespace) {
+        this.namespace = namespace;
+    }
+
+    public String getNamespace() {
+        return namespace;
     }
 
     public void setAreaName(@Nonnull String areaName) {
@@ -93,8 +102,18 @@ public class DotNetControllerMappings {
         String allCapsMethod = method.toUpperCase();
 
         for (Action action : actions) {
-            if (action.name.equals(actionName) && action.getMethods().equals(allCapsMethod)) {
+            if (action.name.equalsIgnoreCase(actionName) && (action.getMethods().contains(allCapsMethod) || action.name.equalsIgnoreCase(method))) {
                 return action;
+            }
+        }
+
+        //  No directly-matching action found; if method is GET, match against first non-decorated action with the given name
+        //  since HTTP method is implicitly GET
+        if (method.equals("GET")) {
+            for (Action action : actions) {
+                if (action.name.equalsIgnoreCase(actionName) && action.getMethods().isEmpty()) {
+                    return action;
+                }
             }
         }
 

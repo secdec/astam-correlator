@@ -27,6 +27,7 @@ package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
 import com.denimgroup.threadfix.data.entities.ExplicitEndpointPathNode;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
@@ -163,16 +164,18 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
             }
 
             if (!foundNormalParameter) {
-                map.put(cleanViewParam(parameter), list(0));
+                map.put(parameter, list(0));
             }
+        }
+
+        for (String paramName : map.keySet()) {
+            RouteParameter param = new RouteParameter(paramName);
+            param.setParamType(RouteParameterType.FORM_DATA);
+            params.put(paramName, param);
         }
 
         for (List<Integer> integers : map.values()) {
             Collections.sort(integers);
-        }
-
-        for (String paramName : map.keySet()) {
-            params.put(paramName, new RouteParameter(paramName));
         }
     }
 
@@ -269,12 +272,6 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
         target.params.putAll(this.params);
         target.map.putAll(this.map);
-    }
-
-    private static String cleanViewParam(String param){
-        if(StringUtils.isBlank(param)) return null;
-        if (!param.contains("$")) return param;
-        return param.substring(param.lastIndexOf('$') + 1, param.length());
     }
 
     @Nonnull

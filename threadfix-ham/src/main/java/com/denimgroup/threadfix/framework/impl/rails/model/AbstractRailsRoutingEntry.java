@@ -23,6 +23,7 @@
 
 package com.denimgroup.threadfix.framework.impl.rails.model;
 
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import java.util.*;
@@ -42,7 +43,7 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
     }
 
     @Override
-    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
+    public void onParameter(String name, RouteParameterValueType nameType, String value, RouteParameterValueType parameterType) {
 
     }
 
@@ -62,6 +63,11 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
     }
 
     @Override
+    public boolean canGenerateEndpoints() {
+        return parentEntry == null || parentEntry.canGenerateEndpoints();
+    }
+
+    @Override
     public void setLineNumber(int codeLine) {
         lineNumber = codeLine;
     }
@@ -74,7 +80,6 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
     @Override
     public void addChildEntry(RailsRoutingEntry child) {
         if (!children.contains(child)) {
-
             children.add(child);
         }
         child.setParent(this);
@@ -110,19 +115,9 @@ public abstract class AbstractRailsRoutingEntry implements RailsRoutingEntry {
         return parentEntry;
     }
 
-    protected String stripColons(String symbol) {
-        if (symbol.startsWith(":")) {
-            symbol = symbol.substring(1);
-        }
-        if (symbol.endsWith(":")) {
-            symbol = symbol.substring(0, symbol.length() - 1);
-        }
-        return symbol.trim();
-    }
-
     protected String cleanCodeString(String codeString) {
         codeString = codeString.trim();
-        codeString = stripColons(codeString);
+        codeString = CodeParseUtil.trim(codeString, ":");
         while (codeString.startsWith("{") || codeString.startsWith("'") || codeString.startsWith("\"")) {
             codeString = codeString.substring(1);
         }

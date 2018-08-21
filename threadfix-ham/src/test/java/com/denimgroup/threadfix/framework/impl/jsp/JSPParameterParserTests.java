@@ -91,7 +91,7 @@ public class JSPParameterParserTests {
         assertTrue("Parameter was " + result + " instead of username", "username".equals(result));
     }
 
-    @Test(expected= NullPointerException.class)
+    @Test(expected= IllegalArgumentException.class)
     public void testNullArgument() {
         factoryParser.parse(null);
     }
@@ -125,7 +125,7 @@ public class JSPParameterParserTests {
 
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testParserNullInput() {
         ProjectConfig config = new ProjectConfig(FrameworkType.JSP, SourceCodeAccessLevel.DETECT,
                 new File(TestConstants.BODGEIT_SOURCE_LOCATION), null);

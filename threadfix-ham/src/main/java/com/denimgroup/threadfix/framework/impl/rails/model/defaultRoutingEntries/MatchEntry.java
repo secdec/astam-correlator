@@ -24,6 +24,8 @@
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -44,9 +46,9 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
     List<String> httpMethods = list("GET");
 
     @Override
-    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
+    public void onParameter(String name, RouteParameterValueType nameType, String value, RouteParameterValueType parameterType) {
         if (name == null) {
-            endpoint = value;
+            endpoint = RailsEndpointUtil.cleanEndpointParameters(value, parameterType);
         } else if (name.equalsIgnoreCase("to")) {
             String[] controllerParts = value.split("#");
             if (controllerParts.length == 1) {
@@ -58,18 +60,15 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
         } else if (name.equalsIgnoreCase("via")) {
             httpMethods.clear();
             // Strip brackets
-            if (parameterType == RouteParameterValueType.ARRAY) {
-                value = value.substring(1, value.length() - 1);
-            }
             String[] methods = value.split(",");
             if (methods.length == 1) {
-                if (stripColons(methods[0]).equalsIgnoreCase("all")) {
+                if (CodeParseUtil.trim(methods[0], ":").equalsIgnoreCase("all")) {
                     methods = new String[] { "get", "post", "put", "patch", "delete" };
                 }
             }
 
             for (String method : methods) {
-                httpMethods.add(stripColons(method).toUpperCase());
+                httpMethods.add(CodeParseUtil.trim(method, ":").toUpperCase());
             }
         } else if (name.equalsIgnoreCase("controller")) {
             controller = value;
@@ -81,7 +80,7 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
             anchor = value.equalsIgnoreCase("true");
         } else if (endpoint == null && controller == null && actionName == null) {
             //  Must be an initial parameter of ie '/path' => 'controller#action'
-            endpoint = name;
+            endpoint = RailsEndpointUtil.cleanEndpointParameters(name, nameType);
             controller = extractController(value);
             actionName = extractAction(value);
         }
@@ -136,12 +135,10 @@ public class MatchEntry extends AbstractRailsRoutingEntry {
         result.append('\'');
         result.append(" to: ");
         result.append(getControllerName());
-        result.append("#<> ");
-        result.append("via: [");
-        for (String method : httpMethods) {
-            result.append(method);
-            result.append(",");
-        }
+        result.append("#");
+        result.append(actionName);
+        result.append(" via: [");
+        result.append(StringUtils.join(httpMethods, ", "));
         result.append("]");
         return result.toString();
     }

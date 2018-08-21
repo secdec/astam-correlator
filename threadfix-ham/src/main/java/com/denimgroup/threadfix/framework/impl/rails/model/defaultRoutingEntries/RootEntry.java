@@ -23,10 +23,7 @@
 
 package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries;
 
-import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
-import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
+import com.denimgroup.threadfix.framework.impl.rails.model.*;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -39,7 +36,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 //  Defines the response to use when the root of the current scope is queried.
 public class RootEntry extends AbstractRailsRoutingEntry {
 
-    String path = null;
+    String path = "";
     String controllerName = null;
     String methodName = null;
 
@@ -63,9 +60,8 @@ public class RootEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
-        if (name == null || name.equalsIgnoreCase("to")) {
-            path = "/";
+    public void onParameter(String name, RouteParameterValueType nameType, String value, RouteParameterValueType parameterType) {
+        if (controllerName == null && (name == null || name.equalsIgnoreCase("to"))) {
             String[] valueParts = value.split("#");
             controllerName = valueParts[0];
             methodName = valueParts[1];
@@ -88,7 +84,9 @@ public class RootEntry extends AbstractRailsRoutingEntry {
     public String toString() {
         StringBuilder result = new StringBuilder();
         result.append("root to: '");
-        result.append(path);
+        result.append(controllerName);
+        result.append("#");
+        result.append(methodName);
         result.append("'");
         return result.toString();
     }

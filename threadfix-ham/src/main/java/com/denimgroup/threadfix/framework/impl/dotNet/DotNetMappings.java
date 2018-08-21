@@ -27,18 +27,14 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
-import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
@@ -47,12 +43,9 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
  */
 public class DotNetMappings implements EndpointGenerator {
 
-    final Collection<File> cSharpFiles;
     final File             rootDirectory;
 
-    DotNetRouteMappings routeMappings = null;
-    List<DotNetControllerMappings> controllerMappingsList = list();
-    DotNetEndpointGenerator generator = null;
+    List<DotNetEndpointGenerator> generators = list();
 
     @SuppressWarnings("unchecked")
     public DotNetMappings(@Nonnull File rootDirectory) {
@@ -61,22 +54,23 @@ public class DotNetMappings implements EndpointGenerator {
 
         this.rootDirectory = rootDirectory;
 
-        cSharpFiles = FileUtils.listFiles(rootDirectory,
-                new FileExtensionFileFilter("cs"), TrueFileFilter.INSTANCE);
-
-        generateMappings(rootDirectory);
+        for (File solutionFolder : findSolutionFolders(rootDirectory)) {
+            generateMappings(rootDirectory, solutionFolder);
+        }
         EndpointValidationStatistics.printValidationStats(generateEndpoints());
     }
 
-    private void generateMappings(File rootDirectory) {
+    private void generateMappings(File rootDirectory, File solutionDirectory) {
 
         List<ViewModelParser> modelParsers = list();
+        List<DotNetControllerMappings> controllerMappingsList = list();
 
-        routeMappings = new DotNetRouteMappings();
+        DotNetRouteMappings routeMappings = new DotNetRouteMappings();
+        Collection<File> cSharpFiles = FileUtils.listFiles(solutionDirectory, new String[] { "cs" }, true);
 
         for (File file : cSharpFiles) {
             if (file != null && file.exists() && file.isFile() &&
-                    file.getAbsolutePath().contains(rootDirectory.getAbsolutePath())) {
+                    file.getAbsolutePath().contains(solutionDirectory.getAbsolutePath())) {
 
                 DotNetControllerParser endpointParser = new DotNetControllerParser(file);
                 DotNetRoutesParser routesParser = new DotNetRoutesParser();
@@ -98,23 +92,77 @@ public class DotNetMappings implements EndpointGenerator {
 
         DotNetModelMappings modelMappings = new DotNetModelMappings(modelParsers);
 
-        generator = new DotNetEndpointGenerator(rootDirectory, routeMappings, modelMappings, controllerMappingsList);
+        generators.add(new DotNetEndpointGenerator(rootDirectory, routeMappings, modelMappings, controllerMappingsList));
     }
 
     @Nonnull
     @Override
     public List<Endpoint> generateEndpoints() {
-        assert generator != null;
+        assert !generators.isEmpty();
 
-        // We can't count on -ea being on
-        return generator == null ? new ArrayList<Endpoint>() : generator.generateEndpoints();
+        List<Endpoint> result = list();
+        for (EndpointGenerator generator : generators) {
+            result.addAll(generator.generateEndpoints());
+        }
+
+        return result;
     }
 
     @Override
     public Iterator<Endpoint> iterator() {
-        assert generator != null;
+        assert !generators.isEmpty();
 
-        // We can't count on -ea being on
-        return generator == null ? new ArrayList<Endpoint>().iterator() : generator.iterator();
+        return new MultiGeneratorIterator(generators);
+    }
+
+    private List<File> findSolutionFolders(File rootDirectory) {
+        Collection<File> slnFiles = FileUtils.listFiles(rootDirectory, new String[] { "sln" }, true);
+        List<File> solutionFolders = list();
+        for (File slnFile : slnFiles) {
+            File parent = slnFile.getParentFile();
+            if (!solutionFolders.contains(parent))
+                solutionFolders.add(parent);
+        }
+
+        if (solutionFolders.isEmpty()) {
+            solutionFolders.add(rootDirectory);
+        }
+
+        return FilePathUtils.findRootFolders(solutionFolders);
+    }
+
+    private class MultiGeneratorIterator implements Iterator<Endpoint> {
+
+        private final Queue<Iterator> subIterators;
+        private Iterator currentIterator;
+
+        public MultiGeneratorIterator(List<DotNetEndpointGenerator> endpointIterators) {
+            this.subIterators = new LinkedList<Iterator>();
+            for (EndpointGenerator generator : endpointIterators) {
+                this.subIterators.add(generator.iterator());
+            }
+            this.currentIterator = this.subIterators.remove();
+        }
+
+        @Override
+        public boolean hasNext() {
+            return this.currentIterator != null && this.currentIterator.hasNext();
+        }
+
+        @Override
+        public Endpoint next() {
+            Endpoint result = (Endpoint) this.currentIterator.next();
+
+            if (!this.currentIterator.hasNext()) {
+                this.currentIterator = this.subIterators.remove();
+            }
+
+            return result;
+        }
+
+        @Override
+        public void remove() {
+            this.next();
+        }
     }
 }

@@ -128,11 +128,11 @@ public class RailsConcreteRoutingTreeBuilder implements RailsAbstractTreeVisitor
 
     @Override
     public void acceptParameter(RailsAbstractParameter parameter) {
-        currentEntry.onParameter(parameter.getName(), parameter.getValue(), parameter.getParameterType());
+        currentEntry.onParameter(parameter.getName(), parameter.getLabelType(), parameter.getValue(), parameter.getValueType());
     }
 
     @Override
     public void acceptInitializerParameter(RailsAbstractParameter parameter) {
-        currentEntry.onInitializerParameter(parameter.getName(), parameter.getValue(), parameter.getParameterType());
+        currentEntry.onInitializerParameter(parameter.getName(), parameter.getValue(), parameter.getValueType());
     }
 }

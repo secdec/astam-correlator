@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.github.secdec.astam-correlator</groupId>
         <artifactId>master-pom</artifactId>
-        <version>1.2.16</version>
+        <version>1.2.17</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -188,7 +188,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.8.3</version>
+            <version>${jsoup.version}</version>
         </dependency>
     </dependencies>
 

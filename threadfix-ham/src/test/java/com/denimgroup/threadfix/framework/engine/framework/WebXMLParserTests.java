@@ -24,12 +24,7 @@
 
 package com.denimgroup.threadfix.framework.engine.framework;
 
-import static com.denimgroup.threadfix.framework.TestConstants.BODGEIT_SOURCE_LOCATION;
-import static com.denimgroup.threadfix.framework.TestConstants.BODGEIT_WEB_XML;
-import static com.denimgroup.threadfix.framework.TestConstants.PETCLINIC_SOURCE_LOCATION;
-import static com.denimgroup.threadfix.framework.TestConstants.PETCLINIC_WEB_XML;
-import static com.denimgroup.threadfix.framework.TestConstants.WAVSEP_SOURCE_LOCATION;
-import static com.denimgroup.threadfix.framework.TestConstants.WAVSEP_WEB_XML;
+import static com.denimgroup.threadfix.framework.TestConstants.*;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -37,13 +32,15 @@ import java.io.File;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import javax.annotation.Nullable;
+
+import com.denimgroup.threadfix.framework.util.PathUtil;
 import org.junit.Test;
 
 public class WebXMLParserTests {
 
     @Nullable
-    ServletMappings vulnClinic = WebXMLParser.getServletMappings(new File(PETCLINIC_WEB_XML),
-            new ProjectDirectory(new File(PETCLINIC_SOURCE_LOCATION)));
+    ServletMappings mvcShowcase = WebXMLParser.getServletMappings(new File(SPRING_MVC_SHOWCASE_WEB_XML),
+            new ProjectDirectory(new File(SPRING_MVC_SHOWCASE_LOCATION)));
     @Nullable
     ServletMappings wavsep = WebXMLParser.getServletMappings(new File(WAVSEP_WEB_XML),
             new ProjectDirectory(new File(WAVSEP_SOURCE_LOCATION)));
@@ -58,8 +55,8 @@ public class WebXMLParserTests {
     @Test
     public void testFindWebXML() {
         String[]
-                sourceLocations = { PETCLINIC_SOURCE_LOCATION, WAVSEP_SOURCE_LOCATION, BODGEIT_SOURCE_LOCATION },
-                webXMLLocations = { PETCLINIC_WEB_XML, WAVSEP_WEB_XML, BODGEIT_WEB_XML };
+                sourceLocations = { SPRING_MVC_SHOWCASE_LOCATION, WAVSEP_SOURCE_LOCATION, BODGEIT_SOURCE_LOCATION },
+                webXMLLocations = { SPRING_MVC_SHOWCASE_WEB_XML, WAVSEP_WEB_XML, BODGEIT_WEB_XML };
 
         for (int i = 0; i < sourceLocations.length; i++) {
             File projectDirectory = new File(sourceLocations[i]);
@@ -70,15 +67,15 @@ public class WebXMLParserTests {
             assertTrue(file.getName().equals("web.xml"));
 
             assertTrue(file.getAbsolutePath() + " wasn't " + webXMLLocations[i],
-                    file.getAbsolutePath().equals(webXMLLocations[i]));
+                PathUtil.isEqualInvariant(file.getAbsolutePath(), webXMLLocations[i]));
         }
     }
     
     // TODO improve these tests.
     @Test
     public void testWebXMLParsing() {
-        assertTrue(vulnClinic.getClassMappings().size() == 2);
-        assertTrue(vulnClinic.getServletMappings().size() == 2);
+        assertTrue(mvcShowcase.getClassMappings().size() == 1);
+        assertTrue(mvcShowcase.getServletMappings().size() == 1);
 
         assertTrue(wavsep.getClassMappings().size() == 0);
         assertTrue(wavsep.getServletMappings().size() == 0);
@@ -89,12 +86,12 @@ public class WebXMLParserTests {
     
     @Test
     public void testTypeGuessing() {
-        assertTrue(vulnClinic.guessApplicationType() == FrameworkType.SPRING_MVC);
+        assertTrue(mvcShowcase.guessApplicationType() == FrameworkType.SPRING_MVC);
         assertTrue(wavsep.guessApplicationType() == FrameworkType.JSP);
         assertTrue(bodgeIt.guessApplicationType() == FrameworkType.JSP);
     }
 
-    @Test(expected=NullPointerException.class)
+    @Test(expected=IllegalArgumentException.class)
     public void testNullInput() {
         new ProjectDirectory(null).findWebXML();
     }

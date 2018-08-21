@@ -5,7 +5,7 @@
 
     <groupId>com.github.secdec.astam-correlator</groupId>
     <artifactId>master-pom</artifactId>
-    <version>1.2.16</version>
+    <version>1.2.17</version>
     <packaging>pom</packaging>
 
     <name>ThreadFix</name>
@@ -37,7 +37,7 @@
     <licenses>
         <license>
             <name>Mozilla Public License v2.0</name>
-            <url>https://www.mozilla.org/un-US/MPL/2.0/</url>
+            <url>https://www.mozilla.org/en-US/MPL/2.0/</url>
         </license>
     </licenses>
 
@@ -426,7 +426,7 @@
         <maven-failsafe.version>2.17</maven-failsafe.version>
         <surefire-junit47.version>2.17</surefire-junit47.version>
         <jacoco.version>0.7.0.201403182114</jacoco.version>
-        <jsoup.version>1.8.2</jsoup.version>
+        <jsoup.version>1.8.3</jsoup.version>
         <gson.version>2.2.4</gson.version>
 
         <!-- Testing Properties -->

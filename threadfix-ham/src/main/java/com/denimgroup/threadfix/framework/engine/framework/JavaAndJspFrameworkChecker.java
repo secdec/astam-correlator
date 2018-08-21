@@ -90,15 +90,6 @@ public class JavaAndJspFrameworkChecker extends FrameworkChecker {
     @SuppressWarnings("unchecked")
     public FrameworkType check(@Nonnull ProjectDirectory directory) {
 
-        FrameworkType frameworkType = checkMappings(directory);
-        if (frameworkType != FrameworkType.NONE) {
-            return frameworkType;
-        }
-
-        if (checkSpringMvc(directory)) {
-            return FrameworkType.SPRING_MVC;
-        }
-
         if (checkStruts(directory)) {
             return FrameworkType.STRUTS;
         }
@@ -112,6 +103,11 @@ public class JavaAndJspFrameworkChecker extends FrameworkChecker {
         // check for JSP
         if (checkJsp(directory)) {
             return FrameworkType.JSP;
+        }
+
+        FrameworkType frameworkType = checkMappings(directory);
+        if (frameworkType != FrameworkType.NONE) {
+            return frameworkType;
         }
 
         return FrameworkType.NONE;

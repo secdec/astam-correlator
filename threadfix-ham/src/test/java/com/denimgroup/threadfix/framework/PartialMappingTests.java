@@ -37,16 +37,14 @@ import com.denimgroup.threadfix.framework.engine.partial.PartialMappingsDatabase
 
 public class PartialMappingTests {
 
-    private static final String JPA_REPO  = "java/org/springframework/samples/petclinic/repository/jpa/JpaOwnerRepositoryImpl.java";
-    private static final String JDBC_REPO = "java/org/springframework/samples/petclinic/repository/jdbc/JdbcOwnerRepositoryImpl.java";
+    private static final String OWNER_CONTROLLER = "java/org/springframework/samples/petclinic/owner/OwnerController.java";
 
     @Nonnull
     private String[][] petClinicFortifyData = {
-        { JDBC_REPO, "/owners" },
-        { JPA_REPO, "/owners" },
-        { JPA_REPO, "/owners/{ownerId}/pets/new" },
-        { JPA_REPO, "/owners/{ownerId}/edit" },
-        { JPA_REPO, "/owners/{ownerId}" }
+        {OWNER_CONTROLLER, "/owners" },
+        {OWNER_CONTROLLER, "/owners/{id}/pets/new" },
+        {OWNER_CONTROLLER, "/owners/{id}/edit" },
+        {OWNER_CONTROLLER, "/owners/{id}" }
     },
     petClinicAppScanData = {
         { null, "/petclinic/" },
@@ -58,15 +56,15 @@ public class PartialMappingTests {
         { null, "/petclinic/owners/26/pets/26/visits/new" },
     },
     springMvcQueries = {
-        { "/petclinic/owners/2/edit", JPA_REPO },
-        { "/petclinic/owners/25235/edit", JPA_REPO },
-        { "/petclinic/owners/215/edit/", JPA_REPO },
+        { "/petclinic/owners/2/edit", OWNER_CONTROLLER},
+        { "/petclinic/owners/25235/edit", OWNER_CONTROLLER},
+        { "/petclinic/owners/215/edit/", OWNER_CONTROLLER},
         { "/petclinic/owners//edit/", null },
-        { "/petclinic/owners/235", JPA_REPO },
-        { "/petclinic/owners/3462/", JPA_REPO },
+        { "/petclinic/owners/235", OWNER_CONTROLLER},
+        { "/petclinic/owners/3462/", OWNER_CONTROLLER},
         { "/petclinic/owners//pets/new", null },
-        { "/petclinic/owners/3/pets/new", JPA_REPO },
-        { "/petclinic/owners/33416/pets/new", JPA_REPO },
+        { "/petclinic/owners/3/pets/new", OWNER_CONTROLLER},
+        { "/petclinic/owners/33416/pets/new", OWNER_CONTROLLER},
     };
 
     @Test

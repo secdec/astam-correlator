@@ -26,9 +26,12 @@ package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntrie
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.ConcernsParameterShorthand;
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.ManyResourcesShorthand;
+import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingShorthands.NestedResourcesMemberEntryShorthand;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -51,15 +54,15 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
             new PathHttpMethod("", "GET", "index", null),
             new PathHttpMethod("new", "GET", "new", null),
             new PathHttpMethod("", "POST", "create", null),
-            new PathHttpMethod(":id", "GET", "show", null),
-            new PathHttpMethod(":id/edit", "GET", "edit", null),
-            new PathHttpMethod(":id", "PATCH", "update", null),
-            new PathHttpMethod(":id", "PUT", "update", null),
-            new PathHttpMethod(":id", "DELETE", "destroy", null)
+            new PathHttpMethod("{id}", "GET", "show", null),
+            new PathHttpMethod("{id}/edit", "GET", "edit", null),
+            new PathHttpMethod("{id}", "PATCH", "update", null),
+            new PathHttpMethod("{id}", "PUT", "update", null),
+            new PathHttpMethod("{id}", "DELETE", "destroy", null)
     );
 
     @Override
-    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
+    public void onParameter(String name, RouteParameterValueType nameType, String value, RouteParameterValueType parameterType) {
         if (name == null) {
             //  May be a shorthand declaring multiple resource routes at once, if so simply append the
             //      names and separate with a space and the MultiResourcesShorthand will expand into
@@ -89,7 +92,7 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
                 value = value.substring(1, value.length() - 1);
             String[] valueParts = value.split(",");
             for (String concern : valueParts) {
-                concerns.add(stripColons(concern));
+                concerns.add(CodeParseUtil.trim(concern, ":"));
             }
         } else if (name.equalsIgnoreCase("controller")) {
             controllerName = value;
@@ -110,12 +113,12 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
             } else {
                 allowedPaths.add(value);
             }
+	        CodeParseUtil.trim(allowedPaths, ":");
             for (int i = 0; i < supportedPaths.size(); i++) {
                 PathHttpMethod httpPath = supportedPaths.get(i);
                 if (!allowedPaths.contains(httpPath.getAction())) {
                     supportedPaths.remove(httpPath);
                     --i;
-                    break;
                 }
             }
         } else if (name.equalsIgnoreCase("except")) {
@@ -204,7 +207,7 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
 
     @Override
     public Collection<String> getConcerns() {
-        return null;
+        return concerns;
     }
 
     @Override
@@ -214,7 +217,7 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
 
     @Override
     public Collection<RouteShorthand> getSupportedShorthands() {
-        return list(new ConcernsParameterShorthand(), new ManyResourcesShorthand());
+        return list(new ConcernsParameterShorthand(), new ManyResourcesShorthand(), new NestedResourcesMemberEntryShorthand());
     }
 
     @Nonnull
@@ -222,7 +225,7 @@ public class ResourcesEntry extends AbstractRailsRoutingEntry implements Concern
     public RailsRoutingEntry cloneEntry() {
         ResourcesEntry clone = new ResourcesEntry();
         clone.concerns.addAll(concerns);
-        clone.supportedPaths.addAll(supportedPaths);
+        clone.supportedPaths = new ArrayList<PathHttpMethod>(supportedPaths);
         clone.basePath = basePath;
         clone.dataSourceSymbol = dataSourceSymbol;
         cloneChildrenInto(clone);

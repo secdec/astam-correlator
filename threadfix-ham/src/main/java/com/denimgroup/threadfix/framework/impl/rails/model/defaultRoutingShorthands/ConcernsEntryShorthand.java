@@ -61,10 +61,10 @@ public class ConcernsEntryShorthand implements RouteShorthand {
 
         for (ConcernEntry concern : necessaryConcerns) {
             for (RailsRoutingEntry subEntry : concern.getChildren()) {
-                RailsRoutingEntry entryCopy = subEntry.cloneEntry();
-                entryCopy.setParent(entry);
+                RailsRoutingEntry subEntryCopy = subEntry.cloneEntry();
+                entry.addChildEntry(subEntryCopy);
                 if (newBase == null) {
-                    newBase = entryCopy;
+                    newBase = subEntryCopy;
                 }
             }
         }

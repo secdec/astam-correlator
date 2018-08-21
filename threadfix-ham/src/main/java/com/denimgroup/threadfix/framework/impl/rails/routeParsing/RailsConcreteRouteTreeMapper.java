@@ -31,6 +31,7 @@ import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries
 import com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntries.UnknownEntry;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 
@@ -68,12 +69,11 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
             return;
         }
 
-        if (entry.getPrimaryPath() == null && (entry.getPaths() == null || entry.getPaths().size() == 0)) {
+        if (!entry.canGenerateEndpoints()) {
             return;
         }
 
-        String controllerName = entry.getControllerName();
-        if (controllerName == null) {
+        if (entry.getPrimaryPath() == null && (entry.getPaths() == null || entry.getPaths().size() == 0)) {
             return;
         }
 
@@ -82,9 +82,34 @@ public class RailsConcreteRouteTreeMapper implements RailsConcreteTreeVisitor {
             return;
         }
 
+        String controllerName = entry.getControllerName();
+        if (controllerName == null) {
+            if (StringUtils.countMatches(entry.getPrimaryPath(), "/") == 1) {
+                //  Entries may have a path but no controller; in this case, the controller
+                //  and its method are implied from paths of the form: controller/method
+                String[] parts = entry.getPrimaryPath().split("/");
+                controllerName = parts[0];
+                String action = parts[1];
+
+                for (PathHttpMethod httpMethod : subPaths) {
+                    if (httpMethod.getAction() == null) {
+                        httpMethod.setAction(action);
+                    }
+                }
+            }
+        }
+
+
         for (PathHttpMethod httpMethod : subPaths)
         {
-            RailsRoute route = new RailsRoute(httpMethod.getPath(), httpMethod.getMethod());
+        	String path = httpMethod.getPath();
+            if (path.endsWith("/")) {
+                path = path.substring(0, path.length() - 1);
+            }
+        	if (!path.startsWith("/")) {
+        		path = "/" + path;
+	        }
+            RailsRoute route = new RailsRoute(path, httpMethod.getMethod());
             if (httpMethod.getControllerName() != null) {
                 //  Routes declare their controllers but some route entries declare multiple routes
                 //  that may have different controllers. These controllers will be set manually

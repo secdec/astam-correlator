@@ -6,11 +6,12 @@ import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import org.junit.Test;
 
 import java.util.HashMap;
+import java.util.List;
 
 public class JSPEndpointMatchingTests {
 
     private Endpoint makeEndpoint(String path) {
-        return new JSPEndpoint("", path, "GET", new HashMap<String, RouteParameter>());
+        return new JSPEndpoint("", path, "GET", new HashMap<Integer, List<RouteParameter>>());
     }
 
     private boolean isRelevant(Endpoint endpoint, String url) {

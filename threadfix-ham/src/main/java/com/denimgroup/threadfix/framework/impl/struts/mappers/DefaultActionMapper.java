@@ -181,7 +181,7 @@ public class DefaultActionMapper implements ActionMapper {
                             String methodPath = path;
                             parameters = map();
 
-                            if (strutsAction.getMethod().startsWith("{")) {
+                            if (strutsAction.getMethod() != null && strutsAction.getMethod().startsWith("{")) {
                                 String wildcardIndexText = strutsAction.getMethod().substring(1, strutsAction.getMethod().length() - 1);
                                 int index;
                                 try {
@@ -206,7 +206,13 @@ public class DefaultActionMapper implements ActionMapper {
                                 parameters.put(modelField.getParameterKey(), newParameter);
                             }
 
-                            StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), methodPath, "GET", parameters);
+                            String httpMethod;
+                            if (method.getName().equals("execute")) {
+                                httpMethod = "GET";
+                            } else {
+                                httpMethod = "POST";
+                            }
+                            StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), methodPath, httpMethod, parameters);
                             newEndpoint.setLineNumbers(method.getStartLine(), method.getEndLine());
                             if (strutsAction.getPrimaryResult() != null) {
                                 newEndpoint.setDisplayFilePath(strutsAction.getPrimaryResult().getValue());
@@ -223,12 +229,8 @@ public class DefaultActionMapper implements ActionMapper {
                             asParam.setParamType(RouteParameterType.FORM_DATA);
                             parameters.put(mf.getParameterKey(), asParam);
                         }
-                        StrutsEndpoint newEndpoint;
-                        if (parameters.isEmpty()) {
-                            newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters);
-                        } else {
-                            newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), path, "POST", parameters);
-                        }
+                        StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters);
+
                         if (executeMethod != null) {
                             newEndpoint.setLineNumbers(executeMethod.getStartLine(), executeMethod.getEndLine());
                         }
@@ -242,7 +244,13 @@ public class DefaultActionMapper implements ActionMapper {
                         		newEndpoint.setLineNumbers(1, lineCount);
 	                        }
                         }
+
+                        StrutsEndpoint postVariant = new StrutsEndpoint(makeRelativePath(classLocation, project), path, "POST", parameters);
+                        postVariant.setLineNumbers(newEndpoint.getStartingLineNumber(), newEndpoint.getEndingLineNumber());
+                        postVariant.setDisplayFilePath(newEndpoint.getDisplayFilePath());
+
                         endpoints.add(newEndpoint);
+                        endpoints.add(postVariant);
                     }
                 }
 

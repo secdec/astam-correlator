@@ -287,4 +287,17 @@ public class DjangoEndpoint extends AbstractEndpoint {
     protected List<String> getLintLine() {
         return null;
     }
+
+    @Nonnull
+    @Override
+    public String toString() {
+        return
+            urlPath +
+            " - " +
+            (filePath == null ? "<no source file>" : filePath) +
+            ":" +
+            startLineNumber +
+            "," +
+            endLineNumber;
+    }
 }

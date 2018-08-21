@@ -47,7 +47,7 @@ public class ConcernsParameterShorthand implements RouteShorthand {
 
         Collection<ConcernEntry> allConcerns = sourceTree.findEntriesOfType(ConcernEntry.class);
         Collection<String> concernNames = ((Concernable)entry).getConcerns();
-        if (concernNames == null) {
+        if (concernNames == null || concernNames.isEmpty()) {
             return entry;
         }
 
@@ -62,7 +62,7 @@ public class ConcernsParameterShorthand implements RouteShorthand {
             Collection<RailsRoutingEntry> concernChildren = concern.getChildren();
             for (RailsRoutingEntry child : concernChildren) {
                 RailsRoutingEntry copy = child.cloneEntry();
-                copy.setParent(entry);
+                entry.addChildEntry(copy);
             }
         }
 

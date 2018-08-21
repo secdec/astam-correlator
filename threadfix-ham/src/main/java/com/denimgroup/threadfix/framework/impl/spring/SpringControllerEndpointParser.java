@@ -171,7 +171,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
 
         switch (phase) {
             case ANNOTATION: parseAnnotation(type, lineNumber, stringValue); break;
-            case SIGNATURE:  parseSignature(type, stringValue);              break;
+            case SIGNATURE:  parseSignature(type, lineNumber, stringValue);  break;
             case METHOD:     parseMethod(type, lineNumber);                  break;
         }
 
@@ -186,11 +186,14 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
         signatureState = state;
     }
 
-    private void parseSignature(int type, @Nullable String stringValue) {
+    private void parseSignature(int type, int lineNumber, @Nullable String stringValue) {
 
         if (openParenCount == 0 && type == OPEN_CURLY) {
             curlyBraceCount = 1;
             phase = Phase.METHOD;
+            if (startLineNumber < 0) {
+                startLineNumber = lineNumber;
+            }
         }
 
         switch (signatureState) {
@@ -350,10 +353,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 }
                 break;
             case REQUEST_MAPPING:
-                if (startLineNumber < 0) {
-                    startLineNumber = lineNumber;
-                }
-
                 if (stringValue != null && stringValue.equals(VALUE)) {
                     annotationState = AnnotationState.VALUE;
                 } else if (stringValue != null && stringValue.equals(METHOD)) {
@@ -389,7 +388,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 if (stringValue != null) {
                     if (inClass) {
                         currentMapping = stringValue;
-                        startLineNumber = lineNumber;
                     } else {
                         classEndpoint = stringValue;
                     }
@@ -422,7 +420,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             case PATH:
                 if (currentMapping == null) {
                     currentMapping = "";
-                    startLineNumber = lineNumber;
                 }
                 if (type == COMMA) {
                     annotationState = AnnotationState.REQUEST_MAPPING;
@@ -514,21 +511,11 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
 
         String primaryMethod = null;
         SpringControllerEndpoint primaryEndpoint = null;
-        if (methodMethods.size() > 0) {
-            primaryMethod = methodMethods.get(0).replace("RequestMethod.", "");
-            primaryEndpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
-                    primaryMethod,
-                    currentParameters,
-                    startLineNumber,
-                    endLineNumber,
-                    currentModelObject);
-            endpoints.add(primaryEndpoint);
-        }
 
         for (String method : methodMethods) {
             method = method.replace("RequestMethod.", "");
-            if (primaryMethod.equals(method)) {
-                continue;
+            if (primaryMethod == null) {
+                primaryMethod = method;
             }
 
             SpringControllerEndpoint endpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
@@ -537,6 +524,11 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                     startLineNumber,
                     endLineNumber,
                     currentModelObject);
+
+            if (primaryEndpoint == null) {
+                primaryEndpoint = endpoint;
+                endpoints.add(primaryEndpoint);
+            }
 
             if (entityMappings != null) {
                 endpoint.expandParameters(entityMappings, null);
@@ -552,7 +544,9 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 endpoint.setAuthorizationString(currentAuthString);
             }
 
-            primaryEndpoint.addVariant(endpoint);
+            if (primaryEndpoint != endpoint) {
+                primaryEndpoint.addVariant(endpoint);
+            }
         }
 
         currentMapping = null;

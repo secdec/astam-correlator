@@ -104,32 +104,33 @@ public class EndToEndTests {
         assert foundBasicEndpoint : "Didn't find /WebForm1.aspx";
     }
 
-    @Test
-    public void testXSSVulnsMerge() {
-        Application application = getApplication(TestConstants.WEB_FORMS_DROP_DOWN,
-                ScanLocationManager.getRoot(),
-                "SBIR/webform.xml", "SBIR/webform.fpr");
-
-        List<Scan> scans = application.getScans();
-        assert scans.size() == 2 :
-                "Got " + scans.size() + " scans instead of 2.";
-
-        boolean hasMergedXSSVuln = false;
-
-        for (Vulnerability vulnerability : application.getVulnerabilities()) {
-            if (vulnerability.getGenericVulnerability().getDisplayId().equals(79)) {
-                if (vulnerability.getFindings().size() == 2) {
-                    hasMergedXSSVuln = true;
-                    System.out.println("Found it!");
-                } else {
-                    System.out.println("Found a XSS vuln but it didn't have 2 findings. " +
-                            "It had " + vulnerability.getFindings().size());
-                }
-            }
-        }
-
-        assert hasMergedXSSVuln : "Didn't find a merged vulnerability.";
-    }
+    //  This test project was not provided with the public Threadfix release and has not been found online.
+//    @Test
+//    public void testXSSVulnsMerge() {
+//        Application application = getApplication(TestConstants.WEB_FORMS_DROP_DOWN,
+//                ScanLocationManager.getRoot(),
+//                "SBIR/webform.xml", "SBIR/webform.fpr");
+//
+//        List<Scan> scans = application.getScans();
+//        assert scans.size() == 2 :
+//                "Got " + scans.size() + " scans instead of 2.";
+//
+//        boolean hasMergedXSSVuln = false;
+//
+//        for (Vulnerability vulnerability : application.getVulnerabilities()) {
+//            if (vulnerability.getGenericVulnerability().getDisplayId().equals(79)) {
+//                if (vulnerability.getFindings().size() == 2) {
+//                    hasMergedXSSVuln = true;
+//                    System.out.println("Found it!");
+//                } else {
+//                    System.out.println("Found a XSS vuln but it didn't have 2 findings. " +
+//                            "It had " + vulnerability.getFindings().size());
+//                }
+//            }
+//        }
+//
+//        assert hasMergedXSSVuln : "Didn't find a merged vulnerability.";
+//    }
 
     private Application getApplication(String sourceLocation, String scanBase, String... scans) {
 

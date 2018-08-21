@@ -27,10 +27,7 @@ package com.denimgroup.threadfix.framework.impl.rails.model.defaultRoutingEntrie
 // https://stackoverflow.com/questions/3028653/difference-between-collection-route-and-member-route-in-ruby-on-rails
 
 
-import com.denimgroup.threadfix.framework.impl.rails.model.AbstractRailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.model.PathHttpMethod;
-import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoutingEntry;
-import com.denimgroup.threadfix.framework.impl.rails.model.RouteParameterValueType;
+import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import javax.annotation.Nonnull;
@@ -45,7 +42,8 @@ public class MemberEntry extends AbstractRailsRoutingEntry {
     @Override
     public String getPrimaryPath() {
         String basePath = getParent().getPrimaryPath();
-        basePath = PathUtil.combine(basePath, ":id");
+        if (getParent() instanceof ResourcesEntry)
+	        basePath = PathUtil.combine(basePath, "{id}");
         return PathUtil.combine(basePath, endpoint);
     }
 
@@ -65,8 +63,8 @@ public class MemberEntry extends AbstractRailsRoutingEntry {
     }
 
     @Override
-    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
-        super.onParameter(name, value, parameterType);
+    public void onParameter(String name, RouteParameterValueType nameType, String value, RouteParameterValueType parameterType) {
+        super.onParameter(name, nameType, value, parameterType);
     }
 
     @Nonnull

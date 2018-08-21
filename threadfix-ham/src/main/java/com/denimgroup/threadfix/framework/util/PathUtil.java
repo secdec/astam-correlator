@@ -51,7 +51,7 @@ public class PathUtil {
         StringBuilder result = new StringBuilder();
         result.append(begin);
 
-        if (!end.startsWith("/")) {
+        if (!end.startsWith("/") && !end.isEmpty()) {
             result.append('/');
         }
 
@@ -73,10 +73,12 @@ public class PathUtil {
 
     //  Compares two paths, ignoring capitalization and directory '/' formatting
     public static boolean isEqualInvariant(String a, String b) {
+
+        a = normalizeSeparator(a);
+        b = normalizeSeparator(b);
+
         a = trimAll(a, "/");
-        a = trimAll(a, "\\");
         b = trimAll(b, "/");
-        b = trimAll(b, "\\");
 
         return a.equalsIgnoreCase(b);
     }

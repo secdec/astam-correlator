@@ -115,13 +115,13 @@ public class RailsAbstractRouteEntryDescriptor {
             if (param.getName() != null) {
                 result.append(param.getName());
                 result.append(" (");
-                result.append(param.getLabelType());
+                result.append(param.getParameterType());
                 result.append(") ");
             }
 
             result.append(param.getValue());
             result.append(" (");
-            result.append(param.getParameterType());
+            result.append(param.getValueType());
             result.append(")");
         }
 

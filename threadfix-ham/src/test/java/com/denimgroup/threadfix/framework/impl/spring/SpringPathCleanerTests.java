@@ -92,12 +92,12 @@ public class SpringPathCleanerTests {
         }
     }
 
-    @Test(expected= NullPointerException.class)
+    @Test(expected= IllegalArgumentException.class)
     public void nullTests() {
         new SpringPathCleaner("/petclinic", "").cleanDynamicPath(null);
     }
 
-    @Test(expected= NullPointerException.class)
+    @Test(expected= IllegalArgumentException.class)
     public void nullTests2() {
         new SpringPathCleaner("/petclinic", "").cleanStaticPath(null);
     }

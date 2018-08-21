@@ -25,6 +25,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -64,13 +65,15 @@ public class DotNetRouteMappings {
         String        name;
         String        url;
         ConcreteRoute defaultRoute;
+        Collection<String>  namespaces;
 
-        MapRoute(String name, String url, ConcreteRoute defaultRoute) {
+        MapRoute(String name, String url, ConcreteRoute defaultRoute, Collection<String> namespaces) {
             assert name != null;
             assert url != null;
             this.name = name;
             this.url = url;
             this.defaultRoute = defaultRoute;
+            this.namespaces = namespaces;
         }
     }
 
@@ -90,19 +93,37 @@ public class DotNetRouteMappings {
     }
 
 
-    public void addRoute(String name, String url,String area, String controller, String action, String parameter) {
+    public void addRoute(String name, String url,String area, String controller, String action, String parameter, Collection<String> namespaces) {
         ConcreteRoute defaultRoute = controller != null && action != null ?
                 new ConcreteRoute(area, controller, action, parameter) :
                 null;
-        routes.add(new MapRoute(name, url, defaultRoute));
+        routes.add(new MapRoute(name, url, defaultRoute, namespaces));
     }
 
-    public MapRoute getMatchingMapRoute(boolean hasAreaInMappings, String controllerName){
+    public MapRoute getMatchingMapRoute(boolean hasAreaInMappings, String controllerName, String controllerNamespace){
         if(routes.size() == 1) return routes.get(0);
         if(routes.size() == 0) return null;
 
         MapRoute mapRoute = null;
         for(MapRoute route : routes){
+            if (route.namespaces.size() > 0) {
+                if (controllerNamespace == null) {
+                    continue;
+                } else {
+                    for (String routeNamespace : route.namespaces) {
+                        if (controllerNamespace.startsWith(routeNamespace)) {
+                            //  Match if "controller" is variable, or if a controller was specified and it matches the current controller
+                            if (route.url.contains("{controller}") || (route.defaultRoute != null && controllerName.equals(route.defaultRoute.controller))) {
+                                mapRoute = route;
+                                break;
+                            }
+                        }
+                    }
+                    //  At this point the route doesn't match this namespace, search the next one
+                    continue;
+                }
+            }
+
             if(hasAreaInMappings && (route.url.contains("area") || "areaRoute".equalsIgnoreCase(route.name))){
                 mapRoute = route;
                 break;

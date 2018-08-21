@@ -67,7 +67,7 @@ public class FrameworkCalculatorTests {
 
     @Test
     public void basicWebFormsTest() {
-        FrameworkType type = FrameworkCalculator.getType(new File(TestConstants.WEB_FORMS_SAMPLE));
+        FrameworkType type = FrameworkCalculator.getType(new File(TestConstants.WEB_FORMS_CONTOSO));
         assertTrue("Didn't find DOT_NET_WEB_FORMS, found " + type + ".", type == FrameworkType.DOT_NET_WEB_FORMS);
     }
 

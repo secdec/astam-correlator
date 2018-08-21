@@ -140,6 +140,6 @@ public class ViewModelParsingTests {
 
         assert !parameters.keySet().contains("Enrollments.EnrollmentID") : "Enrollments.EnrollmentID was found. This is impossible to bind to.";
 
-        assert parameters.keySet().contains("Enrollments[0].EnrollmentID") : "Enrollments[0].EnrollmentID";
+        assert parameters.keySet().contains("Enrollments[].EnrollmentID") : "Enrollments[].EnrollmentID";
     }
 }

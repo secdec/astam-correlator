@@ -48,8 +48,8 @@ public class DeviseForEntry extends AbstractRailsRoutingEntry {
 
 
     @Override
-    public void onParameter(String name, String value, RouteParameterValueType parameterType) {
-        super.onParameter(name, value, parameterType);
+    public void onParameter(String name, RouteParameterValueType nameType, String value, RouteParameterValueType parameterType) {
+        super.onParameter(name, nameType, value, parameterType);
 
         if (name == null) {
             baseEndpoint = value;

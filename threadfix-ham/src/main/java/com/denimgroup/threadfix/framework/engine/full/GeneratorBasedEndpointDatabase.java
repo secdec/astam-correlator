@@ -25,11 +25,13 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.engine.full;
 
+import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.enums.InformationSourceType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.CodePoint;
 import com.denimgroup.threadfix.framework.engine.cleaner.PathCleaner;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -42,6 +44,9 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
     @Nonnull
     private final List<Endpoint> endpoints;
+
+    @Nonnull
+    private final List<Endpoint> flattenedEndpoints;
 
     @Nonnull
     private final PathCleaner pathCleaner;
@@ -64,6 +69,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
         log.info("Using generic EndpointGenerator-based translator.");
 
         endpoints = endpointGenerator.generateEndpoints();
+        flattenedEndpoints = EndpointUtil.flattenWithVariants(endpoints);
 
         log.info("Found ".concat(String.valueOf(endpoints.size())).concat(" endpoints:"));
         for (int i = 0; i < endpoints.size(); i++) {
@@ -83,7 +89,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
     private void buildMappings() {
         log.info("Building mappings.");
-        for (Endpoint endpoint : endpoints) {
+        for (Endpoint endpoint : flattenedEndpoints) {
             addToMap(dynamicMap, endpoint.getUrlPath(), endpoint);
             addToMap(staticMap, endpoint.getFilePath(), endpoint);
 
@@ -121,19 +127,20 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
         Endpoint bestEndpoint = null;
         int bestEndpointRelevance = -1;
 
-        if (query.getDynamicPath() == null) {
-            return null;
-        }
-        String dynamicPath = pathCleaner.cleanDynamicPath(query.getDynamicPath());
-
         Set<Endpoint> endpoints = findAllMatches(query);
 
-        for (Endpoint currentEndpoint : endpoints) {
-            int relevance = currentEndpoint.compareRelevance(dynamicPath);
-            if (relevance > bestEndpointRelevance) {
-                bestEndpoint = currentEndpoint;
-                bestEndpointRelevance = relevance;
+        if (query.getDynamicPath() != null) {
+            String dynamicPath = pathCleaner.cleanDynamicPath(query.getDynamicPath());
+            for (Endpoint currentEndpoint : endpoints) {
+                int relevance = currentEndpoint.compareRelevance(dynamicPath);
+                if (relevance > bestEndpointRelevance && currentEndpoint.isRelevant(dynamicPath, EndpointRelevanceStrictness.STRICT)) {
+                    bestEndpoint = currentEndpoint;
+                    bestEndpointRelevance = relevance;
+                }
             }
+        } else if (!endpoints.isEmpty()) {
+            bestEndpoint = endpoints.iterator().next();
+            bestEndpointRelevance = 1;
         }
 
         if (bestEndpointRelevance > 0) {
@@ -166,6 +173,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
         if (!useStatic && query.getDynamicPath() != null) {
             String cleaned = pathCleaner.cleanDynamicPath(query.getDynamicPath());
             resultSets.add(getValueOrEmptySet(cleaned, dynamicMap));
+            resultSets.addAll(list(findEligibleEndpoints(cleaned)));
         }
 
         if (useStatic && query.getStaticPath() != null) {
@@ -184,7 +192,7 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
         if (resultSets.size() > 0) {
             for (Set<Endpoint> endpoints : resultSets) {
-                if (endpoints != null) {
+                if (endpoints != null && !endpoints.isEmpty()) {
 
                     if (!assignedInitial) {
                         resultingSet = endpoints;
@@ -220,8 +228,6 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
         if (useStatic && !fromCodePoints.isEmpty() && resultingSet.isEmpty()) {
             resultingSet.addAll(fromCodePoints);
         }
-
-        resultingSet.addAll(findEligibleEndpoints(pathCleaner.cleanDynamicPath(query.getDynamicPath())));
 
         return resultingSet;
     }
@@ -297,8 +303,8 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
     private Set<Endpoint> findEligibleEndpoints(String endpointPath) {
         Set<Endpoint> result = set();
-        for (Endpoint endpoint : endpoints) {
-            if (endpoint.compareRelevance(endpointPath) > 0) {
+        for (Endpoint endpoint : flattenedEndpoints) {
+            if (endpoint.isRelevant(endpointPath, EndpointRelevanceStrictness.STRICT)) {
                 result.add(endpoint);
             }
         }

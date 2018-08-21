@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -62,6 +63,34 @@ public class CodeParseUtil {
 
     public static String trim(String string, String... tokens) {
         return trim(string, tokens, 10);
+    }
+
+    public static void trim(String[] array, String... tokens) {
+    	for (int i = 0; i < array.length; i++) {
+    		array[i] = trim(array[i], tokens);
+	    }
+    }
+
+    public static String[] trimCopy(String[] array, String... tokens) {
+        String[] result = new String[array.length];
+        for (int i = 0; i < array.length; i++) {
+            result[i] = trim(array[i], tokens);
+        }
+        return result;
+    }
+
+    public static void trim(List<String> list, String... tokens) {
+    	for (int i = 0; i < list.size(); i++) {
+    		list.set(i, trim(list.get(i), tokens));
+	    }
+    }
+
+    public static List<String> trimCopy(List<String> list, String... tokens) {
+    	List<String> result = list();
+    	for (String string : list) {
+    		result.add(trim(string, tokens));
+	    }
+	    return result;
     }
 
     //  Converts the given character type and string value to its original string representation.
