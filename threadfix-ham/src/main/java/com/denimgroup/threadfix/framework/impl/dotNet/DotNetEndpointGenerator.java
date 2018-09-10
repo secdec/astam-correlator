@@ -139,7 +139,11 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                     filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
                 }
 
-                endpoints.add(new DotNetEndpoint(action.explicitRoute, filePath, action));
+                String endpoint = action.explicitRoute;
+                if (!endpoint.startsWith("/")) {
+                    endpoint = "/" + endpoint;
+                }
+                endpoints.add(new DotNetEndpoint(endpoint, filePath, action));
             }
         }
 

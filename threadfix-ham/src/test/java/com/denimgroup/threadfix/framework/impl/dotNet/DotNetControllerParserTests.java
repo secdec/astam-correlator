@@ -40,7 +40,7 @@ public class DotNetControllerParserTests {
 
     @Nonnull
     private DotNetControllerMappings getControllerMappings(String fileName) {
-        return DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile(fileName));
+        return DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile(fileName)).get(0);
     }
 
     @Test

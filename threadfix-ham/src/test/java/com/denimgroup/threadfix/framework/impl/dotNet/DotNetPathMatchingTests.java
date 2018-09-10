@@ -43,7 +43,7 @@ public class DotNetPathMatchingTests {
     public void testPathMatchingWithParameter() {
 
         DotNetControllerMappings mappings =
-                DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile("InstructorController.cs"));
+                DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile("InstructorController.cs")).get(0);
 
         DotNetEndpointGenerator generator =
                 new DotNetEndpointGenerator(null, routeMappings, null, mappings);

@@ -37,7 +37,7 @@ public class DotNetEndpointGeneratorTests {
         DotNetRouteMappings routeMappings =
                 DotNetRoutesParser.parse(ResourceManager.getDotNetMvcFile("RouteConfig.cs"));
         DotNetControllerMappings controllerMappings =
-                DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile("ChatController.cs"));
+                DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile("ChatController.cs")).get(0);
 
         DotNetEndpointGenerator generator = new DotNetEndpointGenerator(null, routeMappings, null, controllerMappings);
 

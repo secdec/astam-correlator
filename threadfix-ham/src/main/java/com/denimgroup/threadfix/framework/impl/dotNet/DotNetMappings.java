@@ -83,7 +83,7 @@ public class DotNetMappings implements EndpointGenerator {
                 }
 
                 if (endpointParser.hasValidControllerMappings()) {
-                    controllerMappingsList.add(endpointParser.mappings);
+                    controllerMappingsList.addAll(endpointParser.mappings);
                 }
 
                 modelParsers.add(modelParser);

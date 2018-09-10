@@ -37,8 +37,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.util.List;
 import java.util.Set;
 
+import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.set;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.*;
 
@@ -47,7 +49,8 @@ import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.*;
  */
 public class DotNetControllerParser implements EventBasedTokenizer {
 
-    final DotNetControllerMappings mappings;
+    final List<DotNetControllerMappings> mappings;
+    DotNetControllerMappings currentMapping;
 
     public static final SanitizedLogger LOG = new SanitizedLogger(DotNetControllerParser.class);
 
@@ -56,19 +59,38 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     );
 
     @Nonnull
-    public static DotNetControllerMappings parse(@Nonnull File file) {
+    public static List<DotNetControllerMappings> parse(@Nonnull File file) {
         DotNetControllerParser parser = new DotNetControllerParser(file);
         EventBasedTokenizerRunner.run(file, parser);
+        parser.cullEmptyMappings();
         return parser.mappings;
     }
 
     DotNetControllerParser(File file) {
         LOG.debug("Parsing controller mappings for " + file.getAbsolutePath());
-        mappings = new DotNetControllerMappings(file.getAbsolutePath());
+        currentMapping = new DotNetControllerMappings(file.getAbsolutePath());
+        mappings = list(currentMapping);
+    }
+
+    private void cullEmptyMappings() {
+        for (int i = 0; i < mappings.size() && mappings.size() > 1; i++) {
+            DotNetControllerMappings map = mappings.get(i);
+            if (map.getActions().isEmpty()) {
+                mappings.remove(i);
+                --i;
+            }
+        }
     }
 
     public boolean hasValidControllerMappings() {
-        return mappings.hasValidMappings();
+        cullEmptyMappings();
+
+        for (DotNetControllerMappings map : mappings) {
+            if (!map.hasValidMappings())
+                return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -183,7 +205,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 if(PUBLIC.equals(stringValue)){
                     currentState = State.PUBLIC;
                 } else if(stringValue != null && type != '(' && type != ')'){
-                    mappings.setAreaName(stringValue);
+                    currentMapping.setAreaName(stringValue);
                     currentState = State.START;
                 }
                 break;
@@ -214,8 +236,8 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                         !DOT_NET_BUILTIN_CONTROLLERS.contains(stringValue)) {
                     String controllerName = stringValue.substring(0, stringValue.indexOf("Controller"));
                     LOG.debug("Got Controller name " + controllerName);
-                    mappings.setControllerName(controllerName);
-                    mappings.setNamespace(currentNamespace);
+                    currentMapping.setControllerName(controllerName);
+                    currentMapping.setNamespace(currentNamespace);
                 }
 
                 currentState = State.TYPE_SIGNATURE;
@@ -228,7 +250,21 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 break;
             case BODY:
                 if (classBraceLevel == currentCurlyBrace) {
-                    shouldContinue = false;
+                    currentMapping = new DotNetControllerMappings(mappings.get(0).getFilePath());
+                    currentMapping.setNamespace(currentNamespace);
+
+                    mappings.add(currentMapping);
+                    currentState = State.NAMESPACE;
+                    currentAttributeState = AttributeState.START;
+                    currentParameterState = ParameterState.START;
+
+                    currentAttributes.clear();
+                    lastAttribute = null;
+                    methodName = null;
+                    parametersWithTypes.clear();
+                    possibleParamType = null;
+                    controllerBaseRoute = null;
+                    explicitActionRoute = null;
                 } else if (PUBLIC.equals(stringValue)) {
                     currentState = State.PUBLIC_IN_BODY;
                 } else if (methodBraceLevel <= 0) {
@@ -333,7 +369,7 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 if (currentCurlyBrace == methodBraceLevel) {
                     if (controllerBaseRoute != null)
                         explicitActionRoute = PathUtil.combine(controllerBaseRoute, explicitActionRoute);
-                    mappings.addAction(
+                    currentMapping.addAction(
                             methodName, currentAttributes, methodLineNumber,
                             lineNumber, parametersWithTypes, explicitActionRoute);
                     currentAttributes = set();
