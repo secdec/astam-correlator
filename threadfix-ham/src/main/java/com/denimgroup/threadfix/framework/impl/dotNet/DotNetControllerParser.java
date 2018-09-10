@@ -106,6 +106,8 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     String currentNamespace = null;
     String controllerBaseRoute = null;
     String explicitActionRoute = null;
+    boolean isActionSignatureParamAttr = false;
+    String actionSignatureParamAttr = null;
 
 
     @Override
@@ -271,16 +273,29 @@ public class DotNetControllerParser implements EventBasedTokenizer {
 
                             RouteParameter param = new RouteParameter(name);
                             param.setDataType(dataType);
+                            if (actionSignatureParamAttr != null) {
+                                if (actionSignatureParamAttr.equals(FROM_BODY)) {
+                                    param.setParamType(RouteParameterType.FORM_DATA);
+                                }
+                            }
+
                             parametersWithTypes.add(param);
                         }
                         if (twoStringsAgo.equals("Include")) {
                             currentState = State.AFTER_BIND_INCLUDE;
                         }
 
+                        actionSignatureParamAttr = null;
+
                         wasDefaultValue = false;
                     } else if (type == '=' && !"Include".equals(lastString)) {
                         currentState = State.DEFAULT_VALUE;
+                    } else if (type == '[') {
+                        isActionSignatureParamAttr = true;
                     }
+                } else if (isActionSignatureParamAttr) {
+                    isActionSignatureParamAttr = false;
+                    actionSignatureParamAttr = stringValue;
                 } else if (lastString != null && lastString.equals("Include")) {
                     String paramNames = CodeParseUtil.trim(stringValue, "\"");
                     String[] paramNameParts = StringUtils.split(paramNames, ',');

@@ -42,6 +42,8 @@ import org.apache.commons.io.FileUtils;
 import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetPathCleaner.cleanStringFromCode;
@@ -81,6 +83,8 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 
         assembleEndpoints(rootDirectory);
         expandAmbiguousEndpoints();
+
+        fillImplicitParametrics(endpoints);
 
         ParameterMerger merger = new ParameterMerger();
         Map<Endpoint, Map<String, RouteParameter>> allMergedParameters = merger.mergeParametersIn(endpoints);
@@ -274,15 +278,47 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 
     }
 
+    //  Find parametric endpoints and add embedded parameters if necessary
+    private void fillImplicitParametrics(Collection<Endpoint> endpoints) {
+        Pattern parametricPattern = Pattern.compile("\\{(\\w+)\\}");
+
+        for (Endpoint endpoint : endpoints) {
+            String urlPath = endpoint.getUrlPath();
+            Matcher paramMatcher = parametricPattern.matcher(urlPath);
+            List<String> paramNames = list();
+            while (paramMatcher.find()) {
+                paramNames.add(paramMatcher.group(1));
+            }
+
+            if (paramNames.isEmpty())
+                continue;
+
+            for (String paramName : paramNames) {
+                if (!endpoint.getParameters().containsKey(paramName)) {
+                    RouteParameter newParam = new RouteParameter(paramName);
+                    newParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+                    newParam.setDataType("String");
+                    endpoint.getParameters().put(paramName, newParam);
+                }
+            }
+        }
+    }
+
     private void expandParameters(Action action) {
         if (dotNetModelMappings != null) {
 
             for (RouteParameter param : action.parametersWithTypes) {
-                if (param.getDataTypeSource() == null) {
+                String dataTypeSource = param.getDataTypeSource();
+
+                if (dataTypeSource == null) {
                     continue;
                 }
 
-                ModelFieldSet parameters = dotNetModelMappings.getPossibleParametersForModelType(param.getDataTypeSource());
+                ModelFieldSet parameters = dotNetModelMappings.getPossibleParametersForModelType(dataTypeSource);
+                if (parameters.getFieldSet().isEmpty() && dataTypeSource.contains(".")) {
+                    String cleanedDataTypeSource = dataTypeSource.substring(dataTypeSource.lastIndexOf('.') + 1);
+                    parameters = dotNetModelMappings.getPossibleParametersForModelType(cleanedDataTypeSource);
+                }
                 if (!parameters.getFieldSet().isEmpty()) {
                     action.parameters.remove(param.getName());
                     for (ModelField possibleParameter : parameters) {

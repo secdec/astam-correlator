@@ -63,7 +63,8 @@ final class DotNetKeywords {
             ACTION = "action",
             ID = "id",
             ROUTE = "Route",
-            SYSTEM_HTTP_APPLICATION = "System.Web.HttpApplication";
+            SYSTEM_HTTP_APPLICATION = "System.Web.HttpApplication",
+            FROM_BODY = "FromBody";
 
     public static final List<String> RESULT_TYPES = list(
             "ActionResult",
