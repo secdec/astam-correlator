@@ -62,6 +62,7 @@ final class DotNetKeywords {
             CONTROLLER = "controller",
             ACTION = "action",
             ID = "id",
+            ROUTE = "Route",
             SYSTEM_HTTP_APPLICATION = "System.Web.HttpApplication";
 
     public static final List<String> RESULT_TYPES = list(
@@ -76,7 +77,9 @@ final class DotNetKeywords {
             "RedirectToRouteResult",
             "JavaScriptResult",
             "FileResult",
-            "EmptyResult"
+            "EmptyResult",
+            "IActionResult",
+            "Task<IActionResult>"
     );
 
 }

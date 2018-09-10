@@ -113,6 +113,32 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
             return; // can't do anything without routes
         }
 
+        //  Add actions with explicit endpoints
+        for (DotNetControllerMappings mappings : dotNetControllerMappings) {
+            if (mappings.getControllerName() == null) {
+                LOG.debug("Controller Name was null. Skipping to the next.");
+                assert false;
+                continue;
+            }
+
+            for (Action action : mappings.getActions()) {
+                if (action.explicitRoute == null) {
+                    continue;
+                }
+
+                expandParameters(action);
+
+                LOG.debug("Got explicit endpoint " + action.explicitRoute);
+
+                String filePath = mappings.getFilePath();
+                if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
+                    filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+                }
+
+                endpoints.add(new DotNetEndpoint(action.explicitRoute, filePath, action));
+            }
+        }
+
         List<DotNetRouteMappings.MapRoute> visitedRoutes = list();
 
         for (DotNetControllerMappings mappings : dotNetControllerMappings) {
@@ -222,7 +248,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 
         		if (mappings.getControllerName() != null && mappings.getControllerName().equals(defaultRoute.controller)) {
         			for (Action controllerAction : mappings.getActions()) {
-        				if (controllerAction.name.equals(defaultRoute.action)) {
+        				if (controllerAction.explicitRoute == null && controllerAction.name.equals(defaultRoute.action)) {
 					        controllerMappings = mappings;
 					        action = controllerAction;
 					        break;

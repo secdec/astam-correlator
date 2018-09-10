@@ -42,6 +42,7 @@ public class DotNetControllerMappings {
     private String       controllerName = null;
     private List<Action> actions        = list();
     private String       namespace = null;
+    private List<String> explicitRoutes = list();
 
     public String getFilePath() {
         return filePath;
@@ -88,8 +89,9 @@ public class DotNetControllerMappings {
                           @Nonnull Set<String> attributes,
                           @Nonnull Integer lineNumber,
                           @Nonnull Integer endLineNumber,
-                          @Nonnull Set<RouteParameter> parametersWithTypes) {
-        actions.add(action(action, attributes, lineNumber, endLineNumber, parametersWithTypes));
+                          @Nonnull Set<RouteParameter> parametersWithTypes,
+                          @Nullable String explicitRoute) {
+        actions.add(action(action, attributes, lineNumber, endLineNumber, parametersWithTypes, explicitRoute));
     }
 
     @Nonnull
@@ -118,6 +120,14 @@ public class DotNetControllerMappings {
         }
 
         return null;
+    }
+
+    public void addExplicitRoute(String explicitRoute) {
+        explicitRoutes.add(explicitRoute);
+    }
+
+    public List<String> getExplicitRoutes() {
+        return explicitRoutes;
     }
 
     public DotNetControllerMappings(String filePath) {

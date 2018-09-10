@@ -64,6 +64,7 @@ public class DotNetFrameworkChecker extends FrameworkChecker {
     static class MvcNamespaceParser implements EventBasedTokenizer {
 
         private static String MVC_NAMESPACE = "System.Web.Mvc";
+        private static String MVC_CORE_NAMESPACE = "Microsoft.AspNetCore.Mvc";
 
         boolean isMvc = false;
 
@@ -74,7 +75,7 @@ public class DotNetFrameworkChecker extends FrameworkChecker {
 
         @Override
         public void processToken(int type, int lineNumber, String stringValue) {
-            if (stringValue != null && stringValue.contains(MVC_NAMESPACE)) {
+            if (stringValue != null && (stringValue.contains(MVC_NAMESPACE) || stringValue.contains(MVC_CORE_NAMESPACE))) {
                 isMvc = true;
             }
         }

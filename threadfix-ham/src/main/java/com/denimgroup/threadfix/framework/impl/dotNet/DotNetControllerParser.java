@@ -25,13 +25,13 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
-import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
+import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.lang3.StringUtils;
 
@@ -80,11 +80,11 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     }
 
     enum State {
-        START, NAMESPACE, OPEN_BRACKET, AREA, PUBLIC, CLASS, TYPE_SIGNATURE, BODY, PUBLIC_IN_BODY, ACTION_RESULT, IACTION_RESULT, IN_ACTION_SIGNATURE, AFTER_BIND_INCLUDE, DEFAULT_VALUE, IN_ACTION_BODY
+        START, NAMESPACE, OPEN_BRACKET, AREA, CONTROLLER_BASE_ROUTE, ACTION_ROUTE, PUBLIC, CLASS, TYPE_SIGNATURE, BODY, PUBLIC_IN_BODY, ACTION_RESULT, IACTION_RESULT, IN_ACTION_SIGNATURE, AFTER_BIND_INCLUDE, DEFAULT_VALUE, IN_ACTION_BODY
     }
 
     enum AttributeState {
-        START, OPEN_BRACKET, STRING, AREA
+        START, OPEN_BRACKET, OPEN_PAREN, STRING, AREA
     }
 
     enum ParameterState {
@@ -104,6 +104,9 @@ public class DotNetControllerParser implements EventBasedTokenizer {
     int lastLineNumber = -1;
     String possibleParamType = null;
     String currentNamespace = null;
+    String controllerBaseRoute = null;
+    String explicitActionRoute = null;
+
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
@@ -162,8 +165,14 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 }
                 break;
             case OPEN_BRACKET:
-                if(stringValue != null && AREA.equalsIgnoreCase(stringValue)){
+                if(stringValue != null && AREA.equalsIgnoreCase(stringValue)) {
                     currentState = State.AREA;
+                } else if (stringValue != null && ROUTE.equals(stringValue)) {
+                    if (currentCurlyBrace == 1) {
+                        currentState = State.CONTROLLER_BASE_ROUTE;
+                    } else {
+                        currentState = State.ACTION_ROUTE;
+                    }
                 } else if(type == ']'){
                     currentState = State.NAMESPACE;
                 }
@@ -173,6 +182,22 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                     currentState = State.PUBLIC;
                 } else if(stringValue != null && type != '(' && type != ')'){
                     mappings.setAreaName(stringValue);
+                    currentState = State.START;
+                }
+                break;
+            case CONTROLLER_BASE_ROUTE:
+                if (type == ']') {
+                    currentState = State.START;
+                } else if (type == '"' && stringValue != null) {
+                    controllerBaseRoute = stringValue;
+                    currentState = State.START;
+                }
+                break;
+            case ACTION_ROUTE:
+                if (type == ']') {
+                    currentState = State.START;
+                } else if (type == '"' && stringValue != null) {
+                    explicitActionRoute = stringValue;
                     currentState = State.START;
                 }
                 break;
@@ -204,6 +229,8 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                     shouldContinue = false;
                 } else if (PUBLIC.equals(stringValue)) {
                     currentState = State.PUBLIC_IN_BODY;
+                } else if (methodBraceLevel <= 0) {
+                    methodBraceLevel = classBraceLevel + 1;
                 }
                 break;
             case PUBLIC_IN_BODY:
@@ -289,12 +316,15 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                 break;
             case IN_ACTION_BODY:
                 if (currentCurlyBrace == methodBraceLevel) {
+                    if (controllerBaseRoute != null)
+                        explicitActionRoute = PathUtil.combine(controllerBaseRoute, explicitActionRoute);
                     mappings.addAction(
                             methodName, currentAttributes, methodLineNumber,
-                            lineNumber, parametersWithTypes);
+                            lineNumber, parametersWithTypes, explicitActionRoute);
                     currentAttributes = set();
                     parametersWithTypes = set();
                     methodName = null;
+                    explicitActionRoute = null;
                     currentState = State.BODY;
                 }
                 break;
@@ -316,6 +346,12 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                         currentAttributeState = AttributeState.STRING;
                     }
                     break;
+                case OPEN_PAREN:
+                    if (isHttpAttribute(lastAttribute) && explicitActionRoute == null && type == '"') {
+                        explicitActionRoute = stringValue;
+                    } else if (type == ')' || type == ']') {
+                        currentAttributeState = AttributeState.START;
+                    }
                 case STRING:
                     boolean addAttribute = false;
                     if (type == ']') {
@@ -326,6 +362,11 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                     if (type == ',') {
                         addAttribute = true;
                         currentAttributeState = AttributeState.OPEN_BRACKET;
+                    }
+
+                    if (type == '(') {
+                        addAttribute = true;
+                        currentAttributeState = AttributeState.OPEN_PAREN;
                     }
 
                     if (addAttribute) {
@@ -447,13 +488,18 @@ public class DotNetControllerParser implements EventBasedTokenizer {
         }
     }
 
+    private boolean isHttpAttribute(String attributeName) {
+        return
+            "HttpGet".equals(attributeName) ||
+            "HttpPost".equals(attributeName) ||
+            "HttpPatch".equals(attributeName) ||
+            "HttpPut".equals(attributeName) ||
+            "HttpDelete".equals(attributeName);
+    }
+
     private boolean hasHttpAttribute() {
         for (String attr : currentAttributes) {
-            if ("HttpGet".equals(attr) ||
-                    "HttpPost".equals(attr) ||
-                    "HttpPatch".equals(attr) ||
-                    "HttpPut".equals(attr) ||
-                    "HttpDelete".equals(attr)) {
+            if (isHttpAttribute(attr)) {
                 return true;
             }
         }

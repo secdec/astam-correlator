@@ -30,6 +30,7 @@ import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -54,6 +55,8 @@ class Action {
     Map<String, RouteParameter> parameters = map();
     @Nonnull
     Set<RouteParameter> parametersWithTypes;
+    @Nullable
+    String explicitRoute;
 
     List<String> getMethods() {
         List<String> methods = list();
@@ -81,13 +84,15 @@ class Action {
                          @Nonnull Set<String> attributes,
                          @Nonnull Integer lineNumber,
                          @Nonnull Integer endLineNumber,
-                         @Nonnull Set<RouteParameter> parametersWithTypes) {
+                         @Nonnull Set<RouteParameter> parametersWithTypes,
+                         @Nullable String explicitRoute) {
         Action action = new Action();
         action.name = name;
         action.attributes = attributes;
         action.lineNumber = lineNumber;
         action.endLineNumber = endLineNumber;
         action.parametersWithTypes = set();
+        action.explicitRoute = explicitRoute;
 
         Map<String, List<RouteParameter>> duplicateParameterData = map();
 
