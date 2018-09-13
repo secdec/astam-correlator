@@ -27,6 +27,8 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetClass;
+import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.DotNetFileParser;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
@@ -64,6 +66,7 @@ public class DotNetMappings implements EndpointGenerator {
 
         List<ViewModelParser> modelParsers = list();
         List<DotNetControllerMappings> controllerMappingsList = list();
+        List<DotNetClass> classes = list();
 
         DotNetRouteMappings routeMappings = new DotNetRouteMappings();
         Collection<File> cSharpFiles = FileUtils.listFiles(solutionDirectory, new String[] { "cs" }, true);
@@ -76,6 +79,9 @@ public class DotNetMappings implements EndpointGenerator {
                 DotNetRoutesParser routesParser = new DotNetRoutesParser();
                 ViewModelParser modelParser = new ViewModelParser();
                 EventBasedTokenizerRunner.run(file, endpointParser, routesParser, modelParser);
+
+                List<DotNetClass> parsedClasses = DotNetFileParser.parse(file);
+                classes.addAll(parsedClasses);
 
                 if (routesParser.hasValidMappings()) {
                     //assert routeMappings == null; // if the project has 2 routes files we want to know about it

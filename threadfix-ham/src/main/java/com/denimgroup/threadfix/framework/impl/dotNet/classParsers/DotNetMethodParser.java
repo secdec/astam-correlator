@@ -1,0 +1,224 @@
+package com.denimgroup.threadfix.framework.impl.dotNet.classParsers;
+
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetAttribute;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetMethod;
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
+
+import java.util.List;
+
+import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.*;
+import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.isValidTypeName;
+import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.tokenIsValidInTypeName;
+
+public class DotNetMethodParser extends AbstractDotNetParser<DotNetMethod> implements EventBasedTokenizer {
+
+    //  NOTE - This does not catch constructors
+
+    DotNetParameterParser parameterParser;
+    DotNetAttributeParser attributeParser;
+    DotNetScopeTracker scopeTracker;
+
+    private int classBraceLevel = -1;
+
+    @Override
+    public void setParsingContext(DotNetParsingContext context) {
+        parameterParser = context.getParameterParser();
+        attributeParser = context.getAttributeParser();
+        scopeTracker = context.getScopeTracker();
+    }
+
+    public void setClassBraceLevel(int braceLevel) {
+        this.classBraceLevel = braceLevel;
+    }
+
+    @Override
+    public void reset() {
+        super.reset();
+        classBraceLevel = -1;
+        currentMethodState = MethodState.SEARCH;
+        clearPossibleMethodData();
+    }
+
+
+
+    private enum MethodState {
+        SEARCH,
+        PARAMETERS,
+        METHOD_BODY,
+        MAYBE_ARROW_METHOD,
+        ARROW_METHOD
+    }
+
+    private MethodState currentMethodState = MethodState.SEARCH;
+    private DotNetMethod.AccessLevel possibleAccessLevel = DotNetMethod.AccessLevel.PRIVATE;
+    private String possibleMethodReturnType = null;
+    private boolean isPossibleStaticMethod = false;
+    private String workingString = null;
+    private List<DotNetAttribute> pendingAttributes = list();
+
+    private void clearPossibleMethodData() {
+        possibleAccessLevel = DotNetMethod.AccessLevel.PRIVATE;
+        possibleMethodReturnType = null;
+        isPossibleStaticMethod = false;
+        workingString = null;
+        pendingAttributes.clear();
+    }
+
+    private static boolean isNullOrWhitespace(String string) {
+        return string == null || string.trim().isEmpty();
+    }
+
+
+
+    @Override
+    public boolean shouldContinue() {
+        return true;
+    }
+
+    @Override
+    public void processToken(int type, int lineNumber, String stringValue) {
+        if (isDisabled()) {
+            return;
+        }
+
+        switch (currentMethodState) {
+            case SEARCH:
+                if (attributeParser.isBuildingItem()) {
+                    break;
+                } else while (attributeParser.hasItem()) {
+                    pendingAttributes.add(attributeParser.pullCurrentItem());
+                }
+
+                //  Occurs during a property definition
+                if (scopeTracker.getNumOpenBrace() > classBraceLevel) {
+                    clearPossibleMethodData();
+                    break;
+                }
+
+                if (stringValue != null) {
+                    if (stringValue.equals(PUBLIC)) {
+                        possibleAccessLevel = DotNetMethod.AccessLevel.PUBLIC;
+                        workingString = null;
+                    } else if (stringValue.equals(PROTECTED)) {
+                        possibleAccessLevel = DotNetMethod.AccessLevel.PROTECTED;
+                        workingString = null;
+                    } else if (stringValue.equals(PRIVATE)) {
+                        possibleAccessLevel = DotNetMethod.AccessLevel.PRIVATE;
+                        workingString = null;
+                    } else if (stringValue.equals(STATIC)) {
+                        isPossibleStaticMethod = true;
+                        workingString = null;
+                    } else if (stringValue.equals(ABSTRACT) || stringValue.equals(OPERATOR)) {
+                        //  Ignore these methods
+                        clearPossibleMethodData();
+                        break;
+                    } else if (CS_KEYWORDS.contains(stringValue)) {
+                        //  Some reserved keyword we don't care about (ie async, override, virtual)
+                        break;
+                    } else if (type < 0) {
+                        if (workingString == null) {
+                            workingString = stringValue;
+                        } else if (isValidTypeName(workingString)) {
+                            possibleMethodReturnType = workingString;
+                            workingString = stringValue;
+                        } else {
+                            workingString += CodeParseUtil.buildTokenString(type, stringValue);
+                        }
+                    } else {
+                        clearPossibleMethodData();
+                    }
+                } else if (type == '(') {
+                    String possibleMethodName = workingString;
+
+                    if (isNullOrWhitespace(possibleMethodReturnType) || isNullOrWhitespace(possibleMethodName)) {
+                        clearPossibleMethodData();
+                        break;
+                    }
+
+                    DotNetMethod pendingMethod = new DotNetMethod();
+                    pendingMethod.setName(possibleMethodName);
+                    pendingMethod.setReturnType(possibleMethodReturnType);
+                    pendingMethod.setIsStatic(isPossibleStaticMethod);
+                    pendingMethod.setAccessLevel(possibleAccessLevel);
+                    pendingMethod.setStartLine(lineNumber);
+
+                    for (DotNetAttribute attribute : pendingAttributes) {
+                        pendingMethod.addAttribute(attribute);
+                    }
+
+                    setPendingItem(pendingMethod);
+
+                    clearPossibleMethodData();
+                    //  Clear old detected parameters
+                    parameterParser.clearItems();
+                    currentMethodState = MethodState.PARAMETERS;
+                } else if (type == ';' || type == '=' || type == ')') {
+                    clearPossibleMethodData();
+                } else if (tokenIsValidInTypeName((char)type)) {
+                    workingString += (char)type;
+                }
+                break;
+
+            case PARAMETERS:
+                while (parameterParser.hasItem()) {
+                    getPendingItem().addParameter(parameterParser.pullCurrentItem());
+                }
+
+                if (parameterParser.isBuildingItem()) {
+                    break;
+                }
+
+                if (scopeTracker.getNumOpenParen() == 0) {
+                    currentMethodState = MethodState.METHOD_BODY;
+                    attributeParser.disable();
+                    parameterParser.disable();
+                } else if (type == ';') {
+                    //  Abstract method
+                    setPendingItem(null);
+                    clearPossibleMethodData();
+                    currentMethodState = MethodState.SEARCH;
+                }
+                break;
+
+            case METHOD_BODY:
+                if (type == '=' && scopeTracker.getNumOpenBrace() <= classBraceLevel) {
+                    currentMethodState = MethodState.MAYBE_ARROW_METHOD;
+                } else if (scopeTracker.getNumOpenBrace() <= classBraceLevel) {
+                    getPendingItem().setEndLine(lineNumber);
+                    finalizePendingItem();
+                    attributeParser.reset();
+                    parameterParser.reset();
+                    attributeParser.enable();
+                    parameterParser.enable();
+                    currentMethodState = MethodState.SEARCH;
+                }
+                break;
+
+            case MAYBE_ARROW_METHOD:
+                if (type == '>') {
+                    currentMethodState = MethodState.ARROW_METHOD;
+                    attributeParser.disable();
+                    parameterParser.disable();
+                } else {
+                    setPendingItem(null);
+                    clearPossibleMethodData();
+                    currentMethodState = MethodState.SEARCH;
+                }
+                break;
+
+            case ARROW_METHOD:
+                if (type == ';' && scopeTracker.getNumOpenParen() == 0 && scopeTracker.getNumOpenBrace() <= classBraceLevel) {
+                    getPendingItem().setEndLine(lineNumber);
+                    finalizePendingItem();
+                    attributeParser.reset();
+                    parameterParser.reset();
+                    attributeParser.enable();
+                    parameterParser.enable();
+                    currentMethodState = MethodState.SEARCH;
+                }
+                break;
+        }
+    }
+}

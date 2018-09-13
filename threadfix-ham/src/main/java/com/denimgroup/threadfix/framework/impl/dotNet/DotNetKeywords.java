@@ -32,7 +32,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 /**
  * Created by mac on 6/11/14.
  */
-final class DotNetKeywords {
+final public class DotNetKeywords {
 
     private DotNetKeywords() {}
 
@@ -45,6 +45,10 @@ final class DotNetKeywords {
             PROTECTED = "protected",
             PRIVATE = "private",
             STATIC = "static",
+            OVERRIDE = "override",
+            ABSTRACT = "abstract",
+            ASYNC = "async",
+            OPERATOR = "operator",
             ROUTE_CONFIG = "RouteConfig",
             STARTUP = "Startup",
             CONFIGURE ="Configure",
@@ -54,6 +58,7 @@ final class DotNetKeywords {
             IROUTE_BUILDER = "IRouteBuilder", // .NET Core
             MAP_ROUTE = "MapRoute",
             NAMESPACE = "namespace",
+            USING = "using",
             URL = "url",
             NAME = "name",
             DEFAULTS = "defaults",
@@ -67,20 +72,41 @@ final class DotNetKeywords {
             FROM_BODY = "FromBody";
 
     public static final List<String> RESULT_TYPES = list(
-            "ActionResult",
-            "IActionResult",
-            "ContentResult",
-            "JsonResult",
-            "ViewResult",
-            "HttpResponseMessage",
-            "PartialViewResult",
-            "RedirectResult",
-            "RedirectToRouteResult",
-            "JavaScriptResult",
-            "FileResult",
-            "EmptyResult",
-            "IActionResult",
-            "Task<IActionResult>"
+        "ActionResult",
+        "IActionResult",
+        "ContentResult",
+        "JsonResult",
+        "ViewResult",
+        "HttpResponseMessage",
+        "PartialViewResult",
+        "RedirectResult",
+        "RedirectToRouteResult",
+        "JavaScriptResult",
+        "FileResult",
+        "EmptyResult",
+        "IActionResult",
+        "Task<IActionResult>"
+    );
+
+    public static final List<String> CS_KEYWORDS = list(
+        PUBLIC,
+        PROTECTED,
+        PRIVATE,
+        PARTIAL,
+        INTERNAL,
+        CLASS,
+        NAMESPACE,
+        USING,
+        NEW,
+        OVERRIDE,
+        ASYNC,
+        ABSTRACT,
+        OPERATOR,
+        "interface",
+        "where",
+        "as",
+        "is",
+        "this"
     );
 
 }
