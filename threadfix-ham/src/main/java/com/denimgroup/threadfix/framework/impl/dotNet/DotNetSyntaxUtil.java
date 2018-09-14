@@ -128,4 +128,22 @@ public class DotNetSyntaxUtil {
 
         return true;
     }
+
+    //  Strips template and array type syntax (or unwraps types in Task<>)
+    public static String cleanTypeName(String typeName) {
+        if (typeName.startsWith("Task") && typeName.length() > "Task".length()) {
+            typeName = typeName.substring("Task<".length(), typeName.length() - 1);
+        }
+
+        StringBuilder cleanedName = new StringBuilder();
+        for (int i = 0; i < typeName.length(); i++) {
+            char c = typeName.charAt(i);
+            if (!DotNetSyntaxUtil.tokenIsValidInVariableName(c)) {
+                break;
+            } else {
+                cleanedName.append(c);
+            }
+        }
+        return cleanedName.toString();
+    }
 }

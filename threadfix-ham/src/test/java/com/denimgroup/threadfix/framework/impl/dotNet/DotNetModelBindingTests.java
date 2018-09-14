@@ -34,14 +34,12 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointQuery;
 import com.denimgroup.threadfix.framework.engine.full.EndpointQueryBuilder;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import org.jboss.logging.Param;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.denimgroup.threadfix.framework.impl.dotNet.ContosoUtilities.getContosoLocation;
 
@@ -121,6 +119,7 @@ public class DotNetModelBindingTests {
                 null,
                 DotNetRoutesParser.parse(ResourceManager.getDotNetMvcFile("RouteConfig.cs")),
                 new DotNetModelMappings(getContosoLocation()),
+                new ArrayList<CSharpClass>(),
                 DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile("SuperclassBindingController.cs"))
         );
 

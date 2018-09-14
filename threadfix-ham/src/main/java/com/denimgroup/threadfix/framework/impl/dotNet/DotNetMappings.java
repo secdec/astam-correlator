@@ -25,11 +25,13 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
+import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpFileParser;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
+import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import org.apache.commons.io.FileUtils;
@@ -64,21 +66,34 @@ public class DotNetMappings implements EndpointGenerator {
 
     private void generateMappings(File rootDirectory, File solutionDirectory) {
 
+        boolean isDotNetCore = false;
+        DotNetCoreDetector dotNetCoreDetector = new DotNetCoreDetector();
+        for (File project : FileUtils.listFiles(solutionDirectory, new String[] { "csproj" }, true)) {
+            EventBasedTokenizerRunner.run(project, dotNetCoreDetector);
+            if (!dotNetCoreDetector.shouldContinue()) {
+                isDotNetCore = dotNetCoreDetector.isAspDotNetCore();
+                break;
+            }
+        }
+
         List<ViewModelParser> modelParsers = list();
         List<DotNetControllerMappings> controllerMappingsList = list();
         List<CSharpClass> classes = list();
 
         DotNetRouteMappings routeMappings = new DotNetRouteMappings();
         Collection<File> cSharpFiles = FileUtils.listFiles(solutionDirectory, new String[] { "cs" }, true);
+        Map<String, RouteParameterMap> routeParameters = new HashMap<String, RouteParameterMap>();
 
         for (File file : cSharpFiles) {
             if (file != null && file.exists() && file.isFile() &&
                     file.getAbsolutePath().contains(solutionDirectory.getAbsolutePath())) {
 
-                DotNetControllerParser endpointParser = new DotNetControllerParser(file);
+                //DotNetControllerParser endpointParser = new DotNetControllerParser(file);
+                DotNetParameterParser parameterParser = new DotNetParameterParser();
                 DotNetRoutesParser routesParser = new DotNetRoutesParser();
                 ViewModelParser modelParser = new ViewModelParser();
-                EventBasedTokenizerRunner.run(file, endpointParser, routesParser, modelParser);
+                // EventBasedTokenizerRunner.run(file, endpointParser, routesParser, modelParser, parameterParser);
+                EventBasedTokenizerRunner.run(file, routesParser, modelParser, parameterParser);
 
                 List<CSharpClass> parsedClasses = CSharpFileParser.parse(file);
                 classes.addAll(parsedClasses);
@@ -88,17 +103,32 @@ public class DotNetMappings implements EndpointGenerator {
                     routeMappings.importFrom(routesParser.mappings);
                 }
 
-                if (endpointParser.hasValidControllerMappings()) {
-                    controllerMappingsList.addAll(endpointParser.mappings);
-                }
+//                if (endpointParser.hasValidControllerMappings()) {
+//                    controllerMappingsList.addAll(endpointParser.mappings);
+//                }
 
+                if (!parameterParser.getParsedParameterReferences().isEmpty()) {
+                    routeParameters.put(file.getAbsolutePath(), parameterParser.getParsedParameterReferences());
+                }
                 modelParsers.add(modelParser);
             }
         }
 
+        List<DotNetMappingsGenerator> controllerMappingsGenerators = list();
+        if (isDotNetCore) {
+            controllerMappingsGenerators.add(new DotNetMappingsCoreGenerator(classes, routeParameters));
+        } else {
+            controllerMappingsGenerators.add(new DotNetMappingsStandardApiGenerator(classes, routeParameters));
+            controllerMappingsGenerators.add(new DotNetMappingsStandardMvcGenerator(classes, routeParameters));
+        }
+
+        for (DotNetMappingsGenerator generator : controllerMappingsGenerators) {
+            controllerMappingsList.addAll(generator.generate());
+        }
+
         DotNetModelMappings modelMappings = new DotNetModelMappings(modelParsers);
 
-        generators.add(new DotNetEndpointGenerator(rootDirectory, routeMappings, modelMappings, controllerMappingsList));
+        generators.add(new DotNetEndpointGenerator(rootDirectory, routeMappings, modelMappings, classes, controllerMappingsList));
     }
 
     @Nonnull

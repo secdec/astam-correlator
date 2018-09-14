@@ -69,7 +69,14 @@ final public class DotNetKeywords {
             ID = "id",
             ROUTE = "Route",
             SYSTEM_HTTP_APPLICATION = "System.Web.HttpApplication",
-            FROM_BODY = "FromBody";
+            FROM_BODY = "FromBody",
+            REQUEST_FILES = "Request.Files",
+            REQUEST = "Request",
+            REQUEST_COOKIES = "Request.Cookies",
+            REQUEST_QUERY_STRING = "Request.QueryString",
+            REQUEST_QUERY = "Request.Query",
+            SESSION = "Session"
+            ;
 
     public static final List<String> RESULT_TYPES = list(
         "ActionResult",

@@ -32,6 +32,7 @@ import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
@@ -46,7 +47,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetPathCleaner.cleanStringFromCode;
+import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.cleanTypeName;
 
 /**
  * Created by mac on 6/11/14.
@@ -56,6 +59,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
     private final List<DotNetControllerMappings> dotNetControllerMappings;
     private final DotNetRouteMappings            dotNetRouteMappings;
     private final DotNetModelMappings            dotNetModelMappings;
+    private final List<CSharpClass>              csharpClasses;
     private final List<Endpoint> endpoints = list();
 
     public static final SanitizedLogger LOG = new SanitizedLogger(DotNetEndpointGenerator.class);
@@ -63,13 +67,15 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
     public DotNetEndpointGenerator(File rootDirectory,
                                    DotNetRouteMappings routeMappings,
                                    DotNetModelMappings modelMappings,
+                                   List<CSharpClass> classes,
                                    DotNetControllerMappings... controllerMappings) {
-        this(rootDirectory, routeMappings, modelMappings, Arrays.asList(controllerMappings));
+        this(rootDirectory, routeMappings, modelMappings, classes, Arrays.asList(controllerMappings));
     }
 
     public DotNetEndpointGenerator(File rootDirectory,
                                    DotNetRouteMappings routeMappings,
                                    DotNetModelMappings modelMappings,
+                                   List<CSharpClass> classes,
                                    List<DotNetControllerMappings> controllerMappings) {
         assert routeMappings != null : "routeMappings was null. Check route parsing code.";
         assert controllerMappings != null : "controllerMappings was null. Check controller parsing code.";
@@ -80,6 +86,9 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         dotNetControllerMappings = controllerMappings;
         dotNetRouteMappings = routeMappings;
         dotNetModelMappings = modelMappings;
+        csharpClasses = classes;
+
+        expandBaseTypes(csharpClasses);
 
         assembleEndpoints(rootDirectory);
         expandAmbiguousEndpoints();
@@ -111,12 +120,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         EndpointValidationStatistics.printValidationStats(endpoints);
     }
 
-    private void assembleEndpoints(File rootDirectory) {
-        if (dotNetRouteMappings == null || dotNetRouteMappings.routes == null) {
-            LOG.error("No mappings found for project. Exiting.");
-            return; // can't do anything without routes
-        }
-
+    private void assembleMappedEndpoints(File rootDirectory) {
         //  Add actions with explicit endpoints
         for (DotNetControllerMappings mappings : dotNetControllerMappings) {
             if (mappings.getControllerName() == null) {
@@ -145,6 +149,197 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 }
                 endpoints.add(new DotNetEndpoint(endpoint, filePath, action));
             }
+        }
+    }
+
+    private void assembleAnnotatedEndpoints(File rootDirectory) {
+        if (dotNetRouteMappings == null || dotNetRouteMappings.routes == null) {
+            LOG.debug("No 'MapRoute' mappings found in " + rootDirectory.getAbsolutePath());
+            return;
+        }
+
+        List<DotNetRouteMappings.MapRoute> visitedRoutes = list();
+
+        for (DotNetControllerMappings mappings : dotNetControllerMappings) {
+            if (mappings.getControllerName() == null) {
+                LOG.debug("Controller Name was null. Skipping to the next.");
+                assert false;
+                continue;
+            }
+
+            DotNetRouteMappings.MapRoute mapRoute = dotNetRouteMappings.getMatchingMapRoute(mappings.hasAreaName(), mappings.getControllerName(), mappings.getNamespace());
+
+            if (mapRoute == null ||  mapRoute.url == null || mapRoute.url.equals(""))
+                continue;
+
+            if (!visitedRoutes.contains(mapRoute)) {
+                visitedRoutes.add(mapRoute);
+            }
+
+            for (Action action : mappings.getActions()) {
+                if (action == null) {
+                    LOG.debug("Action was null. Skipping to the next.");
+                    assert false : "mappings.getActions() returned null. This shouldn't happen.";
+                    continue;
+                }
+
+                String pattern = mapRoute.url;
+                //  If a specific action was set for this route, only create endpoints when we get to that action
+                if (!pattern.contains("{action}") && mapRoute.defaultRoute != null && !action.name.equals(mapRoute.defaultRoute.action)) {
+                    continue;
+                }
+
+                LOG.debug("Substituting patterns from route " + action + " into template " + pattern);
+
+                String result = pattern
+                    // substitute in controller name for {controller}
+                    .replaceAll("\\{\\w*controller\\w*\\}", mappings.getControllerName());
+                if(mappings.hasAreaName()){
+                    result = result.replaceAll("\\{\\w*area\\w*\\}", mappings.getAreaName());
+                }
+
+                if (action.name.equals("Index")) {
+                    result = result.replaceAll("/\\{\\w*action\\w*\\}", "");
+                } else {
+                    result = result.replaceAll("\\{\\w*action\\w*\\}", action.name);
+                }
+
+                boolean shouldReplaceParameterSection = true;
+
+                if(action.parameters != null &&
+                    mapRoute.defaultRoute != null &&
+                    action.parameters.keySet().contains(mapRoute.defaultRoute.parameter)) {
+
+                    String lowerCaseParameterName = mapRoute.defaultRoute.parameter.toLowerCase();
+                    for (String parameter : action.parameters.keySet()) {
+                        if (parameter.toLowerCase().equals(lowerCaseParameterName)) {
+                            shouldReplaceParameterSection = false;
+                            break;
+                        }
+                    }
+                }
+
+                if (shouldReplaceParameterSection) {
+                    result = result.replaceAll("/\\{[^\\}]*\\}", "");
+                }
+
+                // Commented since this would remove valuable information regarding parametric routes
+                //result = cleanStringFromCode(result);
+
+                if (!result.startsWith("/")) {
+                    result = "/" + result;
+                }
+
+                expandParameters(action);
+
+                LOG.debug("Got result " + result);
+
+                String filePath = mappings.getFilePath();
+                if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
+                    filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+                }
+
+                endpoints.add(new DotNetEndpoint(result, filePath, action));
+            }
+        }
+
+        //  Add routes that only have default controllers specified (which wouldn't have been
+        //  enumerated in the previous loop)
+        List<DotNetRouteMappings.MapRoute> unvisitedRoutes = new ArrayList<DotNetRouteMappings.MapRoute>(dotNetRouteMappings.routes);
+        unvisitedRoutes.removeAll(visitedRoutes);
+        for (DotNetRouteMappings.MapRoute route : unvisitedRoutes) {
+            if (route.defaultRoute == null) {
+                continue;
+            }
+
+            DotNetRouteMappings.ConcreteRoute defaultRoute = route.defaultRoute;
+            String result = route.url;
+            if (!result.startsWith("/")) {
+                result = "/" + result;
+            }
+
+            DotNetControllerMappings controllerMappings = null;
+            Action action = null;
+            for (DotNetControllerMappings mappings : dotNetControllerMappings) {
+                if (controllerMappings != null) {
+                    break;
+                }
+
+                if (mappings.getControllerName() != null && mappings.getControllerName().equals(defaultRoute.controller)) {
+                    for (Action controllerAction : mappings.getActions()) {
+                        if (controllerAction.explicitRoute == null && controllerAction.name.equals(defaultRoute.action)) {
+                            controllerMappings = mappings;
+                            action = controllerAction;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (controllerMappings == null || action == null) {
+                continue;
+            }
+
+            result = result.replaceAll("\\{controller\\}", controllerMappings.getControllerName());
+            result = result.replaceAll("\\{action\\}", action.name);
+
+            String filePath = controllerMappings.getFilePath();
+            if (filePath.startsWith(rootDirectory.getAbsolutePath())) {
+                filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+            }
+
+            endpoints.add(new DotNetEndpoint(result, filePath, action));
+        }
+    }
+
+    private List<DotNetControllerMappings> generateMappingsFromClasses(List<CSharpClass> classes) {
+        List<DotNetControllerMappings> mappings = list();
+
+        for (CSharpClass csClass : classes) {
+            DotNetControllerMappings classMappings = new DotNetControllerMappings(csClass.getFilePath());
+
+        }
+
+        return mappings;
+    }
+
+    private void expandBaseTypes(List<CSharpClass> classes) {
+        Map<String, CSharpClass> namedClasses = map();
+        for (CSharpClass csClass : classes) {
+            namedClasses.put(csClass.getName(), csClass);
+        }
+
+        for (CSharpClass csClass : classes) {
+            List<String> newBaseTypes = list();
+            List<String> visitedBaseTypes = list();
+
+            do {
+                for (String baseType : newBaseTypes) {
+                    csClass.addBaseType(baseType);
+                }
+                newBaseTypes.clear();
+
+                for (String baseType : csClass.getBaseTypes()) {
+                    String cleanedBaseType = cleanTypeName(baseType);
+                    if (visitedBaseTypes.contains(cleanedBaseType)) {
+                        continue;
+                    }
+
+                    if (namedClasses.containsKey(cleanedBaseType)) {
+                        CSharpClass resolvedBaseType = namedClasses.get(cleanedBaseType);
+                        newBaseTypes.addAll(resolvedBaseType.getBaseTypes());
+                    }
+
+                    visitedBaseTypes.add(cleanedBaseType);
+                }
+            } while (!newBaseTypes.isEmpty());
+        }
+    }
+
+    private void assembleEndpoints(File rootDirectory) {
+        if (dotNetRouteMappings == null || dotNetRouteMappings.routes == null) {
+            LOG.error("No mappings found for project. Exiting.");
+            return; // can't do anything without routes
         }
 
         List<DotNetRouteMappings.MapRoute> visitedRoutes = list();

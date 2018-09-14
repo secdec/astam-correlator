@@ -1,14 +1,15 @@
 package com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
 
-public class CSharpMethod {
+public class CSharpMethod extends CanHaveAttributes {
     private String name;
     private String returnType;
     private List<CSharpParameter> parameters = list();
-    private List<CSharpAttribute> attributes = list();
     private int startLine, endLine;
     private boolean isStatic = false;
     private AccessLevel accessLevel = AccessLevel.PRIVATE;
@@ -46,14 +47,6 @@ public class CSharpMethod {
 
     public void addParameter(CSharpParameter parameter) {
         parameters.add(parameter);
-    }
-
-    public List<CSharpAttribute> getAttributes() {
-        return attributes;
-    }
-
-    public void addAttribute(CSharpAttribute attribute) {
-        attributes.add(attribute);
     }
 
     public int getStartLine() {
@@ -138,7 +131,7 @@ public class CSharpMethod {
         }
 
         result.append(") (");
-        result.append(attributes.size());
+        result.append(getAttributes().size());
         result.append(" attributes)");
 
         return result.toString();

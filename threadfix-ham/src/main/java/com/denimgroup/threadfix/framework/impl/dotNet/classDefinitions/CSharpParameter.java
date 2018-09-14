@@ -4,14 +4,13 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-public class CSharpParameter {
+public class CSharpParameter extends CanHaveAttributes {
     private int parameterIndex;
     private String name;
     private String defaultValue;
     private String value;
     private String type;
     private boolean isExtensionParameter;
-    private List<CSharpAttribute> attributes = list();
 
     public boolean isDeclaration() {
         return value == null;
@@ -69,17 +68,10 @@ public class CSharpParameter {
         isExtensionParameter = extensionParameter;
     }
 
-    public List<CSharpAttribute> getAttributes() {
-        return attributes;
-    }
-
-    public void addAttribute(CSharpAttribute attribute) {
-        attributes.add(attribute);
-    }
-
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
+        List<CSharpAttribute> attributes = getAttributes();
         if (!attributes.isEmpty()) {
             boolean isFirst = true;
             for (CSharpAttribute attribute : attributes) {

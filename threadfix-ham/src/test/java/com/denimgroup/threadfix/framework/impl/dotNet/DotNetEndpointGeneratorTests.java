@@ -25,7 +25,10 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.ResourceManager;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 /**
  * Created by mac on 6/11/14.
@@ -39,7 +42,7 @@ public class DotNetEndpointGeneratorTests {
         DotNetControllerMappings controllerMappings =
                 DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile("ChatController.cs")).get(0);
 
-        DotNetEndpointGenerator generator = new DotNetEndpointGenerator(null, routeMappings, null, controllerMappings);
+        DotNetEndpointGenerator generator = new DotNetEndpointGenerator(null, routeMappings, null, new ArrayList<CSharpClass>(), controllerMappings);
 
         assert generator.generateEndpoints().size() == 1 : "Size should have been 1 but was " +
                 generator.generateEndpoints().size();

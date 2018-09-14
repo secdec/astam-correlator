@@ -4,17 +4,15 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-public class CSharpClass {
+public class CSharpClass extends CanHaveAttributes {
     private String name;
     private String namespace;
     private List<String> templateParameterNames = list();
     private List<String> baseTypes = list();
     private boolean isStatic = false;
+    private List<CSharpMethod> methods = list();
 
     private String filePath;
-
-    private List<CSharpMethod> methods = list();
-    private List<CSharpAttribute> attributes = list();
 
     public String getFilePath() {
         return filePath;
@@ -70,14 +68,6 @@ public class CSharpClass {
 
     public void addMethod(CSharpMethod method) {
         methods.add(method);
-    }
-
-    public List<CSharpAttribute> getAttributes() {
-        return attributes;
-    }
-
-    public void addAttribute(CSharpAttribute attribute) {
-        attributes.add(attribute);
     }
 
     @Override
@@ -136,7 +126,7 @@ public class CSharpClass {
         sb.append(" (");
         sb.append(methods.size());
         sb.append(" methods, ");
-        sb.append(attributes.size());
+        sb.append(getAttributes().size());
         sb.append(" attributes)");
         return sb.toString();
     }

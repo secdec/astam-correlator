@@ -124,6 +124,8 @@ public class CSharpClassParser extends AbstractCSharpParser<CSharpClass> impleme
                 } else if (type < 0 && "where".equals(stringValue) && !scopeTracker.isInString()) {
                     //  Template parameter type restrictions, ignore until we reach class definition
                     currentClassState = ClassState.WHERE_CLAUSE;
+                } else if (type > 0) {
+                    currentClassState = ClassState.SEARCH;
                 } else {
                     pendingClassName += CodeParseUtil.buildTokenString(type, stringValue);
                 }

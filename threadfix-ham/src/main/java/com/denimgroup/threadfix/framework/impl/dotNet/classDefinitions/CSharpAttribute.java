@@ -24,6 +24,32 @@ public class CSharpAttribute {
         parameters.add(parameter);
     }
 
+    public CSharpParameter getParameterValue(String parameterName) {
+        for (CSharpParameter parameter : parameters) {
+            if (parameter.isValue() && parameterName.equals(parameter.getName())) {
+                return parameter;
+            }
+        }
+
+        return null;
+    }
+
+    public CSharpParameter getParameterValue(int parameterIndex) {
+        if (parameters.size() > parameterIndex) {
+            return parameters.get(parameterIndex);
+        } else {
+            return null;
+        }
+    }
+
+    public CSharpParameter getParameterValue(String parameterName, int parameterIndex) {
+        CSharpParameter result = getParameterValue(parameterName);
+        if (result == null) {
+            result = getParameterValue(parameterIndex);
+        }
+        return result;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

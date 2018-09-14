@@ -30,8 +30,10 @@ import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointQuery;
 import com.denimgroup.threadfix.framework.engine.full.EndpointQueryBuilder;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Set;
 
 public class DotNetPathMatchingTests {
@@ -46,7 +48,7 @@ public class DotNetPathMatchingTests {
                 DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile("InstructorController.cs")).get(0);
 
         DotNetEndpointGenerator generator =
-                new DotNetEndpointGenerator(null, routeMappings, null, mappings);
+                new DotNetEndpointGenerator(null, routeMappings, null, new ArrayList<CSharpClass>(), mappings);
 
         EndpointDatabase database = EndpointDatabaseFactory.getDatabase(
                 generator, FrameworkType.DOT_NET_MVC, new DotNetPathCleaner());
