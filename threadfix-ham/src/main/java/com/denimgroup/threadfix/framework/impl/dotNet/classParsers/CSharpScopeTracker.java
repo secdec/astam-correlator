@@ -3,7 +3,7 @@ package com.denimgroup.threadfix.framework.impl.dotNet.classParsers;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
 
-public class DotNetScopeTracker implements EventBasedTokenizer {
+public class CSharpScopeTracker implements EventBasedTokenizer {
 
     private ScopeTracker scopeTracker = new ScopeTracker();
     private int numOpenAngleBracket = 0;

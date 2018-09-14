@@ -2,7 +2,7 @@ package com.denimgroup.threadfix.framework.impl.dotNet.classParsers;
 
 import java.util.LinkedList;
 
-public abstract class AbstractDotNetParser<T> {
+public abstract class AbstractCSharpParser<T> {
 
     private T pendingItem = null;
     private LinkedList<T> finishedItems = new LinkedList<T>();
@@ -72,6 +72,6 @@ public abstract class AbstractDotNetParser<T> {
         enable();
     }
 
-    public abstract void setParsingContext(DotNetParsingContext context);
+    public abstract void setParsingContext(CSharpParsingContext context);
 
 }

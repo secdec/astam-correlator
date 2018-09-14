@@ -4,9 +4,9 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-public class DotNetAttribute {
+public class CSharpAttribute {
     private String name;
-    private List<DotNetParameter> parameters = list();
+    private List<CSharpParameter> parameters = list();
 
     public String getName() {
         return name;
@@ -16,11 +16,11 @@ public class DotNetAttribute {
         this.name = name;
     }
 
-    public List<DotNetParameter> getParameters() {
+    public List<CSharpParameter> getParameters() {
         return parameters;
     }
 
-    public void addParameter(DotNetParameter parameter) {
+    public void addParameter(CSharpParameter parameter) {
         parameters.add(parameter);
     }
 
@@ -38,7 +38,7 @@ public class DotNetAttribute {
             sb.append('(');
 
             boolean isFirst = true;
-            for (DotNetParameter param : parameters) {
+            for (CSharpParameter param : parameters) {
                 if (!isFirst)
                     sb.append(", ");
 

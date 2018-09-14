@@ -4,11 +4,11 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-public class DotNetMethod {
+public class CSharpMethod {
     private String name;
     private String returnType;
-    private List<DotNetParameter> parameters = list();
-    private List<DotNetAttribute> attributes = list();
+    private List<CSharpParameter> parameters = list();
+    private List<CSharpAttribute> attributes = list();
     private int startLine, endLine;
     private boolean isStatic = false;
     private AccessLevel accessLevel = AccessLevel.PRIVATE;
@@ -40,19 +40,19 @@ public class DotNetMethod {
         this.returnType = returnType;
     }
 
-    public List<DotNetParameter> getParameters() {
+    public List<CSharpParameter> getParameters() {
         return parameters;
     }
 
-    public void addParameter(DotNetParameter parameter) {
+    public void addParameter(CSharpParameter parameter) {
         parameters.add(parameter);
     }
 
-    public List<DotNetAttribute> getAttributes() {
+    public List<CSharpAttribute> getAttributes() {
         return attributes;
     }
 
-    public void addAttribute(DotNetAttribute attribute) {
+    public void addAttribute(CSharpAttribute attribute) {
         attributes.add(attribute);
     }
 
@@ -129,7 +129,7 @@ public class DotNetMethod {
         result.append('(');
 
         boolean isFirst = true;
-        for (DotNetParameter param : parameters) {
+        for (CSharpParameter param : parameters) {
             if (!isFirst) {
                 result.append(", ");
             }

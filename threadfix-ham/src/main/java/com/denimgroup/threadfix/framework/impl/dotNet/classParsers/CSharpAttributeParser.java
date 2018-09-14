@@ -1,16 +1,9 @@
 package com.denimgroup.threadfix.framework.impl.dotNet.classParsers;
 
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetAttribute;
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetParameter;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpAttribute;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Queue;
-
-import static com.denimgroup.threadfix.CollectionUtils.list;
-
-public class DotNetAttributeParser extends AbstractDotNetParser<DotNetAttribute> implements EventBasedTokenizer {
+public class CSharpAttributeParser extends AbstractCSharpParser<CSharpAttribute> implements EventBasedTokenizer {
 
     /*
      * NOTE - When parsing an attribute containing parameters, where the attribute is attached to a parameter, the attribute's
@@ -22,11 +15,11 @@ public class DotNetAttributeParser extends AbstractDotNetParser<DotNetAttribute>
      *      limitation of coupling the Attribute and Method Parser instances directly to each other.
      */
 
-    private DotNetParameterParser parameterParser;
-    private DotNetScopeTracker scopeTracker;
+    private CSharpParameterParser parameterParser;
+    private CSharpScopeTracker scopeTracker;
 
     @Override
-    public void setParsingContext(DotNetParsingContext context) {
+    public void setParsingContext(CSharpParsingContext context) {
         this.parameterParser = context.getParameterParser();
         this.scopeTracker = context.getScopeTracker();
     }
@@ -79,13 +72,13 @@ public class DotNetAttributeParser extends AbstractDotNetParser<DotNetAttribute>
             case SEARCH:
                 if (scopeTracker.getNumOpenBracket() == 1 && !parameterParser.isBuildingParameterType()) {
                     currentAttributeState = AttributeState.IN_ATTRIBUTE;
-                    setPendingItem(new DotNetAttribute());
+                    setPendingItem(new CSharpAttribute());
                     parameterParser.clearItems();
                 }
                 break;
 
             case IN_ATTRIBUTE:
-                DotNetAttribute pendingAttribute = getPendingItem();
+                CSharpAttribute pendingAttribute = getPendingItem();
                 if (stringValue != null && pendingAttribute.getName() == null) {
                     pendingAttribute.setName(stringValue);
                 }

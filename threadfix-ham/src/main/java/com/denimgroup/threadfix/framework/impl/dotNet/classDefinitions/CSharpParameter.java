@@ -4,14 +4,14 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-public class DotNetParameter {
+public class CSharpParameter {
     private int parameterIndex;
     private String name;
     private String defaultValue;
     private String value;
     private String type;
     private boolean isExtensionParameter;
-    private List<DotNetAttribute> attributes = list();
+    private List<CSharpAttribute> attributes = list();
 
     public boolean isDeclaration() {
         return value == null;
@@ -69,11 +69,11 @@ public class DotNetParameter {
         isExtensionParameter = extensionParameter;
     }
 
-    public List<DotNetAttribute> getAttributes() {
+    public List<CSharpAttribute> getAttributes() {
         return attributes;
     }
 
-    public void addAttribute(DotNetAttribute attribute) {
+    public void addAttribute(CSharpAttribute attribute) {
         attributes.add(attribute);
     }
 
@@ -82,7 +82,7 @@ public class DotNetParameter {
         StringBuilder sb = new StringBuilder();
         if (!attributes.isEmpty()) {
             boolean isFirst = true;
-            for (DotNetAttribute attribute : attributes) {
+            for (CSharpAttribute attribute : attributes) {
                 if (!isFirst) {
                     sb.append(' ');
                 }

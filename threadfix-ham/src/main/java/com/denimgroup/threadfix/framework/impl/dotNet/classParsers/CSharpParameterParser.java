@@ -1,19 +1,18 @@
 package com.denimgroup.threadfix.framework.impl.dotNet.classParsers;
 
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetAttribute;
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetParameter;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpParameter;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.*;
 
-public class DotNetParameterParser extends AbstractDotNetParser<DotNetParameter> implements EventBasedTokenizer {
+public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter> implements EventBasedTokenizer {
 
-    private DotNetAttributeParser attributeParser;
-    private DotNetScopeTracker scopeTracker;
+    private CSharpAttributeParser attributeParser;
+    private CSharpScopeTracker scopeTracker;
 
     @Override
-    public void setParsingContext(DotNetParsingContext context) {
+    public void setParsingContext(CSharpParsingContext context) {
         attributeParser = context.getAttributeParser();
         scopeTracker = context.getScopeTracker();
     }
@@ -41,7 +40,7 @@ public class DotNetParameterParser extends AbstractDotNetParser<DotNetParameter>
         workingString = null;
         finalizePendingItem();
         if (makeNew) {
-            DotNetParameter newParameter = new DotNetParameter();
+            CSharpParameter newParameter = new CSharpParameter();
             newParameter.setParameterIndex(++workingParameterIndex);
             setPendingItem(newParameter);
         } else {
@@ -50,7 +49,7 @@ public class DotNetParameterParser extends AbstractDotNetParser<DotNetParameter>
     }
 
     private boolean pendingParameterHasData() {
-        DotNetParameter pending = getPendingItem();
+        CSharpParameter pending = getPendingItem();
         return pending != null && (
             pending.getType() != null ||
             pending.getName() != null ||
@@ -72,7 +71,7 @@ public class DotNetParameterParser extends AbstractDotNetParser<DotNetParameter>
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
-        assert this.attributeParser != null : "setAttributeParser must be called before running DotNetParameterParser!";
+        assert this.attributeParser != null : "setAttributeParser must be called before running CSharpParameterParser!";
 
         if (isDisabled()) {
             return;
@@ -86,12 +85,12 @@ public class DotNetParameterParser extends AbstractDotNetParser<DotNetParameter>
 
                 if (type == '(') {
                     setCurrentState(ParameterState.PARAMETER_START);
-                    setPendingItem(new DotNetParameter());
+                    setPendingItem(new CSharpParameter());
                 }
                 break;
 
             case PARAMETER_START:
-                DotNetParameter pendingParameter = getPendingItem();
+                CSharpParameter pendingParameter = getPendingItem();
 
                 while (!attributeParser.isBuildingItem() && attributeParser.hasItem()) {
                     pendingParameter.addAttribute(attributeParser.pullCurrentItem());

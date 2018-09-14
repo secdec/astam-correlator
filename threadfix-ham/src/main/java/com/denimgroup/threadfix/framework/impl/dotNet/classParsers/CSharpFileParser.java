@@ -1,6 +1,6 @@
 package com.denimgroup.threadfix.framework.impl.dotNet.classParsers;
 
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetClass;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
@@ -12,23 +12,23 @@ import java.util.List;
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.*;
 
-public class DotNetFileParser implements EventBasedTokenizer {
+public class CSharpFileParser implements EventBasedTokenizer {
 
     @Nonnull
-    public static List<DotNetClass> parse(@Nonnull File file) {
-        DotNetScopeTracker scopeTracker = new DotNetScopeTracker();
+    public static List<CSharpClass> parse(@Nonnull File file) {
+        CSharpScopeTracker scopeTracker = new CSharpScopeTracker();
 
-        DotNetAttributeParser attributeParser = new DotNetAttributeParser();
-        DotNetParameterParser parameterParser = new DotNetParameterParser();
-        DotNetMethodParser methodParser = new DotNetMethodParser();
-        DotNetClassParser classParser = new DotNetClassParser();
+        CSharpAttributeParser attributeParser = new CSharpAttributeParser();
+        CSharpParameterParser parameterParser = new CSharpParameterParser();
+        CSharpMethodParser methodParser = new CSharpMethodParser();
+        CSharpClassParser classParser = new CSharpClassParser();
 
-        DotNetParsingContext parsingContext = new DotNetParsingContext(
+        CSharpParsingContext parsingContext = new CSharpParsingContext(
             attributeParser, classParser, methodParser, parameterParser, scopeTracker
         );
         parsingContext.applyToParsers();
 
-        DotNetFileParser fileParser = new DotNetFileParser(parsingContext);
+        CSharpFileParser fileParser = new CSharpFileParser(parsingContext);
 
         //  ORDER-DEPENDENT!
         //  Parsers consume from others in the order that they are ran
@@ -47,8 +47,8 @@ public class DotNetFileParser implements EventBasedTokenizer {
             methodParser
         );
 
-        List<DotNetClass> classes = fileParser.classes;
-        for (DotNetClass cls : classes) {
+        List<CSharpClass> classes = fileParser.classes;
+        for (CSharpClass cls : classes) {
             cls.setFilePath(file.getAbsolutePath());
         }
 
@@ -58,12 +58,12 @@ public class DotNetFileParser implements EventBasedTokenizer {
 
 
 
-    private DotNetParsingContext parsingContext;
-    private List<DotNetClass> classes = list();
+    private CSharpParsingContext parsingContext;
+    private List<CSharpClass> classes = list();
 
     String namespaceName;
 
-    public DotNetFileParser(DotNetParsingContext context) {
+    public CSharpFileParser(CSharpParsingContext context) {
         parsingContext = context;
     }
 
@@ -84,11 +84,11 @@ public class DotNetFileParser implements EventBasedTokenizer {
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
-        DotNetScopeTracker scopeTracker = parsingContext.getScopeTracker();
-        DotNetClassParser classParser = parsingContext.getClassParser();
-        DotNetMethodParser methodParser = parsingContext.getMethodParser();
-        DotNetParameterParser parameterParser = parsingContext.getParameterParser();
-        DotNetAttributeParser attributeParser = parsingContext.getAttributeParser();
+        CSharpScopeTracker scopeTracker = parsingContext.getScopeTracker();
+        CSharpClassParser classParser = parsingContext.getClassParser();
+        CSharpMethodParser methodParser = parsingContext.getMethodParser();
+        CSharpParameterParser parameterParser = parsingContext.getParameterParser();
+        CSharpAttributeParser attributeParser = parsingContext.getAttributeParser();
 
         if (currentFileState != FileState.IN_NAMESPACE) {
             classParser.disable();
@@ -102,7 +102,7 @@ public class DotNetFileParser implements EventBasedTokenizer {
         }
 
         while (classParser.hasItem()) {
-            DotNetClass newClass = classParser.pullCurrentItem();
+            CSharpClass newClass = classParser.pullCurrentItem();
             newClass.setNamespace(namespaceName);
             classes.add(newClass);
         }

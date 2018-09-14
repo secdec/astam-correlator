@@ -1,29 +1,23 @@
 package com.denimgroup.threadfix.framework.impl.dotNet.classParsers;
 
 import com.denimgroup.threadfix.framework.impl.dotNet.DotNetControllerParser;
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetAttribute;
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetClass;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-
-import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.*;
 
-public class DotNetClassParser extends AbstractDotNetParser<DotNetClass> implements EventBasedTokenizer {
+public class CSharpClassParser extends AbstractCSharpParser<CSharpClass> implements EventBasedTokenizer {
 
-    private DotNetAttributeParser attributeParser;
-    private DotNetMethodParser methodParser;
-    private DotNetScopeTracker scopeTracker;
+    private CSharpAttributeParser attributeParser;
+    private CSharpMethodParser methodParser;
+    private CSharpScopeTracker scopeTracker;
 
     public static final SanitizedLogger LOG = new SanitizedLogger(DotNetControllerParser.class);
 
     @Override
-    public void setParsingContext(DotNetParsingContext context) {
+    public void setParsingContext(CSharpParsingContext context) {
         attributeParser = context.getAttributeParser();
         methodParser = context.getMethodParser();
         scopeTracker = context.getScopeTracker();
@@ -88,7 +82,7 @@ public class DotNetClassParser extends AbstractDotNetParser<DotNetClass> impleme
             attributeParser.disableAll();
         }
 
-        DotNetClass pendingClass = getPendingItem();
+        CSharpClass pendingClass = getPendingItem();
 
         switch (currentClassState) {
             case SEARCH:
@@ -99,7 +93,7 @@ public class DotNetClassParser extends AbstractDotNetParser<DotNetClass> impleme
                 if (type > 0) {
                     possibleClassIsStatic = false;
                 } else if (CLASS.equals(stringValue)) {
-                    pendingClass = new DotNetClass();
+                    pendingClass = new CSharpClass();
                     setPendingItem(pendingClass);
 
                     pendingClass.setIsStatic(possibleClassIsStatic);

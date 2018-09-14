@@ -1,18 +1,18 @@
 package com.denimgroup.threadfix.framework.impl.dotNet.classParsers;
 
-public class DotNetParsingContext {
-    private DotNetAttributeParser attributeParser;
-    private DotNetClassParser classParser;
-    private DotNetMethodParser methodParser;
-    private DotNetParameterParser parameterParser;
-    private DotNetScopeTracker scopeTracker;
+public class CSharpParsingContext {
+    private CSharpAttributeParser attributeParser;
+    private CSharpClassParser classParser;
+    private CSharpMethodParser methodParser;
+    private CSharpParameterParser parameterParser;
+    private CSharpScopeTracker scopeTracker;
 
-    public DotNetParsingContext(
-        DotNetAttributeParser attributeParser,
-        DotNetClassParser classParser,
-        DotNetMethodParser methodParser,
-        DotNetParameterParser parameterParser,
-        DotNetScopeTracker scopeTracker
+    public CSharpParsingContext(
+        CSharpAttributeParser attributeParser,
+        CSharpClassParser classParser,
+        CSharpMethodParser methodParser,
+        CSharpParameterParser parameterParser,
+        CSharpScopeTracker scopeTracker
     ) {
         this.attributeParser = attributeParser;
         this.classParser = classParser;
@@ -21,23 +21,23 @@ public class DotNetParsingContext {
         this.scopeTracker = scopeTracker;
     }
 
-    public DotNetAttributeParser getAttributeParser() {
+    public CSharpAttributeParser getAttributeParser() {
         return attributeParser;
     }
 
-    public DotNetClassParser getClassParser() {
+    public CSharpClassParser getClassParser() {
         return classParser;
     }
 
-    public DotNetMethodParser getMethodParser() {
+    public CSharpMethodParser getMethodParser() {
         return methodParser;
     }
 
-    public DotNetParameterParser getParameterParser() {
+    public CSharpParameterParser getParameterParser() {
         return parameterParser;
     }
 
-    public DotNetScopeTracker getScopeTracker() {
+    public CSharpScopeTracker getScopeTracker() {
         return scopeTracker;
     }
 

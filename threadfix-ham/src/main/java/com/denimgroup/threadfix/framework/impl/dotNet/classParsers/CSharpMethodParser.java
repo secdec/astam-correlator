@@ -1,7 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNet.classParsers;
 
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetAttribute;
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetMethod;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpAttribute;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpMethod;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 
@@ -12,18 +12,18 @@ import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.*;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.isValidTypeName;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.tokenIsValidInTypeName;
 
-public class DotNetMethodParser extends AbstractDotNetParser<DotNetMethod> implements EventBasedTokenizer {
+public class CSharpMethodParser extends AbstractCSharpParser<CSharpMethod> implements EventBasedTokenizer {
 
     //  NOTE - This does not catch constructors
 
-    DotNetParameterParser parameterParser;
-    DotNetAttributeParser attributeParser;
-    DotNetScopeTracker scopeTracker;
+    CSharpParameterParser parameterParser;
+    CSharpAttributeParser attributeParser;
+    CSharpScopeTracker scopeTracker;
 
     private int classBraceLevel = -1;
 
     @Override
-    public void setParsingContext(DotNetParsingContext context) {
+    public void setParsingContext(CSharpParsingContext context) {
         parameterParser = context.getParameterParser();
         attributeParser = context.getAttributeParser();
         scopeTracker = context.getScopeTracker();
@@ -52,14 +52,14 @@ public class DotNetMethodParser extends AbstractDotNetParser<DotNetMethod> imple
     }
 
     private MethodState currentMethodState = MethodState.SEARCH;
-    private DotNetMethod.AccessLevel possibleAccessLevel = DotNetMethod.AccessLevel.PRIVATE;
+    private CSharpMethod.AccessLevel possibleAccessLevel = CSharpMethod.AccessLevel.PRIVATE;
     private String possibleMethodReturnType = null;
     private boolean isPossibleStaticMethod = false;
     private String workingString = null;
-    private List<DotNetAttribute> pendingAttributes = list();
+    private List<CSharpAttribute> pendingAttributes = list();
 
     private void clearPossibleMethodData() {
-        possibleAccessLevel = DotNetMethod.AccessLevel.PRIVATE;
+        possibleAccessLevel = CSharpMethod.AccessLevel.PRIVATE;
         possibleMethodReturnType = null;
         isPossibleStaticMethod = false;
         workingString = null;
@@ -99,13 +99,13 @@ public class DotNetMethodParser extends AbstractDotNetParser<DotNetMethod> imple
 
                 if (stringValue != null) {
                     if (stringValue.equals(PUBLIC)) {
-                        possibleAccessLevel = DotNetMethod.AccessLevel.PUBLIC;
+                        possibleAccessLevel = CSharpMethod.AccessLevel.PUBLIC;
                         workingString = null;
                     } else if (stringValue.equals(PROTECTED)) {
-                        possibleAccessLevel = DotNetMethod.AccessLevel.PROTECTED;
+                        possibleAccessLevel = CSharpMethod.AccessLevel.PROTECTED;
                         workingString = null;
                     } else if (stringValue.equals(PRIVATE)) {
-                        possibleAccessLevel = DotNetMethod.AccessLevel.PRIVATE;
+                        possibleAccessLevel = CSharpMethod.AccessLevel.PRIVATE;
                         workingString = null;
                     } else if (stringValue.equals(STATIC)) {
                         isPossibleStaticMethod = true;
@@ -137,14 +137,14 @@ public class DotNetMethodParser extends AbstractDotNetParser<DotNetMethod> imple
                         break;
                     }
 
-                    DotNetMethod pendingMethod = new DotNetMethod();
+                    CSharpMethod pendingMethod = new CSharpMethod();
                     pendingMethod.setName(possibleMethodName);
                     pendingMethod.setReturnType(possibleMethodReturnType);
                     pendingMethod.setIsStatic(isPossibleStaticMethod);
                     pendingMethod.setAccessLevel(possibleAccessLevel);
                     pendingMethod.setStartLine(lineNumber);
 
-                    for (DotNetAttribute attribute : pendingAttributes) {
+                    for (CSharpAttribute attribute : pendingAttributes) {
                         pendingMethod.addAttribute(attribute);
                     }
 

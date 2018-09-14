@@ -4,7 +4,7 @@ import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
-public class DotNetClass {
+public class CSharpClass {
     private String name;
     private String namespace;
     private List<String> templateParameterNames = list();
@@ -13,8 +13,8 @@ public class DotNetClass {
 
     private String filePath;
 
-    private List<DotNetMethod> methods = list();
-    private List<DotNetAttribute> attributes = list();
+    private List<CSharpMethod> methods = list();
+    private List<CSharpAttribute> attributes = list();
 
     public String getFilePath() {
         return filePath;
@@ -64,19 +64,19 @@ public class DotNetClass {
         isStatic = aStatic;
     }
 
-    public List<DotNetMethod> getMethods() {
+    public List<CSharpMethod> getMethods() {
         return methods;
     }
 
-    public void addMethod(DotNetMethod method) {
+    public void addMethod(CSharpMethod method) {
         methods.add(method);
     }
 
-    public List<DotNetAttribute> getAttributes() {
+    public List<CSharpAttribute> getAttributes() {
         return attributes;
     }
 
-    public void addAttribute(DotNetAttribute attribute) {
+    public void addAttribute(CSharpAttribute attribute) {
         attributes.add(attribute);
     }
 

@@ -1,40 +1,22 @@
 package com.denimgroup.threadfix.framework.impl.dotNet.classParsers;
 
-import com.denimgroup.threadfix.data.entities.RouteParameter;
-import com.denimgroup.threadfix.data.entities.RouteParameterType;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
-import com.denimgroup.threadfix.framework.impl.dotNet.DotNetControllerMappings;
 import com.denimgroup.threadfix.framework.impl.dotNet.DotNetControllerParser;
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetAttribute;
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetClass;
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetMethod;
-import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.DotNetParameter;
-import com.denimgroup.threadfix.framework.util.CodeParseUtil;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
-import com.denimgroup.threadfix.framework.util.PathUtil;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
-import org.apache.commons.lang3.StringUtils;
 
-import javax.annotation.Nonnull;
-import java.io.File;
-import java.util.List;
 import java.util.Set;
 
-import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.set;
-import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.*;
-import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.FROM_BODY;
 
 public class OldControllerParser {
 
     //final List<DotNetClass> classes;
-    DotNetClass pendingClass;
-    DotNetClass finishedClass;
+    CSharpClass pendingClass;
+    CSharpClass finishedClass;
 
-    DotNetAttributeParser attributeParser;
-    DotNetMethodParser methodParser;
-    DotNetScopeTracker scopeTracker;
+    CSharpAttributeParser attributeParser;
+    CSharpMethodParser methodParser;
+    CSharpScopeTracker scopeTracker;
 
     private boolean disabled;
 
