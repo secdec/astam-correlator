@@ -73,7 +73,7 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
     public void processToken(int type, int lineNumber, String stringValue) {
         assert this.attributeParser != null : "setAttributeParser must be called before running CSharpParameterParser!";
 
-        if (isDisabled()) {
+        if (isDisabled() || scopeTracker.isInComment()) {
             return;
         }
 
@@ -116,7 +116,7 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
                     break;
                 }
 
-                if (pendingParameter.getType() == null && (stringValue != null || scopeTracker.isInString() || scopeTracker.getNumOpenParen() > 1)) {
+                if (pendingParameter.getType() == null && (stringValue != null || scopeTracker.isInString() || scopeTracker.getNumOpenParen() > 1 || scopeTracker.getNumOpenAngleBracket() > 0)) {
                     //  Try to detect parameter data type for parameter declarations
                     if (workingString == null) {
                         workingString = "";

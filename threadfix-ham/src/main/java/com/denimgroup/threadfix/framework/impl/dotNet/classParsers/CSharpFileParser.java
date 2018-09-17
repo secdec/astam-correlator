@@ -39,6 +39,7 @@ public class CSharpFileParser implements EventBasedTokenizer {
         //  parser comes first
 
         EventBasedTokenizerRunner.run(file,
+            new CSharpEventTokenizerConfigurator(),
             scopeTracker,
             fileParser,
             classParser,
@@ -89,6 +90,10 @@ public class CSharpFileParser implements EventBasedTokenizer {
         CSharpMethodParser methodParser = parsingContext.getMethodParser();
         CSharpParameterParser parameterParser = parsingContext.getParameterParser();
         CSharpAttributeParser attributeParser = parsingContext.getAttributeParser();
+
+        if (scopeTracker.isInComment()) {
+            return;
+        }
 
         if (currentFileState != FileState.IN_NAMESPACE) {
             classParser.disable();

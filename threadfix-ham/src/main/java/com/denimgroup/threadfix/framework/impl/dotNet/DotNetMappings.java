@@ -29,11 +29,11 @@ import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
+import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpEventTokenizerConfigurator;
 import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpFileParser;
-import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
-import com.denimgroup.threadfix.framework.util.FilePathUtils;
+import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpInterpolationDetectorFactory;
+import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpScopeTracker;
+import com.denimgroup.threadfix.framework.util.*;
 import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
@@ -41,6 +41,8 @@ import java.io.File;
 import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
+import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.cleanTypeName;
 
 /**
  * Created by mac on 6/16/14.
@@ -114,6 +116,8 @@ public class DotNetMappings implements EndpointGenerator {
             }
         }
 
+        expandBaseTypes(classes);
+
         List<DotNetMappingsGenerator> controllerMappingsGenerators = list();
         if (isDotNetCore) {
             controllerMappingsGenerators.add(new DotNetMappingsCoreGenerator(classes, routeParameters));
@@ -149,6 +153,39 @@ public class DotNetMappings implements EndpointGenerator {
         assert !generators.isEmpty();
 
         return new MultiGeneratorIterator(generators);
+    }
+
+    private void expandBaseTypes(List<CSharpClass> classes) {
+        Map<String, CSharpClass> namedClasses = map();
+        for (CSharpClass csClass : classes) {
+            namedClasses.put(csClass.getName(), csClass);
+        }
+
+        for (CSharpClass csClass : classes) {
+            List<String> newBaseTypes = list();
+            List<String> visitedBaseTypes = list();
+
+            do {
+                for (String baseType : newBaseTypes) {
+                    csClass.addBaseType(baseType);
+                }
+                newBaseTypes.clear();
+
+                for (String baseType : csClass.getBaseTypes()) {
+                    String cleanedBaseType = cleanTypeName(baseType);
+                    if (visitedBaseTypes.contains(cleanedBaseType)) {
+                        continue;
+                    }
+
+                    if (namedClasses.containsKey(cleanedBaseType)) {
+                        CSharpClass resolvedBaseType = namedClasses.get(cleanedBaseType);
+                        newBaseTypes.addAll(resolvedBaseType.getBaseTypes());
+                    }
+
+                    visitedBaseTypes.add(cleanedBaseType);
+                }
+            } while (!newBaseTypes.isEmpty());
+        }
     }
 
     private List<File> findSolutionFolders(File rootDirectory) {

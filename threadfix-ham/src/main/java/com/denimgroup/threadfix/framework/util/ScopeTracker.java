@@ -37,13 +37,53 @@ public class ScopeTracker {
     private boolean enteredString = false;
     private boolean exitedString = false;
 
+    private boolean isInterpolating = false;
+    private boolean enteredInterpolation = false;
+    private boolean exitedInterpolation = false;
+
+    private ScopeStringInterpolationDetector interpolationDetector;
+    private ScopeStringInterpolationDetectorFactory interpolationDetectorFactory;
+    private ScopeTracker interpolationScopeTracker;
+
+    public void setInterpolationDetectorFactory(ScopeStringInterpolationDetectorFactory interpolationDetectorFactory) {
+        this.interpolationDetectorFactory = interpolationDetectorFactory;
+        this.interpolationDetector = interpolationDetectorFactory.makeDetector(this);
+    }
+
     public void interpretToken(int token) {
 
         enteredScope = false; exitedScope = false;
         enteredGlobalScope = false; exitedGlobalScope = false;
         enteredString = false; exitedString = false;
+        enteredInterpolation = false; exitedInterpolation = false;
 
-        if ((token == '"' || token == '\'') && !nextIsEscaped) {
+        if (isInterpolating) {
+            interpolationScopeTracker.interpretToken(token);
+        }
+
+        if (isInterpolating && !interpolationScopeTracker.isInScopeOrString()) {
+            interpolationDetector.parseToken(token);
+        }
+
+        if (interpolationDetector != null) {
+            if (isInterpolating && !interpolationDetector.isInterpolatingString()) {
+                exitedInterpolation = true;
+                interpolationScopeTracker = null;
+            }
+            if (!isInterpolating && interpolationDetector.isInterpolatingString()) {
+                enteredInterpolation = true;
+                interpolationScopeTracker = new ScopeTracker();
+                interpolationScopeTracker.setInterpolationDetectorFactory(interpolationDetectorFactory);
+            }
+
+            isInterpolating = interpolationDetector.isInterpolatingString();
+        }
+
+        if (enteredInterpolation || exitedInterpolation || isInterpolating) {
+            return;
+        }
+
+        if ((token == '"' || token == '\'') && !nextIsEscaped && (interpolationScopeTracker == null || !interpolationScopeTracker.isInString())) {
             if (stringStartToken < 0) {
                 stringStartToken = token;
                 enteredString = true;
@@ -97,6 +137,10 @@ public class ScopeTracker {
                 }
             }
         }
+
+        if (interpolationDetector != null) {
+            interpolationDetector.parseToken(token);
+        }
     }
 
     public int getStringStartToken() {
@@ -149,6 +193,18 @@ public class ScopeTracker {
 
     public boolean exitedString() {
         return exitedString;
+    }
+
+    public boolean isInterpolating() {
+        return isInterpolating;
+    }
+
+    public boolean enteredInterpolation() {
+        return enteredInterpolation;
+    }
+
+    public boolean exitedInterpolation() {
+        return exitedInterpolation;
     }
 
     public boolean isNextEscaped() {

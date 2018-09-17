@@ -79,7 +79,7 @@ public class CSharpMethodParser extends AbstractCSharpParser<CSharpMethod> imple
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
-        if (isDisabled()) {
+        if (isDisabled() || scopeTracker.isInComment()) {
             return;
         }
 

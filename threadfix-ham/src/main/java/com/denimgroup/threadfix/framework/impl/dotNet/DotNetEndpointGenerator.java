@@ -88,8 +88,6 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         dotNetModelMappings = modelMappings;
         csharpClasses = classes;
 
-        expandBaseTypes(csharpClasses);
-
         assembleEndpoints(rootDirectory);
         expandAmbiguousEndpoints();
 
@@ -301,39 +299,6 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         }
 
         return mappings;
-    }
-
-    private void expandBaseTypes(List<CSharpClass> classes) {
-        Map<String, CSharpClass> namedClasses = map();
-        for (CSharpClass csClass : classes) {
-            namedClasses.put(csClass.getName(), csClass);
-        }
-
-        for (CSharpClass csClass : classes) {
-            List<String> newBaseTypes = list();
-            List<String> visitedBaseTypes = list();
-
-            do {
-                for (String baseType : newBaseTypes) {
-                    csClass.addBaseType(baseType);
-                }
-                newBaseTypes.clear();
-
-                for (String baseType : csClass.getBaseTypes()) {
-                    String cleanedBaseType = cleanTypeName(baseType);
-                    if (visitedBaseTypes.contains(cleanedBaseType)) {
-                        continue;
-                    }
-
-                    if (namedClasses.containsKey(cleanedBaseType)) {
-                        CSharpClass resolvedBaseType = namedClasses.get(cleanedBaseType);
-                        newBaseTypes.addAll(resolvedBaseType.getBaseTypes());
-                    }
-
-                    visitedBaseTypes.add(cleanedBaseType);
-                }
-            } while (!newBaseTypes.isEmpty());
-        }
     }
 
     private void assembleEndpoints(File rootDirectory) {

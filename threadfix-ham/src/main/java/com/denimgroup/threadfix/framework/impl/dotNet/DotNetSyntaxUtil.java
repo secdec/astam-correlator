@@ -14,6 +14,7 @@ public class DotNetSyntaxUtil {
             || (token == '[' || token == ']')
             || (token == '<' || token == '>')
             || (token == '?')
+            || (token == ',') // multiple template parameters in a type name
             || (token == '.') // For direct reference by namespace ie System.IO.File
         ;
     }

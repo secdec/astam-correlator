@@ -78,6 +78,10 @@ public class CSharpClassParser extends AbstractCSharpParser<CSharpClass> impleme
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
 
+        if (isDisabled() || scopeTracker.isInComment()) {
+            return;
+        }
+
         if (currentClassState != ClassState.SEARCH && currentClassState != ClassState.IN_CLASS) {
             attributeParser.disableAll();
         }

@@ -64,7 +64,7 @@ public class CSharpAttributeParser extends AbstractCSharpParser<CSharpAttribute>
 
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
-        if (isDisabled()) {
+        if (isDisabled() || scopeTracker.isInComment()) {
             return;
         }
 
