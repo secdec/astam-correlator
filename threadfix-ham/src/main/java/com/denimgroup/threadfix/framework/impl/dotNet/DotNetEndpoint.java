@@ -70,7 +70,10 @@ public class DotNetEndpoint extends AbstractEndpoint {
         }
         this.filePath = filePath;
         this.action = action;
-        this.pathPattern = Pattern.compile(path.replaceAll("\\{.+\\}", "[^\\/]+"));
+        this.pathPattern = Pattern.compile(
+            path.replaceAll("\\{.+\\}", "[^\\/]+")
+                .replaceAll("\\{\\*.*\\}", ".*")
+        );
 
         this.routeParameters = map();
         for (Map.Entry<String, RouteParameter> param : action.parameters.entrySet()) {
@@ -155,7 +158,7 @@ public class DotNetEndpoint extends AbstractEndpoint {
     @Override
     public List<EndpointPathNode> getUrlPathNodes() {
 
-    	String replaceParamsPattern = "\\{(\\w+)\\}";
+    	String replaceParamsPattern = "\\{[^\\}]*\\}";
         List<EndpointPathNode> result = new ArrayList<EndpointPathNode>();
 
         String[] pathParts = StringUtils.split(path, '/');
