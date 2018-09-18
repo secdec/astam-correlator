@@ -25,6 +25,8 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpMethod;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,6 +42,7 @@ import static com.denimgroup.threadfix.framework.impl.dotNet.Action.action;
 public class DotNetControllerMappings {
     private String       areaName = null;
     private String       controllerName = null;
+    private CSharpClass  controllerClass = null;
     private List<Action> actions        = list();
     private String       namespace = null;
     private List<String> explicitRoutes = list();
@@ -60,6 +63,14 @@ public class DotNetControllerMappings {
         return controllerName;
     }
 
+    public void setControllerClass(CSharpClass controllerClass) {
+        this.controllerClass = controllerClass;
+    }
+
+    public CSharpClass getControllerClass() {
+        return controllerClass;
+    }
+
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
@@ -78,6 +89,16 @@ public class DotNetControllerMappings {
         return areaName;
     }
 
+    public boolean hasActionNames() {
+        //  Whether or not actions from this controller are to be mapped by their name
+        for (Action action : actions) {
+            if (action.isMethodBasedAction) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public boolean hasAreaName(){ return areaName != null && !areaName.isEmpty();}
 
     public boolean hasValidMappings() {
@@ -90,8 +111,10 @@ public class DotNetControllerMappings {
                           @Nonnull Integer lineNumber,
                           @Nonnull Integer endLineNumber,
                           @Nonnull Set<RouteParameter> parametersWithTypes,
-                          @Nullable String explicitRoute) {
-        actions.add(action(action, attributes, lineNumber, endLineNumber, parametersWithTypes, explicitRoute));
+                          @Nullable String explicitRoute,
+                          @Nonnull CSharpMethod actionMethod,
+                          boolean isMethodBasedAction) {
+        actions.add(action(action, attributes, lineNumber, endLineNumber, parametersWithTypes, explicitRoute, actionMethod, isMethodBasedAction));
     }
 
     @Nonnull

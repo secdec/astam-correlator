@@ -39,9 +39,12 @@ public class DotNetRouteMappings {
     List<MapRoute> routes = list();
 
 
-    public DotNetRouteMappings() {}
 
-    static class ConcreteRoute {
+    public boolean hasRoutes() {
+        return !routes.isEmpty();
+    }
+
+    public static class ConcreteRoute {
         ConcreteRoute(String controller, String action, String parameter) {
             assert action != null;
             assert controller != null;
@@ -61,19 +64,29 @@ public class DotNetRouteMappings {
         String area;
     }
 
-    static class MapRoute {
+    public static class MapRoute {
         String        name;
         String        url;
         ConcreteRoute defaultRoute;
-        Collection<String>  namespaces;
+        Collection<String> namespaces;
+        String dedicatedController;
 
-        MapRoute(String name, String url, ConcreteRoute defaultRoute, Collection<String> namespaces) {
+        MapRoute(String name, String url, ConcreteRoute defaultRoute, String dedicatedController, Collection<String> namespaces) {
             assert name != null;
             assert url != null;
             this.name = name;
             this.url = url;
             this.defaultRoute = defaultRoute;
             this.namespaces = namespaces;
+            this.dedicatedController = dedicatedController;
+        }
+
+        public boolean hasAreaMapping() {
+            return url != null && (url.contains("[area]") || url.contains("{area}"));
+        }
+
+        public boolean hasControllerMapping() {
+            return url != null && (url.contains("[controller]") || url.contains("{controller}"));
         }
     }
 
@@ -97,10 +110,28 @@ public class DotNetRouteMappings {
         ConcreteRoute defaultRoute = controller != null && action != null ?
                 new ConcreteRoute(area, controller, action, parameter) :
                 null;
-        routes.add(new MapRoute(name, url, defaultRoute, namespaces));
+        routes.add(new MapRoute(name, url, defaultRoute, controller, namespaces));
     }
 
-    public MapRoute getMatchingMapRoute(boolean hasAreaInMappings, String controllerName, String controllerNamespace){
+//    public String getActionUrl(DotNetControllerMappings controllerMappings, Action action) {
+//        String actionUrl = null;
+//        for (AbstractEndpointMapper endpointMapper : endpointMappers) {
+//            if (endpointMapper.canMapController(controllerMappings)) {
+//                actionUrl = endpointMapper.buildEndpointPath(this.routes, controllerMappings, action);
+//            }
+//        }
+//        return actionUrl;
+//    }
+
+    private boolean urlHasController(String url) {
+        return url.contains("[controller]") || url.contains("{controller}");
+    }
+
+    private boolean urlHasAction(String url) {
+        return url.contains("[action]") || url.contains("{action}");
+    }
+
+    public MapRoute getMatchingMapRoute(boolean hasAreaInMappings, boolean hasActionInMappings, String controllerName, String controllerNamespace){
         if(routes.size() == 1) return routes.get(0);
         if(routes.size() == 0) return null;
 
@@ -109,11 +140,13 @@ public class DotNetRouteMappings {
             if (route.namespaces.size() > 0) {
                 if (controllerNamespace == null) {
                     continue;
-                } else {
+                } else if (hasActionInMappings == urlHasAction(route.url)) {
                     for (String routeNamespace : route.namespaces) {
                         if (controllerNamespace.startsWith(routeNamespace)) {
                             //  Match if "controller" is variable, or if a controller was specified and it matches the current controller
-                            if (route.url.contains("{controller}") || (route.defaultRoute != null && controllerName.equals(route.defaultRoute.controller))) {
+                            if (route.url.contains("{controller}")
+                                || (route.defaultRoute != null && controllerName.equals(route.defaultRoute.controller))
+                                || (route.dedicatedController != null && controllerName.equals(route.dedicatedController))) {
                                 mapRoute = route;
                                 break;
                             }
@@ -124,7 +157,10 @@ public class DotNetRouteMappings {
                 }
             }
 
-            if(hasAreaInMappings && (route.url.contains("area") || "areaRoute".equalsIgnoreCase(route.name))){
+            if(hasAreaInMappings && (route.url.contains("area") || "areaRoute".equalsIgnoreCase(route.name))) {
+                mapRoute = route;
+                break;
+            } else if (hasActionInMappings == urlHasAction(route.url)) {
                 mapRoute = route;
                 break;
             } else if(!hasAreaInMappings && route.url.contains(controllerName) && !route.url.contains("area")){
@@ -138,7 +174,7 @@ public class DotNetRouteMappings {
 
         if (mapRoute == null) {
         	for (MapRoute route : routes) {
-        		if (route.url.contains("{controller}") && route.url.contains("{action}")) {
+        		if (urlHasController(route.url) && urlHasAction(route.url)) {
         			mapRoute = route;
         			break;
 		        }

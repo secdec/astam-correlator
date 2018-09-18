@@ -29,16 +29,16 @@ import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
-import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpAttribute;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpParameter;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.EndpointValidationStatistics;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.ParameterMerger;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
-import org.apache.commons.io.FileUtils;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -48,8 +48,6 @@ import java.util.regex.Pattern;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
-import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetPathCleaner.cleanStringFromCode;
-import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.cleanTypeName;
 
 /**
  * Created by mac on 6/11/14.
@@ -57,7 +55,7 @@ import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.cl
 public class DotNetEndpointGenerator implements EndpointGenerator {
 
     private final List<DotNetControllerMappings> dotNetControllerMappings;
-    private final DotNetRouteMappings            dotNetRouteMappings;
+    private final DotNetRouteMappings dotNetRouteMappings;
     private final DotNetModelMappings            dotNetModelMappings;
     private final List<CSharpClass>              csharpClasses;
     private final List<Endpoint> endpoints = list();
@@ -88,6 +86,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         dotNetModelMappings = modelMappings;
         csharpClasses = classes;
 
+        assembleExplicitEndpoints(rootDirectory);
         assembleEndpoints(rootDirectory);
         expandAmbiguousEndpoints();
 
@@ -118,7 +117,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         EndpointValidationStatistics.printValidationStats(endpoints);
     }
 
-    private void assembleMappedEndpoints(File rootDirectory) {
+    private void assembleExplicitEndpoints(File rootDirectory) {
         //  Add actions with explicit endpoints
         for (DotNetControllerMappings mappings : dotNetControllerMappings) {
             if (mappings.getControllerName() == null) {
@@ -128,7 +127,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
             }
 
             for (Action action : mappings.getActions()) {
-                if (action.explicitRoute == null) {
+                if (action.explicitRoute == null || action.isMethodBasedAction) {
                     continue;
                 }
 
@@ -141,7 +140,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                     filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
                 }
 
-                String endpoint = action.explicitRoute;
+                String endpoint = formatActionPath(action.explicitRoute, mappings.getControllerName(), action.name, mappings.getAreaName(), false);
                 if (!endpoint.startsWith("/")) {
                     endpoint = "/" + endpoint;
                 }
@@ -150,10 +149,10 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         }
     }
 
-    private void assembleAnnotatedEndpoints(File rootDirectory) {
-        if (dotNetRouteMappings == null || dotNetRouteMappings.routes == null) {
-            LOG.debug("No 'MapRoute' mappings found in " + rootDirectory.getAbsolutePath());
-            return;
+    private void assembleEndpoints(File rootDirectory) {
+        if (dotNetRouteMappings == null) {
+            LOG.error("No mappings found for project. Exiting.");
+            return; // can't do anything without routes
         }
 
         List<DotNetRouteMappings.MapRoute> visitedRoutes = list();
@@ -165,41 +164,16 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 continue;
             }
 
-            DotNetRouteMappings.MapRoute mapRoute = dotNetRouteMappings.getMatchingMapRoute(mappings.hasAreaName(), mappings.getControllerName(), mappings.getNamespace());
+            DotNetRouteMappings.MapRoute mapRoute = dotNetRouteMappings.getMatchingMapRoute(mappings.hasAreaName(), mappings.hasActionNames(), mappings.getControllerName(), mappings.getNamespace());
 
             if (mapRoute == null ||  mapRoute.url == null || mapRoute.url.equals(""))
                 continue;
-
-            if (!visitedRoutes.contains(mapRoute)) {
-                visitedRoutes.add(mapRoute);
-            }
 
             for (Action action : mappings.getActions()) {
                 if (action == null) {
                     LOG.debug("Action was null. Skipping to the next.");
                     assert false : "mappings.getActions() returned null. This shouldn't happen.";
                     continue;
-                }
-
-                String pattern = mapRoute.url;
-                //  If a specific action was set for this route, only create endpoints when we get to that action
-                if (!pattern.contains("{action}") && mapRoute.defaultRoute != null && !action.name.equals(mapRoute.defaultRoute.action)) {
-                    continue;
-                }
-
-                LOG.debug("Substituting patterns from route " + action + " into template " + pattern);
-
-                String result = pattern
-                    // substitute in controller name for {controller}
-                    .replaceAll("\\{\\w*controller\\w*\\}", mappings.getControllerName());
-                if(mappings.hasAreaName()){
-                    result = result.replaceAll("\\{\\w*area\\w*\\}", mappings.getAreaName());
-                }
-
-                if (action.name.equals("Index")) {
-                    result = result.replaceAll("/\\{\\w*action\\w*\\}", "");
-                } else {
-                    result = result.replaceAll("\\{\\w*action\\w*\\}", action.name);
                 }
 
                 boolean shouldReplaceParameterSection = true;
@@ -217,171 +191,48 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                     }
                 }
 
-                if (shouldReplaceParameterSection) {
-                    result = result.replaceAll("/\\{[^\\}]*\\}", "");
-                }
-
-                // Commented since this would remove valuable information regarding parametric routes
-                //result = cleanStringFromCode(result);
-
-                if (!result.startsWith("/")) {
-                    result = "/" + result;
-                }
-
-                expandParameters(action);
-
-                LOG.debug("Got result " + result);
-
-                String filePath = mappings.getFilePath();
-                if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
-                    filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
-                }
-
-                endpoints.add(new DotNetEndpoint(result, filePath, action));
-            }
-        }
-
-        //  Add routes that only have default controllers specified (which wouldn't have been
-        //  enumerated in the previous loop)
-        List<DotNetRouteMappings.MapRoute> unvisitedRoutes = new ArrayList<DotNetRouteMappings.MapRoute>(dotNetRouteMappings.routes);
-        unvisitedRoutes.removeAll(visitedRoutes);
-        for (DotNetRouteMappings.MapRoute route : unvisitedRoutes) {
-            if (route.defaultRoute == null) {
-                continue;
-            }
-
-            DotNetRouteMappings.ConcreteRoute defaultRoute = route.defaultRoute;
-            String result = route.url;
-            if (!result.startsWith("/")) {
-                result = "/" + result;
-            }
-
-            DotNetControllerMappings controllerMappings = null;
-            Action action = null;
-            for (DotNetControllerMappings mappings : dotNetControllerMappings) {
-                if (controllerMappings != null) {
-                    break;
-                }
-
-                if (mappings.getControllerName() != null && mappings.getControllerName().equals(defaultRoute.controller)) {
-                    for (Action controllerAction : mappings.getActions()) {
-                        if (controllerAction.explicitRoute == null && controllerAction.name.equals(defaultRoute.action)) {
-                            controllerMappings = mappings;
-                            action = controllerAction;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (controllerMappings == null || action == null) {
-                continue;
-            }
-
-            result = result.replaceAll("\\{controller\\}", controllerMappings.getControllerName());
-            result = result.replaceAll("\\{action\\}", action.name);
-
-            String filePath = controllerMappings.getFilePath();
-            if (filePath.startsWith(rootDirectory.getAbsolutePath())) {
-                filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
-            }
-
-            endpoints.add(new DotNetEndpoint(result, filePath, action));
-        }
-    }
-
-    private List<DotNetControllerMappings> generateMappingsFromClasses(List<CSharpClass> classes) {
-        List<DotNetControllerMappings> mappings = list();
-
-        for (CSharpClass csClass : classes) {
-            DotNetControllerMappings classMappings = new DotNetControllerMappings(csClass.getFilePath());
-
-        }
-
-        return mappings;
-    }
-
-    private void assembleEndpoints(File rootDirectory) {
-        if (dotNetRouteMappings == null || dotNetRouteMappings.routes == null) {
-            LOG.error("No mappings found for project. Exiting.");
-            return; // can't do anything without routes
-        }
-
-        List<DotNetRouteMappings.MapRoute> visitedRoutes = list();
-
-        for (DotNetControllerMappings mappings : dotNetControllerMappings) {
-            if (mappings.getControllerName() == null) {
-                LOG.debug("Controller Name was null. Skipping to the next.");
-                assert false;
-                continue;
-            }
-
-            DotNetRouteMappings.MapRoute mapRoute = dotNetRouteMappings.getMatchingMapRoute(mappings.hasAreaName(), mappings.getControllerName(), mappings.getNamespace());
-
-            if (mapRoute == null ||  mapRoute.url == null || mapRoute.url.equals(""))
-                continue;
-
-            if (!visitedRoutes.contains(mapRoute)) {
-            	visitedRoutes.add(mapRoute);
-            }
-
-            for (Action action : mappings.getActions()) {
-                if (action == null) {
-                    LOG.debug("Action was null. Skipping to the next.");
-                    assert false : "mappings.getActions() returned null. This shouldn't happen.";
+                //  Actions mapped via HTTP method instead of action name will have a explicitRoute assigned, which
+                //  will be used as the action name instead. Non-method-mapped actions should not have an explicit
+                //  route assigned
+                if (action.explicitRoute != null && !action.isMethodBasedAction) {
                     continue;
                 }
 
                 String pattern = mapRoute.url;
+                String result = null;
                 //  If a specific action was set for this route, only create endpoints when we get to that action
-                if (!pattern.contains("{action}") && mapRoute.defaultRoute != null && !action.name.equals(mapRoute.defaultRoute.action)) {
-                    continue;
+                if (!pattern.contains("{action}") && !pattern.contains("[action]")) {
+                    if (mapRoute.defaultRoute != null && !action.name.equals(mapRoute.defaultRoute.action)) {
+                        continue;
+                    } else if (action.isMethodBasedAction) {
+                        result = formatActionPath(
+                            mapRoute.url,
+                            mappings.getControllerName(),
+                            action.explicitRoute,
+                            mappings.hasAreaName() ? mappings.getAreaName() : null,
+                            shouldReplaceParameterSection
+                        );
+                    }
                 }
 
                 LOG.debug("Substituting patterns from route " + action + " into template " + pattern);
 
-                String result = pattern
-                        // substitute in controller name for {controller}
-                        .replaceAll("\\{\\w*controller\\w*\\}", mappings.getControllerName());
-                if(mappings.hasAreaName()){
-                    result = result.replaceAll("\\{\\w*area\\w*\\}", mappings.getAreaName());
-                }
-
-                if (action.name.equals("Index")) {
-                    result = result.replaceAll("/\\{\\w*action\\w*\\}", "");
-                } else {
-                    result = result.replaceAll("\\{\\w*action\\w*\\}", action.name);
-                }
-
-                boolean shouldReplaceParameterSection = true;
-
-                if(action.parameters != null &&
-                        mapRoute.defaultRoute != null &&
-                        action.parameters.keySet().contains(mapRoute.defaultRoute.parameter)) {
-
-                    String lowerCaseParameterName = mapRoute.defaultRoute.parameter.toLowerCase();
-                    for (String parameter : action.parameters.keySet()) {
-                        if (parameter.toLowerCase().equals(lowerCaseParameterName)) {
-                            shouldReplaceParameterSection = false;
-                            break;
-                        }
-                    }
-                }
-
-                if (shouldReplaceParameterSection) {
-                    result = result.replaceAll("/\\{[^\\}]*\\}", "");
+                if (result == null) {
+                    result = formatActionPath(
+                        mapRoute.url,
+                        mappings.getControllerName(),
+                        action.name.equals("Index") ? null : action.name,
+                        mappings.hasAreaName() ? mappings.getAreaName() : null,
+                        shouldReplaceParameterSection
+                    );
                 }
 
                 // Commented since this would remove valuable information regarding parametric routes
                 //result = cleanStringFromCode(result);
 
-                if (!result.startsWith("/")) {
-                    result = "/" + result;
-                }
+                LOG.debug("Got result " + result);
 
                 expandParameters(action);
-
-                LOG.debug("Got result " + result);
 
                 String filePath = mappings.getFilePath();
                 if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
@@ -389,11 +240,16 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 }
 
                 endpoints.add(new DotNetEndpoint(result, filePath, action));
+
+                if (!visitedRoutes.contains(mapRoute)) {
+                    visitedRoutes.add(mapRoute);
+                }
             }
         }
 
         //  Add routes that only have default controllers specified (which wouldn't have been
 	    //  enumerated in the previous loop)
+
         List<DotNetRouteMappings.MapRoute> unvisitedRoutes = new ArrayList<DotNetRouteMappings.MapRoute>(dotNetRouteMappings.routes);
         unvisitedRoutes.removeAll(visitedRoutes);
         for (DotNetRouteMappings.MapRoute route : unvisitedRoutes) {
@@ -429,8 +285,13 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         		continue;
 	        }
 
-	        result = result.replaceAll("\\{controller\\}", controllerMappings.getControllerName());
-        	result = result.replaceAll("\\{action\\}", action.name);
+	        result = formatActionPath(
+	            result,
+                controllerMappings.getControllerName(),
+                action.name,
+                controllerMappings.hasAreaName() ? controllerMappings.getAreaName() : null,
+                false
+            );
 
 	        String filePath = controllerMappings.getFilePath();
         	if (filePath.startsWith(rootDirectory.getAbsolutePath())) {
@@ -440,6 +301,25 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 	        endpoints.add(new DotNetEndpoint(result, filePath, action));
         }
 
+    }
+
+    private String formatActionPath(String actionPath, String controllerName, String actionName, String areaName, boolean shouldReplaceParameterSection) {
+        String result = actionPath;
+        result = result.replaceAll("[\\[\\{]controller[\\]\\}]", controllerName);
+        if (actionName != null) {
+            result = result.replaceAll("[\\[\\{]action[\\]\\}]", actionName);
+        }
+        if (areaName != null) {
+            result = result.replaceAll("[{\\[]\\w*area\\w*[}\\]]", areaName);
+        }
+        if (shouldReplaceParameterSection) {
+            result = result.replaceAll("/\\{[^\\}]*\\}", "");
+        }
+
+        if (!result.startsWith("/")) {
+            result = "/" + result;
+        }
+        return result;
     }
 
     //  Find parametric endpoints and add embedded parameters if necessary
@@ -484,8 +364,26 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                     parameters = dotNetModelMappings.getPossibleParametersForModelType(cleanedDataTypeSource);
                 }
                 if (!parameters.getFieldSet().isEmpty()) {
+                    List<String> includedParamNames = null;
+                    CSharpParameter methodParameter = action.actionMethod.getParameter(param.getName());
+                    CSharpAttribute bindAttribute = methodParameter.getAttribute("Bind");
+                    if (bindAttribute != null) {
+                        CSharpParameter includeParameter = bindAttribute.getParameterValue("Include");
+                        if (includeParameter != null) {
+                            String includeString = includeParameter.getStringValue();
+                            includedParamNames = list();
+                            for (String paramName : includeString.split(",")) {
+                                includedParamNames.add(paramName.trim());
+                            }
+                        }
+                    }
+
                     action.parameters.remove(param.getName());
                     for (ModelField possibleParameter : parameters) {
+                        if (includedParamNames != null && !includedParamNames.contains(possibleParameter.getParameterKey())) {
+                            continue;
+                        }
+
                         RouteParameter newParam = new RouteParameter(possibleParameter.getParameterKey());
                         newParam.setDataType(possibleParameter.getType());
                         newParam.setParamType(RouteParameterType.FORM_DATA); // All non-primitives are serialized as form data

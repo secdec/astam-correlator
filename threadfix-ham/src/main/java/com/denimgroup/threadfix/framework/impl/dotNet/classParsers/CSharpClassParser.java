@@ -146,6 +146,12 @@ public class CSharpClassParser extends AbstractCSharpParser<CSharpClass> impleme
                 } else if (type == ',' && scopeTracker.getNumOpenAngleBracket() == 0) {
                     pendingClass.addBaseType(workingString);
                     workingString = null;
+                } else if ("where".equals(stringValue)) {
+                    if (workingString != null) {
+                        pendingClass.addBaseType(workingString);
+                        workingString = null;
+                    }
+                    currentClassState = ClassState.WHERE_CLAUSE;
                 } else {
                     if (workingString == null) {
                         workingString = "";

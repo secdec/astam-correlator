@@ -1,5 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions;
 
+import com.denimgroup.threadfix.framework.util.CodeParseUtil;
+
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
@@ -46,6 +48,14 @@ public class CSharpParameter extends CanHaveAttributes {
 
     public String getValue() {
         return value;
+    }
+
+    public String getStringValue() {
+        String result = value;
+        if (result != null) {
+            result = CodeParseUtil.trim(result, "\"");
+        }
+        return result;
     }
 
     public void setValue(String value) {

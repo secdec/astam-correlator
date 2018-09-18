@@ -25,14 +25,10 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
-import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
-import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpEventTokenizerConfigurator;
 import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpFileParser;
-import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpInterpolationDetectorFactory;
-import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpScopeTracker;
 import com.denimgroup.threadfix.framework.util.*;
 import org.apache.commons.io.FileUtils;
 
@@ -130,10 +126,32 @@ public class DotNetMappings implements EndpointGenerator {
             controllerMappingsList.addAll(generator.generate());
         }
 
+        Map<String, CSharpClass> classesByFile = map();
+        for (CSharpClass cSharpClass : classes) {
+            String filePath = cSharpClass.getFilePath();
+            if (!classesByFile.containsKey(filePath)) {
+                classesByFile.put(filePath, cSharpClass);
+            } else {
+                CSharpClass existingClass = classesByFile.get(filePath);
+                if (cSharpClass.getName().endsWith("Controller") && !existingClass.getName().endsWith("Controller")) {
+                    classesByFile.put(filePath, cSharpClass);
+                }
+            }
+        }
+
+        for (DotNetControllerMappings controllerMappings : controllerMappingsList) {
+            CSharpClass controllerClass = classesByFile.get(controllerMappings.getFilePath());
+            if (controllerClass != null) {
+                controllerMappings.setControllerClass(controllerClass);
+            }
+        }
+
         DotNetModelMappings modelMappings = new DotNetModelMappings(modelParsers);
 
         generators.add(new DotNetEndpointGenerator(rootDirectory, routeMappings, modelMappings, classes, controllerMappingsList));
     }
+
+
 
     @Nonnull
     @Override

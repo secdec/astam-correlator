@@ -371,7 +371,9 @@ public class DotNetControllerParser implements EventBasedTokenizer {
                         explicitActionRoute = PathUtil.combine(controllerBaseRoute, explicitActionRoute);
                     currentMapping.addAction(
                             methodName, currentAttributes, methodLineNumber,
-                            lineNumber, parametersWithTypes, explicitActionRoute);
+                            lineNumber, parametersWithTypes, explicitActionRoute,
+                            null,
+                            false);
                     currentAttributes = set();
                     parametersWithTypes = set();
                     methodName = null;

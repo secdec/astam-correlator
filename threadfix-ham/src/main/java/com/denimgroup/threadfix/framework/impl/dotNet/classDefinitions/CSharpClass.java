@@ -66,6 +66,16 @@ public class CSharpClass extends CanHaveAttributes {
         return methods;
     }
 
+    public List<CSharpMethod> getMethods(CSharpMethod.AccessLevel accessLevel) {
+        List<CSharpMethod> result = list();
+        for (CSharpMethod method : methods) {
+            if (method.getAccessLevel() == accessLevel) {
+                result.add(method);
+            }
+        }
+        return result;
+    }
+
     public void addMethod(CSharpMethod method) {
         methods.add(method);
     }

@@ -26,6 +26,7 @@
 package com.denimgroup.threadfix.framework.util;
 
 import com.denimgroup.threadfix.logging.SanitizedLogger;
+import org.apache.commons.io.input.BOMInputStream;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -68,7 +69,7 @@ public class EventBasedTokenizerRunner {
         if (file != null && file.exists() && file.isFile()) {
             Reader reader = null;
             try {
-                reader = new InputStreamReader(new FileInputStream(file), "UTF-8");
+                reader = new InputStreamReader(new BOMInputStream(new FileInputStream(file)), "UTF-8");
                 StreamTokenizer tokenizer = new StreamTokenizer(reader);
                 tokenizer.ordinaryChar('<');
                 tokenizer.wordChars(':', ':');

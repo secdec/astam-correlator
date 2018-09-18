@@ -27,6 +27,7 @@ import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpMethod;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.annotation.Nonnull;
@@ -42,7 +43,7 @@ import static com.denimgroup.threadfix.CollectionUtils.set;
 /**
  * Created by mac on 6/26/14.
  */
-class Action {
+public class Action {
     @Nonnull
     String      name;
     @Nonnull
@@ -52,11 +53,14 @@ class Action {
     @Nonnull
     Integer     endLineNumber = -1;
     @Nonnull
-    Map<String, RouteParameter> parameters = map();
+    public Map<String, RouteParameter> parameters = map();
     @Nonnull
     Set<RouteParameter> parametersWithTypes;
     @Nullable
     String explicitRoute;
+    boolean isMethodBasedAction;
+    @Nonnull
+    CSharpMethod actionMethod;
 
     List<String> getMethods() {
         List<String> methods = list();
@@ -85,7 +89,9 @@ class Action {
                          @Nonnull Integer lineNumber,
                          @Nonnull Integer endLineNumber,
                          @Nonnull Set<RouteParameter> parametersWithTypes,
-                         @Nullable String explicitRoute) {
+                         @Nullable String explicitRoute,
+                         @Nonnull CSharpMethod actionMethod,
+                         boolean isMethodBasedAction) {
         Action action = new Action();
         action.name = name;
         action.attributes = attributes;
@@ -93,6 +99,8 @@ class Action {
         action.endLineNumber = endLineNumber;
         action.parametersWithTypes = set();
         action.explicitRoute = explicitRoute;
+        action.actionMethod = actionMethod;
+        action.isMethodBasedAction = isMethodBasedAction;
 
         Map<String, List<RouteParameter>> duplicateParameterData = map();
 

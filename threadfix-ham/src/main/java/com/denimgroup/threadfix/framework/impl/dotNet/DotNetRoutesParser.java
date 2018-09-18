@@ -48,8 +48,12 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
     public static final boolean logParsing = false;
 
     public boolean hasValidMappings() {
-        return !mappings.routes.isEmpty();
+        return mappings.hasRoutes();
     }
+
+//    public DotNetRoutesParser(boolean isAspCore) {
+//        mappings = new DotNetRouteMappings(isAspCore);
+//    }
 
     @Nonnull
     public static DotNetRouteMappings parse(@Nonnull File file) {
@@ -196,16 +200,12 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                     currentClassBodyState = ClassBodyState.ROUTE_COLLECTION;
                 } else if(IAPPLICATION_BUILDER.equals(stringValue)){
                     currentClassBodyState = ClassBodyState.IAPPLICATION_BUILDER;
-                }
-                else if (IROUTE_BUILDER.equals(stringValue))
+                } else if (IROUTE_BUILDER.equals(stringValue)) {
                     currentClassBodyState = ClassBodyState.IROUTE_BUILDER;
+                }
 
                 if (type == ')' && currentParenCount == parenCount) {
-                    if (variableName == null) {
-                        currentClassBodyState = ClassBodyState.START;
-                    } else {
-                        currentClassBodyState = ClassBodyState.METHOD_BODY;
-                    }
+                    currentClassBodyState = ClassBodyState.METHOD_BODY;
                 }
                 break;
             case ROUTE_COLLECTION:
@@ -221,11 +221,9 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                 currentClassBodyState = ClassBodyState.METHOD_SIGNATURE;
                 break;
             case METHOD_BODY:
-                assert variableName != null;
-
-                if (stringValue != null && stringValue.equals(variableName + ".MapRoute")) {
+                if (stringValue != null && (stringValue.equals(variableName + ".MapRoute") || stringValue.equals(variableName + ".MapHttpRoute"))) {
                     currentClassBodyState = ClassBodyState.MAP_ROUTE;
-                } else if (stringValue != null && stringValue.equals("routes.MapRoute")){
+                } else if (stringValue != null && (stringValue.endsWith(".MapRoute") || stringValue.endsWith(".MapHttpRoute"))){
                     currentClassBodyState = ClassBodyState.MAP_ROUTE;
                 }
                 break;

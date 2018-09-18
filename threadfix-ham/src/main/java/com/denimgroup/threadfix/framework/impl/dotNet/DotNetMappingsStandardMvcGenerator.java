@@ -6,6 +6,7 @@ import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpCla
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpMethod;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpParameter;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -36,12 +37,13 @@ public class DotNetMappingsStandardMvcGenerator implements DotNetMappingsGenerat
         List<DotNetControllerMappings> controllerMappings = list();
 
         for (CSharpClass csClass : classes) {
-            if (!isControllerClass(csClass) || isApiControllerClass(csClass)) {
+            if (!isControllerClass(csClass)) {
                 continue;
             }
 
             DotNetControllerMappings currentMappings = new DotNetControllerMappings(csClass.getFilePath());
             currentMappings.setControllerName(csClass.getName().substring(0, csClass.getName().length() - "Controller".length()));
+            currentMappings.setNamespace(csClass.getNamespace());
 
             CSharpAttribute areaAttribute = csClass.getAttribute("RouteArea");
             if (areaAttribute != null && areaAttribute.getParameterValue(0) != null) {
@@ -51,6 +53,7 @@ public class DotNetMappingsStandardMvcGenerator implements DotNetMappingsGenerat
             RouteParameterMap fileParameters = routeParameters.get(csClass.getFilePath());
             if (fileParameters == null) {
                 fileParameters = new RouteParameterMap();
+                routeParameters.put(csClass.getFilePath(), fileParameters);
             }
 
             for (CSharpMethod method : csClass.getMethods()) {
@@ -97,28 +100,17 @@ public class DotNetMappingsStandardMvcGenerator implements DotNetMappingsGenerat
             }
         }
 
-        Map<String, RouteParameter> namedRouteParameters = map();
-        for (RouteParameter param : methodRouteParameters) {
-            namedRouteParameters.put(param.getName(), param);
-        }
-
-        for (CSharpParameter param : method.getParameters()) {
-            RouteParameter routeParam = namedRouteParameters.get(param.getName());
-            if (routeParam == null) {
-                routeParam = new RouteParameter(param.getName());
-                namedRouteParameters.put(param.getName(), routeParam);
-            }
-
-            routeParam.setDataType(param.getType());
-        }
+        Collection<RouteParameter> mergedParameters = DotNetParameterUtil.getMergedMethodParameters(method.getParameters(), methodRouteParameters);
 
         controller.addAction(
             method.getName(),
             new HashSet<String>(attributeNames),
             method.getStartLine(),
             method.getEndLine(),
-            new HashSet<RouteParameter>(namedRouteParameters.values()),
-            explicitPath
+            new HashSet<RouteParameter>(mergedParameters),
+            explicitPath,
+            method,
+            false
         );
     }
 
@@ -138,9 +130,5 @@ public class DotNetMappingsStandardMvcGenerator implements DotNetMappingsGenerat
         }
 
         return false;
-    }
-
-    private boolean isApiControllerClass(CSharpClass csClass) {
-        return isControllerClass(csClass) && csClass.getBaseTypes().contains("ApiController");
     }
 }

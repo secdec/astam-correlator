@@ -160,9 +160,10 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
 
                         case '=':
                             if (isValidVariableName(workingString)) {
-                                assert pendingParameter.getType() != null : "Expected a parameter declaration, not a value!";
-                                pendingParameter.setName(workingString);
-                                setCurrentState(ParameterState.DEFAULT_VALUE);
+                                if (pendingParameter.getType() != null) {
+                                    pendingParameter.setName(workingString);
+                                    setCurrentState(ParameterState.DEFAULT_VALUE);
+                                }
                             } else {
                                 //  Probably a lambda (next char would be '>')
                                 if (workingString == null) {

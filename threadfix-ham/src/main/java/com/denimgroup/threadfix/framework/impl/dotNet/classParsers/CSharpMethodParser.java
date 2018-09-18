@@ -185,7 +185,7 @@ public class CSharpMethodParser extends AbstractCSharpParser<CSharpMethod> imple
             case METHOD_BODY:
                 if (type == '=' && scopeTracker.getNumOpenBrace() <= classBraceLevel) {
                     currentMethodState = MethodState.MAYBE_ARROW_METHOD;
-                } else if (scopeTracker.getNumOpenBrace() <= classBraceLevel) {
+                } else if (type == '}' && scopeTracker.getNumOpenBrace() <= classBraceLevel) {
                     getPendingItem().setEndLine(lineNumber);
                     finalizePendingItem();
                     attributeParser.reset();
