@@ -225,6 +225,9 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
                     currentClassBodyState = ClassBodyState.MAP_ROUTE;
                 } else if (stringValue != null && (stringValue.endsWith(".MapRoute") || stringValue.endsWith(".MapHttpRoute"))){
                     currentClassBodyState = ClassBodyState.MAP_ROUTE;
+                } else if (stringValue != null && stringValue.endsWith(".UseMvcWithDefaultRoute")) {
+                    //  ASP.NET Core MVC
+                    mappings.addRoute("default", "{controller}/{action}/{id}", null, "Home", "Index", "id", null);
                 }
                 break;
             case MAP_ROUTE:
