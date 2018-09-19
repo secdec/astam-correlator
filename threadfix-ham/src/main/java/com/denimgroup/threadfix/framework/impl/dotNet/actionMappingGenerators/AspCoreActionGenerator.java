@@ -16,7 +16,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.CollectionUtils.set;
 
-public class DotNetMappingsCoreGenerator implements DotNetMappingsGenerator {
+public class AspCoreActionGenerator implements AspActionGenerator {
 
     private List<CSharpClass> classes;
     private Map<String, RouteParameterMap> routeParameters;
@@ -25,7 +25,7 @@ public class DotNetMappingsCoreGenerator implements DotNetMappingsGenerator {
         "Controller"
     );
 
-    public DotNetMappingsCoreGenerator(List<CSharpClass> classes, Map<String, RouteParameterMap> routeParameters) {
+    public AspCoreActionGenerator(List<CSharpClass> classes, Map<String, RouteParameterMap> routeParameters) {
         this.classes = classes;
         this.routeParameters = routeParameters;
     }

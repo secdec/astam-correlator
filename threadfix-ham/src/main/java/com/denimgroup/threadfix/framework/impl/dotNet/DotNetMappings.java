@@ -27,10 +27,10 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
-import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.DotNetMappingsCoreGenerator;
-import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.DotNetMappingsGenerator;
-import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.DotNetMappingsStandardApiGenerator;
-import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.DotNetMappingsStandardMvcGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspCoreActionGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspActionGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspStandardApiActionGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspStandardMvcActionGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpFileParser;
 import com.denimgroup.threadfix.framework.util.*;
@@ -118,15 +118,15 @@ public class DotNetMappings implements EndpointGenerator {
 
         expandBaseTypes(classes);
 
-        List<DotNetMappingsGenerator> controllerMappingsGenerators = list();
+        List<AspActionGenerator> actionGenerators = list();
         if (isDotNetCore) {
-            controllerMappingsGenerators.add(new DotNetMappingsCoreGenerator(classes, routeParameters));
+            actionGenerators.add(new AspCoreActionGenerator(classes, routeParameters));
         } else {
-            controllerMappingsGenerators.add(new DotNetMappingsStandardApiGenerator(classes, routeParameters));
-            controllerMappingsGenerators.add(new DotNetMappingsStandardMvcGenerator(classes, routeParameters));
+            actionGenerators.add(new AspStandardApiActionGenerator(classes, routeParameters));
+            actionGenerators.add(new AspStandardMvcActionGenerator(classes, routeParameters));
         }
 
-        for (DotNetMappingsGenerator generator : controllerMappingsGenerators) {
+        for (AspActionGenerator generator : actionGenerators) {
             controllerMappingsList.addAll(generator.generate());
         }
 

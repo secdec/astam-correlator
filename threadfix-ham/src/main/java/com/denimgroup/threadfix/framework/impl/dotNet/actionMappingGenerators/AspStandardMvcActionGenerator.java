@@ -19,7 +19,7 @@ import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.RESULT_TYPES;
 import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.cleanTypeName;
 
-public class DotNetMappingsStandardMvcGenerator implements DotNetMappingsGenerator {
+public class AspStandardMvcActionGenerator implements AspActionGenerator {
     private List<CSharpClass> classes;
     private Map<String, RouteParameterMap> routeParameters;
 
@@ -31,7 +31,7 @@ public class DotNetMappingsStandardMvcGenerator implements DotNetMappingsGenerat
         "BaseController"
     );
 
-    public DotNetMappingsStandardMvcGenerator(List<CSharpClass> classes, Map<String, RouteParameterMap> routeParameters) {
+    public AspStandardMvcActionGenerator(List<CSharpClass> classes, Map<String, RouteParameterMap> routeParameters) {
         this.classes = classes;
         this.routeParameters = routeParameters;
     }

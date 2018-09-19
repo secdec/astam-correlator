@@ -4,6 +4,6 @@ import com.denimgroup.threadfix.framework.impl.dotNet.DotNetControllerMappings;
 
 import java.util.List;
 
-public interface DotNetMappingsGenerator {
+public interface AspActionGenerator {
     List<DotNetControllerMappings> generate();
 }

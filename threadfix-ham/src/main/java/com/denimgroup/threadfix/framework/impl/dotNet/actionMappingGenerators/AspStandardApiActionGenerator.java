@@ -17,12 +17,12 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.CollectionUtils.set;
 
-public class DotNetMappingsStandardApiGenerator implements DotNetMappingsGenerator {
+public class AspStandardApiActionGenerator implements AspActionGenerator {
 
     List<CSharpClass> classes;
     Map<String, RouteParameterMap> routeParameters;
 
-    public DotNetMappingsStandardApiGenerator(List<CSharpClass> classes, Map<String, RouteParameterMap> routeParameters) {
+    public AspStandardApiActionGenerator(List<CSharpClass> classes, Map<String, RouteParameterMap> routeParameters) {
         this.classes = classes;
         this.routeParameters = routeParameters;
     }
