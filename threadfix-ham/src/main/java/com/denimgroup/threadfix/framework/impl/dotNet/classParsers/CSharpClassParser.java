@@ -1,6 +1,5 @@
 package com.denimgroup.threadfix.framework.impl.dotNet.classParsers;
 
-import com.denimgroup.threadfix.framework.impl.dotNet.DotNetControllerParser;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
@@ -14,7 +13,7 @@ public class CSharpClassParser extends AbstractCSharpParser<CSharpClass> impleme
     private CSharpMethodParser methodParser;
     private CSharpScopeTracker scopeTracker;
 
-    public static final SanitizedLogger LOG = new SanitizedLogger(DotNetControllerParser.class);
+    public static final SanitizedLogger LOG = new SanitizedLogger(CSharpClassParser.class);
 
     @Override
     public void setParsingContext(CSharpParsingContext context) {
