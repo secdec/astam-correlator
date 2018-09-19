@@ -106,6 +106,12 @@ public class CSharpAttributeParser extends AbstractCSharpParser<CSharpAttribute>
                     pendingAttribute.addParameter(currentParameterParser.pullCurrentItem());
                 }
 
+                //  For multiple attributes in the same brackets
+                if (scopeTracker.getNumOpenParen() <= attributeEntryParenLevel && type == ',') {
+                    finalizePendingItem();
+                    setPendingItem(new CSharpAttribute());
+                }
+
                 if (scopeTracker.getNumOpenBracket() == 0) {
                     if (pendingAttribute.getName() == null && pendingAttribute.getParameters().isEmpty()) {
                         setPendingItem(null);
@@ -114,6 +120,7 @@ public class CSharpAttributeParser extends AbstractCSharpParser<CSharpAttribute>
                     }
                     currentAttributeState = AttributeState.SEARCH;
                     innerParsingContext = null;
+                    attributeEntryParenLevel = -1;
                 }
                 break;
         }
