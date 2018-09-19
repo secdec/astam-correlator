@@ -255,7 +255,7 @@ public class DotNetMappingsStandardApiGenerator implements DotNetMappingsGenerat
 
     private boolean isRelevantConventionCandidate(CSharpMethod method, String expectedAttribute, String conventionalName, boolean expectParameter) {
         //  Methods with explicit ActionNames do not follow convention
-        if (method.getAttribute("ActionName") != null) {
+        if (method.getAttribute("ActionName") != null || method.getAttribute("NonAction") != null) {
             return false;
         }
 

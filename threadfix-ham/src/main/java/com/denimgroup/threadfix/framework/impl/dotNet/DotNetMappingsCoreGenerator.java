@@ -91,6 +91,10 @@ public class DotNetMappingsCoreGenerator implements DotNetMappingsGenerator {
 
     private void addActionsFromMethod(DotNetControllerMappings controller, String actionPath, String httpAttributeName, CSharpMethod method, List<RouteParameter> methodRouteParameters) {
 
+        if (method.getAttribute("NonAction") != null) {
+            return;
+        }
+
         String actionName = getActionName(method);
         Collection<RouteParameter> mergedParameters = DotNetParameterUtil.getMergedMethodParameters(method.getParameters(), methodRouteParameters);
 
