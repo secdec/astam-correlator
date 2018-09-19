@@ -122,7 +122,7 @@ public class CSharpClassParser extends AbstractCSharpParser<CSharpClass> impleme
                 } else if (type == '<') {
                     pendingClass.setName(pendingClassName);
                     currentClassState = ClassState.TEMPLATE_PARAMS;
-                } else if (":".equals(stringValue)) {
+                } else if (type == ':') {
                     pendingClass.setName(pendingClassName);
                     currentClassState = ClassState.BASE_TYPES;
                 } else if (type < 0 && "where".equals(stringValue) && !scopeTracker.isInString()) {

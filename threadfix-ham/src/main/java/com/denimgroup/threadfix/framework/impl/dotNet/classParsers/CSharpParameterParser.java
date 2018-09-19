@@ -179,7 +179,7 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
                             break;
 
                         default:
-                            if (":".equals(stringValue)) {
+                            if (type == ':') {
                                 assert pendingParameter.getType() == null : "Expected a parameter value, not a declaration!";
                                 pendingParameter.setName(workingString);
                                 setCurrentState(ParameterState.EXPLICIT_VALUE);

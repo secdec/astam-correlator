@@ -32,6 +32,7 @@ import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.As
 import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspStandardApiActionGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspStandardMvcActionGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpMethod;
 import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpFileParser;
 import com.denimgroup.threadfix.framework.util.*;
 import org.apache.commons.io.FileUtils;
@@ -180,16 +181,19 @@ public class DotNetMappings implements EndpointGenerator {
     private void expandBaseTypes(List<CSharpClass> classes) {
         Map<String, CSharpClass> namedClasses = map();
         for (CSharpClass csClass : classes) {
-            namedClasses.put(csClass.getName(), csClass);
+            namedClasses.put(cleanTypeName(csClass.getName()), csClass);
         }
 
+        //  Flatten base types
         for (CSharpClass csClass : classes) {
             List<String> newBaseTypes = list();
             List<String> visitedBaseTypes = list();
 
             do {
                 for (String baseType : newBaseTypes) {
-                    csClass.addBaseType(baseType);
+                    if (!csClass.getBaseTypes().contains(baseType)) {
+                        csClass.addBaseType(baseType);
+                    }
                 }
                 newBaseTypes.clear();
 
@@ -207,6 +211,22 @@ public class DotNetMappings implements EndpointGenerator {
                     visitedBaseTypes.add(cleanedBaseType);
                 }
             } while (!newBaseTypes.isEmpty());
+        }
+
+        //  Insert inherited members
+        for (CSharpClass csClass : classes) {
+            for (String baseTypeName : csClass.getBaseTypes()) {
+                CSharpClass baseType = namedClasses.get(cleanTypeName(baseTypeName));
+                if (baseType == null) {
+                    continue;
+                }
+
+                for (CSharpMethod method : baseType.getMethods()) {
+                    if (!csClass.hasMethod(method)) {
+                        csClass.addMethod(method);
+                    }
+                }
+            }
         }
     }
 

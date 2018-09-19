@@ -76,6 +76,37 @@ public class CSharpClass extends CanHaveAttributes {
         return result;
     }
 
+    public boolean hasMethod(CSharpMethod other) {
+        for (CSharpMethod method : methods) {
+            if (!method.getName().equals(other.getName())) {
+                continue;
+            }
+            if (method.getParameters().size() != other.getParameters().size()) {
+                continue;
+            }
+            if (!method.getReturnType().equals(other.getReturnType())) {
+                continue;
+            }
+            boolean matches = true;
+            for (CSharpParameter param : method.getParameters()) {
+                CSharpParameter otherParam = other.getParameter(param.getName());
+                if (otherParam == null) {
+                    matches = false;
+                    break;
+                }
+                if (!otherParam.getType().equals(param.getType())) {
+                    matches = false;
+                    break;
+                }
+            }
+            if (matches) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void addMethod(CSharpMethod method) {
         methods.add(method);
     }

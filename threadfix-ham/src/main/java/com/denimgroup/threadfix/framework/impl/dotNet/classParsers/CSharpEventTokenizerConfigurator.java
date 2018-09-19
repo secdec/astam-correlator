@@ -10,13 +10,15 @@ import java.io.StreamTokenizer;
 public class CSharpEventTokenizerConfigurator implements EventBasedTokenizerConfigurator {
     @Override
     public void configure(StreamTokenizer tokenizer) {
+
+        tokenizer.ordinaryChar(':');
+
+        //  Disable various settings since they don't
+        //  play nice with interpolated strings
         tokenizer.slashSlashComments(false);
         tokenizer.slashStarComments(false);
-
         tokenizer.ordinaryChar('/');
 
-        //  Disable tokenizer quotes detection since it doesn't
-        //  play nice with C# interpolated strings
         tokenizer.ordinaryChar('"');
         tokenizer.ordinaryChar('\'');
     }
