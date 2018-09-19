@@ -1,8 +1,10 @@
-package com.denimgroup.threadfix.framework.impl.dotNet;
+package com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.framework.impl.dotNet.DotNetControllerMappings;
+import com.denimgroup.threadfix.framework.impl.dotNet.DotNetParameterUtil;
+import com.denimgroup.threadfix.framework.impl.dotNet.RouteParameterMap;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.*;
-import com.denimgroup.threadfix.framework.util.CodeParseUtil;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 
 import java.util.Collection;
@@ -13,8 +15,6 @@ import java.util.Map;
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.CollectionUtils.set;
-import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetKeywords.RESULT_TYPES;
-import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.cleanTypeName;
 
 public class DotNetMappingsCoreGenerator implements DotNetMappingsGenerator {
 

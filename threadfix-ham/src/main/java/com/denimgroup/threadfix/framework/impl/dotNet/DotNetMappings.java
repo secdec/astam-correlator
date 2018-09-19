@@ -27,6 +27,10 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.DotNetMappingsCoreGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.DotNetMappingsGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.DotNetMappingsStandardApiGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.DotNetMappingsStandardMvcGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpFileParser;
 import com.denimgroup.threadfix.framework.util.*;
