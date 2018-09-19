@@ -89,6 +89,7 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
                 }
                 break;
 
+                //  TODO - Break this up
             case PARAMETER_START:
                 CSharpParameter pendingParameter = getPendingItem();
 
@@ -141,6 +142,9 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
                     if ("this".equals(workingString)) {
                         pendingParameter.setIsExtensionParameter(true);
                         workingString = "";
+                    } else if ("out".equals(stringValue) || "params".equals(stringValue)) {
+                        workingString = "";
+                        break;
                     }
 
                     workingString += CodeParseUtil.buildTokenString(type, stringValue);
