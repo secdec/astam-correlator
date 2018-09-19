@@ -45,22 +45,22 @@ import static com.denimgroup.threadfix.CollectionUtils.set;
  */
 public class Action {
     @Nonnull
-    String      name;
+    public String      name;
     @Nonnull
-    Set<String> attributes;
+    public Set<String> attributes;
     @Nonnull
-    Integer     lineNumber = -1;
+    public Integer     lineNumber = -1;
     @Nonnull
-    Integer     endLineNumber = -1;
+    public Integer     endLineNumber = -1;
     @Nonnull
     public Map<String, RouteParameter> parameters = map();
     @Nonnull
-    Set<RouteParameter> parametersWithTypes;
+    public Set<RouteParameter> parametersWithTypes;
     @Nullable
-    String explicitRoute;
-    boolean isMethodBasedAction;
+    public String explicitRoute;
+    public boolean isMethodBasedAction;
     @Nonnull
-    CSharpMethod actionMethod;
+    public CSharpMethod actionMethod;
 
     List<String> getMethods() {
         List<String> methods = list();

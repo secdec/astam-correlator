@@ -1,6 +1,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.framework.impl.dotNet.Action;
 import com.denimgroup.threadfix.framework.impl.dotNet.DotNetControllerMappings;
 import com.denimgroup.threadfix.framework.impl.dotNet.DotNetParameterUtil;
 import com.denimgroup.threadfix.framework.impl.dotNet.RouteParameterMap;
@@ -20,6 +21,7 @@ public class AspCoreActionGenerator implements AspActionGenerator {
 
     private List<CSharpClass> classes;
     private Map<String, RouteParameterMap> routeParameters;
+    ConventionBasedActionGenerator conventionBasedActionGenerator = new ConventionBasedActionGenerator();
 
     private static List<String> CONTROLLER_BASE_TYPES = list(
         "Controller"
@@ -39,9 +41,13 @@ public class AspCoreActionGenerator implements AspActionGenerator {
                 continue;
             }
 
-            DotNetControllerMappings currentMappings = new DotNetControllerMappings(csClass.getFilePath());
-            currentMappings.setControllerName(csClass.getName().substring(0, csClass.getName().length() - "Controller".length()));
-            currentMappings.setNamespace(csClass.getName());
+            RouteParameterMap fileParameters = routeParameters.get(csClass.getFilePath());
+            if (fileParameters == null) {
+                fileParameters = new RouteParameterMap();
+                routeParameters.put(csClass.getFilePath(), fileParameters);
+            }
+
+            DotNetControllerMappings currentMappings = conventionBasedActionGenerator.generateForClass(csClass, fileParameters);
 
             String baseRoute = null;
             CSharpAttribute controllerRouteAttribute = csClass.getAttribute("Route");
@@ -55,31 +61,52 @@ public class AspCoreActionGenerator implements AspActionGenerator {
             }
 
             for (CSharpMethod method : csClass.getMethods()) {
-                if (method.getAccessLevel() != CSharpMethod.AccessLevel.PUBLIC) {
+                if (method.getAccessLevel() != CSharpMethod.AccessLevel.PUBLIC || method.getAttribute("NonAction") != null) {
                     continue;
                 }
 
-                RouteParameterMap fileParameters = routeParameters.get(csClass.getFilePath());
-                if (fileParameters == null) {
-                    fileParameters = new RouteParameterMap();
-                    routeParameters.put(csClass.getFilePath(), fileParameters);
+                //  Method has already been mapped to an action
+                Action existingAction = currentMappings.getActionForLines(method.getStartLine(), method.getEndLine());
+                if (existingAction != null) {
+                    if (baseRoute != null) {
+                        //  Explicit base route for this controller is defined and a convention-based action
+                        //  has already been generated from this method; change this to an explicitly-routed
+                        //  method since route-mapping is unnecessary
+
+                        existingAction.explicitRoute = PathUtil.combine(baseRoute, existingAction.explicitRoute);
+                        existingAction.isMethodBasedAction = false;
+                    }
+                    continue;
                 }
 
                 List<CSharpAttribute> httpAttributes = method.getAttributes("HttpGet", "HttpPost", "HttpPut", "HttpPatch", "HttpDelete");
-                for (CSharpAttribute attribute : httpAttributes) {
-                    String methodPath = null;
-                    CSharpParameter methodPathParameter = attribute.getParameterValue("template", 0);
-                    if (methodPathParameter != null) {
-                        methodPath = methodPathParameter.getStringValue();
-                    }
+                if (httpAttributes.isEmpty()) {
+                    currentMappings.addAction(
+                        method.getName(),
+                        set("HttpGet"),
+                        method.getStartLine(),
+                        method.getEndLine(),
+                        new HashSet<RouteParameter>(DotNetParameterUtil.getMergedMethodParameters(method, fileParameters)),
+                        null,
+                        method,
+                        false
+                    );
+                } else {
+                    for (CSharpAttribute attribute : httpAttributes) {
+                        String methodPath = null;
+                        CSharpParameter methodPathParameter = attribute.getParameterValue("template", 0);
+                        if (methodPathParameter != null) {
+                            methodPath = methodPathParameter.getStringValue();
+                        }
 
-                    String fullMethodPath = null;
-                    if (baseRoute != null && methodPath != null) {
-                        fullMethodPath = PathUtil.combine(baseRoute, methodPath);
-                    }
-                    List<RouteParameter> methodRouteParameters = fileParameters.findParametersInLines(method.getStartLine(), method.getEndLine());
+                        String fullMethodPath = null;
+                        if (baseRoute != null && methodPath != null) {
+                            fullMethodPath = PathUtil.combine(baseRoute, methodPath);
+                        }
+                        List<RouteParameter> methodRouteParameters = fileParameters.findParametersInLines(method.getStartLine(), method.getEndLine());
 
-                    addActionsFromMethod(currentMappings, fullMethodPath, attribute.getName(), method, methodRouteParameters);
+                        addActionsFromMethod(currentMappings, fullMethodPath, attribute.getName(), method, methodRouteParameters);
+                    }
                 }
             }
 

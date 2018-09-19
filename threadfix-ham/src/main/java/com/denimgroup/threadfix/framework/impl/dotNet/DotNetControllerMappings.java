@@ -145,6 +145,16 @@ public class DotNetControllerMappings {
         return null;
     }
 
+    @Nullable
+    public Action getActionForLines(int startLine, int endLine) {
+        for (Action action : actions) {
+            if (action.lineNumber == startLine && action.endLineNumber == endLine) {
+                return action;
+            }
+        }
+        return null;
+    }
+
     public void addExplicitRoute(String explicitRoute) {
         explicitRoutes.add(explicitRoute);
     }
