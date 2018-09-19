@@ -177,6 +177,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 }
 
                 boolean shouldReplaceParameterSection = true;
+                boolean hasNullableParameterSection = false;
 
                 if(action.parameters != null &&
                     mapRoute.defaultRoute != null &&
@@ -186,6 +187,11 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                     for (String parameter : action.parameters.keySet()) {
                         if (parameter.toLowerCase().equals(lowerCaseParameterName)) {
                             shouldReplaceParameterSection = false;
+                            //  Keep track of nullable endpoint parameter formats so we can make two endpoints for this
+                            //  action - one with and one without the parameter
+                            if (action.actionMethod.getParameter(lowerCaseParameterName) != null && action.actionMethod.getParameter(lowerCaseParameterName).isNullable()) {
+                                hasNullableParameterSection = true;
+                            }
                             break;
                         }
                     }
@@ -199,37 +205,54 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 }
 
                 String pattern = mapRoute.url;
-                String result = null;
+                List<String> result = list();
+
+                String actionName;
+                String areaName = mappings.hasAreaName() ? mappings.getAreaName() : null;
+
                 //  If a specific action was set for this route, only create endpoints when we get to that action
                 if (!pattern.contains("{action}") && !pattern.contains("[action]")) {
                     if (mapRoute.defaultRoute != null && !action.name.equals(mapRoute.defaultRoute.action)) {
                         continue;
                     } else if (action.isMethodBasedAction) {
-                        result = formatActionPath(
-                            mapRoute.url,
-                            mappings.getControllerName(),
-                            action.explicitRoute,
-                            mappings.hasAreaName() ? mappings.getAreaName() : null,
-                            shouldReplaceParameterSection
-                        );
+                        actionName = action.explicitRoute;
+                    } else {
+                        actionName = action.name;
                     }
+                } else {
+                    boolean isDefaultAction = (mapRoute.defaultRoute != null && action.name.equals(mapRoute.defaultRoute.action));
+                    actionName = isDefaultAction ? null : action.name;
                 }
 
                 LOG.debug("Substituting patterns from route " + action + " into template " + pattern);
 
-                if (result == null) {
-                    boolean isDefaultAction = (mapRoute.defaultRoute != null && action.name.equals(mapRoute.defaultRoute.action));
-                    result = formatActionPath(
+                result.add(formatActionPath(
+                    mapRoute.url,
+                    mappings.getControllerName(),
+                    actionName,
+                    areaName,
+                    shouldReplaceParameterSection
+                ));
+
+                if (!shouldReplaceParameterSection && hasNullableParameterSection) {
+                    //  Has nullable endpoint parameter section; the action will have been added
+                    //  with the parameter in the endpoint by now; also generate endpoint without
+                    //  the parameter since it's nullable
+                    //
+                    //  Note that while the URL no longer has the embedded parameter, it can still
+                    //  be specified via query string, so the parameter should still be included
+                    //  as available
+                    //
+                    //  (Also note that this would be unnecessary if optional parameters were a formal
+                    //  property of the RouteParameter type)
+                    result.add(formatActionPath(
                         mapRoute.url,
                         mappings.getControllerName(),
-                        isDefaultAction ? null : action.name,
-                        mappings.hasAreaName() ? mappings.getAreaName() : null,
-                        shouldReplaceParameterSection
-                    );
+                        actionName,
+                        areaName,
+                        true
+                    ));
                 }
-
-                // Commented since this would remove valuable information regarding parametric routes
-                //result = cleanStringFromCode(result);
 
                 LOG.debug("Got result " + result);
 
@@ -240,7 +263,10 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                     filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
                 }
 
-                endpoints.add(new DotNetEndpoint(result, filePath, action));
+                for (String url : result) {
+                    DotNetEndpoint newEndpoint = new DotNetEndpoint(url, filePath, action);
+                    endpoints.add(newEndpoint);
+                }
 
                 if (!visitedRoutes.contains(mapRoute)) {
                     visitedRoutes.add(mapRoute);
@@ -307,10 +333,17 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
     private String formatActionPath(String actionPath, String controllerName, String actionName, String areaName, boolean shouldReplaceParameterSection) {
         String result = actionPath;
         result = result.replaceAll("[\\[\\{]controller[\\]\\}]", controllerName);
-        result = result.replaceAll("[\\[\\{]action[\\]\\}]", actionName == null ? "" : actionName);
         if (areaName != null) {
             result = result.replaceAll("[{\\[]\\w*area\\w*[}\\]]", areaName);
         }
+
+        String actionRegex = "[\\[\\{]action[\\]\\}]";
+        if (actionName == null) {
+            actionRegex = "/" + actionRegex;
+        }
+        result = result.replaceAll(actionRegex, actionName == null ? "" : actionName);
+
+        //  Make sure parameters section is last
         if (shouldReplaceParameterSection) {
             result = result.replaceAll("/\\{[^\\}]*\\}", "");
         }

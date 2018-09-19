@@ -152,6 +152,11 @@ public class DotNetRouteMappings {
                             }
                         }
                     }
+
+                    if (mapRoute != null) {
+                        break;
+                    }
+
                     //  At this point the route doesn't match this namespace, search the next one
                     continue;
                 }

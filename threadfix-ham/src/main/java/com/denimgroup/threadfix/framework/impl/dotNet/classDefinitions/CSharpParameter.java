@@ -13,6 +13,13 @@ public class CSharpParameter extends CanHaveAttributes {
     private String value;
     private String type;
     private boolean isExtensionParameter;
+    private boolean isNullable;
+
+    private static List<String> NON_NULL_TYPES = list(
+        "int", "long", "short", "char",
+        "DateTime", "TimeSpan", "float", "double",
+        "bool", "byte", "decimal"
+    );
 
     public boolean isDeclaration() {
         return value == null;
@@ -68,6 +75,17 @@ public class CSharpParameter extends CanHaveAttributes {
 
     public void setType(String type) {
         this.type = type;
+
+        if (type.contains("?")) {
+            this.type = type.replaceAll("\\?", "");
+            isNullable = true;
+        } else {
+            isNullable = NON_NULL_TYPES.contains(type);
+        }
+    }
+
+    public boolean isNullable() {
+        return isNullable;
     }
 
     public boolean isExtensionParameter() {
