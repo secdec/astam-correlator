@@ -149,6 +149,10 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         }
     }
 
+    //  TODO - Simplify this
+    //  Another approach would be to collect all endpoints available for a given route format, instead
+    //  of the first route that matches a given controller and only collecting endpoints from that
+    //  route and controller pair
     private void assembleEndpoints(File rootDirectory) {
         if (dotNetRouteMappings == null) {
             LOG.error("No mappings found for project. Exiting.");
@@ -254,6 +258,17 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                     ));
                 }
 
+                //  Treat default controller and action for a route as a special case
+                if (mapRoute.defaultRoute != null && action.name.equals(mapRoute.defaultRoute.action) && mappings.getControllerName().equals(mapRoute.defaultRoute.controller)) {
+                    result.add(formatActionPath(
+                        mapRoute.url,
+                        null,
+                        null,
+                        areaName,
+                        true
+                    ));
+                }
+
                 LOG.debug("Got result " + result);
 
                 expandParameters(action);
@@ -262,6 +277,12 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
                     filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
                 }
+
+                //  TODO - Endpoint variants are not being properly generated
+                //      This is due to creation of separate endpoints for URLs with and
+                //      without an optional embedded (parametric) parameter. Adding support
+                //      for optional parameters to the RouteParameter type will simplify
+                //      this
 
                 for (String url : result) {
                     DotNetEndpoint newEndpoint = new DotNetEndpoint(url, filePath, action);
@@ -312,6 +333,8 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         		continue;
 	        }
 
+	        expandParameters(action);
+
 	        result = formatActionPath(
 	            result,
                 controllerMappings.getControllerName(),
@@ -332,16 +355,22 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 
     private String formatActionPath(String actionPath, String controllerName, String actionName, String areaName, boolean shouldReplaceParameterSection) {
         String result = actionPath;
-        result = result.replaceAll("[\\[\\{]controller[\\]\\}]", controllerName);
-        if (areaName != null) {
-            result = result.replaceAll("[{\\[]\\w*area\\w*[}\\]]", areaName);
+
+        String controllerRegex = "[\\[\\{]controller[\\]\\}]";
+        if (controllerName == null) {
+            controllerRegex = "/?" + controllerRegex;
         }
+        result = result.replaceAll(controllerRegex, controllerName == null ? "" : controllerName);
 
         String actionRegex = "[\\[\\{]action[\\]\\}]";
         if (actionName == null) {
             actionRegex = "/" + actionRegex;
         }
         result = result.replaceAll(actionRegex, actionName == null ? "" : actionName);
+
+        if (areaName != null) {
+            result = result.replaceAll("[{\\[]\\w*area\\w*[}\\]]", areaName);
+        }
 
         //  Make sure parameters section is last
         if (shouldReplaceParameterSection) {
