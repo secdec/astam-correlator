@@ -16,6 +16,7 @@ public class CSharpScopeTracker implements EventBasedTokenizer {
     public CSharpScopeTracker() {
         scopeTracker = new ScopeTracker();
         scopeTracker.setInterpolationDetectorFactory(new CSharpInterpolationDetectorFactory());
+        scopeTracker.setVerbatimStringDetector(new CSharpVerbatimStringDetector(scopeTracker));
     }
 
 

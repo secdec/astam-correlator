@@ -41,6 +41,7 @@ public class ScopeTracker {
     private boolean enteredInterpolation = false;
     private boolean exitedInterpolation = false;
 
+    private ScopeVerbatimStringDetector verbatimStringDetector;
     private ScopeStringInterpolationDetector interpolationDetector;
     private ScopeStringInterpolationDetectorFactory interpolationDetectorFactory;
     private ScopeTracker interpolationScopeTracker;
@@ -48,6 +49,10 @@ public class ScopeTracker {
     public void setInterpolationDetectorFactory(ScopeStringInterpolationDetectorFactory interpolationDetectorFactory) {
         this.interpolationDetectorFactory = interpolationDetectorFactory;
         this.interpolationDetector = interpolationDetectorFactory.makeDetector(this);
+    }
+
+    public void setVerbatimStringDetector(ScopeVerbatimStringDetector verbatimStringDetector) {
+        this.verbatimStringDetector = verbatimStringDetector;
     }
 
     public void interpretToken(int token) {
@@ -74,6 +79,7 @@ public class ScopeTracker {
                 enteredInterpolation = true;
                 interpolationScopeTracker = new ScopeTracker();
                 interpolationScopeTracker.setInterpolationDetectorFactory(interpolationDetectorFactory);
+                interpolationScopeTracker.setVerbatimStringDetector(verbatimStringDetector);
             }
 
             isInterpolating = interpolationDetector.isInterpolatingString();
@@ -93,7 +99,11 @@ public class ScopeTracker {
             }
         }
 
-        nextIsEscaped = token == '\\' && !nextIsEscaped;
+        if (verbatimStringDetector != null) {
+            verbatimStringDetector.parseToken(token);
+        }
+
+        nextIsEscaped = token == '\\' && !nextIsEscaped && (verbatimStringDetector == null || !verbatimStringDetector.isInVerbatimString());
 
         if (!isInString()) {
             boolean wasGlobalScope = !isInScopeOrString();
