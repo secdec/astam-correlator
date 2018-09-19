@@ -218,10 +218,11 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 LOG.debug("Substituting patterns from route " + action + " into template " + pattern);
 
                 if (result == null) {
+                    boolean isDefaultAction = (mapRoute.defaultRoute != null && action.name.equals(mapRoute.defaultRoute.action));
                     result = formatActionPath(
                         mapRoute.url,
                         mappings.getControllerName(),
-                        action.name.equals("Index") ? null : action.name,
+                        isDefaultAction ? null : action.name,
                         mappings.hasAreaName() ? mappings.getAreaName() : null,
                         shouldReplaceParameterSection
                     );
@@ -306,9 +307,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
     private String formatActionPath(String actionPath, String controllerName, String actionName, String areaName, boolean shouldReplaceParameterSection) {
         String result = actionPath;
         result = result.replaceAll("[\\[\\{]controller[\\]\\}]", controllerName);
-        if (actionName != null) {
-            result = result.replaceAll("[\\[\\{]action[\\]\\}]", actionName);
-        }
+        result = result.replaceAll("[\\[\\{]action[\\]\\}]", actionName == null ? "" : actionName);
         if (areaName != null) {
             result = result.replaceAll("[{\\[]\\w*area\\w*[}\\]]", areaName);
         }
