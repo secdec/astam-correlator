@@ -120,6 +120,10 @@ public class CSharpParameter extends CanHaveAttributes {
                 }
             }
         } else {
+            if (name != null) {
+                sb.append(name);
+                sb.append(" = ");
+            }
             if (value.isEmpty()) {
                 sb.append("{EmptyValue}");
             } else {

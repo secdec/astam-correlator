@@ -5,18 +5,15 @@ import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 
 public class CSharpAttributeParser extends AbstractCSharpParser<CSharpAttribute> implements EventBasedTokenizer {
 
-    /*
-     * NOTE - When parsing an attribute containing parameters, where the attribute is attached to a parameter, the attribute's
-     *      parameters will be ignored. ie:
-     *
-     *      void Sample([Attr("foo")] int myParam)
-     *
-     *      `myParam` will have `Attr` attached to it, but `Attr` will not have any parameters assigned to it. This is a
-     *      limitation of coupling the Attribute and Method Parser instances directly to each other.
-     */
-
-    private CSharpParameterParser parameterParser;
     private CSharpScopeTracker scopeTracker;
+
+    //  The shared parameter parser for C# parsing
+    private CSharpParameterParser parameterParser;
+
+    //  Internally instantiated parameter parsing for parameters of attributes that are attached to parameters, ie
+    // IActionResult Post([Bind(Include = "Name, Address")] data)
+    private CSharpParsingContext innerParsingContext;
+    //  (This is a bit of a shim since arbitrarily embedded parameters/attributes are still not supported)
 
     @Override
     public void setParsingContext(CSharpParsingContext context) {
@@ -54,7 +51,7 @@ public class CSharpAttributeParser extends AbstractCSharpParser<CSharpAttribute>
     }
 
     private AttributeState currentAttributeState = AttributeState.SEARCH;
-
+    private int attributeEntryParenLevel = -1;
 
 
     @Override
@@ -68,12 +65,27 @@ public class CSharpAttributeParser extends AbstractCSharpParser<CSharpAttribute>
             return;
         }
 
+        if (innerParsingContext != null) {
+            innerParsingContext.getScopeTracker().processToken(type, lineNumber, stringValue);
+            innerParsingContext.getParameterParser().processToken(type, lineNumber, stringValue);
+            innerParsingContext.getAttributeParser().processToken(type, lineNumber, stringValue);
+        }
+
         switch (currentAttributeState) {
             case SEARCH:
                 if (scopeTracker.getNumOpenBracket() == 1 && !parameterParser.isBuildingParameterType()) {
                     currentAttributeState = AttributeState.IN_ATTRIBUTE;
                     setPendingItem(new CSharpAttribute());
                     parameterParser.clearItems();
+                    attributeEntryParenLevel = scopeTracker.getNumOpenParen();
+                    if (parameterParser.isBuildingItem()) {
+                        CSharpParameterParser innerParameterParser = new CSharpParameterParser();
+                        CSharpAttributeParser temporaryAttributeParser = new CSharpAttributeParser();
+                        CSharpScopeTracker temporaryScopeTracker = new CSharpScopeTracker();
+                        innerParsingContext = new CSharpParsingContext(temporaryAttributeParser, null, null, innerParameterParser, temporaryScopeTracker);
+                        innerParameterParser.setParsingContext(innerParsingContext);
+                        temporaryAttributeParser.setParsingContext(innerParsingContext);
+                    }
                 }
                 break;
 
@@ -83,8 +95,15 @@ public class CSharpAttributeParser extends AbstractCSharpParser<CSharpAttribute>
                     pendingAttribute.setName(stringValue);
                 }
 
-                while (parameterParser.hasItem()) {
-                    pendingAttribute.addParameter(parameterParser.pullCurrentItem());
+                CSharpParameterParser currentParameterParser = null;
+                if (innerParsingContext != null) {
+                    currentParameterParser = innerParsingContext.getParameterParser();
+                } else {
+                    currentParameterParser = parameterParser;
+                }
+
+                while (currentParameterParser.hasItem()) {
+                    pendingAttribute.addParameter(currentParameterParser.pullCurrentItem());
                 }
 
                 if (scopeTracker.getNumOpenBracket() == 0) {
@@ -94,6 +113,7 @@ public class CSharpAttributeParser extends AbstractCSharpParser<CSharpAttribute>
                         finalizePendingItem();
                     }
                     currentAttributeState = AttributeState.SEARCH;
+                    innerParsingContext = null;
                 }
                 break;
         }

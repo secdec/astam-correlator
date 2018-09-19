@@ -38,30 +38,30 @@ import java.util.Set;
 
 public class DotNetPathMatchingTests {
 
-    public static DotNetRouteMappings routeMappings =
-            DotNetRoutesParser.parse(ResourceManager.getDotNetMvcFile("InstructorRoutes.cs"));
-
-    @Test
-    public void testPathMatchingWithParameter() {
-
-        DotNetControllerMappings mappings =
-                DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile("InstructorController.cs")).get(0);
-
-        DotNetEndpointGenerator generator =
-                new DotNetEndpointGenerator(null, routeMappings, null, new ArrayList<CSharpClass>(), mappings);
-
-        EndpointDatabase database = EndpointDatabaseFactory.getDatabase(
-                generator, FrameworkType.DOT_NET_MVC, new DotNetPathCleaner());
-
-        assert database != null;
-
-        EndpointQuery query = EndpointQueryBuilder.start().setDynamicPath("/Instructor/Details/6").generateQuery();
-
-        Set<Endpoint> allMatches = database.findAllMatches(query);
-
-        assert allMatches.size() == 1 : "Size was " + allMatches.size() + " instead of 1.";
-
-    }
+//    public static DotNetRouteMappings routeMappings =
+//            DotNetRoutesParser.parse(ResourceManager.getDotNetMvcFile("InstructorRoutes.cs"));
+//
+//    @Test
+//    public void testPathMatchingWithParameter() {
+//
+//        DotNetControllerMappings mappings =
+//                DotNetControllerParser.parse(ResourceManager.getDotNetMvcFile("InstructorController.cs")).get(0);
+//
+//        DotNetEndpointGenerator generator =
+//                new DotNetEndpointGenerator(null, routeMappings, null, new ArrayList<CSharpClass>(), mappings);
+//
+//        EndpointDatabase database = EndpointDatabaseFactory.getDatabase(
+//                generator, FrameworkType.DOT_NET_MVC, new DotNetPathCleaner());
+//
+//        assert database != null;
+//
+//        EndpointQuery query = EndpointQueryBuilder.start().setDynamicPath("/Instructor/Details/6").generateQuery();
+//
+//        Set<Endpoint> allMatches = database.findAllMatches(query);
+//
+//        assert allMatches.size() == 1 : "Size was " + allMatches.size() + " instead of 1.";
+//
+//    }
 
 
 }

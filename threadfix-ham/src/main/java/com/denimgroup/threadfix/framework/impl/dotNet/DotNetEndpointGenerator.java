@@ -368,7 +368,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                     CSharpParameter methodParameter = action.actionMethod.getParameter(param.getName());
                     CSharpAttribute bindAttribute = methodParameter.getAttribute("Bind");
                     if (bindAttribute != null) {
-                        CSharpParameter includeParameter = bindAttribute.getParameterValue("Include");
+                        CSharpParameter includeParameter = bindAttribute.getParameterValue("Include", 0);
                         if (includeParameter != null) {
                             String includeString = includeParameter.getStringValue();
                             includedParamNames = list();

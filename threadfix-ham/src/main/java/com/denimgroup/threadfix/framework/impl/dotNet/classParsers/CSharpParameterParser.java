@@ -101,6 +101,8 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
                         if (workingString != null) {
                             if (pendingParameter.getType() != null) {
                                 pendingParameter.setName(workingString);
+                            } else {
+                                pendingParameter.setValue(workingString);
                             }
                         }
 
@@ -149,7 +151,6 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
                                 if (pendingParameter.getType() != null) {
                                     pendingParameter.setName(workingString);
                                 } else {
-                                    assert pendingParameter.getName() == null : "Got a partial-declaration when expecting a value!";
                                     pendingParameter.setValue(workingString);
                                 }
                                 workingString = null;
@@ -160,9 +161,13 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
 
                         case '=':
                             if (isValidVariableName(workingString)) {
+                                pendingParameter.setName(workingString);
                                 if (pendingParameter.getType() != null) {
-                                    pendingParameter.setName(workingString);
+                                    //  Default value
                                     setCurrentState(ParameterState.DEFAULT_VALUE);
+                                } else {
+                                    //  Explicitly assigned value for attribute parameters
+                                    workingString = null;
                                 }
                             } else {
                                 //  Probably a lambda (next char would be '>')
