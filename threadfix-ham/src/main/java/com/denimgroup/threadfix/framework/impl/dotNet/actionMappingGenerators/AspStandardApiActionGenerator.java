@@ -51,8 +51,6 @@ public class AspStandardApiActionGenerator implements AspActionGenerator {
                 currentMappings.setAreaName(areaAttribute.getParameterValue(0).getValue());
             }
 
-            findAndAddExplicitMethods(csClass, fileParameters, currentMappings);
-
             controllerMappings.add(currentMappings);
         }
 
@@ -61,9 +59,5 @@ public class AspStandardApiActionGenerator implements AspActionGenerator {
 
     private boolean isApiControllerClass(CSharpClass csClass) {
         return csClass.getName().endsWith("Controller") && csClass.getBaseTypes().contains("ApiController");
-    }
-
-    private void findAndAddExplicitMethods(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings) {
-
     }
 }
