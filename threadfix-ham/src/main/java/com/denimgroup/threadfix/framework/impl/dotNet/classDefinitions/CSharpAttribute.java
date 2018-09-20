@@ -8,6 +8,14 @@ public class CSharpAttribute {
     private String name;
     private List<CSharpParameter> parameters = list();
 
+    public CSharpAttribute() {
+
+    }
+
+    public CSharpAttribute(String name) {
+        this.name = name;
+    }
+
     public String getName() {
         return name;
     }

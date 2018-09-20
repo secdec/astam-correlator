@@ -15,6 +15,7 @@ import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.set;
+import static com.denimgroup.threadfix.CollectionUtils.setFrom;
 
 class ConventionBasedActionGenerator {
 
@@ -28,11 +29,26 @@ class ConventionBasedActionGenerator {
         return currentMappings;
     }
 
+    public String detectHttpAttributeByName(String actionName) {
+        if (actionName.startsWith("Get")) {
+            return "HttpGet";
+        } else if (actionName.startsWith("Post")) {
+            return "HttpPost";
+        } else if (actionName.startsWith("Delete")) {
+            return "HttpDelete";
+        } else if (actionName.startsWith("Put")) {
+            return "HttpPut";
+        } else {
+            return "HttpGet";
+        }
+    }
+
     private void findAndAddConventionMethods(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings) {
         findAndAddGetMethod(csClass, fileParameters, mappings);
         findAndAddGetAllMethod(csClass, fileParameters, mappings);
         findAndAddPostMethod(csClass, fileParameters, mappings);
         findAndAddPutMethod(csClass, fileParameters, mappings);
+        findAndAddDeleteMethod(csClass, fileParameters, mappings);
     }
 
     private void findAndAddGetMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings) {
@@ -46,10 +62,11 @@ class ConventionBasedActionGenerator {
             return;
         }
 
-        String explicitRoute = "";
-        if (!bestCandidate.getParameters().isEmpty()) {
-            explicitRoute = "{" + bestCandidate.getParameters().get(0).getName() + "}";
+        if (bestCandidate.getParameters().isEmpty()) {
+            return;
         }
+
+        String explicitRoute = "{" + bestCandidate.getParameters().get(0).getName() + "}";
 
         mappings.addAction(
             bestCandidate.getName(),
@@ -57,7 +74,7 @@ class ConventionBasedActionGenerator {
             bestCandidate.getStartLine(),
             bestCandidate.getEndLine(),
             // params
-            new HashSet<RouteParameter>(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
+            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
             explicitRoute,
             bestCandidate,
             true
@@ -68,7 +85,7 @@ class ConventionBasedActionGenerator {
         CSharpMethod bestCandidate = null;
 
         for (CSharpMethod method : csClass.getMethods(CSharpMethod.AccessLevel.PUBLIC)) {
-            bestCandidate = selectBetterConventionCandidate(bestCandidate, method, "HttpGet", "GetAll", false);
+            bestCandidate = selectBetterConventionCandidate(bestCandidate, method, "HttpGet", "Get", false);
         }
 
         if (bestCandidate == null) {
@@ -80,7 +97,7 @@ class ConventionBasedActionGenerator {
             set("HttpGet"),
             bestCandidate.getStartLine(),
             bestCandidate.getEndLine(),
-            new HashSet<RouteParameter>(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
+            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
             "",
             bestCandidate,
             true
@@ -103,7 +120,7 @@ class ConventionBasedActionGenerator {
             set("HttpPost"),
             bestCandidate.getStartLine(),
             bestCandidate.getEndLine(),
-            new HashSet<RouteParameter>(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
+            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
             "",
             bestCandidate,
             true
@@ -126,8 +143,31 @@ class ConventionBasedActionGenerator {
             set("HttpPut"),
             bestCandidate.getStartLine(),
             bestCandidate.getEndLine(),
-            new HashSet<RouteParameter>(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
-            "",
+            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
+            "{id}",
+            bestCandidate,
+            true
+        );
+    }
+
+    private void findAndAddDeleteMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings) {
+        CSharpMethod bestCandidate = null;
+
+        for (CSharpMethod method : csClass.getMethods(CSharpMethod.AccessLevel.PUBLIC)) {
+            bestCandidate = selectBetterConventionCandidate(bestCandidate, method, "HttpDelete", "Delete", true);
+        }
+
+        if (bestCandidate == null) {
+            return;
+        }
+
+        mappings.addAction(
+            bestCandidate.getName(),
+            set("HttpDelete"),
+            bestCandidate.getStartLine(),
+            bestCandidate.getEndLine(),
+            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
+            "{id}",
             bestCandidate,
             true
         );
@@ -217,7 +257,7 @@ class ConventionBasedActionGenerator {
 
     private boolean isRelevantConventionCandidate(CSharpMethod method, String expectedAttributeName, String conventionalName, boolean expectParameter) {
         //  Methods with explicit ActionNames do not follow convention
-        if (method.getAttribute("ActionName") != null || method.getAttribute("NonAction") != null) {
+        if (method.getAttribute("ActionName") != null || method.getAttribute("NonAction") != null || method.getAttribute("Route") != null) {
             return false;
         }
 

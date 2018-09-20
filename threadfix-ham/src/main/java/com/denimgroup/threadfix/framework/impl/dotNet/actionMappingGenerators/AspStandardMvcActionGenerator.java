@@ -103,10 +103,16 @@ public class AspStandardMvcActionGenerator implements AspActionGenerator {
             }
         }
 
+        String actionName = method.getName();
+        CSharpAttribute actionNameAttribute = method.getAttribute("ActionName");
+        if (actionNameAttribute != null) {
+            actionName = actionNameAttribute.getParameterValue("name", 0).getStringValue();
+        }
+
         Collection<RouteParameter> mergedParameters = DotNetParameterUtil.getMergedMethodParameters(method.getParameters(), methodRouteParameters);
 
         controller.addAction(
-            method.getName(),
+            actionName,
             new HashSet<String>(attributeNames),
             method.getStartLine(),
             method.getEndLine(),

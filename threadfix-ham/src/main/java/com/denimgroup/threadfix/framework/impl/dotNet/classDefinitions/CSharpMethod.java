@@ -49,6 +49,10 @@ public class CSharpMethod extends CanHaveAttributes {
         parameters.add(parameter);
     }
 
+    public CSharpParameter getParameter(int index) {
+        return parameters.get(index);
+    }
+
     public CSharpParameter getParameter(String parameterName) {
         for (CSharpParameter param : parameters) {
             if (param.getName().equals(parameterName)) {
