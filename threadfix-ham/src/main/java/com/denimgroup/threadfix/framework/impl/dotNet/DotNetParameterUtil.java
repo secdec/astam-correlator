@@ -14,11 +14,15 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
 public class DotNetParameterUtil {
+    private static String cleanUrlParameterName(String name) {
+        return name.replace("*", "");
+    }
+
     public static Collection<RouteParameter> getMergedMethodParameters(List<CSharpParameter> cSharpParameters, List<RouteParameter> routeParameters) {
         Map<String, RouteParameter> parameterMap = map();
 
         for (RouteParameter existingParam : routeParameters) {
-            parameterMap.put(existingParam.getName(), existingParam);
+            parameterMap.put(cleanUrlParameterName(existingParam.getName()), existingParam);
         }
 
         for (CSharpParameter csParam : cSharpParameters) {

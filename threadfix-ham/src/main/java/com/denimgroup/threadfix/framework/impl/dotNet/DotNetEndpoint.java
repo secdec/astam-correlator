@@ -77,7 +77,13 @@ public class DotNetEndpoint extends AbstractEndpoint {
 
         this.routeParameters = map();
         for (Map.Entry<String, RouteParameter> param : action.parameters.entrySet()) {
-        	if (path.contains("{" + param.getKey() + "}")) {
+            if (param.getKey().contains("[") || param.getKey().contains(".")) {
+                routeParameters.put(param.getKey(), param.getValue());
+                continue;
+            }
+
+            Pattern paramPattern = Pattern.compile("\\{\\*?" + param.getKey() + "\\}");
+        	if (paramPattern.matcher(path).find()) {
         		RouteParameter parametric = new RouteParameter(param.getKey());
         		parametric.setDataType(param.getValue().getDataTypeSource());
         		parametric.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
