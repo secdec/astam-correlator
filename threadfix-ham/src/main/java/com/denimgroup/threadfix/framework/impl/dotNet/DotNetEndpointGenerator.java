@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.ModelFieldSet;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
+import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpAttribute;
@@ -144,7 +145,10 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 if (!endpoint.startsWith("/")) {
                     endpoint = "/" + endpoint;
                 }
-                endpoints.add(new DotNetEndpoint(endpoint, filePath, action));
+                String cleanedEndpoint = cleanUrlWithRouteConstraints(endpoint);
+                DotNetEndpoint newEndpoint = new DotNetEndpoint(cleanedEndpoint, filePath, action);
+                updateParametersByRouteConstraints(endpoint, newEndpoint);
+                endpoints.add(newEndpoint);
             }
         }
     }
@@ -285,7 +289,9 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 //      this
 
                 for (String url : result) {
-                    DotNetEndpoint newEndpoint = new DotNetEndpoint(url, filePath, action);
+                    String cleanedUrl = cleanUrlWithRouteConstraints(url);
+                    DotNetEndpoint newEndpoint = new DotNetEndpoint(cleanedUrl, filePath, action);
+                    updateParametersByRouteConstraints(url, newEndpoint);
                     endpoints.add(newEndpoint);
                 }
 
@@ -348,9 +354,29 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
         		filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
 	        }
 
-	        endpoints.add(new DotNetEndpoint(result, filePath, action));
+            String cleanedResult = cleanUrlWithRouteConstraints(result);
+	        DotNetEndpoint newEndpoint = new DotNetEndpoint(cleanedResult, filePath, action);
+        	updateParametersByRouteConstraints(result, newEndpoint);
+
+	        endpoints.add(newEndpoint);
         }
 
+    }
+
+    private void updateParametersByRouteConstraints(String unformattedUrl, DotNetEndpoint endpoint) {
+        Map<String, ParameterDataType> detectedTypes = DotNetParameterConstraintParser.run(unformattedUrl);
+        Map<String, RouteParameter> endpointParams = endpoint.getParameters();
+        for (Map.Entry<String, ParameterDataType> entry : detectedTypes.entrySet()) {
+            if (endpointParams.containsKey(entry.getKey())) {
+                RouteParameter param = endpointParams.get(entry.getKey());
+                //  Do '.toString' to get around deprecated API warning
+                param.setDataType(detectedTypes.get(entry.getKey()).toString());
+            }
+        }
+    }
+
+    private String cleanUrlWithRouteConstraints(String unformattedUrl) {
+        return unformattedUrl.replaceAll("\\{([^:]+)(?::.*)?\\}", "\\{$1\\}");
     }
 
     private String formatActionPath(String actionPath, String controllerName, String actionName, String areaName, boolean shouldReplaceParameterSection) {
