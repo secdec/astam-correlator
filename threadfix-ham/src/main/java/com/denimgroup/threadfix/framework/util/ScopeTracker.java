@@ -27,6 +27,7 @@ public class ScopeTracker {
 
     private int numOpenParen = 0, numOpenBrace = 0, numOpenBracket = 0;
     private int stringStartToken = -1;
+    private boolean isInString = false;
     private boolean nextIsEscaped = false;
     private boolean enteredScope = false;
     private boolean exitedScope = false;
@@ -92,9 +93,11 @@ public class ScopeTracker {
         if ((token == '"' || token == '\'') && !nextIsEscaped && (interpolationScopeTracker == null || !interpolationScopeTracker.isInString())) {
             if (stringStartToken < 0) {
                 stringStartToken = token;
+                isInString = true;
                 enteredString = true;
             } else if (token == stringStartToken) {
                 stringStartToken = -1;
+                isInString = false;
                 exitedString = true;
             }
         }
@@ -109,29 +112,36 @@ public class ScopeTracker {
             boolean wasGlobalScope = !isInScopeOrString();
             boolean movedUpScope = false;
             boolean movedDownScope = false;
-            if (token == '(') {
-                numOpenParen++;
-                movedUpScope = true;
-            }
-            if (token == ')') {
-                numOpenParen--;
-                movedDownScope = true;
-            }
-            if (token == '{') {
-                numOpenBrace++;
-                movedUpScope = true;
-            }
-            if (token == '}') {
-                numOpenBrace--;
-                movedDownScope = true;
-            }
-            if (token == '[') {
-                numOpenBracket++;
-                movedUpScope = true;
-            }
-            if (token == ']') {
-                numOpenBracket--;
-                movedDownScope = true;
+            switch (token) {
+                case '(':
+                    numOpenParen++;
+                    movedUpScope = true;
+                    break;
+
+                case ')':
+                    numOpenParen--;
+                    movedDownScope = true;
+                    break;
+
+                case '{':
+                    numOpenBrace++;
+                    movedUpScope = true;
+                    break;
+
+                case '}':
+                    numOpenBrace--;
+                    movedDownScope = true;
+                    break;
+
+                case '[':
+                    numOpenBracket++;
+                    movedUpScope = true;
+                    break;
+
+                case ']':
+                    numOpenBracket--;
+                    movedDownScope = true;
+                    break;
             }
 
             if (movedUpScope) {
@@ -158,7 +168,7 @@ public class ScopeTracker {
     }
 
     public boolean isInString() {
-        return stringStartToken > 0;
+        return isInString;
     }
 
     public boolean isInScope() {
@@ -166,7 +176,7 @@ public class ScopeTracker {
     }
 
     public boolean isInScopeOrString() {
-        return stringStartToken > 0 || numOpenParen > 0 || numOpenBrace > 0 || numOpenBracket > 0;
+        return isInString || numOpenParen > 0 || numOpenBrace > 0 || numOpenBracket > 0;
     }
 
     public int getNumOpenParen() {
