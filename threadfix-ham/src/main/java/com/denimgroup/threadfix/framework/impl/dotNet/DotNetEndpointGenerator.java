@@ -264,13 +264,16 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 
                 //  Treat default controller and action for a route as a special case
                 if (mapRoute.defaultRoute != null && action.name.equals(mapRoute.defaultRoute.action) && mappings.getControllerName().equals(mapRoute.defaultRoute.controller)) {
-                    result.add(formatActionPath(
+                    String defaultPath = formatActionPath(
                         mapRoute.url,
                         null,
                         null,
                         areaName,
                         true
-                    ));
+                    );
+                    if (!result.contains(defaultPath)) {
+                        result.add(defaultPath);
+                    }
                 }
 
                 LOG.debug("Got result " + result);
