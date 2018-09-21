@@ -25,17 +25,17 @@ The ASTAM Correlator HAM module for endpoint detection has been published to Mav
     <dependency>
         <groupId>com.github.secdec.astam-correlator</groupId>
         <artifactId>master-pom</artifactId>
-        <version>1.2.17.1</version>
+        <version>1.2.18</version>
     </dependency>
     <dependency>
         <groupId>com.github.secdec.astam-correlator</groupId>
         <artifactId>threadfix-entities</artifactId>
-        <version>1.2.17.1</version>
+        <version>1.2.18</version>
     </dependency>
     <dependency>
         <groupId>com.github.secdec.astam-correlator</groupId>
         <artifactId>threadfix-ham</artifactId>
-        <version>1.2.17.1</version>
+        <version>1.2.18</version>
     </dependency>
 
 # Documentation
