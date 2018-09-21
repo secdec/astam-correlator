@@ -85,10 +85,16 @@ public class CSharpMethodParser extends AbstractCSharpParser<CSharpMethod> imple
 
         switch (currentMethodState) {
             case SEARCH:
+                boolean madeAttributeItem = false;
                 if (attributeParser.isBuildingItem()) {
                     break;
                 } else while (attributeParser.hasItem()) {
                     pendingAttributes.add(attributeParser.pullCurrentItem());
+                    madeAttributeItem = true;
+                }
+
+                if (madeAttributeItem) {
+                    break;
                 }
 
                 //  Occurs during a property definition
