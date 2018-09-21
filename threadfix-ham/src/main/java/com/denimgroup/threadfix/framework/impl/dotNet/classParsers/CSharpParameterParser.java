@@ -204,6 +204,9 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
                 }
 
                 if (scopeTracker.getNumOpenParen() == 0) {
+                    if (workingString != null) {
+                        getPendingItem().setDefaultValue(workingString);
+                    }
                     finalizeParameter(false);
                     setCurrentState(ParameterState.SEARCH);
                     break;
@@ -216,6 +219,8 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
                     finalizeParameter(true);
                     setCurrentState(ParameterState.PARAMETER_START);
                     break;
+                } else {
+                    workingString += CodeParseUtil.buildTokenString(type, stringValue);
                 }
                 break;
 
@@ -225,6 +230,9 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
                 }
 
                 if (scopeTracker.getNumOpenParen() == 0) {
+                    if (workingString != null) {
+                        getPendingItem().setValue(workingString);
+                    }
                     finalizeParameter(false);
                     setCurrentState(ParameterState.SEARCH);
                     break;
@@ -237,6 +245,8 @@ public class CSharpParameterParser extends AbstractCSharpParser<CSharpParameter>
                     finalizeParameter(true);
                     setCurrentState(ParameterState.PARAMETER_START);
                     break;
+                } else {
+                    workingString += CodeParseUtil.buildTokenString(type, stringValue);
                 }
                 break;
         }
