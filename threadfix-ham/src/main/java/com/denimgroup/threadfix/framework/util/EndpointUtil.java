@@ -11,10 +11,7 @@ import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Collection;
-import java.util.List;
-import java.util.Queue;
+import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
@@ -64,5 +61,66 @@ public class EndpointUtil {
                 remainingEndpoints.add(variant);
             }
         }
+    }
+
+
+    private static class EndpointSpec {
+        int startLine, endLine;
+        String filePath;
+
+        public static EndpointSpec fromEndpoint(Endpoint endpoint)
+        {
+            EndpointSpec spec = new EndpointSpec();
+            spec.startLine = endpoint.getStartingLineNumber();
+            spec.endLine = endpoint.getEndingLineNumber();
+            spec.filePath = endpoint.getFilePath();
+            return spec;
+        }
+
+        @Override
+        public int hashCode() {
+            return startLine ^ (endLine << 16) ^ filePath.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj.hashCode() == this.hashCode();
+        }
+    }
+
+    //  Assigns variants to their primary endpoint and returns the set of primary endpoints
+    public static List<Endpoint> autoAssignEndpointVariants(Collection<Endpoint> endpoints) {
+        Map<EndpointSpec, List<Endpoint>> variantEndpointGroups = new HashMap<EndpointSpec, List<Endpoint>>();
+        for (Endpoint endpoint : endpoints) {
+            EndpointSpec spec = EndpointSpec.fromEndpoint(endpoint);
+            List<Endpoint> group = variantEndpointGroups.get(spec);
+            if (group == null) {
+                group = list();
+                variantEndpointGroups.put(spec, group);
+            }
+            group.add(endpoint);
+        }
+
+        List<Endpoint> primaryEndpoints = list();
+        for (List<Endpoint> group : variantEndpointGroups.values()) {
+            Endpoint bestEndpoint = null;
+            for (Endpoint member : group) {
+                if (bestEndpoint == null || member.getUrlPath().length() < bestEndpoint.getUrlPath().length()) {
+                    bestEndpoint = member;
+                }
+            }
+
+            AbstractEndpoint abstractEndpoint = (AbstractEndpoint)bestEndpoint;
+            for (Endpoint member : group) {
+                if (member != bestEndpoint) {
+                    abstractEndpoint.addVariant(member);
+                    ((AbstractEndpoint)member).setPrimaryVariant(abstractEndpoint);
+                }
+            }
+
+            primaryEndpoints.add(bestEndpoint);
+        }
+
+        return primaryEndpoints;
     }
 }
