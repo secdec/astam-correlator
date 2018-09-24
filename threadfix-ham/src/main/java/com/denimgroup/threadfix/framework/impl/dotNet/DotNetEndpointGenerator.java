@@ -113,6 +113,10 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
             }
         }
 
+        //  TODO - Endpoint variants should be generated manually, not automatically, for performance and correctness
+        List<Endpoint> primaryEndpoints = EndpointUtil.autoAssignEndpointVariants(endpoints);
+        endpoints.clear();
+        endpoints.addAll(primaryEndpoints);
         EndpointUtil.rectifyVariantHierarchy(endpoints);
 
         EndpointValidationStatistics.printValidationStats(endpoints);
