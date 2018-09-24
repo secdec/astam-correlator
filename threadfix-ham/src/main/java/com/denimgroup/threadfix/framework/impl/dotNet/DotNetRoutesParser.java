@@ -460,7 +460,9 @@ public class DotNetRoutesParser implements EventBasedTokenizer {
         if (parenCount == currentParenCount) {
             log("Paren count: " + parenCount);
             log("Paren current: " + currentParenCount);
-            mappings.addRoute(currentName, currentUrl, currentDefaultArea, currentDefaultController, currentDefaultAction, parameterName, currentNamespaces);
+            if (currentUrl != null) {
+                mappings.addRoute(currentName, currentUrl, currentDefaultArea, currentDefaultController, currentDefaultAction, parameterName, currentNamespaces);
+            }
             currentDefaultAction = null;
             currentDefaultController = null;
             currentDefaultArea = null;
