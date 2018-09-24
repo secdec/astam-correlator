@@ -10,10 +10,10 @@ public class WebFormsEndpointMatchingTests {
         final String finalPath = path;
         return new WebFormsEndpointBase() {
             {
-                this.urlPath = calculateUrlPath();
+                this.urlPath = calculateUrlPath(null, null);
             }
             @Override
-            protected String calculateUrlPath() {
+            protected String calculateUrlPath(String aspxRootPath, String aspxPath) {
                 return finalPath;
             }
 

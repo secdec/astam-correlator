@@ -101,7 +101,7 @@ public class SpringControllerMappingsTests {
                     mappings.getEndpointsFromUrl(singleEndpoint[0]).size() == 1);
 
             String filePath = mappings.getEndpointsFromUrl(singleEndpoint[0])
-                    .iterator().next().getCleanedFilePath().replace('\\', '/');
+                    .iterator().next().getFilePath().replace('\\', '/');
 
             assertTrue("Expected " + singleEndpoint[1] + ", got " + filePath,
                     filePath.equals(singleEndpoint[1]));
@@ -113,7 +113,7 @@ public class SpringControllerMappingsTests {
                     mappings.getEndpointsFromUrl(doubleEndpoint[0]).size() == 2);
 
             String filePath = mappings.getEndpointsFromUrl(doubleEndpoint[0])
-                    .iterator().next().getCleanedFilePath().replace('\\', '/');
+                    .iterator().next().getFilePath().replace('\\', '/');
 
             assertTrue("Expected + " + doubleEndpoint[1] + ", got " + filePath,
                     filePath.equals(doubleEndpoint[1]));

@@ -43,23 +43,16 @@ import static com.denimgroup.threadfix.CollectionUtils.*;
 
 public class SpringControllerEndpoint extends AbstractEndpoint {
 
-    public static final String GENERIC_INT_SEGMENT = "{id}";
-    private static final String requestMappingStart = "RequestMethod.";
-
     @Nonnull
     private String filePath, urlPath;
-    Pattern urlPathPattern;
+    private Pattern urlPathPattern;
     @Nonnull
     private Map<String, RouteParameter> parameters;
     private int startLineNumber = -1, endLineNumber = -1;
 
     private String method;
-
-    @Nullable
-    private String cleanedFilePath = null, cleanedUrlPath = null;
-
     private AuthenticationRequired authenticationRequired = AuthenticationRequired.UNKNOWN;
-    private String fileRoot, authorizationString;
+    private String authorizationString;
 
     @JsonIgnore
     @Nullable
@@ -160,24 +153,6 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         }
     }
 
-    @Nonnull
-    private Set<String> getCleanedSet(@Nonnull Collection<String> methods) {
-        Set<String> returnSet = set();
-        for (String method : methods) {
-            if (method.startsWith(requestMappingStart)) {
-                returnSet.add(method.substring(requestMappingStart.length()));
-            } else {
-                returnSet.add(method);
-            }
-        }
-
-        if (returnSet.isEmpty()) {
-            returnSet.add("GET");
-        }
-
-        return returnSet;
-    }
-
     @Override
     public int compareRelevance(String endpoint) {
         if (getUrlPath().equalsIgnoreCase(endpoint)) {
@@ -206,37 +181,8 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         return parameters;
     }
 
-    @Nonnull
-    public String getCleanedFilePath() {
-        if (cleanedFilePath == null && fileRoot != null &&
-                filePath.contains(fileRoot)) {
-            cleanedFilePath = filePath.substring(fileRoot.length());
-        }
-
-        if (cleanedFilePath == null) {
-            return filePath;
-        }
-
-        return cleanedFilePath;
-    }
-
-    public void setFileRoot(String fileRoot) {
-        this.fileRoot = fileRoot;
-    }
-
     public void setDataBinderParser(@Nullable SpringDataBinderParser dataBinderParser) {
         this.dataBinderParser = dataBinderParser;
-    }
-
-    @Nullable
-    public static String cleanUrlPathStatic(@Nullable String rawUrlPath) {
-        if (rawUrlPath == null) {
-            return null;
-        } else {
-            return rawUrlPath
-                    .replaceAll("/\\*/", "/" + GENERIC_INT_SEGMENT + "/")
-                    .replaceAll("\\{[^\\}]+\\}", GENERIC_INT_SEGMENT);
-        }
     }
 
     @Override
@@ -255,7 +201,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     @Nonnull
     @Override
     public String toString() {
-        return "[" + getCleanedFilePath() +
+        return "[" + filePath +
                 ":" + startLineNumber +
                 "-" + endLineNumber +
                 " -> " + getHttpMethod() +
@@ -302,7 +248,7 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
     @Nonnull
     @Override
     public String getFilePath() {
-        return getCleanedFilePath();
+        return filePath;
     }
 
     @Override
@@ -330,18 +276,14 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
         this.authorizationString = authorizationString;
     }
 
-    Pattern pattern = Pattern.compile("hasRole\\('([^']+)'\\)");
-    List<String> permissions = null;
+    private static Pattern AUTHORIZATION_PATTERN = Pattern.compile("hasRole\\('([^']+)'\\)");
 
     @Override
     @Nonnull
     public List<String> getRequiredPermissions() {
-
-        if (permissions == null) {
-            permissions = list();
-            if (authorizationString != null) {
-                permissions.addAll(RegexUtils.getRegexResults(authorizationString, pattern));
-            }
+        List<String> permissions = list();
+        if (authorizationString != null) {
+            permissions.addAll(RegexUtils.getRegexResults(authorizationString, AUTHORIZATION_PATTERN));
         }
 
         return permissions;

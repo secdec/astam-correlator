@@ -45,8 +45,8 @@ public class WebFormsEndpointExtensionless extends WebFormsEndpointBase {
 
     }
 
-    public WebFormsEndpointExtensionless(File solutionRoot, File projectRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
-        super(solutionRoot, projectRoot, aspxRoot, aspxParser, aspxCsParser);
+    public WebFormsEndpointExtensionless(File solutionRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
+        super(solutionRoot, aspxRoot, aspxParser, aspxCsParser);
     }
 
     @Override
@@ -57,8 +57,8 @@ public class WebFormsEndpointExtensionless extends WebFormsEndpointBase {
     }
 
     @Override
-    protected String calculateUrlPath() {
-        String relativePath = calculateRelativePath(aspxFilePath, aspxRoot);
+    protected String calculateUrlPath(String aspxRootPath, String aspxFilePath) {
+        String relativePath = calculateRelativePath(aspxFilePath, aspxRootPath);
         int extensionIndex = relativePath.lastIndexOf('.');
 
         return relativePath.substring(0, extensionIndex);

@@ -198,7 +198,6 @@ public class SpringControllerMappings implements EndpointGenerator {
             endpointsList.addAll(endpointParser.endpoints);
 
             for (SpringControllerEndpoint endpoint : endpointParser.endpoints) {
-                endpoint.setFileRoot(rootDirectory.getAbsolutePath());
                 endpoint.setDataBinderParser(dataBinderParser);
                 String urlPath = endpoint.getUrlPath();
                 if (!urlToControllerMethodsMap.containsKey(urlPath)) {

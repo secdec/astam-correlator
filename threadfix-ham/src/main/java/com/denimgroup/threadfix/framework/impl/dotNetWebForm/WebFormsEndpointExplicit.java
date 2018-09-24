@@ -45,8 +45,8 @@ public class WebFormsEndpointExplicit extends WebFormsEndpointBase {
 
     }
 
-    public WebFormsEndpointExplicit(File solutionRoot, File projectRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
-        super(solutionRoot, projectRoot, aspxRoot, aspxParser, aspxCsParser);
+    public WebFormsEndpointExplicit(File solutionRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
+        super(solutionRoot, aspxRoot, aspxParser, aspxCsParser);
     }
 
     @Override
@@ -54,10 +54,5 @@ public class WebFormsEndpointExplicit extends WebFormsEndpointBase {
         WebFormsEndpointExplicit result = new WebFormsEndpointExplicit();
         copyPropertiesTo(result);
         return result;
-    }
-
-    @Override
-    protected String calculateUrlPath() {
-        return super.calculateUrlPath();
     }
 }

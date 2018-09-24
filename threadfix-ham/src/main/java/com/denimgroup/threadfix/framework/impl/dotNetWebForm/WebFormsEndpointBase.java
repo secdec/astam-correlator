@@ -51,11 +51,6 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
     private static final SanitizedLogger LOG = new SanitizedLogger(WebFormsEndpointBase.class);
 
-    String      aspxFilePath;
-    String      aspxCsFilePath;
-    String      projectRoot;
-    String      solutionRoot;
-    String      aspxRoot;
     String      urlPath;
     String      filePath;
 
@@ -70,20 +65,19 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
 
     }
 
-    public WebFormsEndpointBase(File solutionRoot, File projectRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
+    public WebFormsEndpointBase(File solutionRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
         if (!checkArguments(aspxParser.aspName, aspxCsParser.aspName)) {
             throw new IllegalArgumentException("Invalid aspx mappings pairs passed to WebFormsEndpointBase constructor: " +
                     aspxParser.aspName + " and " + aspxCsParser.aspName);
         }
 
-        this.aspxFilePath = FilePathUtils.normalizePath(aspxParser.file.getAbsolutePath());
-        this.aspxCsFilePath = FilePathUtils.normalizePath(aspxCsParser.file.getAbsolutePath());
-        this.projectRoot = FilePathUtils.normalizePath(projectRoot.getAbsolutePath());
-        this.solutionRoot = FilePathUtils.normalizePath(solutionRoot.getAbsolutePath());
-        this.aspxRoot = FilePathUtils.normalizePath(aspxRoot.getAbsolutePath());
+        String aspxFilePath = FilePathUtils.normalizePath(aspxParser.file.getAbsolutePath());
+        String aspxCsFilePath = FilePathUtils.normalizePath(aspxCsParser.file.getAbsolutePath());
+        String solutionRootPath = FilePathUtils.normalizePath(solutionRoot.getAbsolutePath());
+        String aspxRootPath = FilePathUtils.normalizePath(aspxRoot.getAbsolutePath());
 
-        this.urlPath = calculateUrlPath();
-        this.filePath = calculateFilePath();
+        this.urlPath = calculateUrlPath(aspxRootPath, aspxFilePath);
+        this.filePath = calculateFilePath(solutionRootPath, aspxCsFilePath);
 
         this.urlPath = this.urlPath.replaceAll("\\\\", "/");
 
@@ -116,22 +110,22 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
         this.httpMethod = httpMethod;
     }
 
-    private String calculateFilePath() {
-        return calculateRelativePath(this.aspxCsFilePath, this.solutionRoot);
+    private String calculateFilePath(String solutionRootPath, String aspxCsFilePath) {
+        return calculateRelativePath(aspxCsFilePath, solutionRootPath);
     }
 
-    protected String calculateUrlPath() {
-        return calculateRelativePath(this.aspxFilePath, this.aspxRoot);
+    protected String calculateUrlPath(String aspxRootPath, String aspxFilePath) {
+        return calculateRelativePath(aspxFilePath, aspxRootPath);
     }
 
-    final protected String calculateRelativePath(String aspxFilePath, String aspxRootPath) {
-        if (aspxFilePath.startsWith(aspxRootPath)) {
-            return aspxFilePath.substring(aspxRootPath.length());
+    final protected String calculateRelativePath(String filePath, String basePath) {
+        if (filePath.startsWith(basePath)) {
+            return filePath.substring(basePath.length());
         } else {
             String error = "AspxFilePath didn't start with aspxRoot : " +
-                    aspxFilePath +
+                    filePath +
                     " didn't start with " +
-                    aspxRootPath;
+                    basePath;
             LOG.error(error);
             return null;
         }
@@ -258,10 +252,6 @@ abstract class WebFormsEndpointBase extends AbstractEndpoint {
     public abstract WebFormsEndpointBase duplicate();
 
     protected void copyPropertiesTo(WebFormsEndpointBase target) {
-        target.aspxFilePath = this.aspxFilePath;
-        target.aspxCsFilePath = this.aspxCsFilePath;
-        target.projectRoot = this.projectRoot;
-        target.aspxRoot = this.aspxRoot;
         target.urlPath = this.urlPath;
         target.filePath = this.filePath;
 

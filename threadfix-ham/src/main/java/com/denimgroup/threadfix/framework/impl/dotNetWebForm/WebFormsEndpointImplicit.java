@@ -47,8 +47,8 @@ public class WebFormsEndpointImplicit extends WebFormsEndpointBase {
 
     }
 
-    public WebFormsEndpointImplicit(File solutionRoot, File projectRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
-        super(solutionRoot, projectRoot, aspxRoot, aspxParser, aspxCsParser);
+    public WebFormsEndpointImplicit(File solutionRoot, File aspxRoot, AspxParser aspxParser, AspxCsParser aspxCsParser) {
+        super(solutionRoot, aspxRoot, aspxParser, aspxCsParser);
     }
 
     @Override
@@ -59,8 +59,8 @@ public class WebFormsEndpointImplicit extends WebFormsEndpointBase {
     }
 
     @Override
-    protected String calculateUrlPath() {
-        String relativePath = calculateRelativePath(aspxFilePath, aspxRoot);
+    protected String calculateUrlPath(String aspxRootPath, String aspxFilePath) {
+        String relativePath = calculateRelativePath(aspxFilePath, aspxRootPath);
         int lastPathIndex = relativePath.lastIndexOf('/');
 
         return relativePath.substring(0, lastPathIndex + 1);

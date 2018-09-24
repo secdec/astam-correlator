@@ -52,8 +52,6 @@ public class JSPEndpoint extends AbstractEndpoint {
     private final Map<String, RouteParameter> parameters = map();
     @Nonnull
     private final Map<Integer, List<RouteParameter>> lineToParamMap;
-    @Nonnull
-    private final Map<String, Integer> paramToLineMap;
 
     @Nonnull
     private String method;
@@ -62,7 +60,6 @@ public class JSPEndpoint extends AbstractEndpoint {
 
     private JSPEndpoint() {
         this.lineToParamMap = map();
-        this.paramToLineMap = map();
     }
 
     public JSPEndpoint(@Nonnull String staticPath,
@@ -80,15 +77,9 @@ public class JSPEndpoint extends AbstractEndpoint {
         List<Integer> sortedLineNumbers = new ArrayList<Integer>(lineToParamMap.keySet());
         Collections.sort(sortedLineNumbers);
 
-        this.paramToLineMap = map();
-
         for (Integer lineNo : sortedLineNumbers) {
             List<RouteParameter> paramsAtLine = lineToParamMap.get(lineNo);
             for (RouteParameter param : paramsAtLine) {
-                if (!paramToLineMap.containsKey(param.getName())) {
-                    paramToLineMap.put(param.getName(), lineNo);
-                }
-
                 if (!parameters.containsKey(param.getName())) {
                     parameters.put(param.getName(), param);
                 }
@@ -243,12 +234,14 @@ public class JSPEndpoint extends AbstractEndpoint {
 
     @Override
     public int getLineNumberForParameter(String parameter) {
-        Integer value = paramToLineMap.get(parameter);
-        if (value == null) {
-            return 0;
-        } else {
-            return value;
+        for (Map.Entry<Integer, List<RouteParameter>> entry : lineToParamMap.entrySet()) {
+            for (RouteParameter lineParam : entry.getValue()) {
+                if (lineParam.getName().equalsIgnoreCase(parameter)) {
+                    return entry.getKey();
+                }
+            }
         }
+        return 0;
     }
 
     public void setLines(int startLine, int endLine) {

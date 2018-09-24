@@ -335,14 +335,14 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
                 continue;
             }
 
-            WebFormsEndpointExplicit primaryEndpoint = new WebFormsEndpointExplicit(solutionDirectory, projectDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser);
+            WebFormsEndpointExplicit primaryEndpoint = new WebFormsEndpointExplicit(solutionDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser);
             endpoints.add(primaryEndpoint);
 
-            primaryEndpoint.addVariant(new WebFormsEndpointExtensionless(solutionDirectory, projectDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser));
+            primaryEndpoint.addVariant(new WebFormsEndpointExtensionless(solutionDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser));
 
             for (String defaultPageName : defaultPages) {
                 if (defaultPageName.equalsIgnoreCase(entry.getKey())) {
-                    primaryEndpoint.addVariant(new WebFormsEndpointImplicit(solutionDirectory, projectDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser));
+                    primaryEndpoint.addVariant(new WebFormsEndpointImplicit(solutionDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser));
                     break;
                 }
             }
