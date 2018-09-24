@@ -66,7 +66,7 @@ public class EndpointUtil {
 
     private static class EndpointSpec {
         int startLine, endLine;
-        String filePath;
+        String filePath, httpMethod;
 
         public static EndpointSpec fromEndpoint(Endpoint endpoint)
         {
@@ -74,17 +74,18 @@ public class EndpointUtil {
             spec.startLine = endpoint.getStartingLineNumber();
             spec.endLine = endpoint.getEndingLineNumber();
             spec.filePath = endpoint.getFilePath();
+            spec.httpMethod = endpoint.getHttpMethod();
             return spec;
         }
 
         @Override
         public int hashCode() {
-            return startLine ^ (endLine << 16) ^ filePath.hashCode();
+            return startLine ^ (endLine << 16) ^ filePath.hashCode() ^ httpMethod.hashCode();
         }
 
         @Override
         public boolean equals(Object obj) {
-            return obj.hashCode() == this.hashCode();
+            return obj.getClass().equals(EndpointSpec.class) && obj.hashCode() == this.hashCode();
         }
     }
 
