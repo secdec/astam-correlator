@@ -102,10 +102,10 @@ public interface Endpoint extends Comparable<Endpoint> {
             info.httpMethod = endpoint.getHttpMethod();
             info.urlPath = endpoint.getUrlPath();
             info.csvLine = endpoint.getCSVLine();
-            info.startingLineNumber = endpoint.getStartingLineNumber();
 
             if (includeSourceFile) {
                 info.filePath = endpoint.getFilePath();
+                info.startingLineNumber = endpoint.getStartingLineNumber();
             }
 
             return info;
