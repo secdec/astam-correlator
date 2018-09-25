@@ -202,7 +202,7 @@ public class PluginRestController extends TFRestController {
         Endpoint.Info[] endpointsInfos = new Endpoint.Info[allEndpoints.size()];
 
         for (int i = 0; i < allEndpoints.size(); i++) {
-            endpointsInfos[i] = Endpoint.Info.fromEndpoint(allEndpoints.get(i));
+            endpointsInfos[i] = Endpoint.Info.fromEndpoint(allEndpoints.get(i), true);
         }
 
         return endpointsInfos;
