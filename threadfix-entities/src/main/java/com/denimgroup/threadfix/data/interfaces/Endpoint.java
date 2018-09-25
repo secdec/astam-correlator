@@ -96,14 +96,18 @@ public interface Endpoint extends Comparable<Endpoint> {
 
         int startingLineNumber;
 
-        public static Info fromEndpoint(Endpoint endpoint) {
+        public static Info fromEndpoint(Endpoint endpoint, boolean includeSourceFile) {
             Info info = new Info();
             info.parameters = endpoint.getParameters();
             info.httpMethod = endpoint.getHttpMethod();
             info.urlPath = endpoint.getUrlPath();
-            info.filePath = endpoint.getFilePath();
             info.csvLine = endpoint.getCSVLine();
-            info.startingLineNumber = endpoint.getStartingLineNumber();
+
+            if (includeSourceFile) {
+                info.filePath = endpoint.getFilePath();
+                info.startingLineNumber = endpoint.getStartingLineNumber();
+            }
+
             return info;
         }
 
