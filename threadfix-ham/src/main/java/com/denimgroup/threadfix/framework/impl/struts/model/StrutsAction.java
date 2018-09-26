@@ -66,7 +66,11 @@ public class StrutsAction {
     }
 
     public String getMethod() {
-        return method;
+        if (method == null) {
+            return "execute";
+        } else {
+            return method;
+        }
     }
 
     public void setMethod(String method) {
