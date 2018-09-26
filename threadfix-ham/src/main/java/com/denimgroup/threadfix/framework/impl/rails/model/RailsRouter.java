@@ -27,4 +27,6 @@ public interface RailsRouter {
 
     RailsRoutingEntry identify(String identifier);
 
+    String resolveController(String controllerPath);
+
 }

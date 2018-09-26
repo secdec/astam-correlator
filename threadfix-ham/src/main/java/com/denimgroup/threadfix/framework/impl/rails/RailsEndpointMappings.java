@@ -96,6 +96,11 @@ public class RailsEndpointMappings implements EndpointGenerator {
                 controllerPath = route.getController();
             }
 
+            for (RailsRouter router : routers) {
+                //  Modify controller path if any routers have specific logic for the given controller
+                controllerPath = router.resolveController(controllerPath);
+            }
+
             if (controllerPath != null) {
 
                 if (controllerPath.startsWith(rootDirectory.getAbsolutePath())) {

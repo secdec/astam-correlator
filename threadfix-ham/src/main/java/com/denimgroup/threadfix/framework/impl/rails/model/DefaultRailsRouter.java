@@ -64,4 +64,9 @@ public class DefaultRailsRouter implements RailsRouter {
             return new UnknownEntry();
         }
     }
+
+    @Override
+    public String resolveController(String controllerPath) {
+        return controllerPath;
+    }
 }

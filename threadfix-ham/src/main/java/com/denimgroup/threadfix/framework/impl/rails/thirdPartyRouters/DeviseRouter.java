@@ -42,4 +42,14 @@ public class DeviseRouter implements RailsRouter {
             return null;
         }
     }
+
+    @Override
+    public String resolveController(String controllerPath) {
+        if (controllerPath != null && controllerPath.startsWith("devise/")) {
+            // Denote with '(lib)' to indicate that the controller
+            //  is in a third-party library and the file can't be resolved
+            controllerPath = "(lib) " + controllerPath;
+        }
+        return controllerPath;
+    }
 }
