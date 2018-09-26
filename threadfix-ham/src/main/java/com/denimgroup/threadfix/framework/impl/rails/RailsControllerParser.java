@@ -230,6 +230,21 @@ public class RailsControllerParser implements EventBasedTokenizer {
                 int i = ctrlName.lastIndexOf("Controller");
                 ctrlName = ctrlName.substring(0, i);
             }
+            if (ctrlName.contains("::")) {
+                String[] moduleParts = ctrlName.split("::");
+                ctrlName = moduleParts[moduleParts.length - 1];
+                StringBuilder moduleNameBuilder = new StringBuilder();
+                if (currentRailsController.getModuleName() != null) {
+                    moduleNameBuilder.append(currentRailsController.getModuleName());
+                }
+                for (String modulePart : Arrays.copyOfRange(moduleParts, 0, moduleParts.length - 1)) {
+                    if (moduleNameBuilder.length() > 0) {
+                        moduleNameBuilder.append("::");
+                    }
+                    moduleNameBuilder.append(modulePart);
+                }
+                currentRailsController.setModuleName(moduleNameBuilder.toString());
+            }
             currentRailsController.setControllerName(ctrlName);
             currentCtrlState = ControllerState.INIT;
         }

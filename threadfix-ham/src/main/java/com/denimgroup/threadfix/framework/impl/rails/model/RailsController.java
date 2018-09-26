@@ -118,7 +118,7 @@ public class RailsController {
     	if (moduleName != null) {
     		sb.append(moduleName);
 	    }
-	    sb.append("::");
+	    sb.append("/");
     	if (controllerName != null) {
     		sb.append(controllerName);
 	    } else {
