@@ -35,10 +35,10 @@ class JSPFileFilter implements IOFileFilter {
 
     @Override
     public boolean accept(@Nonnull File file) {
-        return file.getName().contains(".jsp");
+        return file.getName().toLowerCase().endsWith(".jsp");
     }
     @Override
     public boolean accept(File dir, @Nonnull String name) {
-        return name.contains(".jsp");
+        return name.toLowerCase().endsWith(".jsp");
     }
 }

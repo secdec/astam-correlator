@@ -65,7 +65,6 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
     private String[] acceptedWebFileTypes = new String[] {
             ".jsp",
-            ".jspf",
             ".html",
             ".xhtml",
 
