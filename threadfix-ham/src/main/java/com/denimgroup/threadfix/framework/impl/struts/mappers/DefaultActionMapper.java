@@ -236,7 +236,11 @@ public class DefaultActionMapper implements ActionMapper {
                         }
                         StrutsResult primaryResult = strutsAction.getPrimaryResult();
                         if (primaryResult != null) {
-                            String displayFilePath = PathUtil.combine(project.getWebPath(), primaryResult.getValue());
+                            String localDisplayFilePath = primaryResult.getValue();
+                            if (localDisplayFilePath != null && !localDisplayFilePath.startsWith("/")) {
+                                localDisplayFilePath = PathUtil.combine(packageNamespace, localDisplayFilePath);
+                            }
+                            String displayFilePath = PathUtil.combine(project.getWebPath(), localDisplayFilePath);
                             newEndpoint.setDisplayFilePath(displayFilePath);
                             //  Can happen if default Struts action class was assigned
                             if (newEndpoint.getFilePath().trim().isEmpty()) {
