@@ -89,13 +89,13 @@ public class DefaultActionMapper implements ActionMapper {
 
                 endpoint = new StrutsEndpoint(endpointPath, namespace, "GET", params);
                 endpoint.setDisplayFilePath(fullPath);
-                if (numLines > 0) endpoint.setLineNumbers(1, numLines + 1);
+                if (numLines > 0) endpoint.setLineNumbers(1, numLines);
                 endpoints.add(endpoint);
 
 
                 endpoint = new StrutsEndpoint(endpointPath, namespace + "/", "GET", params);
                 endpoint.setDisplayFilePath(fullPath);
-                if (numLines > 0) endpoint.setLineNumbers(1, numLines + 1);
+                if (numLines > 0) endpoint.setLineNumbers(1, numLines);
                 endpoints.add(endpoint);
             }
         }
