@@ -44,12 +44,31 @@ public class StrutsWebXmlParser {
 
     public static File findWebXml(File rootSearchDirectory) {
         Collection<File> xmlFiles = FileUtils.listFiles(rootSearchDirectory, new String[] { "xml" }, true);
+        Collection<File> webXmlFiles = list();
         for (File file : xmlFiles) {
             if (file.getName().equalsIgnoreCase("web.xml")) {
+                webXmlFiles.add(file);
+            }
+        }
+
+        /*  Find best web.xml match */
+
+        //  Check if it contains 'webapp'
+        for (File file : webXmlFiles) {
+            if (file.getAbsolutePath().toLowerCase().contains("webapp")) {
                 return file;
             }
         }
-        return null;
+
+        //  Otherwise select the one with the shortest path
+        File shortestPathFile = null;
+        for (File file : webXmlFiles) {
+            if (shortestPathFile == null || file.getAbsolutePath().length() < shortestPathFile.getAbsolutePath().length()) {
+                shortestPathFile = file;
+            }
+        }
+
+        return shortestPathFile;
     }
 
     public StrutsWebXmlParser(File webXmlFile) {
