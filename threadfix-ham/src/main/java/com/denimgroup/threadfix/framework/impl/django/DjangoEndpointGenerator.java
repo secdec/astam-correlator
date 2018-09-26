@@ -256,11 +256,24 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         }
     }
 
+    private void fixRouteLineNumbers(PythonCodeCollection codebase, List<DjangoRoute> routes)
+    {
+        for (DjangoRoute route : routes) {
+            PythonFunction pythonFunction = codebase.findByLineNumber(route.getViewPath(), route.getStartLineNumber(), PythonFunction.class);
+            if (pythonFunction != null) {
+                route.setLineNumbers(
+                    route.getStartLineNumber(),
+                    pythonFunction.getSourceCodeEndLine()
+                );
+            }
+        }
+    }
+
     private void inferHttpMethodsBySourceCode(PythonCodeCollection codebase, List<DjangoRoute> routes) {
         for (DjangoRoute route : routes) {
             String sourceFile = route.getViewPath();
-            AbstractPythonStatement pythonFunction = codebase.findByLineNumber(sourceFile, route.getStartLineNumber());
-            if (pythonFunction == null || !(pythonFunction instanceof PythonFunction)) {
+            PythonFunction pythonFunction = codebase.findByLineNumber(sourceFile, route.getStartLineNumber(), PythonFunction.class);
+            if (pythonFunction == null) {
                 if (route.getHttpMethod() == null) {
                     route.setHttpMethod("GET");
                 }
@@ -300,7 +313,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
             //  Duplicate routes can occur if a test suite is included that references production routes
             List<DjangoRoute> distinctRoutes = getDistinctRoutes(routeSet);
 
-            inferHttpMethodsBySourceCode(codebase, routeSet);
+            inferHttpMethodsBySourceCode(codebase, distinctRoutes);
+            fixRouteLineNumbers(codebase, distinctRoutes);
 
             for (DjangoRoute route : distinctRoutes) {
                 String urlPath = route.getUrl();
@@ -319,7 +333,9 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
                 primaryEndpoint.setLineNumbers(route.getStartLineNumber(), route.getEndLineNumber());
                 mappings.add(primaryEndpoint);
                 if (i18) {
-                    primaryEndpoint.addVariant(new DjangoEndpoint(relativeFilePath, urlPath, httpMethod, parameters, true));
+                    DjangoEndpoint intlEndpoint = new DjangoEndpoint(relativeFilePath, urlPath, httpMethod, parameters, true);
+                    intlEndpoint.setLineNumbers(primaryEndpoint.getStartingLineNumber(), primaryEndpoint.getEndingLineNumber());
+                    primaryEndpoint.addVariant(intlEndpoint);
                 }
             }
         }

@@ -470,7 +470,7 @@ public class PythonCodeCollection {
                 super.visitAny(statement);
                 if (result.isEmpty() && statement.getSourceCodePath() != null) {
                     if (statement.getSourceCodePath().equals(filePath)) {
-                        if (statement.getSourceCodeStartLine() >= lineNumber && statement.getSourceCodeEndLine() <= lineNumber) {
+                        if (statement.getSourceCodeStartLine() <= lineNumber && statement.getSourceCodeEndLine() >= lineNumber) {
                             result.add(statement);
                         }
                     }
@@ -480,6 +480,32 @@ public class PythonCodeCollection {
 
         if (result.size() > 0) {
             return result.get(0);
+        } else {
+            return null;
+        }
+    }
+
+    public <T extends AbstractPythonStatement> T findByLineNumber(@Nonnull final String filePath, final int lineNumber, final @Nonnull Class<T> type) {
+        if (lineNumber < 0) {
+            return null;
+        }
+        final List<AbstractPythonStatement> result = new LinkedList<AbstractPythonStatement>();
+        traverse(new AbstractPythonVisitor() {
+            @Override
+            public void visitAny(AbstractPythonStatement statement) {
+                super.visitAny(statement);
+                if (type.isAssignableFrom(statement.getClass()) && result.isEmpty() && statement.getSourceCodePath() != null) {
+                    if (statement.getSourceCodePath().equals(filePath)) {
+                        if (statement.getSourceCodeStartLine() <= lineNumber && statement.getSourceCodeEndLine() >= lineNumber) {
+                            result.add(statement);
+                        }
+                    }
+                }
+            }
+        });
+
+        if (result.size() > 0) {
+            return (T)result.get(0);
         } else {
             return null;
         }
