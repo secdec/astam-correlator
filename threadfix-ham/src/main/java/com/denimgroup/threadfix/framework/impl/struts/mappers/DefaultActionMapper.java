@@ -236,7 +236,12 @@ public class DefaultActionMapper implements ActionMapper {
                         }
                         StrutsResult primaryResult = strutsAction.getPrimaryResult();
                         if (primaryResult != null) {
-                            newEndpoint.setDisplayFilePath(PathUtil.combine(project.getWebPath(), primaryResult.getValue()));
+                            String displayFilePath = PathUtil.combine(project.getWebPath(), primaryResult.getValue());
+                            newEndpoint.setDisplayFilePath(displayFilePath);
+                            //  Can happen if default Struts action class was assigned
+                            if (newEndpoint.getFilePath().trim().isEmpty()) {
+                                newEndpoint.setFilePath(makeRelativePath(displayFilePath, project));
+                            }
                         }
                         if (newEndpoint.getDisplayFilePath() != null && newEndpoint.getStartingLineNumber() < 0 && newEndpoint.getEndingLineNumber() < 0) {
                         	int lineCount = CodeParseUtil.countLines(newEndpoint.getDisplayFilePath());
@@ -245,7 +250,7 @@ public class DefaultActionMapper implements ActionMapper {
 	                        }
                         }
 
-                        StrutsEndpoint postVariant = new StrutsEndpoint(makeRelativePath(classLocation, project), path, "POST", parameters);
+                        StrutsEndpoint postVariant = new StrutsEndpoint(newEndpoint.getFilePath(), path, "POST", parameters);
                         postVariant.setLineNumbers(newEndpoint.getStartingLineNumber(), newEndpoint.getEndingLineNumber());
                         postVariant.setDisplayFilePath(newEndpoint.getDisplayFilePath());
 
