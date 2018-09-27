@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.As
 import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspStandardMvcActionGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpFileParser;
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
@@ -67,10 +68,11 @@ public class DotNetEndpointGeneratorTests {
         DotNetEndpointGenerator generator = new DotNetEndpointGenerator(null, routeMappings, null, new ArrayList<CSharpClass>(), controllerMappings);
 
         //  Should generate '/' and '/Chat'
-        assert generator.generateEndpoints().size() == 2 : "Size should have been 2 but was " +
-                generator.generateEndpoints().size();
+        List<Endpoint> endpoints = EndpointUtil.flattenWithVariants(generator.generateEndpoints());
+        assert endpoints.size() == 2 : "Size should have been 2 but was " +
+                endpoints.size();
 
-        Endpoint endpoint = generator.generateEndpoints().get(0);
+        Endpoint endpoint = endpoints.get(1);
 
         assert endpoint.getParameters().isEmpty() :
             "Parameters weren't empty. Got " + endpoint.getParameters();
