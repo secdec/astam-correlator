@@ -98,7 +98,7 @@ public class RailsControllerParserTest {
     private void checkControllers(String[][] testControllers) {
         for (String[] testCtrl : testControllers) {
             String testCtrlName = testCtrl[0];
-            RailsController rc = getRailsControllerByName(testCtrlName);
+            RailsController rc = getRailsControllerByName(testCtrlName, null);
             assertTrue("Controller not found: " + testCtrlName, (rc != null) );
             for (int i=1; i < testCtrl.length; i++) {
                 String testCtrlMethodName = testCtrl[i];
@@ -116,7 +116,7 @@ public class RailsControllerParserTest {
     }
 
     private void checkController(String ctrlName, String[][] testController) {
-        RailsController rc = getRailsControllerByName(ctrlName);
+        RailsController rc = getRailsControllerByName(ctrlName, null);
         assertTrue("Controller not found: " + ctrlName, (rc != null) );
         for (String[] testMethod : testController) {
             boolean methodFound = false;
@@ -140,10 +140,13 @@ public class RailsControllerParserTest {
         }
     }
 
-    private RailsController getRailsControllerByName(String ctrlName) {
+    private RailsController getRailsControllerByName(String ctrlName, String moduleName) {
         RailsController rcReturn = null;
         for (RailsController rc : railsControllers) {
-            if (ctrlName.equalsIgnoreCase(rc.getControllerName())) {
+            if (ctrlName.equalsIgnoreCase(rc.getControllerName()) &&
+                    ((moduleName == null && rc.getModuleName() == null) ||
+                    ((moduleName != null && moduleName.equalsIgnoreCase(rc.getModuleName()))))
+                    ) {
                 rcReturn = rc;
                 break;
             }
