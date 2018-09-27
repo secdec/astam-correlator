@@ -26,8 +26,11 @@ package com.denimgroup.threadfix.framework.impl.jsp;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.List;
 
 import javax.annotation.Nonnull;
+
+import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import org.junit.Test;
 
 import com.denimgroup.threadfix.framework.TestConstants;
@@ -57,10 +60,11 @@ public class JSPEndpointGeneratorTests {
         JSPEndpointGenerator mappings = new JSPEndpointGenerator(new File(
                 TestConstants.BODGEIT_SOURCE_LOCATION));
 
-        int numExpected = 20;
+        int numExpected = 35;
 
-        assertTrue("Size was " + mappings.generateEndpoints().size()
-                + " but should have been " + numExpected, mappings.generateEndpoints()
+        List<Endpoint> endpoints = EndpointUtil.flattenWithVariants(mappings.generateEndpoints());
+        assertTrue("Size was " + endpoints.size()
+                + " but should have been " + numExpected, endpoints
                 .size() == numExpected);
     }
 
