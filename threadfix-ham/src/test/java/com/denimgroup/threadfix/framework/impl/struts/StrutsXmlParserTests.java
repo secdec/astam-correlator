@@ -55,8 +55,8 @@ public class StrutsXmlParserTests {
                 {"home", null, null},
                 {"login-redirect", null, null},
                 {"logout", null, null},
-                {"setup", "org.apache.roller.weblogger.ui.struts2.core.Setup", null},
-                {"login", "org.apache.roller.weblogger.ui.struts2.core.Login", null},
+                {"setup", "org.apache.roller.weblogger.ui.struts2.core.Setup", "execute"},
+                {"login", "org.apache.roller.weblogger.ui.struts2.core.Login", "execute"},
                 {"register!*", "org.apache.roller.weblogger.ui.struts2.core.Register", "{1}"},
                 {"profile!*", "org.apache.roller.weblogger.ui.struts2.core.Profile", "{1}"},
                 {"oauthKeys!*", "org.apache.roller.weblogger.ui.struts2.core.OAuthKeys", "{1}"},
@@ -67,13 +67,13 @@ public class StrutsXmlParserTests {
 
         String[][] ROLLER_INSTALL_ACTIONS = {    //  1 Actions
                 // name, class, method
-                new String[]{"install", "org.apache.roller.weblogger.ui.struts2.core.Install", null}
+                new String[]{"install", "org.apache.roller.weblogger.ui.struts2.core.Install", "execute"}
         };
 
         String[][] ROLLER_ADMIN_ACTIONS = {    //  12 Actions
                 // name, class, method
                 {"globalConfig!*", "org.apache.roller.weblogger.ui.struts2.admin.GlobalConfig", "{1}"},
-                {"userAdmin", "org.apache.roller.weblogger.ui.struts2.admin.UserAdmin", null},
+                {"userAdmin", "org.apache.roller.weblogger.ui.struts2.admin.UserAdmin", "execute"},
                 {"createUser!*", "org.apache.roller.weblogger.ui.struts2.admin.UserEdit", "{1}"},
                 {"modifyUser!*", "org.apache.roller.weblogger.ui.struts2.admin.UserEdit", "{1}"},
                 {"globalCommentManagement!*", "org.apache.roller.weblogger.ui.struts2.admin.GlobalCommentManagement", "{1}"},
@@ -98,7 +98,7 @@ public class StrutsXmlParserTests {
                 {"entryEdit!*", "org.apache.roller.weblogger.ui.struts2.editor.EntryEdit", "{1}"},
                 {"entryRemove!*", "org.apache.roller.weblogger.ui.struts2.editor.EntryRemove", "{1}"},
                 {"entryRemoveViaList!*", "org.apache.roller.weblogger.ui.struts2.editor.EntryRemove", "{1}"},
-                {"entries", "org.apache.roller.weblogger.ui.struts2.editor.Entries", null},
+                {"entries", "org.apache.roller.weblogger.ui.struts2.editor.Entries", "execute"},
                 {"comments!*", "org.apache.roller.weblogger.ui.struts2.editor.Comments", "{1}"},
                 {"categories!*", "org.apache.roller.weblogger.ui.struts2.editor.Categories", "{1}"},
                 {"categoryAdd!*", "org.apache.roller.weblogger.ui.struts2.editor.CategoryEdit", "{1}"},
