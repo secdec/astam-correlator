@@ -234,14 +234,18 @@ public class JSPEndpoint extends AbstractEndpoint {
 
     @Override
     public int getLineNumberForParameter(String parameter) {
+        int firstOccurrence = -1;
         for (Map.Entry<Integer, List<RouteParameter>> entry : lineToParamMap.entrySet()) {
             for (RouteParameter lineParam : entry.getValue()) {
-                if (lineParam.getName().equalsIgnoreCase(parameter)) {
-                    return entry.getKey();
+                if (lineParam.getName().equalsIgnoreCase(parameter) && (entry.getKey() < firstOccurrence || firstOccurrence < 0)) {
+                    firstOccurrence = entry.getKey();
                 }
             }
         }
-        return 0;
+        if (firstOccurrence < 0) {
+            firstOccurrence = 0;
+        }
+        return firstOccurrence;
     }
 
     public void setLines(int startLine, int endLine) {
