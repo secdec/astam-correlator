@@ -670,7 +670,12 @@ public class JSPEndpointGenerator implements EndpointGenerator {
             sb.append(aParts[i]);
         }
 
-        return sb.toString();
+        String result = sb.toString();
+        if (pathA.startsWith(File.separator) || pathB.startsWith(File.separator)) {
+            result = '/' + result;
+        }
+
+        return result;
     }
 
     @Nonnull
