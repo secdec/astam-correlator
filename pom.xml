@@ -5,7 +5,7 @@
 
     <groupId>com.github.secdec.astam-correlator</groupId>
     <artifactId>master-pom</artifactId>
-    <version>1.3.2</version>
+    <version>1.3.3-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>ThreadFix</name>
@@ -32,6 +32,7 @@
         <module>threadfix-data-migration</module>
         <module>threadfix-astam</module>
         <module>threadfix-main</module>
+		<module>../attack-surface-detector-cli</module>
     </modules>
 
     <licenses>
