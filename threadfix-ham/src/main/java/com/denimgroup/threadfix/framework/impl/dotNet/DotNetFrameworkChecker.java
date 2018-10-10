@@ -68,6 +68,7 @@ public class DotNetFrameworkChecker extends FrameworkChecker {
 
         private static String MVC_NAMESPACE = "System.Web.Mvc";
         private static String MVC_CORE_NAMESPACE = "Microsoft.AspNetCore.Mvc";
+        private static String APP_CORE_NAMESPACE = "Microsoft.AspNetCore.App";
 
         boolean isMvc = false;
 
@@ -78,7 +79,11 @@ public class DotNetFrameworkChecker extends FrameworkChecker {
 
         @Override
         public void processToken(int type, int lineNumber, String stringValue) {
-            if (stringValue != null && (stringValue.contains(MVC_NAMESPACE) || stringValue.contains(MVC_CORE_NAMESPACE))) {
+            if (stringValue != null && (
+                    stringValue.contains(MVC_NAMESPACE) ||
+                    stringValue.contains(MVC_CORE_NAMESPACE) ||
+                    stringValue.contains(APP_CORE_NAMESPACE))
+                ) {
                 isMvc = true;
             }
         }
