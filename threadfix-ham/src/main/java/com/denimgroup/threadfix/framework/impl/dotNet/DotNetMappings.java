@@ -31,6 +31,7 @@ import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.As
 import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspActionGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspStandardApiActionGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspStandardMvcActionGenerator;
+import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpAttribute;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpMethod;
 import com.denimgroup.threadfix.framework.impl.dotNet.classParsers.CSharpFileParser;
@@ -193,8 +194,16 @@ public class DotNetMappings implements EndpointGenerator {
                 for (String baseType : newBaseTypes) {
                     if (!csClass.getBaseTypes().contains(baseType)) {
                         csClass.addBaseType(baseType);
+
+                        CSharpClass baseTypeClass = namedClasses.get(cleanTypeName(baseType));
+                        if (baseTypeClass != null) {
+                            for (CSharpAttribute baseAttribute : baseTypeClass.getAttributes()) {
+                                csClass.addAttribute(baseAttribute);
+                            }
+                        }
                     }
                 }
+
                 newBaseTypes.clear();
 
                 for (String baseType : csClass.getBaseTypes()) {
