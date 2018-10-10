@@ -44,6 +44,7 @@ public class CSharpClassParser extends AbstractCSharpParser<CSharpClass> impleme
 
     private ClassState currentClassState = ClassState.SEARCH;
     private boolean possibleClassIsStatic = false;
+    private boolean possibleClassIsAbstract = false;
     private String pendingClassName = null;
     private String workingString = null;
     private int classBraceLevel = 1;
@@ -100,6 +101,7 @@ public class CSharpClassParser extends AbstractCSharpParser<CSharpClass> impleme
                     setPendingItem(pendingClass);
 
                     pendingClass.setIsStatic(possibleClassIsStatic);
+                    pendingClass.setIsAbstract(possibleClassIsAbstract);
 
                     while (attributeParser.hasItem()) {
                         pendingClass.addAttribute(attributeParser.pullCurrentItem());
@@ -108,6 +110,10 @@ public class CSharpClassParser extends AbstractCSharpParser<CSharpClass> impleme
                     possibleClassIsStatic = false;
                     pendingClassName = "";
                     currentClassState = ClassState.CLASS_NAME;
+                } else if (STATIC.equals(stringValue)) {
+                    possibleClassIsStatic = true;
+                } else if (ABSTRACT.equals(stringValue)) {
+                    possibleClassIsAbstract = true;
                 }
                 break;
 

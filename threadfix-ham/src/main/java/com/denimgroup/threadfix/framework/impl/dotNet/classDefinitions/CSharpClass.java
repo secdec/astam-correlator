@@ -11,6 +11,7 @@ public class CSharpClass extends CanHaveAttributes {
     private List<String> baseTypes = list();
     private boolean isStatic = false;
     private List<CSharpMethod> methods = list();
+    private boolean isAbstract = false;
 
     private String filePath;
 
@@ -109,6 +110,14 @@ public class CSharpClass extends CanHaveAttributes {
 
     public void addMethod(CSharpMethod method) {
         methods.add(method);
+    }
+
+    public boolean isAbstract() {
+        return isAbstract;
+    }
+
+    public void setIsAbstract(boolean isAbstract) {
+        this.isAbstract = isAbstract;
     }
 
     @Override
