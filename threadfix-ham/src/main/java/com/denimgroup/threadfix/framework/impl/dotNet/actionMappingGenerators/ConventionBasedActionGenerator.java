@@ -19,12 +19,12 @@ import static com.denimgroup.threadfix.CollectionUtils.setFrom;
 
 class ConventionBasedActionGenerator {
 
-    public DotNetControllerMappings generateForClass(CSharpClass csClass, RouteParameterMap fileParameters) {
+    public DotNetControllerMappings generateForClass(CSharpClass csClass, RouteParameterMap fileParameters, List<String> modelTypeNames) {
         DotNetControllerMappings currentMappings = new DotNetControllerMappings(csClass.getFilePath());
         currentMappings.setControllerName(csClass.getName().substring(0, csClass.getName().length() - "Controller".length()));
         currentMappings.setNamespace(csClass.getNamespace());
 
-        findAndAddConventionMethods(csClass, fileParameters, currentMappings);
+        findAndAddConventionMethods(csClass, fileParameters, currentMappings, modelTypeNames);
 
         return currentMappings;
     }
@@ -43,15 +43,15 @@ class ConventionBasedActionGenerator {
         }
     }
 
-    private void findAndAddConventionMethods(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings) {
-        findAndAddGetMethod(csClass, fileParameters, mappings);
-        findAndAddGetAllMethod(csClass, fileParameters, mappings);
-        findAndAddPostMethod(csClass, fileParameters, mappings);
-        findAndAddPutMethod(csClass, fileParameters, mappings);
-        findAndAddDeleteMethod(csClass, fileParameters, mappings);
+    private void findAndAddConventionMethods(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings, List<String> modelTypeNames) {
+        findAndAddGetMethod(csClass, fileParameters, mappings, modelTypeNames);
+        findAndAddGetAllMethod(csClass, fileParameters, mappings, modelTypeNames);
+        findAndAddPostMethod(csClass, fileParameters, mappings, modelTypeNames);
+        findAndAddPutMethod(csClass, fileParameters, mappings, modelTypeNames);
+        findAndAddDeleteMethod(csClass, fileParameters, mappings, modelTypeNames);
     }
 
-    private void findAndAddGetMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings) {
+    private void findAndAddGetMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings, List<String> modelTypeNames) {
         CSharpMethod bestCandidate = null;
 
         for (CSharpMethod method : csClass.getMethods(CSharpMethod.AccessLevel.PUBLIC)) {
@@ -74,14 +74,14 @@ class ConventionBasedActionGenerator {
             bestCandidate.getStartLine(),
             bestCandidate.getEndLine(),
             // params
-            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
+            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters, modelTypeNames)),
             explicitRoute,
             bestCandidate,
             true
         );
     }
 
-    private void findAndAddGetAllMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings) {
+    private void findAndAddGetAllMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings, List<String> modelTypeNames) {
         CSharpMethod bestCandidate = null;
 
         for (CSharpMethod method : csClass.getMethods(CSharpMethod.AccessLevel.PUBLIC)) {
@@ -97,14 +97,14 @@ class ConventionBasedActionGenerator {
             set("HttpGet"),
             bestCandidate.getStartLine(),
             bestCandidate.getEndLine(),
-            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
+            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters, modelTypeNames)),
             "",
             bestCandidate,
             true
         );
     }
 
-    private void findAndAddPostMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings) {
+    private void findAndAddPostMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings, List<String> modelTypeNames) {
         CSharpMethod bestCandidate = null;
 
         for (CSharpMethod method : csClass.getMethods(CSharpMethod.AccessLevel.PUBLIC)) {
@@ -120,14 +120,14 @@ class ConventionBasedActionGenerator {
             set("HttpPost"),
             bestCandidate.getStartLine(),
             bestCandidate.getEndLine(),
-            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
+            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters, modelTypeNames)),
             "",
             bestCandidate,
             true
         );
     }
 
-    private void findAndAddPutMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings) {
+    private void findAndAddPutMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings, List<String> modelTypeNames) {
         CSharpMethod bestCandidate = null;
 
         for (CSharpMethod method : csClass.getMethods(CSharpMethod.AccessLevel.PUBLIC)) {
@@ -143,14 +143,14 @@ class ConventionBasedActionGenerator {
             set("HttpPut"),
             bestCandidate.getStartLine(),
             bestCandidate.getEndLine(),
-            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
+            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters, modelTypeNames)),
             "{id}",
             bestCandidate,
             true
         );
     }
 
-    private void findAndAddDeleteMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings) {
+    private void findAndAddDeleteMethod(CSharpClass csClass, RouteParameterMap fileParameters, DotNetControllerMappings mappings, List<String> modelTypeNames) {
         CSharpMethod bestCandidate = null;
 
         for (CSharpMethod method : csClass.getMethods(CSharpMethod.AccessLevel.PUBLIC)) {
@@ -166,7 +166,7 @@ class ConventionBasedActionGenerator {
             set("HttpDelete"),
             bestCandidate.getStartLine(),
             bestCandidate.getEndLine(),
-            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters)),
+            setFrom(DotNetParameterUtil.getMergedMethodParameters(bestCandidate, fileParameters, modelTypeNames)),
             "{id}",
             bestCandidate,
             true

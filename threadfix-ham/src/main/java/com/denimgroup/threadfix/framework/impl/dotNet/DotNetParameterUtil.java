@@ -18,7 +18,7 @@ public class DotNetParameterUtil {
         return name.replace("*", "");
     }
 
-    public static Collection<RouteParameter> getMergedMethodParameters(List<CSharpParameter> cSharpParameters, List<RouteParameter> routeParameters) {
+    public static Collection<RouteParameter> getMergedMethodParameters(List<CSharpParameter> cSharpParameters, List<RouteParameter> routeParameters, List<String> modelTypeNames) {
         Map<String, RouteParameter> parameterMap = map();
 
         for (RouteParameter existingParam : routeParameters) {
@@ -32,8 +32,27 @@ public class DotNetParameterUtil {
                 parameterMap.put(csParam.getName(), existingParam);
             }
 
-            if (csParam.getAttribute("FromBody") != null) {
+            //  Use specified attributes if available
+            if (csParam.getAttribute("FromBody") != null || csParam.getAttribute("FromForm") != null) {
                 existingParam.setParamType(RouteParameterType.FORM_DATA);
+            } else if (csParam.getAttribute("FromQuery") != null) {
+                existingParam.setParamType(RouteParameterType.QUERY_STRING);
+            } else if (csParam.getAttribute("FromFile") != null) {
+                existingParam.setParamType(RouteParameterType.FILES);
+            } else if (csParam.getAttribute("FromRoute") != null) {
+                existingParam.setParamType(RouteParameterType.PARAMETRIC_ENDPOINT);
+            } else if (csParam.getAttribute("FromServices") != null) {
+                parameterMap.remove(csParam.getName());
+                continue;
+            } else if (existingParam.getParamType() == RouteParameterType.UNKNOWN) {
+                // No attributes specified, make best-guess
+                if (csParam.getType().contains("IFormFile")) {
+                    existingParam.setParamType(RouteParameterType.FORM_DATA);
+                } else if (modelTypeNames.contains(DotNetSyntaxUtil.cleanTypeName(csParam.getType()))) {
+                    existingParam.setParamType(RouteParameterType.FORM_DATA);
+                } else {
+                    existingParam.setParamType(RouteParameterType.QUERY_STRING);
+                }
             }
 
             existingParam.setDataType(csParam.getType());
@@ -42,7 +61,7 @@ public class DotNetParameterUtil {
         return parameterMap.values();
     }
 
-    public static Collection<RouteParameter> getMergedMethodParameters(CSharpMethod method, RouteParameterMap parameterMap) {
-        return getMergedMethodParameters(method.getParameters(), parameterMap.findParametersInLines(method.getStartLine(), method.getEndLine()));
+    public static Collection<RouteParameter> getMergedMethodParameters(CSharpMethod method, RouteParameterMap parameterMap, List<String> modelTypeNames) {
+        return getMergedMethodParameters(method.getParameters(), parameterMap.findParametersInLines(method.getStartLine(), method.getEndLine()), modelTypeNames);
     }
 }

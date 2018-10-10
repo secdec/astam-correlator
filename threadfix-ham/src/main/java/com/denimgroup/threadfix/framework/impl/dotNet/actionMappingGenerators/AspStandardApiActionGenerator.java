@@ -16,12 +16,18 @@ import static com.denimgroup.threadfix.CollectionUtils.setFrom;
 public class AspStandardApiActionGenerator implements AspActionGenerator {
 
     List<CSharpClass> classes;
+    List<String> classNames;
     Map<String, RouteParameterMap> routeParameters;
     ConventionBasedActionGenerator conventionBasedActionGenerator = new ConventionBasedActionGenerator();
 
     public AspStandardApiActionGenerator(List<CSharpClass> classes, Map<String, RouteParameterMap> routeParameters) {
         this.classes = classes;
         this.routeParameters = routeParameters;
+
+        this.classNames = list();
+        for (CSharpClass cls : classes) {
+            this.classNames.add(cls.getName());
+        }
     }
 
     @Override
@@ -40,7 +46,7 @@ public class AspStandardApiActionGenerator implements AspActionGenerator {
                 routeParameters.put(csClass.getFilePath(), fileParameters);
             }
 
-            DotNetControllerMappings currentMappings = conventionBasedActionGenerator.generateForClass(csClass, fileParameters);
+            DotNetControllerMappings currentMappings = conventionBasedActionGenerator.generateForClass(csClass, fileParameters, classNames);
             generateExplicitRoutes(currentMappings, csClass, fileParameters);
 
             CSharpAttribute areaAttribute = csClass.getAttribute("RouteArea");
@@ -107,7 +113,7 @@ public class AspStandardApiActionGenerator implements AspActionGenerator {
                 setFrom(httpAttributeNames),
                 method.getStartLine(),
                 method.getEndLine(),
-                setFrom(DotNetParameterUtil.getMergedMethodParameters(method, fileParameters)),
+                setFrom(DotNetParameterUtil.getMergedMethodParameters(method, fileParameters, classNames)),
                 path,
                 method,
                 false
@@ -116,6 +122,6 @@ public class AspStandardApiActionGenerator implements AspActionGenerator {
     }
 
     private boolean isApiControllerClass(CSharpClass csClass) {
-        return csClass.getName().endsWith("Controller") && csClass.getBaseTypes().contains("ApiController");
+        return csClass.getName().endsWith("Controller") && csClass.getBaseTypes().contains("ApiController") && !csClass.isAbstract();
     }
 }

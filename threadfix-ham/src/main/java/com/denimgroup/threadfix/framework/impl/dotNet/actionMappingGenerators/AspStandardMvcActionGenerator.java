@@ -21,6 +21,7 @@ import static com.denimgroup.threadfix.framework.impl.dotNet.DotNetSyntaxUtil.cl
 
 public class AspStandardMvcActionGenerator implements AspActionGenerator {
     private List<CSharpClass> classes;
+    private List<String> classNames;
     private Map<String, RouteParameterMap> routeParameters;
 
     private static List<String> CONTROLLER_BASE_TYPES = list(
@@ -34,6 +35,11 @@ public class AspStandardMvcActionGenerator implements AspActionGenerator {
     public AspStandardMvcActionGenerator(List<CSharpClass> classes, Map<String, RouteParameterMap> routeParameters) {
         this.classes = classes;
         this.routeParameters = routeParameters;
+
+        this.classNames = list();
+        for (CSharpClass cls : classes) {
+            this.classNames.add(cls.getName());
+        }
     }
 
     public List<DotNetControllerMappings> generate() {
@@ -109,7 +115,7 @@ public class AspStandardMvcActionGenerator implements AspActionGenerator {
             actionName = actionNameAttribute.getParameterValue("name", 0).getStringValue();
         }
 
-        Collection<RouteParameter> mergedParameters = DotNetParameterUtil.getMergedMethodParameters(method.getParameters(), methodRouteParameters);
+        Collection<RouteParameter> mergedParameters = DotNetParameterUtil.getMergedMethodParameters(method.getParameters(), methodRouteParameters, classNames);
 
         controller.addAction(
             actionName,
@@ -129,6 +135,10 @@ public class AspStandardMvcActionGenerator implements AspActionGenerator {
         }
 
         if (!csClass.getTemplateParameterNames().isEmpty()) {
+            return false;
+        }
+
+        if (csClass.isAbstract()) {
             return false;
         }
 

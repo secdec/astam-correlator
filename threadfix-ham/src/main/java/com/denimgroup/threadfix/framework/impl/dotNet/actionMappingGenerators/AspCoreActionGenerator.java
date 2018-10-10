@@ -20,16 +20,23 @@ import static com.denimgroup.threadfix.CollectionUtils.set;
 public class AspCoreActionGenerator implements AspActionGenerator {
 
     private List<CSharpClass> classes;
+    private List<String> classNames;
     private Map<String, RouteParameterMap> routeParameters;
     ConventionBasedActionGenerator conventionBasedActionGenerator = new ConventionBasedActionGenerator();
 
     private static List<String> CONTROLLER_BASE_TYPES = list(
-        "Controller"
+        "Controller",
+        "ControllerBase"
     );
 
     public AspCoreActionGenerator(List<CSharpClass> classes, Map<String, RouteParameterMap> routeParameters) {
         this.classes = classes;
         this.routeParameters = routeParameters;
+
+        this.classNames = list();
+        for (CSharpClass cls : classes) {
+            classNames.add(cls.getName());
+        }
     }
 
     @Override
@@ -47,7 +54,7 @@ public class AspCoreActionGenerator implements AspActionGenerator {
                 routeParameters.put(csClass.getFilePath(), fileParameters);
             }
 
-            DotNetControllerMappings currentMappings = conventionBasedActionGenerator.generateForClass(csClass, fileParameters);
+            DotNetControllerMappings currentMappings = conventionBasedActionGenerator.generateForClass(csClass, fileParameters, classNames);
 
             String baseRoute = null;
             CSharpAttribute controllerRouteAttribute = csClass.getAttribute("Route");
@@ -86,7 +93,7 @@ public class AspCoreActionGenerator implements AspActionGenerator {
                         set("HttpGet"),
                         method.getStartLine(),
                         method.getEndLine(),
-                        new HashSet<RouteParameter>(DotNetParameterUtil.getMergedMethodParameters(method, fileParameters)),
+                        new HashSet<RouteParameter>(DotNetParameterUtil.getMergedMethodParameters(method, fileParameters, classNames)),
                         null,
                         method,
                         false
@@ -123,7 +130,7 @@ public class AspCoreActionGenerator implements AspActionGenerator {
         }
 
         String actionName = getActionName(method);
-        Collection<RouteParameter> mergedParameters = DotNetParameterUtil.getMergedMethodParameters(method.getParameters(), methodRouteParameters);
+        Collection<RouteParameter> mergedParameters = DotNetParameterUtil.getMergedMethodParameters(method.getParameters(), methodRouteParameters, classNames);
 
         controller.addAction(
             actionName,
@@ -154,6 +161,14 @@ public class AspCoreActionGenerator implements AspActionGenerator {
 
         if (!csClass.getTemplateParameterNames().isEmpty()) {
             return false;
+        }
+
+        if (csClass.isAbstract()) {
+            return false;
+        }
+
+        if (csClass.getAttribute("ApiController") != null) {
+            return true;
         }
 
         for (String baseType : csClass.getBaseTypes()) {
