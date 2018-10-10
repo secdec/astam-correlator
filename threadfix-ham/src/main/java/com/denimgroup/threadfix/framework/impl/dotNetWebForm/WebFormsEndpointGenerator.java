@@ -117,10 +117,18 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
 
     private List<File> findProjectDirectories(File rootDirectory) {
         Collection<File> projectFiles = FileUtils.listFiles(rootDirectory, new String[] { "csproj", "sitemap", "config" }, true);
-        List<File> possibleResults = list();
+        Collection<File> projectFolders = new ArrayList<File>(projectFiles.size());
+
         for (File proj : projectFiles) {
-            File folder = proj.getParentFile();
-            if (!possibleResults.contains(folder) && !FileUtils.listFiles(folder, new String[] { "aspx", "ascx", "asax" }, true).isEmpty()) {
+            File parentFolder = proj.getParentFile();
+            if (!projectFolders.contains(parentFolder)) {
+                projectFolders.add(parentFolder);
+            }
+        }
+
+        List<File> possibleResults = list();
+        for (File folder : projectFolders) {
+            if (!FileUtils.listFiles(folder, new String[] { "aspx", "ascx", "asax" }, true).isEmpty()) {
                 possibleResults.add(folder);
             }
         }
