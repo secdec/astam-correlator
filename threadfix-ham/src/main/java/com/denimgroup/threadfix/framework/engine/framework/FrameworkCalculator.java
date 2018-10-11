@@ -25,7 +25,7 @@
 package com.denimgroup.threadfix.framework.engine.framework;
 
 import com.denimgroup.threadfix.data.enums.FrameworkType;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.impl.django.DjangoFrameworkChecker;
 import com.denimgroup.threadfix.framework.impl.dotNet.DotNetFrameworkChecker;
 import com.denimgroup.threadfix.framework.impl.dotNetWebForm.WebFormsFrameworkChecker;
@@ -74,10 +74,10 @@ public class FrameworkCalculator {
         FrameworkType frameworkType = FrameworkType.NONE;
 
         if (rootFile.exists() && rootFile.isDirectory()) {
-            ProjectDirectory projectDirectory = new ProjectDirectory(rootFile);
+            CachedDirectory cachedDirectory = new CachedDirectory(rootFile);
 
             for (FrameworkChecker checker : INSTANCE.frameworkCheckers) {
-                frameworkType = checker.check(projectDirectory);
+                frameworkType = checker.check(cachedDirectory);
                 if (frameworkType != FrameworkType.NONE) {
                     break;
                 }
@@ -98,10 +98,10 @@ public class FrameworkCalculator {
         List<FrameworkType> frameworkTypes = list();
 
         if (rootFile.exists() && rootFile.isDirectory()) {
-            ProjectDirectory projectDirectory = new ProjectDirectory(rootFile);
+            CachedDirectory cachedDirectory = new CachedDirectory(rootFile);
 
             for (FrameworkChecker checker : INSTANCE.frameworkCheckers) {
-                Collection<FrameworkType> discoveredTypes = checker.checkForMany(projectDirectory);
+                Collection<FrameworkType> discoveredTypes = checker.checkForMany(cachedDirectory);
                 frameworkTypes.addAll(discoveredTypes);
             }
         } else {

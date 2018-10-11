@@ -27,14 +27,12 @@
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.enums.FrameworkType;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.framework.FrameworkChecker;
-import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -49,7 +47,7 @@ public class DotNetFrameworkChecker extends FrameworkChecker {
 
     @Nonnull
     @Override
-    public FrameworkType check(@Nonnull ProjectDirectory directory) {
+    public FrameworkType check(@Nonnull CachedDirectory directory) {
 
         Collection<File> configFiles = FileUtils.listFiles(directory.getDirectory(), new String[] { "config", "csproj" }, true);
 

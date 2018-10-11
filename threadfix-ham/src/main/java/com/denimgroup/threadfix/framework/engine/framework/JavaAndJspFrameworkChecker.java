@@ -25,7 +25,7 @@
 package com.denimgroup.threadfix.framework.engine.framework;
 
 import com.denimgroup.threadfix.data.enums.FrameworkType;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.impl.spring.SpringJavaConfigurationChecker;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsConfigurationChecker;
@@ -35,14 +35,13 @@ import javax.annotation.Nonnull;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class JavaAndJspFrameworkChecker extends FrameworkChecker {
 
-    private FrameworkType checkMappings(@Nonnull ProjectDirectory directory) {
+    private FrameworkType checkMappings(@Nonnull CachedDirectory directory) {
         File webXML = directory.findWebXML();
         if (webXML != null && webXML.exists()) {
             ServletMappings mappings = WebXMLParser.getServletMappings(webXML, directory);
@@ -55,12 +54,12 @@ public class JavaAndJspFrameworkChecker extends FrameworkChecker {
         return FrameworkType.NONE;
     }
 
-    private boolean checkStruts(@Nonnull ProjectDirectory directory) {
+    private boolean checkStruts(@Nonnull CachedDirectory directory) {
         Collection<File> configFiles = FileUtils.listFiles(directory.getDirectory(), new String[]{"xml", "properties"}, true);
         return StrutsConfigurationChecker.check(configFiles);
     }
 
-    private boolean checkSpringMvc(@Nonnull ProjectDirectory directory) {
+    private boolean checkSpringMvc(@Nonnull CachedDirectory directory) {
         Collection<File> xmlFiles = FileUtils.listFiles(directory.getDirectory(), new FileExtensionFileFilter("xml"), TrueFileFilter.INSTANCE);
         for (File file : xmlFiles) {
             if (SpringJavaConfigurationChecker.checkXmlFile(file)) {
@@ -80,7 +79,7 @@ public class JavaAndJspFrameworkChecker extends FrameworkChecker {
         return false;
     }
 
-    private boolean checkJsp(@Nonnull ProjectDirectory directory) {
+    private boolean checkJsp(@Nonnull CachedDirectory directory) {
         Collection<File> jspFiles = FileUtils.listFiles(directory.getDirectory(), new FileExtensionFileFilter("jsp"), TrueFileFilter.INSTANCE);
         return jspFiles.size() > 0;
     }
@@ -88,7 +87,7 @@ public class JavaAndJspFrameworkChecker extends FrameworkChecker {
     @Nonnull
     @Override
     @SuppressWarnings("unchecked")
-    public FrameworkType check(@Nonnull ProjectDirectory directory) {
+    public FrameworkType check(@Nonnull CachedDirectory directory) {
 
         if (checkStruts(directory)) {
             return FrameworkType.STRUTS;
@@ -115,7 +114,7 @@ public class JavaAndJspFrameworkChecker extends FrameworkChecker {
 
     @Nonnull
     @Override
-    public List<FrameworkType> checkForMany(@Nonnull ProjectDirectory directory) {
+    public List<FrameworkType> checkForMany(@Nonnull CachedDirectory directory) {
         List<FrameworkType> frameworkTypes = list();
 
         FrameworkType frameworkType = checkMappings(directory);

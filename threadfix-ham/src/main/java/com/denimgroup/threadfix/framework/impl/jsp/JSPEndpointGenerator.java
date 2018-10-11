@@ -28,9 +28,8 @@ package com.denimgroup.threadfix.framework.impl.jsp;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
-import com.denimgroup.threadfix.framework.filefilter.NoDotDirectoryFileFilter;
 import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.framework.util.htmlParsing.*;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -57,7 +56,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 
     private final Map<String, List<JSPEndpoint>> jspEndpointMap = map();
     private final List<Endpoint> endpoints = list();
-    private final ProjectDirectory projectDirectory;
+    private final CachedDirectory cachedDirectory;
     @Nullable
     private File rootFile;
 
@@ -67,13 +66,14 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 
             this.rootFile = rootFile;
 
-            projectDirectory = new ProjectDirectory(rootFile);
+            cachedDirectory = new CachedDirectory(rootFile);
 
-            List<File> projectFolders = findProjectFolders(rootFile);
+            List<File> projectFolders = findProjectFolders(new CachedDirectory(rootFile));
 
             for (File projectFolder : projectFolders) {
+                CachedDirectory cachedFolder = new CachedDirectory(projectFolder);
 
-                File webXmlFile = findWebXmlFile(projectFolder);
+                File webXmlFile = cachedFolder.findWebXML();
                 JSPWebXmlConfiguration xmlConfiguration = null;
                 if (webXmlFile != null) {
                     JSPWebXmlParser webXmlParser = new JSPWebXmlParser(webXmlFile);
@@ -103,7 +103,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                     }
                 }
 
-                Collection<File> jspFiles = FileUtils.listFiles(jspRoot, JSPFileFilter.INSTANCE, NoDotDirectoryFileFilter.INSTANCE);
+                Collection<File> jspFiles = cachedFolder.findFiles("*.jsp");
 	            List<Endpoint> projectEndpoints = list();
 	            Map<String, Set<String>> includeMap = map();
 
@@ -115,7 +115,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
                     }
                 }
 
-                Collection<File> jspAndHtmlFiles = FileUtils.listFiles(projectFolder, new String[]{"jsp", "html"}, true);
+                Collection<File> jspAndHtmlFiles = cachedFolder.findFiles("*.jsp", "*.html");
                 List<HyperlinkParameterDetectionResult> implicitParams = list();
                 for (File file : jspAndHtmlFiles) {
                     HyperlinkParameterDetector parameterDetector = new HyperlinkParameterDetector();
@@ -194,7 +194,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
         } else {
             LOG.error("Root file didn't exist. Exiting.");
 
-            projectDirectory = null;
+            cachedDirectory = null;
             this.rootFile = null;
         }
     }
@@ -343,8 +343,8 @@ public class JSPEndpointGenerator implements EndpointGenerator {
         }
 
         for (File welcomeFile : welcomeFileLocations) {
-            String relativePath = FilePathUtils.getRelativePath(welcomeFile.getAbsolutePath(), rootFile);
-            String webRelativePath = FilePathUtils.getRelativePath(welcomeFile.getAbsolutePath(), jspRoot);
+            String relativePath = FilePathUtils.getRelativePath(welcomeFile, rootFile);
+            String webRelativePath = FilePathUtils.getRelativePath(welcomeFile, jspRoot);
             String endpointPath = webRelativePath.substring(0, webRelativePath.length() - welcomeFile.getName().length());
             JSPEndpoint welcomeEndpoint = new JSPEndpoint(relativePath, endpointPath, "GET", JSPParameterParser.parse(welcomeFile));
             endpoints.add(welcomeEndpoint);
@@ -447,37 +447,8 @@ public class JSPEndpointGenerator implements EndpointGenerator {
     }
 
     File findWebXmlFile(File startingDirectory) {
-        File result = null;
-        if (!startingDirectory.isDirectory()) {
-            return result;
-        }
-
-        long largestFileSize = -1;
-
-        for (File file : startingDirectory.listFiles()) {
-            if (file.isFile()) {
-                if (file.getName().equalsIgnoreCase("web.xml")) {
-                    long fileSize = file.length();
-                    if (fileSize > largestFileSize) {
-                        result = file;
-                        largestFileSize = fileSize;
-                    }
-                }
-            } else {
-                if (!file.getName().equalsIgnoreCase("target") && !file.getName().equalsIgnoreCase("out")) {
-                    File subFile = findWebXmlFile(file);
-                    if (subFile != null) {
-                        long fileSize = subFile.length();
-                        if (fileSize > largestFileSize) {
-                            result = subFile;
-                            largestFileSize = fileSize;
-                        }
-                    }
-                }
-            }
-        }
-
-        return result;
+        CachedDirectory cachedDirectory = new CachedDirectory(startingDirectory);
+        return cachedDirectory.findWebXML();
     }
 
     void parseFile(List<Endpoint> outputCollection, Map<String, Set<String>> includeMap, File jspRoot, File file) {
@@ -511,12 +482,12 @@ public class JSPEndpointGenerator implements EndpointGenerator {
     }
 
     void addToIncludes(Map<String, Set<String>> includeMap, String staticPath, Set<File> includedFiles) {
-        if (rootFile != null && projectDirectory != null) {
+        if (rootFile != null && cachedDirectory != null) {
             if (!includedFiles.isEmpty()) {
                 Set<String> cleanedFilePaths = set();
 
                 for (File file : includedFiles) {
-                    String cleaned = projectDirectory.findCanonicalFilePath(file);
+                    String cleaned = cachedDirectory.findCanonicalFilePath(file);
                     if (cleaned != null) {
                         cleanedFilePaths.add(cleaned);
                     }
@@ -610,9 +581,9 @@ public class JSPEndpointGenerator implements EndpointGenerator {
         return FilePathUtils.getRelativePath(dataFlowLocation, rootFile);
     }
 
-    private List<File> findProjectFolders(File rootFolder) {
+    private List<File> findProjectFolders(CachedDirectory rootFolder) {
         List<File> webXmlFolders = list();
-        for (File xmlFile : FileUtils.listFiles(rootFolder, new String[] { "xml" }, true)) {
+        for (File xmlFile : rootFolder.findFiles("*.xml")) {
             if (xmlFile.getName().equalsIgnoreCase("web.xml")) {
                 webXmlFolders.add(xmlFile.getParentFile());
             }
@@ -620,7 +591,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
 
         // If no web.xml files were found (or only one was found) treat the whole folder as the root directory
         if (webXmlFolders.size() < 2) {
-        	return list(rootFolder);
+        	return list(rootFolder.getDirectory());
         }
 
         List<File> distinctWebXmlFolders = FilePathUtils.findRootFolders(webXmlFolders);

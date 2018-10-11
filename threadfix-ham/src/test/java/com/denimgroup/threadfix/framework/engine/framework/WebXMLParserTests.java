@@ -30,7 +30,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 
 import com.denimgroup.threadfix.data.enums.FrameworkType;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import javax.annotation.Nullable;
 
 import com.denimgroup.threadfix.framework.util.PathUtil;
@@ -40,13 +40,13 @@ public class WebXMLParserTests {
 
     @Nullable
     ServletMappings mvcShowcase = WebXMLParser.getServletMappings(new File(SPRING_MVC_SHOWCASE_WEB_XML),
-            new ProjectDirectory(new File(SPRING_MVC_SHOWCASE_LOCATION)));
+            new CachedDirectory(new File(SPRING_MVC_SHOWCASE_LOCATION)));
     @Nullable
     ServletMappings wavsep = WebXMLParser.getServletMappings(new File(WAVSEP_WEB_XML),
-            new ProjectDirectory(new File(WAVSEP_SOURCE_LOCATION)));
+            new CachedDirectory(new File(WAVSEP_SOURCE_LOCATION)));
     @Nullable
     ServletMappings bodgeIt = WebXMLParser.getServletMappings(new File(BODGEIT_WEB_XML),
-            new ProjectDirectory(new File(BODGEIT_SOURCE_LOCATION)));
+            new CachedDirectory(new File(BODGEIT_SOURCE_LOCATION)));
 
     ////////////////////////////////////////////////////////////////
     ///////////////////////////// Tests ////////////////////////////
@@ -62,7 +62,7 @@ public class WebXMLParserTests {
             File projectDirectory = new File(sourceLocations[i]);
             assertTrue(projectDirectory.exists());
 
-            File file = new ProjectDirectory(projectDirectory).findWebXML();
+            File file = new CachedDirectory(projectDirectory).findWebXML();
             assertTrue("File was null, check that " + projectDirectory + " is a valid directory.", file != null);
             assertTrue(file.getName().equals("web.xml"));
 
@@ -93,7 +93,7 @@ public class WebXMLParserTests {
 
     @Test(expected=IllegalArgumentException.class)
     public void testNullInput() {
-        new ProjectDirectory(null).findWebXML();
+        new CachedDirectory(null).findWebXML();
     }
 
     // This one is IllegalArgumentException because they wrote that into the SAXParser implementation
@@ -106,7 +106,7 @@ public class WebXMLParserTests {
     public void testBadInput() {
         File doesntExist = new File("This/path/doesnt/exist");
 
-        assertTrue(new ProjectDirectory(doesntExist).findWebXML() == null);
+        assertTrue(new CachedDirectory(doesntExist).findWebXML() == null);
 
 
     }

@@ -25,7 +25,7 @@
 package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.data.enums.FrameworkType;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.framework.FrameworkChecker;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -44,7 +44,7 @@ public class DjangoFrameworkChecker extends FrameworkChecker{
 
     @Nonnull
     @Override
-    public FrameworkType check(@Nonnull ProjectDirectory directory) {
+    public FrameworkType check(@Nonnull CachedDirectory directory) {
         Collection files = FileUtils.listFiles(directory.getDirectory(),
                 new FileExtensionFileFilter("py"), TrueFileFilter.INSTANCE);
 

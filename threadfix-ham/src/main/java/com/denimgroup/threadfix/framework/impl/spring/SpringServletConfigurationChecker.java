@@ -24,7 +24,7 @@
 
 package com.denimgroup.threadfix.framework.impl.spring;
 
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.framework.ClassMapping;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
@@ -47,19 +47,19 @@ public class SpringServletConfigurationChecker {
         CONTEXT_CONFIG_LOCATION = "contextConfigLocation",
         CLASSPATH = "classpath:";
 
-    ProjectDirectory projectDirectory;
+    CachedDirectory cachedDirectory;
     @Nonnull ClassMapping mapping;
     @Nonnull Map<String, String> contextParams;
 
-    private SpringServletConfigurationChecker(ProjectDirectory projectDirectory,
+    private SpringServletConfigurationChecker(CachedDirectory cachedDirectory,
                                               @Nonnull ClassMapping mapping,
                                               @Nonnull Map<String, String> contextParams) {
-        this.projectDirectory = projectDirectory;
+        this.cachedDirectory = cachedDirectory;
         this.mapping = mapping;
         this.contextParams = contextParams;
     }
 
-    public static boolean checkServletConfig(ProjectDirectory projectDirectory,
+    public static boolean checkServletConfig(CachedDirectory cachedDirectory,
                                              @Nonnull ClassMapping mapping,
                                              @Nonnull Map<String, String> contextParams) {
         boolean result = false;
@@ -71,7 +71,7 @@ public class SpringServletConfigurationChecker {
             } else if (contextParams.containsKey(CONTEXT_CLASS) && contextParams.get(CONTEXT_CLASS).equals(CONFIG_CLASS)) {
                 result = true;
             } else {
-                result = new SpringServletConfigurationChecker(projectDirectory, mapping, contextParams).lookInXmlFiles();
+                result = new SpringServletConfigurationChecker(cachedDirectory, mapping, contextParams).lookInXmlFiles();
             }
         }
 
@@ -87,7 +87,7 @@ public class SpringServletConfigurationChecker {
 
         configFiles.addAll(getFilesFromConfigString(mapping.getContextConfigLocation()));
         configFiles.addAll(getFilesFromConfigString(contextParams.get(CONTEXT_CONFIG_LOCATION)));
-        configFiles.add(projectDirectory.findBestFile(mapping.getServletName() + "-servlet.xml"));
+        configFiles.add(cachedDirectory.findBestFile(mapping.getServletName() + "-servlet.xml"));
 
         for (File configFile : configFiles) {
             log.info("Checking config file " + configFile);
@@ -138,10 +138,10 @@ public class SpringServletConfigurationChecker {
             String[] strings = cleaned.split(","); // I guess they can also be comma separated
 
             for (String string : strings) {
-                returnStrings.addAll(projectDirectory.findBestFiles(string.trim()));
+                returnStrings.addAll(cachedDirectory.findBestFiles(string.trim()));
             }
         } else {
-            returnStrings = projectDirectory.findBestFiles(cleaned.trim());
+            returnStrings = cachedDirectory.findBestFiles(cleaned.trim());
         }
 
         return returnStrings;

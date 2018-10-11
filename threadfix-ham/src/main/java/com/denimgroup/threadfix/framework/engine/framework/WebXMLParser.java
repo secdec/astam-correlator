@@ -23,7 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.engine.framework;
 
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
@@ -52,7 +52,7 @@ class WebXMLParser {
 
     @Nullable
     public static ServletMappings getServletMappings(@Nonnull File file,
-            ProjectDirectory projectDirectory) {
+            CachedDirectory cachedDirectory) {
         ServletParser parser = new WebXMLParser.ServletParser();
 
         try {
@@ -70,7 +70,7 @@ class WebXMLParser {
 
         return new ServletMappings(parser.mappings,
                 parser.servlets,
-                projectDirectory,
+		        cachedDirectory,
                 parser.contextParams);
     }
 

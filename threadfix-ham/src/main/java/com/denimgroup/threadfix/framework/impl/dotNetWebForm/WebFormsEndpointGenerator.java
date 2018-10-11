@@ -26,15 +26,12 @@
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
-import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
 import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -70,18 +67,18 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         }
 
         LOG.debug("Detecting projects in " + rootDirectory.getAbsolutePath());
-        List<File> projectDirectories = findProjectDirectories(new ProjectDirectory(rootDirectory));
+        List<File> projectDirectories = findProjectDirectories(new CachedDirectory(rootDirectory));
         LOG.debug("Detected " + projectDirectories.size() + " projects");
 
         CaseInsensitiveStringMap<AscxFile> ascxFiles = stringMap();
 
         // Collect ASCX controls across all projects
         for (File projectDirectory : projectDirectories) {
-            ascxFiles.putAll(AscxFileMappingsFileParser.getMap(new ProjectDirectory(projectDirectory)));
+            ascxFiles.putAll(AscxFileMappingsFileParser.getMap(new CachedDirectory(projectDirectory)));
         }
 
         for (File projectDirectory : projectDirectories) {
-            ProjectDirectory cachedDirectory = new ProjectDirectory(projectDirectory);
+            CachedDirectory cachedDirectory = new CachedDirectory(projectDirectory);
 
             File webConfig = getWebConfigFile(cachedDirectory);
             CaseInsensitiveStringMap<AspxParser> masterFileMap = MasterPageParser.getMasterFileMap(cachedDirectory, ascxFiles);
@@ -118,7 +115,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         EndpointUtil.rectifyVariantHierarchy(endpoints);
     }
 
-    private List<File> findProjectDirectories(ProjectDirectory directory) {
+    private List<File> findProjectDirectories(CachedDirectory directory) {
         List<File> projectFiles = directory.findFiles("*.csproj", "*.sitemap", "*.config");
         Collection<File> projectFolders = new ArrayList<File>(projectFiles.size());
 
@@ -140,7 +137,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         return FilePathUtils.findRootFolders(possibleResults);
     }
 
-    private File getWebConfigFile(ProjectDirectory rootDirectory) {
+    private File getWebConfigFile(CachedDirectory rootDirectory) {
         List<File> files = rootDirectory.findBestFiles("web.config");
 
         if (files.isEmpty()) {
@@ -150,7 +147,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         }
     }
 
-    private List<AspxCsParser> getAspxCsParsers(ProjectDirectory rootDirectory) {
+    private List<AspxCsParser> getAspxCsParsers(CachedDirectory rootDirectory) {
         List<File> aspxCsFiles = rootDirectory.findFiles("*.aspx.cs");
         List<AspxCsParser> aspxCsParsers = list();
 
@@ -163,7 +160,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         return aspxCsParsers;
     }
 
-    private List<AspxParser> getAspxParsers(ProjectDirectory rootDirectory,
+    private List<AspxParser> getAspxParsers(CachedDirectory rootDirectory,
                                             CaseInsensitiveStringMap<AscxFile> map,
                                             CaseInsensitiveStringMap<AspxParser> masterFileMap) {
 
@@ -263,7 +260,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         return result;
     }
 
-    WebFormsSitemapParser findSiteMap(ProjectDirectory rootDirectory) {
+    WebFormsSitemapParser findSiteMap(CachedDirectory rootDirectory) {
         for (File sitemapFile : rootDirectory.findFiles("*.sitemap")) {
             if (sitemapFile.getName().equalsIgnoreCase("web")) {
                 try {
@@ -276,7 +273,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         return null;
     }
 
-    File getAspxRoot(ProjectDirectory rootDirectory) {
+    File getAspxRoot(CachedDirectory rootDirectory) {
         List<File> aspxCsFiles = rootDirectory.findFiles("*.config");
 
         int shortestPathLength = Integer.MAX_VALUE;
@@ -303,7 +300,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
                              Collection<AspxParser> aspxParsers,
                              File solutionDirectory,
                              File projectDirectory,
-                             ProjectDirectory cachedDirectory,
+                             CachedDirectory cachedDirectory,
                              List<String> defaultPages,
                              WebFormsSitemapParser sitemap) {
 

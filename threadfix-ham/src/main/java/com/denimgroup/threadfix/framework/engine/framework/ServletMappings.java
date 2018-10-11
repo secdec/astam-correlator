@@ -24,7 +24,7 @@
 package com.denimgroup.threadfix.framework.engine.framework;
 
 import com.denimgroup.threadfix.data.enums.FrameworkType;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.impl.spring.SpringServletConfigurationChecker;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
@@ -52,7 +52,7 @@ public class ServletMappings {
     private final List<ClassMapping> servlets;
 
     @Nonnull
-    private final ProjectDirectory projectDirectory;
+    private final CachedDirectory cachedDirectory;
 
     @Nonnull
     private final Map<String, String> contextParams;
@@ -69,11 +69,11 @@ public class ServletMappings {
 
     public ServletMappings(@Nonnull List<UrlPatternMapping> servletMappings,
                            @Nonnull List<ClassMapping> servlets,
-                           @Nonnull ProjectDirectory projectDirectory,
+                           @Nonnull CachedDirectory cachedDirectory,
                            @Nonnull Map<String, String> contextParams) {
         this.allServletMappings = servletMappings;
         this.servlets = servlets;
-        this.projectDirectory = projectDirectory;
+        this.cachedDirectory = cachedDirectory;
         this.contextParams = contextParams;
 
         sortMappings();
@@ -176,7 +176,7 @@ public class ServletMappings {
         log.info("About to guess application type from web.xml.");
 
         for (ClassMapping mapping : servlets) {
-            if (SpringServletConfigurationChecker.checkServletConfig(projectDirectory, mapping, contextParams)) {
+            if (SpringServletConfigurationChecker.checkServletConfig(cachedDirectory, mapping, contextParams)) {
                 frameworkType = FrameworkType.SPRING_MVC;
             }
         }

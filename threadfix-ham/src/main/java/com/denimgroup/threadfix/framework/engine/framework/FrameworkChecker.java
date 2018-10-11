@@ -25,7 +25,8 @@
 package com.denimgroup.threadfix.framework.engine.framework;
 
 import com.denimgroup.threadfix.data.enums.FrameworkType;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
+
 import javax.annotation.Nonnull;
 import java.util.List;
 
@@ -34,10 +35,10 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 public abstract class FrameworkChecker {
 
     @Nonnull
-    public abstract FrameworkType check(@Nonnull ProjectDirectory directory);
+    public abstract FrameworkType check(@Nonnull CachedDirectory directory);
 
     @Nonnull
-    public List<FrameworkType> checkForMany(@Nonnull ProjectDirectory directory) {
+    public List<FrameworkType> checkForMany(@Nonnull CachedDirectory directory) {
         FrameworkType framework = check(directory);
         if (framework != FrameworkType.NONE) {
             return list(framework);

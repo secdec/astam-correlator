@@ -25,7 +25,7 @@
 package com.denimgroup.threadfix.framework.engine.framework;
 
 import com.denimgroup.threadfix.framework.TestConstants;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.impl.spring.SpringServletConfigurationChecker;
 import org.junit.Test;
 
@@ -83,7 +83,7 @@ public class ServletMappingTests {
 
     @Test
     public void testWebXmlParserForContextClass() {
-        ProjectDirectory directory = new ProjectDirectory(new File(TestConstants.getFolderName("spring-mvc-ajax")));
+        CachedDirectory directory = new CachedDirectory(new File(TestConstants.getFolderName("spring-mvc-ajax")));
         ServletMappings mappings = WebXMLParser.getServletMappings(directory.findWebXML(), directory);
         for (ClassMapping classMapping : mappings.getClassMappings()) {
             if (classMapping.getClassWithPackage().equals(SpringServletConfigurationChecker.DISPATCHER_SERVLET)) {
@@ -181,7 +181,7 @@ public class ServletMappingTests {
     ////////////////////////////////////////////////////////////////
 
     private ServletMappings getTestMappings() throws IOException {
-        return new ServletMappings(sampleServletMappings, sampleServlets, new ProjectDirectory(File.createTempFile("test", "test")), new HashMap<String, String>());
+        return new ServletMappings(sampleServletMappings, sampleServlets, new CachedDirectory(File.createTempFile("test", "test")), new HashMap<String, String>());
     }
 
     @Nonnull

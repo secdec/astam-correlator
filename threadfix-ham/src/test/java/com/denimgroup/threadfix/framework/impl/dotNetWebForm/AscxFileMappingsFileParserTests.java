@@ -24,7 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
 import com.denimgroup.threadfix.framework.ResourceManager;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import org.junit.Test;
 
 import java.util.Map;
@@ -36,7 +36,7 @@ public class AscxFileMappingsFileParserTests {
 
     @Test
     public void testResourcesFolder() {
-        Map<String, AscxFile> map = AscxFileMappingsFileParser.getMap(new ProjectDirectory(ResourceManager.getDotNetWebFormsFile("")));
+        Map<String, AscxFile> map = AscxFileMappingsFileParser.getMap(new CachedDirectory(ResourceManager.getDotNetWebFormsFile("")));
 
         assert map.containsKey("WebUserControl1") : "Didn't contain WebUserControl1: " + map.keySet();
     }

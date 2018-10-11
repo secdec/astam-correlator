@@ -32,11 +32,11 @@ import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
-public class ProjectDirectoryTests {
+public class CachedDirectoryTests {
 
     @Nonnull
-    ProjectDirectory
-        springDirectory = new ProjectDirectory(new File(TestConstants.PETCLINIC_SOURCE_LOCATION));
+    CachedDirectory
+        springDirectory = new CachedDirectory(new File(TestConstants.PETCLINIC_SOURCE_LOCATION));
 
     @Test
     public void testMultipleMatchResolution() {

@@ -50,7 +50,11 @@ public class FilePathUtils {
             returnPath = getRelativePath(projectFile.getAbsolutePath(), rootFile.getAbsolutePath());
         }
 
-        return returnPath;
+        if (returnPath != null) {
+            return normalizePath(returnPath);
+        } else {
+            return null;
+        }
     }
 
     @Nullable

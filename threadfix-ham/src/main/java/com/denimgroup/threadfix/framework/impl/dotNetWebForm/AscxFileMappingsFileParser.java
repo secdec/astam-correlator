@@ -27,15 +27,11 @@
 
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
-import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.filefilter.TrueFileFilter;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.Map;
 
 import static com.denimgroup.threadfix.CollectionUtils.map;
 import static com.denimgroup.threadfix.framework.util.CollectionUtils.stringMap;
@@ -47,7 +43,7 @@ public class AscxFileMappingsFileParser {
 
     private AscxFileMappingsFileParser(){}
 
-    public static CaseInsensitiveStringMap<AscxFile> getMap(ProjectDirectory rootDirectory) {
+    public static CaseInsensitiveStringMap<AscxFile> getMap(CachedDirectory rootDirectory) {
         if (!rootDirectory.getDirectory().exists() || !rootDirectory.getDirectory().isDirectory()) {
             throw new IllegalArgumentException("Invalid directory passed to WebFormsEndpointGenerator: " + rootDirectory);
         }

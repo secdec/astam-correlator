@@ -27,6 +27,8 @@
 package com.denimgroup.threadfix.framework.impl.jsp;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
 import com.denimgroup.threadfix.framework.util.java.CommentTracker;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -88,7 +90,9 @@ public class JSPServletParser {
         if (!directory.isDirectory())
             return;
 
-        Collection<File> files = FileUtils.listFiles(directory, new String[] { "java" }, true);
+        CachedDirectory cachedDirectory = new CachedDirectory(directory);
+
+        Collection<File> files = cachedDirectory.findFiles("*.java");
         for (File file : files) {
 
             if (!isServlet(file))
@@ -142,7 +146,7 @@ public class JSPServletParser {
                 methodEndLines.put(httpMethod, methodMap.endLine);
             }
 
-            JSPServlet newServlet = new JSPServlet(packageName, servletName, file.getAbsolutePath(), queryParameters);
+            JSPServlet newServlet = new JSPServlet(packageName, servletName, FilePathUtils.normalizePath(file.getAbsolutePath()), queryParameters);
             for (String annotation : annotatedEndpoints) {
                 newServlet.addEndpoint(annotation);
             }

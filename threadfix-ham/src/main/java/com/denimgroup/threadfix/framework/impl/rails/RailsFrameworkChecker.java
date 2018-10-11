@@ -27,7 +27,7 @@
 package com.denimgroup.threadfix.framework.impl.rails;
 
 import com.denimgroup.threadfix.data.enums.FrameworkType;
-import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.framework.FrameworkChecker;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -36,11 +36,7 @@ import org.apache.commons.io.filefilter.*;
 
 import javax.annotation.Nonnull;
 import java.io.File;
-import java.io.FileFilter;
 import java.util.Collection;
-import java.util.List;
-
-import static com.denimgroup.threadfix.CollectionUtils.list;
 
 /**
  * Created by sgerick on 5/7/2015.
@@ -54,7 +50,7 @@ public class RailsFrameworkChecker extends FrameworkChecker {
 
     @Nonnull
     @Override
-    public FrameworkType check(@Nonnull ProjectDirectory directory) {
+    public FrameworkType check(@Nonnull CachedDirectory directory) {
 
 	    boolean routesFound = false;
 
@@ -78,7 +74,7 @@ public class RailsFrameworkChecker extends FrameworkChecker {
 //    public static void main(String[] args) {
 //        RailsFrameworkChecker railsFrameworkChecker = new RailsFrameworkChecker();
 //        File file = new File("C:\\SourceCode\\railsgoat-master");
-//        ProjectDirectory projectDirectory = new ProjectDirectory(file);
+//        CachedDirectory projectDirectory = new CachedDirectory(file);
 //        FrameworkType frameworkType = railsFrameworkChecker.check(projectDirectory);
 //        LOG.info("FrameworkType is " + frameworkType.getDisplayName());
 //    }

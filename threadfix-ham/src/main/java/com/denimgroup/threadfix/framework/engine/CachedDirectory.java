@@ -36,16 +36,16 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
 // TODO make more error resistant
-public class ProjectDirectory {
+public class CachedDirectory {
 
     private File directory;
 
     @Nonnull
     private final Map<String, Set<String>> fileMap;
 
-    private final SanitizedLogger log = new SanitizedLogger("ProjectDirectory");
+    private final SanitizedLogger log = new SanitizedLogger("CachedDirectory");
 
-    public ProjectDirectory(@Nonnull File directory) {
+    public CachedDirectory(@Nonnull File directory) {
         this.directory = directory;
         fileMap = buildMaps(directory);
     }
@@ -113,7 +113,7 @@ public class ProjectDirectory {
         if (canonicalPath != null) {
             map.get(file.getName()).add(canonicalPath);
         } else {
-            log.warn("Recursive algorithm in ProjectDirectory broke out of its starting directory.");
+            log.warn("Recursive algorithm in CachedDirectory broke out of its starting directory.");
         }
     }
 
