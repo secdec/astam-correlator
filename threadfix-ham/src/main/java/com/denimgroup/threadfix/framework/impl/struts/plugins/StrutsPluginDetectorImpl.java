@@ -23,10 +23,10 @@
 
 package com.denimgroup.threadfix.framework.impl.struts.plugins;
 
-import java.io.File;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 
 public interface StrutsPluginDetectorImpl {
     StrutsPlugin create();
-    boolean detect(File projectRoot);
+    boolean detect(CachedDirectory projectRoot);
 
 }

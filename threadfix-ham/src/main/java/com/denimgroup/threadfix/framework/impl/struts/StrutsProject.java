@@ -23,11 +23,13 @@
 
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapper;
 import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
 
 import javax.swing.*;
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
@@ -43,11 +45,13 @@ public class StrutsProject {
     List<StrutsPlugin> plugins = list();
     List<StrutsWebPack> webPacks = list();
     String rootDirectory = null;
+    CachedDirectory cachedDirectory = null;
     StrutsCodebase codebase = null;
 
 
     public StrutsProject(String rootDirectory) {
         this.rootDirectory = rootDirectory;
+        this.cachedDirectory = new CachedDirectory(new File(rootDirectory));
     }
 
     public void setCodebase(StrutsCodebase codebase) {
@@ -131,6 +135,10 @@ public class StrutsProject {
 
     public String getRootDirectory() {
         return this.rootDirectory;
+    }
+
+    public CachedDirectory getCachedDirectory() {
+        return cachedDirectory;
     }
 
     public boolean hasPlugin(Class cls) {

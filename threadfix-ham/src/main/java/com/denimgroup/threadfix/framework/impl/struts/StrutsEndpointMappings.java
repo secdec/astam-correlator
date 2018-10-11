@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapper;
@@ -77,12 +78,14 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
     public StrutsEndpointMappings(@Nonnull File rootDirectory) {
 
+        CachedDirectory cachedRootDirectory = new CachedDirectory(rootDirectory);
+
         StrutsProjectDetector detector = new StrutsProjectDetector();
         log.debug("Detecting project folders");
-        Collection<String> projectFolders = detector.findProjectPaths(rootDirectory);
+        Collection<String> projectFolders = detector.findProjectPaths(cachedRootDirectory);
         log.debug("Detected " + projectFolders.size() + " projects");
 
-        Collection<File> javaFiles = FileUtils.listFiles(rootDirectory, new String[] { "java" }, true);
+        Collection<File> javaFiles = cachedRootDirectory.findFiles("*.java");
         Collection<StrutsClass> discoveredClasses = list();
         for (File javaFile : javaFiles) {
             StrutsClass parsedClass = new StrutsClassParser(javaFile).getResultClass();
@@ -102,14 +105,14 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
             log.debug("Processing project at: " + projectFolderPath);
 
+            CachedDirectory cachedProjectFolder = new CachedDirectory(new File(projectFolderPath));
+
             List<File> strutsConfigFiles = list();
             List<File> strutsPropertiesFiles = list();
 
             StrutsConfigurationProperties configurationProperties;
 
-            File projectFolder = new File(projectFolderPath);
-            String[] configExtensions = {"xml", "properties"};
-            Collection configFiles = FileUtils.listFiles(projectFolder, configExtensions, true);
+            Collection configFiles = cachedProjectFolder.findFiles("*.xml", "*.properties");
 
             for (Object configFile : configFiles) {
                 File file = (File) configFile;
@@ -169,12 +172,12 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             }
 
             StrutsPluginDetector pluginDetector = new StrutsPluginDetector();
-            for (StrutsPlugin plugin : pluginDetector.detectPlugins(projectFolder)) {
+            for (StrutsPlugin plugin : pluginDetector.detectPlugins(cachedProjectFolder)) {
                 log.info("Detected struts plugin: " + plugin);
                 project.addPlugin(plugin);
             }
 
-            File webXmlFile = StrutsWebXmlParser.findWebXml(projectFolder);
+            File webXmlFile = StrutsWebXmlParser.findWebXml(cachedProjectFolder);
 
             if (webXmlFile != null) {
                 StrutsWebXmlParser webXmlParser = new StrutsWebXmlParser(webXmlFile);
@@ -320,7 +323,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         StrutsPageParameterDetector parameterDetector = new StrutsPageParameterDetector();
         List<StrutsDetectedParameter> inferredParameters = list();
 
-        Collection<File> webFiles = FileUtils.listFiles(new File(project.getRootDirectory()), new String[] { "html", "xhtml", "jsp"}, true);
+        Collection<File> webFiles = project.getCachedDirectory().findFiles("*.html", "*.xhtml", "*.jsp");
 
         for (File file : webFiles) {
             inferredParameters.addAll(parameterDetector.parseStrutsFormsParameters(file));

@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.struts;
 
 
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -36,14 +37,14 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 // Used to detect the set of Struts project folders contained within a given directory
 public class StrutsProjectDetector {
-    public List<String> findProjectPaths(File basePath) {
+    public List<String> findProjectPaths(CachedDirectory baseDirectory) {
 
         /* Search for struts-compatible XML files, and traverse parent directories from there until the parent directory
          *  contains java files. That parent directory will be a project root.
          */
 
         List<String> result = list();
-        Collection<File> xmlFiles = FileUtils.listFiles(basePath, new String[] { "xml" }, true);
+        Collection<File> xmlFiles = baseDirectory.findFiles("*.xml");
         for (File xmlFile : xmlFiles) {
             String fileContents;
             try {
@@ -57,7 +58,7 @@ public class StrutsProjectDetector {
             }
 
             if (fileContents.toLowerCase().contains("<struts>")) {
-                String possibleProjectRoot = searchForParentWithStrutsNamespace(xmlFile, basePath);
+                String possibleProjectRoot = searchForParentWithStrutsNamespace(xmlFile, baseDirectory.getDirectory(), baseDirectory);
                 if (possibleProjectRoot != null && !result.contains(possibleProjectRoot)) {
                     result.add(possibleProjectRoot);
                 }
@@ -65,7 +66,7 @@ public class StrutsProjectDetector {
         }
 
         if (result.size() == 0) {
-            result.add(basePath.getAbsolutePath());
+            result.add(baseDirectory.getDirectory().getAbsolutePath());
         }
 
         //  Remove any top-level project roots (ie /foo/bar and /foo are project roots; remove /foo)
@@ -87,14 +88,14 @@ public class StrutsProjectDetector {
         return filteredResult;
     }
 
-    private String searchForParentWithStrutsNamespace(File currentFile, File basePath) {
+    private String searchForParentWithStrutsNamespace(File currentFile, File basePath, CachedDirectory cachedDirectory) {
         Pattern strutsKeywordMatcher = Pattern.compile("org\\.apache\\.struts[^\\.]", Pattern.CASE_INSENSITIVE);
 
         File currentFolder = currentFile;
         while (!currentFolder.getAbsolutePath().equals(basePath.getAbsolutePath())) {
             currentFolder = currentFolder.getParentFile();
 
-            if (FileUtils.listFiles(currentFolder, new String[] { "java" }, true).isEmpty()) {
+            if (cachedDirectory.findFilesIn(currentFolder.getAbsolutePath(), "*.java").isEmpty()) {
                 continue;
             }
 

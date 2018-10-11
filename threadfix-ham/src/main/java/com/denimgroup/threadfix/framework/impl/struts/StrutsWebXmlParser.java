@@ -23,6 +23,7 @@
 
 package com.denimgroup.threadfix.framework.impl.struts;
 
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.sun.org.apache.xerces.internal.impl.xpath.regex.Match;
 import org.apache.commons.io.FileUtils;
 
@@ -42,8 +43,8 @@ public class StrutsWebXmlParser {
     String webXmlFileLocation = null;
 
 
-    public static File findWebXml(File rootSearchDirectory) {
-        Collection<File> xmlFiles = FileUtils.listFiles(rootSearchDirectory, new String[] { "xml" }, true);
+    public static File findWebXml(CachedDirectory rootSearchDirectory) {
+        Collection<File> xmlFiles = rootSearchDirectory.findFiles("*.xml");
         Collection<File> webXmlFiles = list();
         for (File file : xmlFiles) {
             if (file.getName().equalsIgnoreCase("web.xml")) {

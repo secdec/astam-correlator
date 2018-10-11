@@ -23,6 +23,8 @@
 
 package com.denimgroup.threadfix.framework.impl.struts.plugins;
 
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
+
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
@@ -31,7 +33,7 @@ import static com.denimgroup.threadfix.CollectionUtils.list;
 
 public class StrutsPluginDetector {
 
-    public Collection<StrutsPlugin> detectPlugins(File projectRoot) {
+    public Collection<StrutsPlugin> detectPlugins(CachedDirectory projectRoot) {
 
         Collection<StrutsPluginDetectorImpl> detectors = list(
                 new StrutsConventionPluginDetector(),

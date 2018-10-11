@@ -23,6 +23,7 @@
 
 package com.denimgroup.threadfix.framework.impl.struts.plugins;
 
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -38,9 +39,9 @@ public class StrutsRestPluginDetector implements StrutsPluginDetectorImpl {
     private final String REST_PLUGIN_KEYWORD = "struts2-rest-plugin";
 
     @Override
-    public boolean detect(File projectRoot) {
+    public boolean detect(CachedDirectory projectRoot) {
 
-        Collection<File> files = FileUtils.listFiles(projectRoot, new String[] { "xml", "properties", "jar" }, true);
+        Collection<File> files = projectRoot.findFiles("*.xml", "*.properties", "*.jar");
 
         for (File file : files) {
             String fileName = file.getName();
