@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.framework.impl.django;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.django.djangoApis.DjangoApiConfigurator;
 import com.denimgroup.threadfix.framework.impl.django.python.PythonCodeCollection;
@@ -56,6 +57,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
     private Map<String, List<DjangoRoute>> routeMap;
 
     private File rootDirectory, appRoot, rootUrlsFile;
+    private CachedDirectory cachedRootDirectory;
     private List<File> possibleGuessedUrlFiles;
 
     private void debugLog(String msg) {
@@ -72,7 +74,8 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         long generationStartTime = System.currentTimeMillis();
 
         this.rootDirectory = rootDirectory.getAbsoluteFile();
-        this.appRoot = findAppRoot(this.rootDirectory).getAbsoluteFile();
+        this.cachedRootDirectory = new CachedDirectory(rootDirectory);
+        this.appRoot = findAppRoot(this.cachedRootDirectory).getAbsoluteFile();
 
         findRootUrlsFile();
         if (rootUrlsFile == null || !rootUrlsFile.exists()) {
@@ -207,9 +210,9 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         debugLog("Finished python endpoint generation in " + generationDuration + "ms");
     }
 
-    private File findAppRoot(File baseDirectory) {
+    private File findAppRoot(CachedDirectory baseDirectory) {
         // Try to find by first folder containing manage.py or setup.py
-        Collection<File> pythonFiles = FileUtils.listFiles(baseDirectory, new String[] { "py" }, true);
+        Collection<File> pythonFiles = baseDirectory.findFiles("*.py");
         String bestDirectory = null;
         for (File file : pythonFiles) {
             if (file.getName().toLowerCase().equals("manage.py") || file.getName().toLowerCase().equals("setup.py")) {
@@ -225,7 +228,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
         if (bestDirectory != null) {
             return new File(bestDirectory);
         } else {
-            return baseDirectory;
+            return baseDirectory.getDirectory();
         }
     }
 
@@ -364,7 +367,7 @@ public class DjangoEndpointGenerator implements EndpointGenerator{
 
     private List<File> findUrlsByFileName() {
         List<File> urlFiles = list();
-        Collection<File> projectFiles = FileUtils.listFiles(rootDirectory, new String[] { "py" }, true);
+        Collection<File> projectFiles = cachedRootDirectory.findFiles("*.py");
         for (File file : projectFiles) {
             if (file.getName().endsWith("urls.py")) {
                 urlFiles.add(file);

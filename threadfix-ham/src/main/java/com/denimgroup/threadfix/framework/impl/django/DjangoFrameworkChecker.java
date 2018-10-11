@@ -45,8 +45,7 @@ public class DjangoFrameworkChecker extends FrameworkChecker{
     @Nonnull
     @Override
     public FrameworkType check(@Nonnull CachedDirectory directory) {
-        Collection files = FileUtils.listFiles(directory.getDirectory(),
-                new FileExtensionFileFilter("py"), TrueFileFilter.INSTANCE);
+        Collection files = directory.findFiles("*.py");
 
         LOG.info("Got " + files.size() + " .py files from the directory.");
 
