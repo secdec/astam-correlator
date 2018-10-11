@@ -578,7 +578,7 @@ public class JSPEndpointGenerator implements EndpointGenerator {
     }
 
     public String getRelativePath(String dataFlowLocation) {
-        return FilePathUtils.getRelativePath(dataFlowLocation, rootFile);
+        return FilePathUtils.getRelativePath(FilePathUtils.normalizePath(dataFlowLocation), rootFile);
     }
 
     private List<File> findProjectFolders(CachedDirectory rootFolder) {
