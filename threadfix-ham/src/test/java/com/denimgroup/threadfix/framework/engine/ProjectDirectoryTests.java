@@ -46,7 +46,7 @@ public class ProjectDirectoryTests {
         };
 
         for (String[] test : tests) {
-            File file = springDirectory.findFile(test[0]);
+            File file = springDirectory.findBestFile(test[0]);
 
             String result = springDirectory.findCanonicalFilePath(file.getAbsolutePath());
 
@@ -66,7 +66,7 @@ public class ProjectDirectoryTests {
             };
 
         for (Object[] test : tests) {
-            List<File> results = springDirectory.findFiles((String) test[0]);
+            List<File> results = springDirectory.findBestFiles((String) test[0]);
             int numResults = results.size();
             assertTrue("Found " + numResults + " results instead of " + test[1] + " for " + test[0],
                     numResults == ((Integer) test[1]));

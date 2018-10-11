@@ -87,7 +87,7 @@ public class SpringServletConfigurationChecker {
 
         configFiles.addAll(getFilesFromConfigString(mapping.getContextConfigLocation()));
         configFiles.addAll(getFilesFromConfigString(contextParams.get(CONTEXT_CONFIG_LOCATION)));
-        configFiles.add(projectDirectory.findFile(mapping.getServletName() + "-servlet.xml"));
+        configFiles.add(projectDirectory.findBestFile(mapping.getServletName() + "-servlet.xml"));
 
         for (File configFile : configFiles) {
             log.info("Checking config file " + configFile);
@@ -138,10 +138,10 @@ public class SpringServletConfigurationChecker {
             String[] strings = cleaned.split(","); // I guess they can also be comma separated
 
             for (String string : strings) {
-                returnStrings.addAll(projectDirectory.findFiles(string.trim()));
+                returnStrings.addAll(projectDirectory.findBestFiles(string.trim()));
             }
         } else {
-            returnStrings = projectDirectory.findFiles(cleaned.trim());
+            returnStrings = projectDirectory.findBestFiles(cleaned.trim());
         }
 
         return returnStrings;

@@ -58,7 +58,7 @@ public class FilePathUtils {
         String returnPath = null;
 
         if (projectFileString != null && projectRootFile != null) {
-            returnPath = getRelativePath(projectFileString, projectRootFile.getAbsolutePath());
+            returnPath = getRelativePath(projectFileString, normalizePath(projectRootFile.getAbsolutePath()));
         }
 
         return returnPath;
@@ -69,7 +69,7 @@ public class FilePathUtils {
         String returnPath = null;
 
         if (projectFile != null && projectRoot != null) {
-            returnPath = getRelativePath(projectFile.getAbsolutePath(), projectRoot);
+            returnPath = getRelativePath(normalizePath(projectFile.getAbsolutePath()), projectRoot);
         }
 
         return returnPath;

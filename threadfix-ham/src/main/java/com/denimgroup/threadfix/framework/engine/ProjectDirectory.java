@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.engine;
 
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
+import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
 
 import javax.annotation.Nonnull;
@@ -56,7 +57,7 @@ public class ProjectDirectory {
 
     @Nonnull
     public String getDirectoryPath() {
-        return directory.getAbsolutePath();
+        return FilePathUtils.normalizePath(directory.getAbsolutePath());
     }
 
     @Nonnull
@@ -121,50 +122,118 @@ public class ProjectDirectory {
     // on the other hand I don't really see this being a bottleneck
     @Nullable
     public File findWebXML() {
-        return findFile("web.xml", "WEB-INF", "web.xml");
+        return findBestFile("web.xml", "WEB-INF", "web.xml");
     }
 
     @Nonnull
-    public List<File> findFiles(@Nonnull String pathWithStars) {
-        List<File> files;
+    public List<File> findFiles(@Nonnull String ...paths) {
+        List<File> files = list();
 
-        if (pathWithStars.contains("*")) {
-            // we have to do a wildcard match
-            files = findFilesWithStar(pathWithStars);
-        } else {
-            // do normal add
-            files = Arrays.asList(findFile(pathWithStars));
+        for (String path : paths) {
+            if (path.contains("*")) {
+                // we have to do a wildcard match
+                files.addAll(findFilesWithStar(path, false));
+            } else {
+                // do normal add
+                files.add(findBestFile(path));
+            }
         }
 
         return files;
     }
 
     @Nonnull
-    private List<File> findFilesWithStar(@Nonnull String path) {
+    public List<File> findFilesIn(@Nonnull String basePath, @Nonnull String ...paths) {
+        File baseFile = new File(basePath);
+        if (!baseFile.exists()) {
+            baseFile = new File(PathUtil.combine(directory.getAbsolutePath(), basePath));
+        }
+
+        String fullBasePath = null;
+        if (baseFile.exists()) {
+            fullBasePath = baseFile.getAbsolutePath();
+        }
+
+        List<File> result = list();
+        for (String path : paths) {
+            String formattedPath = PathUtil.combine(basePath, path);
+            List<File> filesInPath = findFiles(formattedPath);
+
+            if (fullBasePath != null) {
+                for (File file : filesInPath) {
+                    if (file.getAbsolutePath().startsWith(fullBasePath)) {
+                        result.add(file);
+                    }
+                }
+            } else {
+                result.addAll(filesInPath);
+            }
+        }
+
+        return result;
+    }
+
+    @Nonnull
+    public List<File> findBestFiles(@Nonnull String pathWithStars) {
+        List<File> files;
+
+        if (pathWithStars.contains("*")) {
+            // we have to do a wildcard match
+            files = findFilesWithStar(pathWithStars, true);
+        } else {
+            // do normal add
+            files = Arrays.asList(findBestFile(pathWithStars));
+        }
+
+        return files;
+    }
+
+    @Nonnull
+    private List<File> findFilesWithStar(@Nonnull String path, boolean bestMatch) {
+        path = PathUtil.normalizeSeparator(path);
+        if (new File(org.apache.commons.io.FilenameUtils.getFullPath(path)).exists()) {
+            path = FilePathUtils.getRelativePath(path, this.directory);
+        }
+
         List<File> returnFile = list();
         String[] pathSegments = breakUpPath(path);
 
         if (pathSegments.length > 0) {
-            returnFile = findFilesWithStar(pathSegments[pathSegments.length - 1], pathSegments);
+            returnFile = findFilesWithStar(pathSegments[pathSegments.length - 1], bestMatch, pathSegments);
         }
 
         return returnFile;
     }
 
     @Nonnull
-    private List<File> findFilesWithStar(@Nonnull String fileName, @Nonnull String... pathSegments) {
+    private List<File> findFilesWithStar(@Nonnull String fileName, boolean bestMatch, @Nonnull String... pathSegments) {
         List<File> returnFile = list();
 
         if (fileName.contains("*")) {
 
             List<String> possibleEntries = list();
+            List<String> fullPathParts = list();
+            fullPathParts.addAll(Arrays.asList(pathSegments));
+            fullPathParts.remove(fullPathParts.size() - 1);
+
+            String[] fullPathPartsArray;
 
             String[] segments = fileName.split("\\*");
             if (fileName.endsWith("*")) {
                 List<String> list = list(segments);
                 list.add("");
                 segments = list.toArray(new String[list.size()]);
+            } else if (fileName.startsWith("*")) {
+                fullPathParts.add("");
             }
+
+            for (String segment : segments) {
+                if (segment.length() > 0) {
+                    fullPathParts.add(segment);
+                }
+            }
+
+            fullPathPartsArray = fullPathParts.toArray(new String[fullPathParts.size()]);
 
             for (String key : fileMap.keySet()) {
                 if (matches(key, segments)) {
@@ -173,11 +242,22 @@ public class ProjectDirectory {
             }
 
             for (String key : possibleEntries) {
-                String extension = calculateBestOption(pathSegments, fileMap.get(key));
-                if (extension != null) {
-                    File testFile = new File(getDirectoryPath() + extension);
-                    if (testFile.exists()) {
-                        returnFile.add(testFile);
+                if (bestMatch) {
+                    String extension = calculateBestOption(pathSegments, fileMap.get(key));
+                    if (extension != null) {
+                        File testFile = new File(getDirectoryPath() + extension);
+                        if (testFile.exists()) {
+                            returnFile.add(testFile);
+                        }
+                    }
+                } else {
+                    for (String path : fileMap.get(key)) {
+                        if (matches(path, fullPathPartsArray)) {
+                            File testFile = new File(getDirectoryPath() + path);
+                            if (testFile.exists()) {
+                                returnFile.add(testFile);
+                            }
+                        }
                     }
                 }
             }
@@ -224,19 +304,19 @@ public class ProjectDirectory {
      * This will find the file on the file system with the same name and longest common
      */
     @Nullable
-    public File findFile(@Nonnull String path) {
+    public File findBestFile(@Nonnull String path) {
         File returnFile = null;
         String[] pathSegments = breakUpPath(path);
 
         if (pathSegments.length > 0) {
-            returnFile = findFile(pathSegments[pathSegments.length - 1], pathSegments);
+            returnFile = findBestFile(pathSegments[pathSegments.length - 1], pathSegments);
         }
 
         return returnFile;
     }
 
     @Nullable
-    private File findFile(@Nonnull String fileName, @Nonnull String... pathSegments) {
+    private File findBestFile(@Nonnull String fileName, @Nonnull String... pathSegments) {
         File returnFile = null;
 
         if (fileMap.containsKey(fileName) && !fileMap.get(fileName).isEmpty()) {
@@ -348,6 +428,7 @@ public class ProjectDirectory {
     // split along / or \ or just return the whole path
     @Nonnull
     private String[] breakUpPath(@Nonnull String choice) {
+        choice = PathUtil.normalizeSeparator(choice);
         String[] results;
 
         if (choice.indexOf('/') != -1) {

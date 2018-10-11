@@ -26,6 +26,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
@@ -69,7 +70,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         }
 
         LOG.debug("Detecting projects in " + rootDirectory.getAbsolutePath());
-        List<File> projectDirectories = findProjectDirectories(rootDirectory);
+        List<File> projectDirectories = findProjectDirectories(new ProjectDirectory(rootDirectory));
         LOG.debug("Detected " + projectDirectories.size() + " projects");
 
         CaseInsensitiveStringMap<AscxFile> ascxFiles = stringMap();
@@ -115,8 +116,8 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         EndpointUtil.rectifyVariantHierarchy(endpoints);
     }
 
-    private List<File> findProjectDirectories(File rootDirectory) {
-        Collection<File> projectFiles = FileUtils.listFiles(rootDirectory, new String[] { "csproj", "sitemap", "config" }, true);
+    private List<File> findProjectDirectories(ProjectDirectory directory) {
+        List<File> projectFiles = directory.findFiles("*.csproj", "*.sitemap", "*.config");
         Collection<File> projectFolders = new ArrayList<File>(projectFiles.size());
 
         for (File proj : projectFiles) {
@@ -128,7 +129,8 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
 
         List<File> possibleResults = list();
         for (File folder : projectFolders) {
-            if (!FileUtils.listFiles(folder, new String[] { "aspx", "ascx", "asax" }, true).isEmpty()) {
+            List<File> codeFiles = directory.findFilesIn(folder.getAbsolutePath(), "*.aspx", "*.ascx", "*.asax");
+            if (!codeFiles.isEmpty()) {
                 possibleResults.add(folder);
             }
         }
