@@ -54,8 +54,7 @@ public class RailsFrameworkChecker extends FrameworkChecker {
 
 	    boolean routesFound = false;
 
-        Collection<File> rbFiles = FileUtils.listFiles(directory.getDirectory(),
-                new FileExtensionFileFilter("rb"), TrueFileFilter.TRUE);
+        Collection<File> rbFiles = directory.findFiles("*.rb");
 
         for (File rbFile : rbFiles) {
             if (rbFile.getPath().toLowerCase().endsWith(ROUTES_RB)

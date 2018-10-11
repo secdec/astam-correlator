@@ -28,6 +28,7 @@ package com.denimgroup.threadfix.framework.impl.rails;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsController;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsControllerMethod;
 import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
@@ -97,7 +98,7 @@ public class RailsControllerParser implements EventBasedTokenizer {
             return null;
         }
 
-        Collection<File> rubyFiles = (Collection<File>) FileUtils.listFiles(ctrlDir,
+        Collection<File> rubyFiles = FileUtils.listFiles(ctrlDir,
                 new WildcardFileFilter("*_controller.rb"), TrueFileFilter.INSTANCE);
 
         RailsControllerParser parser = new RailsControllerParser();

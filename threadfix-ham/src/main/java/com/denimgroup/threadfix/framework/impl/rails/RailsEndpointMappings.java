@@ -29,6 +29,7 @@ import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.rails.model.*;
 import com.denimgroup.threadfix.framework.impl.rails.model.RailsRoute;
@@ -63,7 +64,10 @@ public class RailsEndpointMappings implements EndpointGenerator {
             LOG.error("Root file not found or is not directory. Exiting.");
             return;
         }
-        File routesFile = findRoutesFile(rootDirectory);
+
+        CachedDirectory cachedRootDirectory = new CachedDirectory(rootDirectory);
+
+        File routesFile = findRoutesFile(cachedRootDirectory);
         if (routesFile == null) {
             LOG.error("Couldn't find a suitable 'routes.rb' file. Exiting.");
             return;
@@ -75,7 +79,7 @@ public class RailsEndpointMappings implements EndpointGenerator {
         railsControllers = (List<RailsController>) RailsControllerParser.parse(projectRootDirectory);
 
         List<RailsRouter> routers = list();
-        File gemFile = findGemFile(rootDirectory);
+        File gemFile = findGemFile(cachedRootDirectory);
         if (gemFile != null) {
             RouterDetector routerDetector = new RouterDetector();
             routers.addAll(routerDetector.detectRouters(gemFile));
@@ -91,7 +95,7 @@ public class RailsEndpointMappings implements EndpointGenerator {
             RailsController controller = getController(route);
             String controllerPath;
             if (controller != null) {
-                controllerPath = controller.getControllerFile().getAbsolutePath();
+                controllerPath = FilePathUtils.normalizePath(controller.getControllerFile().getAbsolutePath());
             } else {
                 controllerPath = route.getController();
             }
@@ -141,6 +145,10 @@ public class RailsEndpointMappings implements EndpointGenerator {
 		            }
 	            }
 
+	            if (controllerPath != null) {
+		            controllerPath = FilePathUtils.normalizePath(controllerPath);
+	            }
+
                 RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethod(), params);
                 endpoint.setLineNumbers(startLine, endLine);
 
@@ -151,8 +159,8 @@ public class RailsEndpointMappings implements EndpointGenerator {
         EndpointUtil.rectifyVariantHierarchy(endpoints);
     }
 
-    private File findRoutesFile(File rootDirectory) {
-    	Collection<File> rbFiles = FileUtils.listFiles(rootDirectory, new String[] { "rb" }, true);
+    private File findRoutesFile(CachedDirectory rootDirectory) {
+    	Collection<File> rbFiles = rootDirectory.findFiles("*.rb");
     	File bestRoutesFile = null;
     	for (File rbFile : rbFiles) {
     		if (FilePathUtils.normalizePath(rbFile.getAbsolutePath().toLowerCase()).endsWith("config/routes.rb")) {
@@ -302,8 +310,8 @@ public class RailsEndpointMappings implements EndpointGenerator {
         return null;
     }
 
-    private File findGemFile(File rootDirectory) {
-        Collection<File> files = FileUtils.listFiles(rootDirectory, null, true);
+    private File findGemFile(CachedDirectory rootDirectory) {
+        Collection<File> files = rootDirectory.findFiles("gemfile");
         for (File file : files) {
             if (file.getName().equalsIgnoreCase("gemfile")) {
                 return file;
