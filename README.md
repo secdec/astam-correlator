@@ -11,8 +11,7 @@ scan results by combining findings that are symptoms of the same weakness, provi
 # Supported Web Frameworks
 The following frameworks are supported by the Correlator route detection process:
 
-- ASP.NET MVC
-- ASP.NET Web Forms
+- ASP.NET MVC / Web API / Core / Web Forms
 - Struts
 - Django
 - Ruby on Rails
