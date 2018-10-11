@@ -28,10 +28,7 @@ package com.denimgroup.threadfix.framework.impl.spring;
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
-import com.denimgroup.threadfix.framework.util.CodeParseUtil;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizer;
-import com.denimgroup.threadfix.framework.util.EventBasedTokenizerRunner;
-import com.denimgroup.threadfix.framework.util.FilePathUtils;
+import com.denimgroup.threadfix.framework.util.*;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 
 import javax.annotation.Nonnull;
@@ -135,7 +132,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
         this.rootDirectory = rootDirectory;
 
         if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
-            this.relativeFilePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+            this.relativeFilePath = FilePathUtils.getRelativePath(FilePathUtils.normalizePath(filePath), rootDirectory);
         } else {
             this.relativeFilePath = filePath;
         }
@@ -149,7 +146,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
         this.entityMappings = entityMappings;
 
         if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
-            this.relativeFilePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
+            this.relativeFilePath = FilePathUtils.getRelativePath(FilePathUtils.normalizePath(filePath), rootDirectory);
         } else {
             this.relativeFilePath = filePath;
         }

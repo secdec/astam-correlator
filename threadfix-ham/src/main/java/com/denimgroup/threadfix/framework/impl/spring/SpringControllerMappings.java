@@ -30,6 +30,7 @@ import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.exception.RestIOException;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.impl.spring.auth.InterceptUrl;
@@ -79,23 +80,20 @@ public class SpringControllerMappings implements EndpointGenerator {
         urlToControllerMethodsMap = map();
         controllerToUrlsMap = map();
 
+        CachedDirectory cachedDirectory = new CachedDirectory(rootDirectory);
+
         LOG.info("Gathering files...");
 
         if (rootDirectory.exists()) {
             LOG.info("Confirmed that directory exists: " + rootDirectory.getAbsolutePath());
-            javaFiles = getFiles(rootDirectory, "java");
-            xmlFiles  = getFiles(rootDirectory, "xml");
+            javaFiles = cachedDirectory.findFiles("*.java");
+            xmlFiles  = cachedDirectory.findFiles("*.xml");
             generateMaps();
         } else {
             LOG.warn("Requested directory does not exist: " + rootDirectory.getAbsolutePath());
             javaFiles = Collections.emptyList();
             xmlFiles  = Collections.emptyList();
         }
-    }
-
-    private Collection<File> getFiles(File rootDirectory, String extension) {
-        return FileUtils.listFiles(rootDirectory,
-                new FileExtensionFileFilter(extension), TrueFileFilter.INSTANCE);
     }
 
     @Nonnull
