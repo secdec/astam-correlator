@@ -23,6 +23,7 @@
 ////////////////////////////////////////////////////////////////////////
 package com.denimgroup.threadfix.framework.engine;
 
+import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.PathUtil;
 import com.denimgroup.threadfix.logging.SanitizedLogger;
@@ -34,6 +35,7 @@ import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.framework.util.CollectionUtils.stringMap;
 
 // TODO make more error resistant
 public class CachedDirectory {
@@ -41,7 +43,7 @@ public class CachedDirectory {
     private File directory;
 
     @Nonnull
-    private final Map<String, Set<String>> fileMap;
+    private final CaseInsensitiveStringMap<Set<String>> fileMap;
 
     private final SanitizedLogger log = new SanitizedLogger("CachedDirectory");
 
@@ -61,8 +63,8 @@ public class CachedDirectory {
     }
 
     @Nonnull
-    private Map<String, Set<String>> buildMaps(@Nonnull File startingFile) {
-        Map<String, Set<String>> returnMap = map();
+    private CaseInsensitiveStringMap<Set<String>> buildMaps(@Nonnull File startingFile) {
+        CaseInsensitiveStringMap<Set<String>> returnMap = stringMap();
 
         if (startingFile.isDirectory()) {
             recurseMap(startingFile, returnMap);
@@ -76,7 +78,7 @@ public class CachedDirectory {
         return directory.toString();
     }
 
-    private void recurseMap(@Nonnull File currentDirectory, @Nonnull Map<String, Set<String>> map) {
+    private void recurseMap(@Nonnull File currentDirectory, @Nonnull CaseInsensitiveStringMap<Set<String>> map) {
         if (!currentDirectory.isDirectory() || !currentDirectory.exists()) {
             return;
         }
@@ -135,7 +137,10 @@ public class CachedDirectory {
                 files.addAll(findFilesWithStar(path, false));
             } else {
                 // do normal add
-                files.add(findBestFile(path));
+                File discoveredFile = findBestFile(path);
+                if (discoveredFile != null) {
+                    files.add(discoveredFile);
+                }
             }
         }
 
