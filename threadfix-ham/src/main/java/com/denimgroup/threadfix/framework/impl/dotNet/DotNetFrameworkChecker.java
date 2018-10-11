@@ -49,7 +49,7 @@ public class DotNetFrameworkChecker extends FrameworkChecker {
     @Override
     public FrameworkType check(@Nonnull CachedDirectory directory) {
 
-        Collection<File> configFiles = FileUtils.listFiles(directory.getDirectory(), new String[] { "config", "csproj" }, true);
+        Collection<File> configFiles = directory.findFiles("*.config", "*.csproj");
 
         MvcNamespaceParser parser = new MvcNamespaceParser();
         for (File configFile : configFiles) {

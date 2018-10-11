@@ -25,6 +25,7 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.ModelFieldSet;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.util.FieldSetLookupUtils;
 import org.apache.commons.io.FileUtils;
@@ -54,19 +55,15 @@ public class DotNetModelMappings {
 
     // This version will parse all the Java files in the directory.
     @SuppressWarnings("unchecked")
-    public DotNetModelMappings(@Nonnull File rootDirectory) {
+    public DotNetModelMappings(@Nonnull CachedDirectory rootDirectory) {
 
         modelParsers = list();
 
-        if (rootDirectory.exists() && rootDirectory.isDirectory()) {
+        Collection<File> modelFiles = rootDirectory.findFiles("*.cs");
 
-            Collection<File> modelFiles = FileUtils.listFiles(rootDirectory,
-                    new FileExtensionFileFilter("cs"), TrueFileFilter.INSTANCE);
-
-            for (File file : modelFiles) {
-                if (file != null && file.exists() && file.isFile()) {
-                    modelParsers.add(ViewModelParser.parse(file));
-                }
+        for (File file : modelFiles) {
+            if (file != null && file.exists() && file.isFile()) {
+                modelParsers.add(ViewModelParser.parse(file));
             }
         }
 

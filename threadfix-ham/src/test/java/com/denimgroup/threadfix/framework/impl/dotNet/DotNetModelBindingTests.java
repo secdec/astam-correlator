@@ -30,6 +30,7 @@ import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.ResourceManager;
 import com.denimgroup.threadfix.framework.TestConstants;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabase;
 import com.denimgroup.threadfix.framework.engine.full.EndpointDatabaseFactory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointQuery;
@@ -136,7 +137,7 @@ public class DotNetModelBindingTests {
 
     @Test
     public void testSuperclassPropertiesInModelFields() {
-        DotNetModelMappings mappings = new DotNetModelMappings(getContosoLocation());
+        DotNetModelMappings mappings = new DotNetModelMappings(new CachedDirectory(getContosoLocation()));
 
         ModelFieldSet enrollmentFields = mappings.getPossibleParametersForModelType("Enrollment");
 
@@ -146,7 +147,7 @@ public class DotNetModelBindingTests {
 
     @Test
     public void testObjectPropertiesNotIncluded() {
-        DotNetModelMappings mappings = new DotNetModelMappings(getContosoLocation());
+        DotNetModelMappings mappings = new DotNetModelMappings(new CachedDirectory(getContosoLocation()));
 
         Map<String, RouteParameter> enrollmentFields =
                 mappings.getPossibleParametersForModelType("Enrollment").getPossibleParameters();

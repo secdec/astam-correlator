@@ -26,6 +26,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNet;
 
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.engine.full.EndpointGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspCoreActionGenerator;
 import com.denimgroup.threadfix.framework.impl.dotNet.actionMappingGenerators.AspActionGenerator;
@@ -62,7 +63,9 @@ public class DotNetMappings implements EndpointGenerator {
 
         this.rootDirectory = rootDirectory;
 
-        for (File solutionFolder : findSolutionFolders(rootDirectory)) {
+        CachedDirectory cachedRootDirectory = new CachedDirectory(rootDirectory);
+
+        for (File solutionFolder : findSolutionFolders(cachedRootDirectory)) {
             generateMappings(rootDirectory, solutionFolder);
         }
         EndpointValidationStatistics.printValidationStats(generateEndpoints());
@@ -70,9 +73,11 @@ public class DotNetMappings implements EndpointGenerator {
 
     private void generateMappings(File rootDirectory, File solutionDirectory) {
 
+        CachedDirectory cachedSolutionDirectory = new CachedDirectory(solutionDirectory);
+
         boolean isDotNetCore = false;
         DotNetCoreDetector dotNetCoreDetector = new DotNetCoreDetector();
-        for (File project : FileUtils.listFiles(solutionDirectory, new String[] { "csproj" }, true)) {
+        for (File project : cachedSolutionDirectory.findFiles("*.csproj")) {
             EventBasedTokenizerRunner.run(project, dotNetCoreDetector);
             if (!dotNetCoreDetector.shouldContinue()) {
                 isDotNetCore = dotNetCoreDetector.isAspDotNetCore();
@@ -85,7 +90,7 @@ public class DotNetMappings implements EndpointGenerator {
         List<CSharpClass> classes = list();
 
         DotNetRouteMappings routeMappings = new DotNetRouteMappings();
-        Collection<File> cSharpFiles = FileUtils.listFiles(solutionDirectory, new String[] { "cs" }, true);
+        Collection<File> cSharpFiles = cachedSolutionDirectory.findFiles("*.cs");
         Map<String, RouteParameterMap> routeParameters = new HashMap<String, RouteParameterMap>();
 
         for (File file : cSharpFiles) {
@@ -239,8 +244,8 @@ public class DotNetMappings implements EndpointGenerator {
         }
     }
 
-    private List<File> findSolutionFolders(File rootDirectory) {
-        Collection<File> slnFiles = FileUtils.listFiles(rootDirectory, new String[] { "sln" }, true);
+    private List<File> findSolutionFolders(CachedDirectory rootDirectory) {
+        Collection<File> slnFiles = rootDirectory.findFiles("*.sln");
         List<File> solutionFolders = list();
         for (File slnFile : slnFiles) {
             File parent = slnFile.getParentFile();
@@ -249,7 +254,7 @@ public class DotNetMappings implements EndpointGenerator {
         }
 
         if (solutionFolders.isEmpty()) {
-            solutionFolders.add(rootDirectory);
+            solutionFolders.add(rootDirectory.getDirectory());
         }
 
         return FilePathUtils.findRootFolders(solutionFolders);

@@ -123,6 +123,9 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
     }
 
     private void assembleExplicitEndpoints(File rootDirectory) {
+
+        String rootDirectoryPath = FilePathUtils.normalizePath(rootDirectory.getAbsolutePath());
+
         //  Add actions with explicit endpoints
         for (DotNetControllerMappings mappings : dotNetControllerMappings) {
             if (mappings.getControllerName() == null) {
@@ -141,7 +144,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 LOG.debug("Got explicit endpoint " + action.explicitRoute);
 
                 String filePath = mappings.getFilePath();
-                if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
+                if (filePath.startsWith(rootDirectoryPath)) {
                     filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
                 }
 
@@ -167,6 +170,8 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
             return; // can't do anything without routes
         }
 
+        String rootDirectoryPath = FilePathUtils.normalizePath(rootDirectory.getAbsolutePath());
+
         List<DotNetRouteMappings.MapRoute> visitedRoutes = list();
 
         for (DotNetControllerMappings mappings : dotNetControllerMappings) {
@@ -191,8 +196,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 boolean shouldReplaceParameterSection = true;
                 boolean hasNullableParameterSection = false;
 
-                if(action.parameters != null &&
-                    mapRoute.defaultRoute != null &&
+                if(mapRoute.defaultRoute != null &&
                     action.parameters.keySet().contains(mapRoute.defaultRoute.parameter)) {
 
                     String lowerCaseParameterName = mapRoute.defaultRoute.parameter.toLowerCase();
@@ -285,7 +289,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
                 expandParameters(action);
 
                 String filePath = mappings.getFilePath();
-                if (rootDirectory != null && filePath.startsWith(rootDirectory.getAbsolutePath())) {
+                if (filePath.startsWith(rootDirectoryPath)) {
                     filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
                 }
 
@@ -357,7 +361,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
             );
 
 	        String filePath = controllerMappings.getFilePath();
-        	if (filePath.startsWith(rootDirectory.getAbsolutePath())) {
+        	if (filePath.startsWith(rootDirectoryPath)) {
         		filePath = FilePathUtils.getRelativePath(filePath, rootDirectory);
 	        }
 

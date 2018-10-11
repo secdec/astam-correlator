@@ -31,6 +31,7 @@ import com.denimgroup.threadfix.data.entities.ModelField;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpClass;
 import com.denimgroup.threadfix.framework.impl.dotNet.classDefinitions.CSharpMethod;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -168,7 +169,7 @@ public class DotNetControllerMappings {
     }
 
     public DotNetControllerMappings(String filePath) {
-        this.filePath = filePath;
+        this.filePath = FilePathUtils.normalizePath(filePath);
     }
 
 

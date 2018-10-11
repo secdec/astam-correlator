@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.framework.impl.dotNet;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
 import com.denimgroup.threadfix.framework.ResourceManager;
+import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import org.junit.Test;
 
 import java.util.Collection;
@@ -79,7 +80,7 @@ public class ViewModelParsingTests {
     }
 
     private DotNetModelMappings getDotNetModelMappings() {
-        return new DotNetModelMappings(ContosoUtilities.getContosoLocation());
+        return new DotNetModelMappings(new CachedDirectory(ContosoUtilities.getContosoLocation()));
     }
 
     @Test
