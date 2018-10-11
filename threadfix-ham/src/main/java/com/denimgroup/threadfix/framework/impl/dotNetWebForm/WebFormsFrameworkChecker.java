@@ -44,8 +44,7 @@ public class WebFormsFrameworkChecker extends FrameworkChecker {
     @Nonnull
     @Override
     public FrameworkType check(@Nonnull ProjectDirectory directory) {
-        Collection files = FileUtils.listFiles(directory.getDirectory(),
-                new FileExtensionFileFilter("aspx"), TrueFileFilter.INSTANCE);
+        Collection files = directory.findFiles("*.aspx");
 
         LOG.info("Got " + files.size() + " .aspx files from the directory.");
 

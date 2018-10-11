@@ -24,6 +24,7 @@
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
 import com.denimgroup.threadfix.framework.TestConstants;
+import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import org.junit.Test;
 
 import java.io.File;
@@ -37,7 +38,7 @@ public class MasterPageParserTests {
     @Test
     public void testBasic() {
         Map<String, AspxParser> masterFileMap =
-                MasterPageParser.getMasterFileMap(new File(TestConstants.WEB_FORMS_CONTOSO));
+                MasterPageParser.getMasterFileMap(new ProjectDirectory(new File(TestConstants.WEB_FORMS_CONTOSO)));
 
         assert masterFileMap.containsKey("Site.Master") :
                 "Didn't contain Site.Master : " + masterFileMap;

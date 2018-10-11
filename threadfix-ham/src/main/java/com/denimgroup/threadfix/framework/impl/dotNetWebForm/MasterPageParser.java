@@ -27,6 +27,7 @@
 
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
+import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
 import org.apache.commons.io.FileUtils;
@@ -46,22 +47,21 @@ public class MasterPageParser {
 
     private MasterPageParser(){}
 
-    public static CaseInsensitiveStringMap<AspxParser> getMasterFileMap(File rootDirectory) {
+    public static CaseInsensitiveStringMap<AspxParser> getMasterFileMap(ProjectDirectory rootDirectory) {
         CaseInsensitiveStringMap<AscxFile> map = AscxFileMappingsFileParser.getMap(rootDirectory);
         return getMasterFileMap(rootDirectory, map);
     }
 
-    public static CaseInsensitiveStringMap<AspxParser> getMasterFileMap(File rootDirectory, CaseInsensitiveStringMap<AscxFile> ascxFileMap) {
+    public static CaseInsensitiveStringMap<AspxParser> getMasterFileMap(ProjectDirectory rootDirectory, CaseInsensitiveStringMap<AscxFile> ascxFileMap) {
         if (rootDirectory == null) {
             throw new IllegalArgumentException("Can't pass null argument to getMasterFileMap()");
-        } else if (!rootDirectory.isDirectory()) {
+        } else if (!rootDirectory.getDirectory().isDirectory()) {
             throw new IllegalArgumentException("Can't pass a non-directory file argument to getMasterFileMap()");
         }
 
         CaseInsensitiveStringMap<AspxParser> parserMap = stringMap();
 
-        Collection masterFiles = FileUtils.listFiles(rootDirectory,
-                new FileExtensionFileFilter("Master"), TrueFileFilter.INSTANCE);
+        Collection masterFiles = rootDirectory.findFiles("*.master");
 
         for (Object aspxFile : masterFiles) {
             if (aspxFile instanceof File) {

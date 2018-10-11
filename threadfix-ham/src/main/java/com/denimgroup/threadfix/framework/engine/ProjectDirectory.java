@@ -270,6 +270,7 @@ public class ProjectDirectory {
         int size = segments.length;
 
         boolean result = false;
+        item = item.toLowerCase();
 
         if (size >= 2) {
             boolean first = item.startsWith(segments[0]);
@@ -280,7 +281,7 @@ public class ProjectDirectory {
                 int misses = 0;
 
                 for (String string : segments) {
-                    int index = progress.indexOf(string);
+                    int index = progress.indexOf(string.toLowerCase());
                     if (index != -1) {
                         progress = progress.substring(index);
                     } else {
@@ -292,7 +293,7 @@ public class ProjectDirectory {
                 result = misses == 0;
             }
         } else if (size == 1) {
-            result = item.equals(segments[0]);
+            result = item.equals(segments[0].toLowerCase());
         }
 
 
@@ -450,7 +451,7 @@ public class ProjectDirectory {
             int optionIndex = option.length - 1, pathIndex = path.length - 1;
 
             while (optionIndex >= 0 && pathIndex >= 0) {
-                if (option[optionIndex].equals(path[pathIndex])) {
+                if (option[optionIndex].equalsIgnoreCase(path[pathIndex])) {
                     score += 1;
                     optionIndex -= 1;
                     pathIndex -= 1;

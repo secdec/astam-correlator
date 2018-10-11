@@ -27,6 +27,7 @@
 
 package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
+import com.denimgroup.threadfix.framework.engine.ProjectDirectory;
 import com.denimgroup.threadfix.framework.filefilter.FileExtensionFileFilter;
 import com.denimgroup.threadfix.framework.util.CaseInsensitiveStringMap;
 import org.apache.commons.io.FileUtils;
@@ -46,13 +47,12 @@ public class AscxFileMappingsFileParser {
 
     private AscxFileMappingsFileParser(){}
 
-    public static CaseInsensitiveStringMap<AscxFile> getMap(File rootDirectory) {
-        if (!rootDirectory.exists() || !rootDirectory.isDirectory()) {
+    public static CaseInsensitiveStringMap<AscxFile> getMap(ProjectDirectory rootDirectory) {
+        if (!rootDirectory.getDirectory().exists() || !rootDirectory.getDirectory().isDirectory()) {
             throw new IllegalArgumentException("Invalid directory passed to WebFormsEndpointGenerator: " + rootDirectory);
         }
 
-        Collection ascxFiles = FileUtils.listFiles(rootDirectory,
-                new FileExtensionFileFilter("ascx"), TrueFileFilter.INSTANCE);
+        Collection ascxFiles = rootDirectory.findFiles("*.ascx");
 
         CaseInsensitiveStringMap<AscxFile> map = stringMap();
 
