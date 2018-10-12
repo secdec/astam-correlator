@@ -276,6 +276,8 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
 
         String keyForwardSlash = key.replace("\\","/").toLowerCase();
 
+        Set<Endpoint> result = set();
+
         for (Map.Entry<String,Set<Endpoint>> entry: map.entrySet()) {
             String keyEntry = entry.getKey().toLowerCase();
             String keyEntryForwardSlash = keyEntry.replace("\\","/").toLowerCase();
@@ -285,10 +287,10 @@ class GeneratorBasedEndpointDatabase implements EndpointDatabase {
                 return set();
 
             if (keyEntryForwardSlash.endsWith(keyForwardSlash) || keyForwardSlash.endsWith(keyEntryForwardSlash))
-                return setFrom(entry.getValue());
+                result.addAll(entry.getValue());
         }
 
-        return set();
+        return result;
     }
 
     @Nonnull
