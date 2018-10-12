@@ -26,6 +26,7 @@ package com.denimgroup.threadfix.framework.impl.django;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.ParameterDataType;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +46,7 @@ public class DjangoRoute {
 
     public DjangoRoute(String url, String viewPath) {
         this.url = url;
-        this.viewPath = viewPath;
+        this.viewPath = FilePathUtils.normalizePath(viewPath);
     }
 
     public void setLineNumbers(int startLine, int endLine) {
