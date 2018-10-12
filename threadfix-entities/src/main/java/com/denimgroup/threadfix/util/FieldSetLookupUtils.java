@@ -72,7 +72,13 @@ public final class FieldSetLookupUtils {
         }
 
         // remove properties that are model objects themselves; we can't bind directly to these
-        for (ModelField field : fields.addAll(fieldsToAdd)) {
+        for (ModelField field : fields) {
+            if (!fieldMap.containsKey(field.getType())) {
+                finalFieldSet.add(field);
+            }
+        }
+
+        for (ModelField field : fieldsToAdd) {
             if (!fieldMap.containsKey(field.getType())) {
                 finalFieldSet.add(field);
             }
@@ -97,9 +103,10 @@ public final class FieldSetLookupUtils {
                 fieldsWithPrefixes = new ModelFieldSet();
 
         for (ModelField field : fields) {
-            if (fieldMap.containsKey(field.getType()) && !alreadyVisited.contains(field.getType())) {
-                alreadyVisited.add(field.getType());
-                fieldsToAdd.addAll(spiderFields(fieldMap, field.getParameterKey() + ".", field.getType(), alreadyVisited));
+            String type = field.getType();
+            if (fieldMap.containsKey(type) && !alreadyVisited.contains(type)) {
+                alreadyVisited.add(type);
+                fieldsToAdd.addAll(spiderFields(fieldMap, field.getParameterKey() + ".", type, alreadyVisited));
             }
         }
 
