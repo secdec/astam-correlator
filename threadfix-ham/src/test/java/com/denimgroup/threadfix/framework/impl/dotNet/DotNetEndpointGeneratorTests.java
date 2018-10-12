@@ -33,6 +33,7 @@ import com.denimgroup.threadfix.framework.util.EndpointUtil;
 import org.junit.Test;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -65,7 +66,7 @@ public class DotNetEndpointGeneratorTests {
         DotNetControllerMappings controllerMappings =
                 getMvcStandardControllerMappings("ChatController.cs");
 
-        DotNetEndpointGenerator generator = new DotNetEndpointGenerator(null, routeMappings, null, new ArrayList<CSharpClass>(), controllerMappings);
+        DotNetEndpointGenerator generator = new DotNetEndpointGenerator(ResourceManager.getDotNetMvcFile(""), routeMappings, null, new ArrayList<CSharpClass>(), controllerMappings);
 
         //  Should generate '/' and '/Chat'
         List<Endpoint> endpoints = EndpointUtil.flattenWithVariants(generator.generateEndpoints());
