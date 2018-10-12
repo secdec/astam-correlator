@@ -90,6 +90,7 @@ public class RailsEndpointMappings implements EndpointGenerator {
 
         endpoints = list();
 
+        String rootDirectoryPath = FilePathUtils.normalizePath(rootDirectory.getAbsolutePath());
         Collection<RailsRoute> routes = RailsRoutesParser.run(routesFile, routers);
         for (RailsRoute route : routes) {
             RailsController controller = getController(route);
@@ -98,6 +99,9 @@ public class RailsEndpointMappings implements EndpointGenerator {
                 controllerPath = FilePathUtils.normalizePath(controller.getControllerFile().getAbsolutePath());
             } else {
                 controllerPath = route.getController();
+                if (controllerPath != null) {
+                    controllerPath = FilePathUtils.normalizePath(controllerPath);
+                }
             }
 
             for (RailsRouter router : routers) {
@@ -107,7 +111,7 @@ public class RailsEndpointMappings implements EndpointGenerator {
 
             if (controllerPath != null) {
 
-                if (controllerPath.startsWith(rootDirectory.getAbsolutePath())) {
+                if (controllerPath.startsWith(rootDirectoryPath)) {
                     controllerPath = FilePathUtils.getRelativePath(controllerPath, rootDirectory);
                 }
 
@@ -143,10 +147,6 @@ public class RailsEndpointMappings implements EndpointGenerator {
 
 			            params.put(kvp.getKey(), newParam);
 		            }
-	            }
-
-	            if (controllerPath != null) {
-		            controllerPath = FilePathUtils.normalizePath(controllerPath);
 	            }
 
                 RailsEndpoint endpoint = new RailsEndpoint(controllerPath, route.getUrl(), route.getHttpMethod(), params);

@@ -27,6 +27,7 @@ import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.impl.struts.mappers.ActionMapper;
 import com.denimgroup.threadfix.framework.impl.struts.model.*;
 import com.denimgroup.threadfix.framework.impl.struts.plugins.StrutsPlugin;
+import com.denimgroup.threadfix.framework.util.FilePathUtils;
 
 import javax.swing.*;
 import java.io.File;
@@ -50,7 +51,7 @@ public class StrutsProject {
 
 
     public StrutsProject(String rootDirectory) {
-        this.rootDirectory = rootDirectory;
+        this.rootDirectory = FilePathUtils.normalizePath(rootDirectory);
         this.cachedDirectory = new CachedDirectory(new File(rootDirectory));
     }
 

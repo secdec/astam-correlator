@@ -84,7 +84,7 @@ public class StrutsMethod {
 
     public boolean hasSymbolReference(String symbol) {
         for (String reference : symbolReferences) {
-            if (symbol.equalsIgnoreCase(reference)) {
+            if (symbol.equalsIgnoreCase(reference) || ("get" + symbol).equalsIgnoreCase(reference) || ("set" + symbol).equalsIgnoreCase(reference)) {
                 return true;
             }
         }
