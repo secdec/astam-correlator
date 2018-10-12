@@ -280,8 +280,8 @@ public class CachedDirectory {
         item = item.toLowerCase();
 
         if (size >= 2) {
-            boolean first = item.startsWith(segments[0]);
-            boolean last = item.endsWith(segments[size - 1]);
+            boolean first = item.startsWith(segments[0].toLowerCase());
+            boolean last = item.endsWith(segments[size - 1].toLowerCase());
 
             if (first && last) {
                 String progress = item;
