@@ -103,8 +103,7 @@ public class DotNetEndpointGenerator implements EndpointGenerator {
 
             for (Map.Entry<String, RouteParameter> mergedParameter : mergedEndpointParameters.entrySet()) {
                 String paramName = mergedParameter.getKey();
-                //  Known parametric endpoints take precedence over any merging recommendations
-	            if (currentParameters.get(paramName).getParamType() == RouteParameterType.PARAMETRIC_ENDPOINT) {
+	            if (currentParameters.get(paramName).getParamType() != RouteParameterType.UNKNOWN) {
 	            	continue;
 	            }
 
