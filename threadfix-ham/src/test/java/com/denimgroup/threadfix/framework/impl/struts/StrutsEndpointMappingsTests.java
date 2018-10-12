@@ -195,6 +195,18 @@ public class StrutsEndpointMappingsTests {
 
     @Test
     public void testRoller() {
+        /*
+         * This test (and `testRollerFrameworkType`) fail since endpoints no longer list all parameters
+         * discovered in an action - they are culled based on which parameters are actually referenced
+         * in the action. For this case, the 'frontpageBlog' parameter is not found. It could be found
+         * if Struts parsing included support for Tiles, which would map the `Setup` action to the
+         * appropriate `webapp/WEB-INF/jsps/core/Setup.jsp` page. This page has references to 'frontpageBlog'
+         * and includes a form that POSTs to the correct 'save' method on the action (where the 'save'
+         * method also references 'frontpageBlog'.
+         *
+         * This test cannot pass with the current requirements without adding support for Struts Tiles
+         * (at least for display files) or removing reference-based parameter culling.
+         */
         File rootFile = new File(TestConstants.ROLLER_SOURCE_LOCATION);
         StrutsEndpointMappings mappings = new StrutsEndpointMappings(rootFile);
 
@@ -277,5 +289,4 @@ public class StrutsEndpointMappingsTests {
             }
         }
     }
-
 }
