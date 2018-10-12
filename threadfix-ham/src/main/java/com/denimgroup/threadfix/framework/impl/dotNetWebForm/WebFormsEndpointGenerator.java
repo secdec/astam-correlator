@@ -313,11 +313,11 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
         File aspxRootDirectory = getAspxRoot(cachedDirectory);
 
         for (AspxCsParser csParser : csParsers) {
-            aspxCsParserMap.put(csParser.aspName, csParser);
+            aspxCsParserMap.put(csParser.file.getAbsolutePath(), csParser);
         }
 
         for (AspxParser aspxParser : aspxParsers) {
-            aspxParserMap.put(aspxParser.aspName, aspxParser);
+            aspxParserMap.put(aspxParser.file.getAbsolutePath(), aspxParser);
         }
 
         for (Map.Entry<String, AspxParser> entry : aspxParserMap.entrySet()) {
@@ -339,7 +339,7 @@ public class WebFormsEndpointGenerator implements EndpointGenerator {
             primaryEndpoint.addVariant(new WebFormsEndpointExtensionless(solutionDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser));
 
             for (String defaultPageName : defaultPages) {
-                if (defaultPageName.equalsIgnoreCase(entry.getKey())) {
+                if (defaultPageName.equalsIgnoreCase(entry.getValue().file.getName())) {
                     primaryEndpoint.addVariant(new WebFormsEndpointImplicit(solutionDirectory, aspxRootDirectory, entry.getValue(), aspxCsParser));
                     break;
                 }
