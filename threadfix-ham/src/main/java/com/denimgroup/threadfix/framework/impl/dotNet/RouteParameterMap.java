@@ -46,7 +46,7 @@ public class RouteParameterMap extends HashMap<Integer, List<RouteParameter>> {
         List<RouteParameter> parameters = list();
         for (Map.Entry<Integer, List<RouteParameter>> entry : entrySet()) {
             int lineNumber = entry.getKey();
-            if (lineNumber < startLine || lineNumber > endLine) {
+            if (lineNumber >= startLine && lineNumber <= endLine) {
                 parameters.addAll(entry.getValue());
             }
         }
