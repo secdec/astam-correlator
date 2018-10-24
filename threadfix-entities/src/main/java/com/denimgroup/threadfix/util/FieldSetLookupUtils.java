@@ -65,7 +65,7 @@ public final class FieldSetLookupUtils {
 
         // traverse the models to get properties
         for (ModelField field : fields) {
-            if (fieldMap.containsKey(field.getType()) && !alreadyVisited.contains(field.getType())) {
+            if (fieldMap.containsKey(field.getType())) {
                 alreadyVisited.add(field.getType());
                 fieldsToAdd.addAll(spiderFields(fieldMap, field.getParameterKey() + ".", field.getType(), alreadyVisited));
             }
