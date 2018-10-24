@@ -143,7 +143,7 @@ public class DjangoEndpoint extends AbstractEndpoint {
                 return -1;
             } else if (!I18_SUPPORTED_LANGS.contains(endpointParts[0])) {
                 return -1;
-            } else {
+            } else if (endpoint.contains("/")) {
                 //  The first part was a supported language code (ie 'en', 'fr'), remove that part of
                 //  the path so that it doesn't interfere with pattern matching
                 endpoint = endpoint.substring(endpoint.indexOf('/'));
