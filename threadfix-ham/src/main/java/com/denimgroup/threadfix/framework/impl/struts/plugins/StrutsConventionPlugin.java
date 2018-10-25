@@ -143,7 +143,7 @@ public class StrutsConventionPlugin implements StrutsPlugin {
                     continue;
                 }
 
-                if (methodName.equals("validate") && strutsClass.hasBaseType("ValidationAwareSupport")) {
+                if (methodName.equals("validate") && (strutsClass.hasBaseType("ValidationAwareSupport") || strutsClass.hasBaseType("Validateable"))) {
                     continue;
                 }
 
