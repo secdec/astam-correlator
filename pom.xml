@@ -32,7 +32,6 @@
         <module>threadfix-data-migration</module>
         <module>threadfix-astam</module>
         <module>threadfix-main</module>
-		<module>../attack-surface-detector-cli</module>
     </modules>
 
     <licenses>
