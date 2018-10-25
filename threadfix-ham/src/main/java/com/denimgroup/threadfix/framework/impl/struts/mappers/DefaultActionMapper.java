@@ -77,21 +77,23 @@ public class DefaultActionMapper implements ActionMapper {
 
             for (String file : primaryWebPack.getWelcomeFiles()) {
                 String fullPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), file);
-                Map<String, RouteParameter> params = new HashMap<String, RouteParameter>();
-                String endpointPath = makeRelativePath(fullPath, project);
-                StrutsEndpoint endpoint;
 
                 if (!new File(fullPath).exists()) {
                     continue;
                 }
 
+                Map<String, RouteParameter> params = new HashMap<String, RouteParameter>();
+                String endpointPath = makeRelativePath(fullPath, project);
                 int numLines = CodeParseUtil.countLines(fullPath);
 
-                endpoint = new StrutsEndpoint(endpointPath, namespace, "GET", params);
-                endpoint.setDisplayFilePath(fullPath);
-                if (numLines > 0) endpoint.setLineNumbers(1, numLines);
-                endpoints.add(endpoint);
+                StrutsEndpoint endpoint;
 
+                if (!namespace.isEmpty()) {
+                    endpoint = new StrutsEndpoint(endpointPath, namespace, "GET", params);
+                    endpoint.setDisplayFilePath(fullPath);
+                    if (numLines > 0) endpoint.setLineNumbers(1, numLines);
+                    endpoints.add(endpoint);
+                }
 
                 endpoint = new StrutsEndpoint(endpointPath, namespace + "/", "GET", params);
                 endpoint.setDisplayFilePath(fullPath);
@@ -147,13 +149,19 @@ public class DefaultActionMapper implements ActionMapper {
                     classLocation = FilePathUtils.normalizePath(classLocation);
 
                 StrutsClass classForAction = project.getCodebase().findClassByFileLocation(classLocation);
-                Set<ModelField> fieldMappings = set();
+                Map<String, RouteParameter> parameters = map();
                 if (classForAction != null) {
                     if (!classForAction.getBaseTypes().contains("ActionSupport") && !classForAction.getName().equals("JSPServlet")) {
                         continue;
                     }
+
+                    for (ModelField modelField : classForAction.getProperties()) {
+                        RouteParameter newParameter = new RouteParameter(modelField.getParameterKey());
+                        newParameter.setParamType(RouteParameterType.QUERY_STRING);
+                        newParameter.setDataType(modelField.getType());
+                        parameters.put(modelField.getParameterKey(), newParameter);
+                    }
                 }
-                Map<String, RouteParameter> parameters = map();
 
                 String basePath = sbUrl.toString();
 
@@ -179,7 +187,6 @@ public class DefaultActionMapper implements ActionMapper {
                             }
 
                             String methodPath = path;
-                            parameters = map();
 
                             if (strutsAction.getMethod() != null && strutsAction.getMethod().startsWith("{")) {
                                 String wildcardIndexText = strutsAction.getMethod().substring(1, strutsAction.getMethod().length() - 1);
@@ -199,20 +206,13 @@ public class DefaultActionMapper implements ActionMapper {
                                 methodPath = firstPart + method.getName() + secondPart;
                             }
 
-                            for (ModelField modelField : classForAction.getProperties()) {
-                                RouteParameter newParameter = new RouteParameter(modelField.getParameterKey());
-                                newParameter.setParamType(RouteParameterType.QUERY_STRING);
-                                newParameter.setDataType(modelField.getType());
-                                parameters.put(modelField.getParameterKey(), newParameter);
-                            }
-
                             String httpMethod;
                             if (method.getName().equals("execute")) {
                                 httpMethod = "GET";
                             } else {
                                 httpMethod = "POST";
                             }
-                            StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), methodPath, httpMethod, parameters);
+                            StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), methodPath, httpMethod, new HashMap<String, RouteParameter>(parameters));
                             newEndpoint.setLineNumbers(method.getStartLine(), method.getEndLine());
                             if (strutsAction.getPrimaryResult() != null) {
                                 newEndpoint.setDisplayFilePath(strutsAction.getPrimaryResult().getValue());
@@ -224,12 +224,8 @@ public class DefaultActionMapper implements ActionMapper {
                         if (classForAction != null) {
                             executeMethod = classForAction.getMethod(strutsAction.getMethod());
                         }
-                        for (ModelField mf : fieldMappings) {
-                            RouteParameter asParam = RouteParameter.fromDataType(mf.getParameterKey(), mf.getType());
-                            asParam.setParamType(RouteParameterType.FORM_DATA);
-                            parameters.put(mf.getParameterKey(), asParam);
-                        }
-                        StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", parameters);
+
+                        StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(classLocation, project), path, "GET", new HashMap<String, RouteParameter>(parameters));
 
                         if (executeMethod != null) {
                             newEndpoint.setLineNumbers(executeMethod.getStartLine(), executeMethod.getEndLine());
@@ -254,7 +250,7 @@ public class DefaultActionMapper implements ActionMapper {
 	                        }
                         }
 
-                        StrutsEndpoint postVariant = new StrutsEndpoint(newEndpoint.getFilePath(), path, "POST", parameters);
+                        StrutsEndpoint postVariant = new StrutsEndpoint(newEndpoint.getFilePath(), path, "POST", new HashMap<String, RouteParameter>(parameters));
                         postVariant.setLineNumbers(newEndpoint.getStartingLineNumber(), newEndpoint.getEndingLineNumber());
                         postVariant.setDisplayFilePath(newEndpoint.getDisplayFilePath());
 
