@@ -68,8 +68,12 @@ public class StrutsClassParser {
         resultClass = new StrutsClass(className, file.getAbsolutePath());
         resultClass.addAllMethods(classSigParser.getParsedMethods());
         resultClass.setFields(classSigParser.getFields());
-        resultClass.setProperties(collectParameters(classSigParser.getParsedMethods()));
+        resultClass.setProperties(collectProperties(classSigParser.getParsedMethods()));
         resultClass.setImportedPackages(classSigParser.getImports());
+
+        for (StrutsMethod method : resultClass.getMethods()) {
+            method.setDeclaringClass(resultClass);
+        }
 
         //  Technically, a Java file doesn't HAVE to declare its package; include this to handle that case,
         //  but it could also lead us to swallow bugs in syntax parsing
@@ -148,7 +152,7 @@ public class StrutsClassParser {
 
 
 
-    private Set<ModelField> collectParameters(Collection<StrutsMethod> methods) {
+    private Set<ModelField> collectProperties(Collection<StrutsMethod> methods) {
         Map<String, String> propertyTypesWithSetters = map();
         Map<String, String> propertyTypesWithGetters = map();
 

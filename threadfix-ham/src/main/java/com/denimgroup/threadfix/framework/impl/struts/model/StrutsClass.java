@@ -74,7 +74,8 @@ public class StrutsClass {
 
     public String getCleanName() {
         return className
-                .replaceAll("Action$", "");
+                .replaceAll("Action$", "")
+                .replaceAll("<.*>$", "");
     }
 
     public String getCleanName(String[] filters) {

@@ -28,9 +28,11 @@ import com.denimgroup.threadfix.framework.impl.struts.model.annotations.Annotati
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
+import static com.denimgroup.threadfix.CollectionUtils.set;
 
 public class StrutsMethod {
 
@@ -38,8 +40,9 @@ public class StrutsMethod {
     String returnType;
     Map<String, String> parameters = map();
     List<Annotation> annotations = list();
-    List<String> symbolReferences = list();
+    Set<String> symbolReferences = set();
     int startLine, endLine;
+    StrutsClass declaringClass;
 
 
     public String getReturnType() {
@@ -78,13 +81,13 @@ public class StrutsMethod {
         return annotations;
     }
 
-    public List<String> getSymbolReferences() {
+    public Set<String> getSymbolReferences() {
         return symbolReferences;
     }
 
     public boolean hasSymbolReference(String symbol) {
         for (String reference : symbolReferences) {
-            if (symbol.equalsIgnoreCase(reference) || ("get" + symbol).equalsIgnoreCase(reference) || ("set" + symbol).equalsIgnoreCase(reference)) {
+            if (symbol.equalsIgnoreCase(reference)) {
                 return true;
             }
         }
@@ -97,6 +100,10 @@ public class StrutsMethod {
 
     public int getEndLine() {
         return endLine;
+    }
+
+    public StrutsClass getDeclaringClass() {
+        return declaringClass;
     }
 
     public void setName(String name) {
@@ -117,7 +124,7 @@ public class StrutsMethod {
         }
     }
 
-    public void setSymbolReferences(List<String> symbolReferences) {
+    public void setSymbolReferences(Set<String> symbolReferences) {
         this.symbolReferences = symbolReferences;
     }
 
@@ -127,6 +134,10 @@ public class StrutsMethod {
 
     public void setEndLine(int lineNumber) {
         endLine = lineNumber;
+    }
+
+    public void setDeclaringClass(StrutsClass declaringClass) {
+        this.declaringClass = declaringClass;
     }
 
     @Override

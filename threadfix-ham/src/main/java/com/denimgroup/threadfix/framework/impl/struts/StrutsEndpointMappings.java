@@ -454,12 +454,26 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                     continue;
                 }
 
+                //  Collect methods that the endpoint may defer to (they may reference the given parameter)
+                List<StrutsMethod> relevantMethods = list();
+                for (StrutsMethod method : sourceMethod.getDeclaringClass().getMethods()) {
+                    if (sourceMethod.hasSymbolReference(method.getName())) {
+                        relevantMethods.add(method);
+                    }
+                }
+                relevantMethods.add(sourceMethod);
+
                 String[] paramNameParts = param.getName().split("\\.");
                 boolean hasReference = false;
 
                 for (String part : paramNameParts) {
-                    if (sourceMethod.hasSymbolReference(part)) {
-                        hasReference = true;
+                    for (StrutsMethod method : relevantMethods) {
+                        if (method.hasSymbolReference(part)) {
+                            hasReference = true;
+                            break;
+                        }
+                    }
+                    if (hasReference) {
                         break;
                     }
                 }
@@ -606,9 +620,15 @@ public class StrutsEndpointMappings implements EndpointGenerator {
 
         List<RouteParameter> result = list();
         Set<ModelField> modelFields = modelType.getProperties();
+        modelFields.addAll(modelType.getFields());
         for (ModelField field : modelFields) {
             String dataType = field.getType();
             StrutsClass fieldModelType = codebase.findClassByName(cleanArrayName(dataType));
+
+            if (previousModels.contains(fieldModelType)) {
+                continue;
+            }
+
             if (fieldModelType == null) {
                 String paramName = field.getParameterKey();
                 if (!namePrefix.isEmpty()) {
@@ -635,6 +655,8 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         return result;
     }
 
+    private static final List<String> STRUTS_FRAMEWORK_TYPES = list("ActionSupport", "ValidationAware", "ModelAware");
+
     //  Import super-base types from base types
     private void expandClassBaseTypes(StrutsCodebase codebase) {
         for (StrutsClass strutsClass : codebase.getClasses()) {
@@ -655,10 +677,14 @@ public class StrutsEndpointMappings implements EndpointGenerator {
                         strutsClass.addBaseType(newBase);
                     }
 
-                    strutsClass.addAllMethods(baseClass.getMethods());
+                    //  Don't import any properties or fields from framework base types (but
+                    //  still allow expansion of that type-tree)
+                    if (!STRUTS_FRAMEWORK_TYPES.contains(baseClass.getCleanName())) {
+                        strutsClass.addAllMethods(baseClass.getMethods());
 
-                    for (ModelField mf : baseClass.getFields()) {
-                        strutsClass.addField(mf);
+                        for (ModelField mf : baseClass.getFields()) {
+                            strutsClass.addField(mf);
+                        }
                     }
                 }
 
