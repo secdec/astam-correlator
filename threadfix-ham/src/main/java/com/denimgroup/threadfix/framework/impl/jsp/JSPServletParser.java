@@ -27,6 +27,7 @@
 package com.denimgroup.threadfix.framework.impl.jsp;
 
 import com.denimgroup.threadfix.data.entities.RouteParameter;
+import com.denimgroup.threadfix.data.entities.RouteParameterType;
 import com.denimgroup.threadfix.framework.engine.CachedDirectory;
 import com.denimgroup.threadfix.framework.util.FilePathUtils;
 import com.denimgroup.threadfix.framework.util.ScopeTracker;
@@ -200,7 +201,7 @@ public class JSPServletParser {
 
                     List<RouteParameter> knownParameters = parameters.get(lineNumber);
                     RouteParameter newParameter = new RouteParameter(parameterName);
-
+                    newParameter.setParamType(RouteParameterType.FORM_DATA);
                     knownParameters.add(newParameter);
                 }
             }
