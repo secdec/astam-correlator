@@ -77,16 +77,17 @@ public class RailsAbstractRoutesLexer implements EventBasedTokenizer {
     //  Whenever conditionalDepth > 0 we ignore route parsing
     int conditionalDepth = 0;
 
-
     @Override
     public void processToken(int type, int lineNumber, String stringValue) {
 
-        if (type == '{') numOpenBrace++;
-        if (type == '}') numOpenBrace--;
-        if (type == '(') numOpenParen++;
-        if (type == ')') numOpenParen--;
-        if (type == '[') numOpenBracket++;
-        if (type == ']') numOpenBracket--;
+        if (!isInComment) {
+            if (type == '{') numOpenBrace++;
+            if (type == '}') numOpenBrace--;
+            if (type == '(') numOpenParen++;
+            if (type == ')') numOpenParen--;
+            if (type == '[') numOpenBracket++;
+            if (type == ']') numOpenBracket--;
+        }
 
         if (type == '#') {
             isInComment = true;
