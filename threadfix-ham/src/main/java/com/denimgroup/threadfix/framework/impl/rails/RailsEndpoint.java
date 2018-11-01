@@ -74,7 +74,7 @@ public class RailsEndpoint extends AbstractEndpoint {
 
         String urlFormat = urlPath;
         urlFormat = urlFormat
-                .replaceAll("\\{.+\\}", regexCaptureGroupPattern)
+                .replaceAll("\\{[^}]+\\}", regexCaptureGroupPattern)
                 .replaceAll("\\:([\\w\\-_]+)", regexCaptureGroupPattern)
                 .replaceAll("\\*([\\w\\-_]+)", regexCaptureGroupPattern)
                 .replaceAll("\\(\\/\\:([\\w\\-_]+)\\)", "\\/([^\\/]+)");
