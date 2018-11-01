@@ -65,7 +65,7 @@ public class RailsControllerParser implements EventBasedTokenizer {
     );
 
     private enum ControllerState {
-        INIT, MODULE, CLASS, METHOD, PARAMS
+        INIT, MODULE, CLASS, INNER_CLASS, METHOD, PARAMS
     }
 
 
@@ -83,6 +83,8 @@ public class RailsControllerParser implements EventBasedTokenizer {
     private String currentParamName;
     private RubyScopeTracker scopeTracker = new RubyScopeTracker();
     private int methodStartScopeDepth = -1;
+    private int innerClassStartScopeDepth = -1;
+    private int innerClassStartLine = -1;
     private RouteParameterType currentParameterType = RouteParameterType.UNKNOWN;
 
     private ControllerState currentCtrlState = ControllerState.INIT;
@@ -113,6 +115,9 @@ public class RailsControllerParser implements EventBasedTokenizer {
             parser.currentParamName = null;
             parser.scopeTracker = new RubyScopeTracker();
             parser.methodStartScopeDepth = -1;
+            parser.currentCtrlState = ControllerState.INIT;
+            parser.moduleNameStack.clear();
+            parser.currentParameterType = RouteParameterType.UNKNOWN;
 
             EventBasedTokenizerRunner.runRails(rubyFile, false, true, parser);
 
@@ -174,6 +179,9 @@ public class RailsControllerParser implements EventBasedTokenizer {
             case CLASS:
                 processClass(type, stringValue, charValue);
                 break;
+            case INNER_CLASS:
+                processInnerClass(type, stringValue, charValue, lineNumber);
+                break;
             case METHOD:
                 processMethod(type, stringValue, charValue);
                 break;
@@ -199,11 +207,15 @@ public class RailsControllerParser implements EventBasedTokenizer {
             } else if (s.equals("module")) {
                 currentCtrlState = ControllerState.MODULE;
             } else if (s.equals("class")) {
-                currentCtrlState = ControllerState.CLASS;
                 if (currentRailsController == null) {
+                    currentCtrlState = ControllerState.CLASS;
                     currentRailsController = new RailsController();
                     currentRailsController.setModuleName(buildCurrentModuleName());
                     moduleNameStack.clear();
+                } else {
+                    currentCtrlState = ControllerState.INNER_CLASS;
+                    innerClassStartScopeDepth = scopeTracker.getScopeDepth();
+                    innerClassStartLine = lineNumber;
                 }
             } else if (s.equals("def")) {
                 currentCtrlState = ControllerState.METHOD;
@@ -248,6 +260,14 @@ public class RailsControllerParser implements EventBasedTokenizer {
             }
             currentRailsController.setControllerName(ctrlName);
             currentCtrlState = ControllerState.INIT;
+        }
+    }
+
+    private void processInnerClass(int type, String stringValue, String charValue, int lineNumber) {
+        if (scopeTracker.getScopeDepth() <= innerClassStartScopeDepth && lineNumber != innerClassStartLine) {
+            currentCtrlState = ControllerState.CLASS;
+            innerClassStartScopeDepth = -1;
+            innerClassStartLine = -1;
         }
     }
 
