@@ -112,6 +112,7 @@ public class RailsControllerParser implements EventBasedTokenizer {
             parser.currentCtrlMethod = null;
             parser.currentParamName = null;
             parser.scopeTracker = new RubyScopeTracker();
+            parser.methodStartScopeDepth = -1;
 
             EventBasedTokenizerRunner.runRails(rubyFile, false, true, parser);
 
@@ -165,13 +166,6 @@ public class RailsControllerParser implements EventBasedTokenizer {
 
 	    scopeTracker.accept(stringValue, type, lineNumber);
 
-	    if (scopeTracker.getScopeDepth() < methodStartScopeDepth) {
-		    currentCtrlMethod.setEndLine(lineNumber);
-		    currentRailsController.addControllerMethod(currentCtrlMethod);
-		    currentCtrlMethod = null;
-		    methodStartScopeDepth = -1;
-	    }
-
 	    if (scopeTracker.isInComment()) {
 	    	return;
 	    }
@@ -191,6 +185,12 @@ public class RailsControllerParser implements EventBasedTokenizer {
                 break;
         }
 
+        if (scopeTracker.getScopeDepth() < methodStartScopeDepth) {
+            currentCtrlMethod.setEndLine(lineNumber);
+            currentRailsController.addControllerMethod(currentCtrlMethod);
+            currentCtrlMethod = null;
+            methodStartScopeDepth = -1;
+        }
 
         if (stringValue != null) {
             String s = stringValue.toLowerCase();
