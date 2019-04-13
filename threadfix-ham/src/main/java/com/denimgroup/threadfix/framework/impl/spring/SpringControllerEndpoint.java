@@ -105,6 +105,10 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
      */
     public void expandParameters(@Nonnull EntityMappings entityMappings,
                                  @Nullable SpringDataBinderParser globalDataBinderParser) {
+
+        /*
+         * Handle DataBinder parsing
+         */
         if (modelObject != null) {
             ModelFieldSet fields = entityMappings.getPossibleParametersForModelType(modelObject);
             parameters.putAll(fields.getPossibleParameters());
@@ -151,6 +155,32 @@ public class SpringControllerEndpoint extends AbstractEndpoint {
             }
             parameters.keySet().retainAll(allowedParams);
         }
+
+        /*
+         * Expand other model fields
+         */
+
+        List<String> removedParams = list();
+        Map<String, RouteParameter> newParams = map();
+
+        for (String paramName : parameters.keySet()) {
+            RouteParameter param = parameters.get(paramName);
+            ModelFieldSet expanded = entityMappings.getPossibleParametersForModelType(param.getDataTypeSource());
+            if (expanded != null && !expanded.isEmpty()) {
+                removedParams.add(paramName);
+                for (ModelField field : expanded) {
+                    RouteParameter newParam = RouteParameter.fromDataType(field.getParameterKey(), field.getType());
+                    newParam.setParamType(param.getParamType());
+                    newParams.put(field.getParameterKey(), newParam);
+                }
+            }
+        }
+
+        for (String removed : removedParams) {
+            parameters.remove(removed);
+        }
+
+        parameters.putAll(newParams);
     }
 
     @Override

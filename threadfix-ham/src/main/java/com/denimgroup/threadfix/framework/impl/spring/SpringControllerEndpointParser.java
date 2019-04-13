@@ -34,28 +34,34 @@ import com.denimgroup.threadfix.framework.util.java.EntityMappings;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 
 import static com.denimgroup.threadfix.CollectionUtils.list;
 import static com.denimgroup.threadfix.CollectionUtils.map;
 
 // TODO recognize String variables
+
 // TODO support * values:
-// from Spring documentation: Ant-style path patterns are supported (e.g. "/myPath/*.do").
+//      from Spring documentation: Ant-style path patterns are supported (e.g. "/myPath/*.do").
+
+// TODO - Should change annotation parameter parsing from per-param to whole-context
+//        Currently annoying to handle both named parameters and unnamed/ordered params
+//        Collecting the whole parameter set and parsing after we have the whole thing
+//        should simplify that
+
 public class SpringControllerEndpointParser implements EventBasedTokenizer {
 
     @Nonnull
     Set<SpringControllerEndpoint> endpoints = new TreeSet<SpringControllerEndpoint>();
     private int startLineNumber = -1, curlyBraceCount = 0, openParenCount = 0;
-    private boolean inClass = false, afterOpenParen = false;
+    private boolean inClass = false, afterOpenParen = false, isValueMultiParam = false;
     boolean hasControllerAnnotation = false;
 
     @Nullable
-    private String classEndpoint = null, currentMapping = null, lastValue = null,
-            secondToLastValue = null, lastParam, lastParamType, pendingParamDataType, pendingParamName;
+    private List<String> classEndpoints = null, currentMappings = null;
+
+    @Nullable
+    private String lastValue = null, secondToLastValue = null, lastParam, lastParamType, pendingParamDataType, pendingParamName;
 
     private RouteParameterType pendingParamType;
 
@@ -82,6 +88,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             REQUEST_PARAM   = "RequestParam",
             PATH_VARIABLE   = "PathVariable",
             REQUEST_MAPPING = "RequestMapping",
+            REQUEST_BODY    = "RequestBody",
             COOKIE_VALUE    = "CookieValue",
             SESSION_ATTRIBUTE = "SessionAttribute",
             CLASS           = "class",
@@ -197,9 +204,11 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             case START:
                 if (type == ARROBA) {
                     setState(SignatureState.ARROBA);
-                } else if (stringValue != null && stringValue.equals(BINDING_RESULT) &&
-                        lastParamType != null && lastParam != null) {
-                    currentModelObject = new ModelField(lastParamType, lastParam, false); // should be type and variable name
+                } else if (stringValue != null) {
+                    boolean isBindingAnnotation = stringValue.equals(BINDING_RESULT) || stringValue.equals(REQUEST_BODY);
+                    if (isBindingAnnotation && lastParamType != null && lastParam != null) {
+                        currentModelObject = new ModelField(lastParamType, lastParam, false); // should be type and variable name
+                    }
                 }
                 break;
             case ARROBA:
@@ -207,11 +216,14 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                         (stringValue.equals(REQUEST_PARAM) ||
                         stringValue.equals(PATH_VARIABLE) ||
                         stringValue.equals(COOKIE_VALUE) ||
-                        stringValue.equals(SESSION_ATTRIBUTE))) {
+                        stringValue.equals(SESSION_ATTRIBUTE) ||
+                        stringValue.equals(REQUEST_BODY))) {
 
                     setState(SignatureState.REQUEST_PARAM);
                     if (stringValue.equals(PATH_VARIABLE)) {
                         pendingParamType = RouteParameterType.PARAMETRIC_ENDPOINT;
+                    } else if (stringValue.equals(REQUEST_BODY)) {
+                        pendingParamType = RouteParameterType.FORM_DATA;
                     } else if (stringValue.equals(REQUEST_PARAM)) {
                         pendingParamType = RouteParameterType.QUERY_STRING;
                     } else if (stringValue.equals(COOKIE_VALUE)) {
@@ -368,12 +380,15 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 } else if (afterOpenParen && type == DOUBLE_QUOTE) {
                     // If it immediately starts with a quoted value, use it
                     if (inClass) {
-                        currentMapping = stringValue;
+                        currentMappings = list(stringValue);
                         annotationState = AnnotationState.ANNOTATION_END;
                     } else {
-                        classEndpoint = stringValue;
+                        classEndpoints = list(stringValue);
                         annotationState = AnnotationState.START;
                     }
+                } else if (afterOpenParen && type == OPEN_CURLY) {
+                    isValueMultiParam = true;
+                    annotationState = AnnotationState.VALUE;
                 } else if (type == CLOSE_PAREN){
                     annotationState = AnnotationState.ANNOTATION_END;
                 }
@@ -384,10 +399,18 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             case VALUE:
                 if (stringValue != null) {
                     if (inClass) {
-                        currentMapping = stringValue;
+                        if (currentMappings == null) currentMappings = list();
+                        currentMappings.add(stringValue);
                     } else {
-                        classEndpoint = stringValue;
+                        if (classEndpoints == null) classEndpoints = list();
+                        classEndpoints.add(stringValue);
                     }
+
+                    if (!isValueMultiParam) {
+                        annotationState = AnnotationState.REQUEST_MAPPING;
+                    }
+                } else if (type == CLOSE_CURLY) {
+                    isValueMultiParam = false;
                     annotationState = AnnotationState.REQUEST_MAPPING;
                 }
                 break;
@@ -415,9 +438,10 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                 }
                 break;
             case PATH:
-                if (currentMapping == null) {
-                    currentMapping = "";
+                if (currentMappings == null) {
+                    currentMappings = list("");
                 }
+                String currentMapping = currentMappings.get(0);
                 if (type == COMMA) {
                     annotationState = AnnotationState.REQUEST_MAPPING;
                 } else if (stringValue != null) {
@@ -427,6 +451,7 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
                         currentMapping += stringValue;
                     }
                 }
+                currentMappings.set(0, currentMapping);
                 break;
             case HEADERS:
                 // Not doing anything with this yet
@@ -475,25 +500,6 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
     }
 
     private void addEndpoint(int endLineNumber) {
-        if (classEndpoint != null) {
-            if (currentMapping != null) {
-                if (classEndpoint.endsWith("/") || currentMapping.startsWith("/")) {
-                    currentMapping = classEndpoint + currentMapping;
-                } else {
-                    currentMapping = classEndpoint + "/" + currentMapping;
-                }
-            } else {
-                currentMapping = classEndpoint;
-            }
-        }
-
-        while (currentMapping != null && currentMapping.contains("//")) {
-            currentMapping = currentMapping.replace("//","/");
-        }
-
-        if (currentMapping != null && currentMapping.indexOf('/') != 0) {
-            currentMapping = "/" + currentMapping;
-        }
 
         // It's ok to add a default method here because we must be past the class-level annotation
         if (classMethods.isEmpty()) {
@@ -504,49 +510,66 @@ public class SpringControllerEndpointParser implements EventBasedTokenizer {
             methodMethods.addAll(classMethods);
         }
 
-        assert currentMapping != null : "Current mapping should not be null at this point. Check the state machine.";
+        Collection<String> baseEndpoints = classEndpoints;
+        if (baseEndpoints == null)
+            baseEndpoints = list("");
+
+        Collection<String> subEndpoints = currentMappings;
+        if (subEndpoints == null)
+            subEndpoints = list("");
 
         String primaryMethod = null;
         SpringControllerEndpoint primaryEndpoint = null;
 
-        for (String method : methodMethods) {
-            method = method.replace("RequestMethod.", "");
-            if (primaryMethod == null) {
-                primaryMethod = method;
-            }
+        for (String baseEndpoint : baseEndpoints) {
+            for (String subEndpoint : subEndpoints) {
+                String currentEndpoint = baseEndpoint + "/" + subEndpoint;
+                while (currentEndpoint.contains("//"))
+                    currentEndpoint = currentEndpoint.replace("//", "/");
 
-            SpringControllerEndpoint endpoint = new SpringControllerEndpoint(relativeFilePath, currentMapping,
-                    method,
-                    currentParameters,
-                    startLineNumber,
-                    endLineNumber,
-                    currentModelObject);
+                if (currentEndpoint.indexOf('/') != 0)
+                    currentEndpoint = "/" + currentEndpoint;
+                if (currentEndpoint.endsWith("/"))
+                    currentEndpoint = currentEndpoint.substring(0, currentEndpoint.length() - 1);
 
-            if (primaryEndpoint == null) {
-                primaryEndpoint = endpoint;
-                endpoints.add(primaryEndpoint);
-            }
+                for (String method : methodMethods) {
+                    method = method.replace("RequestMethod.", "");
+                    if (primaryMethod == null) {
+                        primaryMethod = method;
+                    }
 
-            if (entityMappings != null) {
-                endpoint.expandParameters(entityMappings, null);
-            }
+                    SpringControllerEndpoint endpoint = new SpringControllerEndpoint(relativeFilePath, currentEndpoint,
+                            method,
+                            currentParameters,
+                            startLineNumber,
+                            endLineNumber,
+                            currentModelObject);
 
-            if (globalAuthString != null) {
-                if (currentAuthString != null) {
-                    endpoint.setAuthorizationString(globalAuthString + " and " + currentAuthString);
-                } else {
-                    endpoint.setAuthorizationString(globalAuthString);
+                    if (primaryEndpoint == null) {
+                        primaryEndpoint = endpoint;
+                        endpoints.add(primaryEndpoint);
+                    } else {
+                        primaryEndpoint.addVariant(endpoint);
+                    }
+
+                    if (entityMappings != null) {
+                        endpoint.expandParameters(entityMappings, null);
+                    }
+
+                    if (globalAuthString != null) {
+                        if (currentAuthString != null) {
+                            endpoint.setAuthorizationString(globalAuthString + " and " + currentAuthString);
+                        } else {
+                            endpoint.setAuthorizationString(globalAuthString);
+                        }
+                    } else if (currentAuthString != null) {
+                        endpoint.setAuthorizationString(currentAuthString);
+                    }
                 }
-            } else if (currentAuthString != null) {
-                endpoint.setAuthorizationString(currentAuthString);
-            }
-
-            if (primaryEndpoint != endpoint) {
-                primaryEndpoint.addVariant(endpoint);
             }
         }
 
-        currentMapping = null;
+        currentMappings = null;
         methodMethods = list();
         startLineNumber = -1;
         curlyBraceCount = 0;
