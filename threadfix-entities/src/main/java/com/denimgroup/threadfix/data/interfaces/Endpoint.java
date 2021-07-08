@@ -29,7 +29,7 @@ package com.denimgroup.threadfix.data.interfaces;
 import com.denimgroup.threadfix.data.entities.AuthenticationRequired;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.enums.EndpointRelevanceStrictness;
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.annotation.Nonnull;
 import java.util.List;

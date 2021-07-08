@@ -23,7 +23,6 @@
 
 package com.denimgroup.threadfix.framework.engine.full;
 
-import org.codehaus.jackson.map.ObjectMapper;
 import com.denimgroup.threadfix.data.enums.FrameworkType;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.EndpointSerializer;
@@ -43,8 +42,8 @@ import com.denimgroup.threadfix.framework.impl.spring.SpringControllerEndpoint;
 import com.denimgroup.threadfix.framework.impl.spring.SpringControllerEndpointSerializer;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpoint;
 import com.denimgroup.threadfix.framework.impl.struts.StrutsEndpointSerializer;
-import org.codehaus.jackson.map.type.TypeFactory;
-import org.codehaus.jackson.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.type.TypeFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;

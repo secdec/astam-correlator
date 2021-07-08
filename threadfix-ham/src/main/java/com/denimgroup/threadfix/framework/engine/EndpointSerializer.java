@@ -26,11 +26,11 @@ package com.denimgroup.threadfix.framework.engine;
 import com.denimgroup.threadfix.data.entities.RouteParameter;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.full.RouteParameterDeserializer;
-import org.codehaus.jackson.Version;
-import org.codehaus.jackson.annotate.JsonAutoDetect;
-import org.codehaus.jackson.annotate.JsonMethod;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.module.SimpleModule;
+import com.fasterxml.jackson.annotation.JsonAutoDetect;
+import com.fasterxml.jackson.annotation.PropertyAccessor;
+import com.fasterxml.jackson.core.Version;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 
 import java.io.IOException;
 
@@ -46,8 +46,8 @@ public abstract class EndpointSerializer {
     public EndpointSerializer() {
         mapper = new ObjectMapper();
 
-        mapper.setVisibility(JsonMethod.ALL, JsonAutoDetect.Visibility.NONE);
-        mapper.setVisibility(JsonMethod.FIELD, JsonAutoDetect.Visibility.ANY);
+        mapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.NONE);
+        mapper.setVisibility(PropertyAccessor.FIELD, JsonAutoDetect.Visibility.ANY);
 
         SimpleModule module = new SimpleModule("RouteParameterDeserializer", Version.unknownVersion());
         module.addDeserializer(RouteParameter.class, new RouteParameterDeserializer());

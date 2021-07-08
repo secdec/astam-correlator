@@ -30,7 +30,6 @@ import com.denimgroup.threadfix.framework.impl.dotNet.DotNetEndpoint;
 import com.denimgroup.threadfix.framework.impl.dotNetWebForm.WebFormsEndpointExplicit;
 import com.denimgroup.threadfix.framework.impl.jsp.JSPEndpoint;
 import com.denimgroup.threadfix.framework.impl.spring.SpringControllerEndpoint;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;

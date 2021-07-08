@@ -25,7 +25,7 @@ package com.denimgroup.threadfix.framework.impl.dotNetWebForm;
 
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
 import com.denimgroup.threadfix.framework.engine.EndpointSerializer;
-import org.codehaus.jackson.map.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 

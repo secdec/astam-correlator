@@ -31,8 +31,8 @@ import com.denimgroup.threadfix.data.interfaces.EndpointPathNode;
 import com.denimgroup.threadfix.framework.engine.AbstractEndpoint;
 import com.denimgroup.threadfix.framework.util.RegexUtils;
 import com.denimgroup.threadfix.framework.util.java.EntityMappings;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.jackson.annotate.JsonIgnore;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

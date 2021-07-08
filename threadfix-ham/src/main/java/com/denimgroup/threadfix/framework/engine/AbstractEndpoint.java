@@ -28,7 +28,7 @@ package com.denimgroup.threadfix.framework.engine;
 
 import com.denimgroup.threadfix.data.entities.AuthenticationRequired;
 import com.denimgroup.threadfix.data.interfaces.Endpoint;
-import org.codehaus.jackson.annotate.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
