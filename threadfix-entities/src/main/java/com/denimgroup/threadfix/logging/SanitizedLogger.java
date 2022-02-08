@@ -25,8 +25,10 @@
 package com.denimgroup.threadfix.logging;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.message.SimpleMessage;
 
 /**
  * This method provides a single point of access to the loggers to ease sanitization efforts.
@@ -40,11 +42,11 @@ public class SanitizedLogger {
 	private static final String MY_CANONICAL_CLASS_NAME = SanitizedLogger.class.getCanonicalName();
 	
 	public SanitizedLogger(String className) {
-		log = Logger.getLogger(className);
+		log = LogManager.getLogger(className);
 	}
 	
 	public SanitizedLogger(Class<?> className) {
-		log = Logger.getLogger(className);
+		log = LogManager.getLogger(className);
 	}
 
 	/**
@@ -52,35 +54,51 @@ public class SanitizedLogger {
 	 * @param message Debug message to log
 	 */
 	public void debug(String message) {
-		log.log(MY_CANONICAL_CLASS_NAME, Level.DEBUG, sanitize(message), null);
+		if (log.isDebugEnabled()) {
+			log.logMessage(Level.DEBUG, null, MY_CANONICAL_CLASS_NAME, null, new SimpleMessage(sanitize(message)), null);
+		}
 	}
 	
 	public void debug(String message, Throwable ex) {
-		log.log(MY_CANONICAL_CLASS_NAME, Level.DEBUG, sanitize(message), ex);
+		if (log.isDebugEnabled()) {
+			log.logMessage(Level.DEBUG, null, MY_CANONICAL_CLASS_NAME, null, new SimpleMessage(sanitize(message)), ex);
+		}
 	}
 	
 	public void info(String message) {
-		log.log(MY_CANONICAL_CLASS_NAME, Level.INFO, sanitize(message), null);
+		if (log.isInfoEnabled()) {
+			log.logMessage(Level.INFO, null, MY_CANONICAL_CLASS_NAME, null, new SimpleMessage(sanitize(message)), null);
+		}
 	}
 	
 	public void info(String message, Throwable ex) {
-		log.log(MY_CANONICAL_CLASS_NAME, Level.INFO, sanitize(message), ex);
+		if (log.isInfoEnabled()) {
+			log.logMessage(Level.INFO, null, MY_CANONICAL_CLASS_NAME, null, new SimpleMessage(sanitize(message)), ex);
+		}
 	}
 	
 	public void warn(String message) {
-		log.log(MY_CANONICAL_CLASS_NAME, Level.WARN, sanitize(message), null);
+		if (log.isWarnEnabled()) {
+			log.logMessage(Level.WARN, null, MY_CANONICAL_CLASS_NAME, null, new SimpleMessage(sanitize(message)), null);
+		}
 	}
 	
 	public void warn(String message, Throwable ex) {
-		log.log(MY_CANONICAL_CLASS_NAME, Level.WARN, sanitize(message), ex);
+		if (log.isWarnEnabled()) {
+			log.logMessage(Level.WARN, null, MY_CANONICAL_CLASS_NAME, null, new SimpleMessage(sanitize(message)), ex);
+		}
 	}
 	
 	public void error(String message) {
-		log.log(MY_CANONICAL_CLASS_NAME, Level.ERROR, sanitize(message), null);
+		if (log.isErrorEnabled()) {
+			log.logMessage(Level.ERROR, null, MY_CANONICAL_CLASS_NAME, null, new SimpleMessage(sanitize(message)), null);
+		}
 	}
 	
 	public void error(String message, Throwable ex) {
-		log.log(MY_CANONICAL_CLASS_NAME, Level.ERROR, sanitize(message), ex);
+		if (log.isErrorEnabled()) {
+			log.logMessage(Level.ERROR, null, MY_CANONICAL_CLASS_NAME, null, new SimpleMessage(sanitize(message)), ex);
+		}
 	}
 	
 	/**
