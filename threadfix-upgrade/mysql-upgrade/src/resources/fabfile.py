@@ -33,7 +33,7 @@ def clone_code():
 @runs_once
 def exchange_files():
     with settings(warn_only = True):
-        res1 = local('mv %s/%s/log4j.xml.deploy %s/%s/log4j.xml' % (local_working_folder_loc, local_path, local_working_folder_loc, local_path))
+        res1 = local('mv %s/%s/log4j2.xml.deploy %s/%s/log4j2.xml' % (local_working_folder_loc, local_path, local_working_folder_loc, local_path))
         res2 = local('mv %s/%s/jdbc.properties.mysql %s/%s/jdbc.properties' % (local_working_folder_loc, local_path, local_working_folder_loc, local_path))
         res3 = local('mv %s/%s/applicationContext-scheduling.xml.deploy %s/%s/applicationContext-scheduling.xml' % (local_working_folder_loc, local_path, local_working_folder_loc, local_path))
     res = res1 and res2 and res3

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration>
+
+    <Appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout pattern="%p [%t] %c{1}.%M(%L) | %m%n" />
+            <Filters>
+                <ThresholdFilter level="INFO" />
+            </Filters>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="org.springframework.security" level="ERROR" />
+        <Logger name="org.apache" level="WARN" />
+        <Logger name="httpclient.wire.header" level="WARN" />
+        <Logger name="httpclient.wire.content" level="WARN" />
+        <Logger name="org.hibernate" level="WARN" />
+        <Logger name="org.springframework" level="WARN" />
+        <Logger name="org.springframework.orm" level="WARN" />
+        <Logger name="org.tuckey.web.filters.urlrewrite" level="WARN" />
+        <Logger name="com.denimgroup.threadfix" level="DEBUG" />
+
+        <Root level="DEBUG">
+            <AppenderRef ref="CONSOLE"/>
+        </Root>
+    </Loggers>
+
+</Configuration>

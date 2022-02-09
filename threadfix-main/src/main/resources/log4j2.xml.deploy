@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration>
+    <Appenders>
+        <Console name="CONSOLE" target="SYSTEM_OUT">
+            <PatternLayout pattern="%p [%t] %c{1}.%M(%L) | %m%n" />
+            <Filters>
+                <ThresholdFilter level="INFO" />
+            </Filters>
+        </Console>
+        <RollingFile name="FILE" filePattern="/var/lib/tomcat7/logs/threadfix-app-log.%d{yyyy-MM-dd}.log" append="true">
+            <Filters>
+                <ThresholdFilter level="DEBUG" />
+            </Filters>
+            <PatternLayout pattern="%d [%t] %-5p %C{6} (%F:%L) - %m%n" />
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" />
+            </Policies>
+        </RollingFile>
+    </Appenders>
+
+	<Loggers>
+	    <!-- Suppress success logging from InteractiveAuthenticationSuccessEvent -->
+	    <Logger name="org.springframework.security" level="ERROR" />
+	    <Logger name="org.apache" level="WARN" />
+		<Logger name="httpclient.wire.header" level="WARN" />
+		<Logger name="httpclient.wire.content" level="WARN" />
+	    <Logger name="org.hibernate" level="WARN" />
+	    <Logger name="org.springframework" level="WARN" />
+	    <Logger name="org.springframework.orm" level="WARN" />
+	    <Logger name="org.tuckey.web.filters.urlrewrite" level="WARN" />
+	    <Logger name="com.denimgroup.threadfix" level="DEBUG" />
+
+	    <Root level="DEBUG">
+	        <AppenderRef ref="CONSOLE"/>
+	        <AppenderRef ref="FILE"/>
+	    </Root>
+    </Loggers>
+
+</Configuration>
