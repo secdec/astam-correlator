@@ -527,8 +527,16 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         for (Endpoint endpoint : newEndpoints) {
             StrutsEndpoint strutsEndpoint = (StrutsEndpoint)endpoint;
 
+            // Note: The "is absolute file" check is a bit wonky here since the current `getRelativePath` logic
+            //       may return paths with `/` prefix, making those paths "absolute" on unix systems. This logic
+            //       is used throughout threadfix-ham, so rather than changing that frequently-used bit of logic
+            //       to omit `/` prefix we'll just extend the check
+
             String filePath = strutsEndpoint.getFilePath();
-            if (new File(filePath).isAbsolute()) {
+
+            // (wonky "is absolute file" check)
+            File filePathFile = new File(filePath);
+            if (filePathFile.isAbsolute() && filePathFile.exists() && !new File(PathUtil.combine(project.getRootDirectory(), filePath)).exists()) {
                 filePath = FilePathUtils.getRelativePath(filePath, project.getRootDirectory());
             }
             String fullFilePath = PathUtil.combine(projectRelativeFilePath, filePath, true);
@@ -538,7 +546,9 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             if (displayFilePath != null) {
                 String fullDisplayFilePath;
 
-                if (new File(displayFilePath).isAbsolute()) {
+                // (wonky "is absolute file" check)
+                File displayFilePathFile = new File(displayFilePath);
+                if (displayFilePathFile.isAbsolute() && displayFilePathFile.exists() && !new File(PathUtil.combine(rootDirectory.getAbsolutePath(), displayFilePath)).exists()) {
                     fullDisplayFilePath = FilePathUtils.getRelativePath(displayFilePath, FilePathUtils.normalizePath(rootDirectory.getAbsolutePath()));
                 } else {
                     fullDisplayFilePath = PathUtil.combine(projectRelativeFilePath, displayFilePath, true);
