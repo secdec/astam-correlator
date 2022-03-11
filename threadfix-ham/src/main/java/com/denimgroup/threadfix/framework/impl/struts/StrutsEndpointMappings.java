@@ -318,6 +318,15 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         endpoints.removeAll(variantEndpoints);
     }
 
+    // Note: The "is absolute file" check is a bit wonky here since the current `getRelativePath` logic
+    //       may return paths with `/` prefix, making those paths "absolute" on unix systems. This logic
+    //       is used throughout threadfix-ham, so rather than changing that frequently-used bit of logic
+    //       to omit `/` prefix we'll just extend the check
+    private Boolean isDefinitelyAbsolute(String path, String potentialParent) {
+        File file = new File(path);
+        return file.isAbsolute() && file.exists() && !new File(PathUtil.combine(potentialParent, path)).exists();
+    }
+
     private void generateMaps(StrutsProject project, Collection<Endpoint> endpoints, File rootDirectory) {
 
         StrutsPageParameterDetector parameterDetector = new StrutsPageParameterDetector();
@@ -527,16 +536,10 @@ public class StrutsEndpointMappings implements EndpointGenerator {
         for (Endpoint endpoint : newEndpoints) {
             StrutsEndpoint strutsEndpoint = (StrutsEndpoint)endpoint;
 
-            // Note: The "is absolute file" check is a bit wonky here since the current `getRelativePath` logic
-            //       may return paths with `/` prefix, making those paths "absolute" on unix systems. This logic
-            //       is used throughout threadfix-ham, so rather than changing that frequently-used bit of logic
-            //       to omit `/` prefix we'll just extend the check
-
             String filePath = strutsEndpoint.getFilePath();
 
             // (wonky "is absolute file" check)
-            File filePathFile = new File(filePath);
-            if (filePathFile.isAbsolute() && filePathFile.exists() && !new File(PathUtil.combine(project.getRootDirectory(), filePath)).exists()) {
+            if (isDefinitelyAbsolute(filePath, project.getRootDirectory())) {
                 filePath = FilePathUtils.getRelativePath(filePath, project.getRootDirectory());
             }
             String fullFilePath = PathUtil.combine(projectRelativeFilePath, filePath, true);
@@ -546,9 +549,7 @@ public class StrutsEndpointMappings implements EndpointGenerator {
             if (displayFilePath != null) {
                 String fullDisplayFilePath;
 
-                // (wonky "is absolute file" check)
-                File displayFilePathFile = new File(displayFilePath);
-                if (displayFilePathFile.isAbsolute() && displayFilePathFile.exists() && !new File(PathUtil.combine(rootDirectory.getAbsolutePath(), displayFilePath)).exists()) {
+                if (isDefinitelyAbsolute(displayFilePath, rootDirectory.getAbsolutePath())) {
                     fullDisplayFilePath = FilePathUtils.getRelativePath(displayFilePath, FilePathUtils.normalizePath(rootDirectory.getAbsolutePath()));
                 } else {
                     fullDisplayFilePath = PathUtil.combine(projectRelativeFilePath, displayFilePath, true);
