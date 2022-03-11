@@ -156,7 +156,7 @@ public class StrutsProject {
         String[] rootPathParts = packRootPathRelativeToWebRoot.split("\\/");
         StrutsWebPack result = null;
         for (StrutsWebPack webPack : webPacks) {
-            String packRelativePath = webPack.getRootDirectoryPath().replace(webPath, "");
+            String packRelativePath = webPack.getAbsoluteRootDirectoryPath().replace(webPath, "");
             if (!packRelativePath.startsWith("/")) {
                 packRelativePath = "/" + packRelativePath;
             }
@@ -183,7 +183,7 @@ public class StrutsProject {
 
     //  Returns the location of the given web pack relative to the global web content directory
     public String getWebPackPathRelativeToWebRoot(StrutsWebPack webPack) {
-        String webPackPath = webPack.getRootDirectoryPath();
+        String webPackPath = webPack.getAbsoluteRootDirectoryPath();
         String relativePath = webPackPath.replace("^" + webPackPath, "");
         if (!relativePath.startsWith("/")) {
             relativePath = "/" + relativePath;

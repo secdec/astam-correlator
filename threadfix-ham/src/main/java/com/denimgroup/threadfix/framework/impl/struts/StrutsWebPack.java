@@ -28,6 +28,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
 import java.io.File;
+import java.security.InvalidParameterException;
 import java.util.Collection;
 import java.util.List;
 
@@ -42,8 +43,12 @@ public class StrutsWebPack {
 
     public StrutsWebPack(String absoluteRootDirectoryPath) {
         this.absoluteRootDirectoryPath = PathUtil.normalizeSeparator(absoluteRootDirectoryPath);
-        if (!this.absoluteRootDirectoryPath.startsWith("/") && !new File(this.absoluteRootDirectoryPath).isAbsolute()) {
-            this.absoluteRootDirectoryPath = "/" + this.absoluteRootDirectoryPath;
+        File asFile = new File(this.absoluteRootDirectoryPath);
+        if (!asFile.isAbsolute()) {
+            throw new InvalidParameterException("Root directory must be an absolute path");
+        }
+        if (!asFile.exists()) {
+            throw new InvalidParameterException("Root directory does not exist: " + this.absoluteRootDirectoryPath);
         }
     }
 
@@ -82,7 +87,7 @@ public class StrutsWebPack {
         return welcomeFiles;
     }
 
-    public String getRootDirectoryPath() {
+    public String getAbsoluteRootDirectoryPath() {
         return absoluteRootDirectoryPath;
     }
 

@@ -62,7 +62,7 @@ public class DefaultActionMapper implements ActionMapper {
         if (primaryWebPack != null) {
             //  Handle basic content files
             for (String file : primaryWebPack.getRelativeFilePaths()) {
-                String fullPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), file);
+                String fullPath = PathUtil.combine(primaryWebPack.getAbsoluteRootDirectoryPath(), file);
                 Map<String, RouteParameter> params = new HashMap<String, RouteParameter>();
                 String endpointPath = makeRelativePath(fullPath, project);
                 StrutsEndpoint endpoint = new StrutsEndpoint(endpointPath, PathUtil.combine(namespace, file), "GET", params);
@@ -76,7 +76,7 @@ public class DefaultActionMapper implements ActionMapper {
             }
 
             for (String file : primaryWebPack.getWelcomeFiles()) {
-                String fullPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), file);
+                String fullPath = PathUtil.combine(primaryWebPack.getAbsoluteRootDirectoryPath(), file);
 
                 if (!new File(fullPath).exists()) {
                     continue;
@@ -134,7 +134,7 @@ public class DefaultActionMapper implements ActionMapper {
                         for (StrutsResult result : results) {
                             if (primaryWebPack.contains(result.getValue())) {
                                 strutsAction.setActClass("JSPServlet");
-                                strutsAction.setActClassLocation(PathUtil.combine(primaryWebPack.getRootDirectoryPath(), result.getValue()));
+                                strutsAction.setActClassLocation(PathUtil.combine(primaryWebPack.getAbsoluteRootDirectoryPath(), result.getValue()));
                                 break;
                             }
                         }
@@ -267,7 +267,7 @@ public class DefaultActionMapper implements ActionMapper {
 
                         if (filePath != null && primaryWebPack != null) {
                             if (primaryWebPack.contains(filePath)) {
-                                String fullContentPath = PathUtil.combine(primaryWebPack.getRootDirectoryPath(), filePath);
+                                String fullContentPath = PathUtil.combine(primaryWebPack.getAbsoluteRootDirectoryPath(), filePath);
                                 StrutsEndpoint newEndpoint = new StrutsEndpoint(makeRelativePath(fullContentPath, project), basePath, "GET", new HashMap<String, RouteParameter>());
                                 int numLines = CodeParseUtil.countLines(fullContentPath);
                                 if (numLines > 0) {
